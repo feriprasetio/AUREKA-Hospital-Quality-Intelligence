@@ -73,3 +73,23 @@ test('SPM score calculations convert a four-point scale and aggregate with respo
   assert.equal(annual.denominator, 240)
   assert.ok(Math.abs((annual.value ?? 0) - 81.66666666666667) < 1e-9)
 })
+
+
+test('SPM distinguishes unavailable sources, measured zero, and a result without a configured target', () => {
+  const indicator = { source_mode: 'quality_linked', calculation_config: { method: 'ratio' } }
+  const source = { visite: [{ month: 1, denominator: 10 }, { month: 2, numerator: 0, denominator: 10 }] }
+  const missing = calculateSpmMonthly(indicator, {}, source, 1)
+  const zero = calculateSpmMonthly(indicator, {}, source, 2)
+  assert.equal(missing.numerator, null)
+  assert.equal(missing.status, 'no_data')
+  assert.equal(zero.value, 0)
+  assert.equal(zero.status, 'unassessed')
+  assert.equal(aggregateSpmMonths(indicator, [missing, zero]).status, 'unassessed')
+})
+
+test('SPM keeps an all-invalid year distinct from a year without measurements', () => {
+  const indicator = { source_mode: 'quality_linked', calculation_config: { method: 'ratio' } }
+  const invalid = calculateSpmMonthly(indicator, {}, { visite: [{ month: 1, numerator: 12, denominator: 10 }] }, 1)
+  assert.equal(invalid.status, 'invalid')
+  assert.equal(aggregateSpmMonths(indicator, [invalid]).status, 'invalid')
+})

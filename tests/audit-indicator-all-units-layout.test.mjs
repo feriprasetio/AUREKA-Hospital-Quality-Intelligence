@@ -29,7 +29,7 @@ test('The all-unit presentation change does not alter indicator calculation or p
   const results = read('components/QualityResultsWorkspace.tsx')
   const engine = read('lib/aureka/quality-results-engine.ts')
   assert.match(workspace, /const save=async\(\)=>/)
-  assert.match(workspace, /reviewRecord\(/)
+  assert.match(workspace, /confirmMonthlyReview\(/)
   assert.match(workspace, /openImportDialog\(/)
   assert.match(results, /calculateIndicatorResultsForProfiles\(/)
   assert.match(engine, /export function calculateIndicatorResult\(/)

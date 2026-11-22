@@ -1,5 +1,6 @@
 'use client'
 
+import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -109,16 +110,21 @@ export default function QualityReconciliationWorkspace({
 }) {
   const [year, setYear] = useState(2026)
   const [roomId, setRoomId] = useState<number | null>(initialRoomId)
-  const [queue, setQueue] = useState<QueuePayload | null>(null)
+  const [snapshot, setSnapshot] = useState<{ scope: string; queue: QueuePayload | null } | null>(null)
   const [loading, setLoading] = useState(true)
   const [savingKey, setSavingKey] = useState('')
   const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
   const [success, setSuccess] = useState('')
   const [manualDrafts, setManualDrafts] = useState<Record<string, ManualDraft>>({})
   const [warningDrafts, setWarningDrafts] = useState<Record<string, WarningDraft>>({})
   const [showAudit, setShowAudit] = useState(false)
 
   const canManage = role === 'ADMIN' || role === 'PMKP'
+  const scope = JSON.stringify([canManage, year, roomId])
+  const beginLoad = useLatestWorkspaceRequest(scope)
+  const queue = !loading && !loadError && snapshot?.scope === scope ? snapshot.queue : null
+  const awaitingScope = !loadError && (loading || snapshot?.scope !== scope)
   const responseGroups = queue?.response_groups ?? []
   const warningGroups = queue?.warning_groups ?? []
   const recentAudit = queue?.recent_audit ?? []
@@ -130,13 +136,16 @@ export default function QualityReconciliationWorkspace({
 
   useEffect(() => setRoomId(initialRoomId), [initialRoomId])
 
-  const load = useCallback(async (quiet = false) => {
+  const load = useCallback(async () => {
+    const isCurrent = beginLoad()
+    if (!isCurrent) return
+    setLoadError('')
     if (!canManage) {
-      setError('Akses Validasi dan Rekonsiliasi hanya tersedia untuk Admin dan Komite PMKP.')
+      setLoadError('Akses Validasi dan Rekonsiliasi hanya tersedia untuk Admin dan Komite PMKP.')
       setLoading(false)
       return
     }
-    if (!quiet) setLoading(true)
+    setLoading(true)
     setError('')
     try {
       const { data, error: rpcError } = await q().rpc('quality_reconciliation_list_v2', {
@@ -144,15 +153,15 @@ export default function QualityReconciliationWorkspace({
         p_room_id: roomId,
       })
       if (rpcError) throw rpcError
-      setQueue((data ?? null) as QueuePayload | null)
+      if (isCurrent()) setSnapshot({ scope, queue: (data ?? null) as QueuePayload | null })
     } catch (cause) {
-      setError(toUserFacingError(cause, { fallback: 'Antrean rekonsiliasi belum dapat dimuat. Periksa koneksi dan hak akses.' }))
+      if (isCurrent()) setLoadError(toUserFacingError(cause, { fallback: 'Antrean rekonsiliasi belum dapat dimuat. Periksa koneksi dan hak akses.' }))
     } finally {
-      setLoading(false)
+      if (isCurrent()) setLoading(false)
     }
-  }, [canManage, year, roomId])
+  }, [beginLoad, scope, canManage, year, roomId])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => { setSuccess(''); void load() }, [load])
 
   const optionsFor = useCallback((item: ResponseGroup) =>
     (item.options ?? []).filter(option => Number.isInteger(Number(option.code)) && Number(option.code) >= 1 && Number(option.code) <= 3 && String(option.label ?? '').trim()),
@@ -169,6 +178,7 @@ export default function QualityReconciliationWorkspace({
   }
 
   const applyResponseGroup = async (item: ResponseGroup, action: 'auto_exact' | 'manual') => {
+    if (!queue || savingKey) return
     const key = groupKey(item)
     let targetLabel = item.suggested_target_label ?? ''
     let targetCode = Number(item.suggested_target_code)
@@ -216,7 +226,7 @@ export default function QualityReconciliationWorkspace({
       const changed = Number((data as any)?.affected_count ?? 0)
       setSuccess(changed + ' respons berhasil direkonsiliasi pada ' + item.indicator_code + ' · ' + item.room_name + '. Nilai sumber asli tetap dipertahankan.')
       setManualDrafts(current => { const next = { ...current }; delete next[key]; return next })
-      await load(true)
+      await load()
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Pemetaan massal gagal. Tidak ada perubahan parsial yang disimpan.' }))
     } finally {
@@ -225,6 +235,7 @@ export default function QualityReconciliationWorkspace({
   }
 
   const reviewWarningGroup = async (item: WarningGroup, action: 'accept_derived_value' | 'needs_source_correction' | 'accept_verified_existing_data') => {
+    if (!queue || savingKey) return
     const key = warningKey(item)
     const reason = String(warningDrafts[key]?.reason ?? '').trim()
     if (reason.length < 10) {
@@ -274,7 +285,7 @@ export default function QualityReconciliationWorkspace({
             : count(result?.affected_count ?? 0) + ' warning ditandai perlu koreksi workbook. Warning tetap tampil sampai sumber diperbaiki.'
       )
       setWarningDrafts(current => { const next = { ...current }; delete next[key]; return next })
-      await load(true)
+      await load()
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Telaah warning gagal. Status sumber tidak diubah.' }))
     } finally {
@@ -359,12 +370,12 @@ export default function QualityReconciliationWorkspace({
       </div>
       <div className="qrcToolbar">
         <label className="qrcField">Tahun profil
-          <select value={year} onChange={event => setYear(Number(event.target.value))}>
+          <select value={year} disabled={!!savingKey} onChange={event => setYear(Number(event.target.value))}>
             {[2024, 2025, 2026, 2027, 2028, 2029].map(value => <option key={value} value={value}>{value}</option>)}
           </select>
         </label>
         <label className="qrcField">Cakupan unit
-          <select value={roomId == null ? 'all' : String(roomId)} onChange={event => setRoomId(event.target.value === 'all' ? null : Number(event.target.value))}>
+          <select value={roomId == null ? 'all' : String(roomId)} disabled={!!savingKey} onChange={event => setRoomId(event.target.value === 'all' ? null : Number(event.target.value))}>
             <option value="all">Semua unit yang dapat diakses</option>
             {rooms.map(room => <option key={room.id} value={room.id}>{room.name}</option>)}
           </select>
@@ -373,11 +384,12 @@ export default function QualityReconciliationWorkspace({
       </div>
     </header>
 
+    {loadError && <AsyncStatePanel state="error" title="Antrean rekonsiliasi belum dapat dimuat" description={loadError} onRetry={canManage ? () => void load() : undefined} compact/>}
     {error && <div className="qrcError" role="alert">{error}</div>}
     {success && <div className="qrcSuccess" role="status">{success}</div>}
 
-    {loading && !queue ? <AsyncStatePanel state="loading" title="Memuat antrean rekonsiliasi" description="Membaca kelompok warning dari seluruh unit yang berada dalam cakupan akses." compact/> : null}
-    {!loading && !queue && !error ? <AsyncStatePanel state="empty" title="Belum ada antrean rekonsiliasi" description="Tidak ada data yang dapat ditampilkan." compact/> : null}
+    {awaitingScope ? <AsyncStatePanel state="loading" title="Memuat antrean rekonsiliasi" description="Membaca kelompok warning dari seluruh unit yang berada dalam cakupan akses." compact/> : null}
+    {!awaitingScope && !queue && !loadError && !error ? <AsyncStatePanel state="empty" title="Belum ada antrean rekonsiliasi" description="Tidak ada data yang dapat ditampilkan." compact/> : null}
 
     {queue && <>
       <div className="qrcStats">

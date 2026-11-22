@@ -168,9 +168,10 @@ test('profile workspace provides export, guarded import confirmation, and one at
   assert.match(settingsSource, /Saya memahami bahwa seluruh profil aktif/)
 })
 
-test('audit workspace invalidates and reloads cached profile snapshots after replacement', () => {
+test('audit workspace reloads profile snapshots after replacement', () => {
   assert.match(auditWorkspaceSource, /aureka:indicator-profiles-updated/)
-  assert.match(auditWorkspaceSource, /QIW_MEMORY_CACHE\.clear\(\)/)
+  assert.match(auditWorkspaceSource, /if\(roomId!=null\)void load\(\)/)
+  assert.doesNotMatch(auditWorkspaceSource, /QIW_MEMORY_CACHE/)
 })
 
 

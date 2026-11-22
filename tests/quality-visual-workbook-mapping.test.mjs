@@ -7,8 +7,10 @@ const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf
 test('Excel mapping uses physical sheet columns as dropdown options, not free-text suggestions', () => {
   const mapping = read('components/QualityExcelMappingWorkspace.tsx')
   assert.match(mapping, /detectExcelHeaderColumns/)
-  assert.match(mapping, /setDetectedColumns\(chosen\.columns\)/)
-  assert.match(mapping, /setDetectedColumns\(sheet\.columns\)/)
+  assert.match(mapping, /selectHeaderRow\(chosen, chosen.recommendedRow\)/)
+  assert.match(mapping, /setDetectedColumns\(candidate\.columns\)/)
+  assert.match(mapping, /Baris ini hanya berisi judul kolom/)
+  assert.match(mapping, /savedRow !== headerRow/)
   assert.match(mapping, /<select aria-label=\{'Pilih kolom sumber Excel untuk '/)
   assert.match(mapping, /describeExcelSourceColumn\(column\)/)
   assert.match(mapping, /source_header: column\.header/)

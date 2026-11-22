@@ -1,8 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-import { hydrateInteractiveExcelHeaderMappings } from '@/lib/aureka/interactive-header-mapping'
+import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
+import { readAllPages } from '@/lib/aureka/pagination'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import QualityWorkbookImportPanel from '@/components/QualityWorkbookImportPanel'
 import QualityOptionEditor from '@/components/quality/QualityOptionEditor'
@@ -43,7 +45,8 @@ type Mapping = {
 }
 type Suggestion = { indicator_code: string; source_header: string | null; confidence: number; rationale: string }
 type Importer = { key: string; label: string; room_id: number }
-type HeaderSheet = { name: string; row: number; headers: string[]; columns: ExcelHeaderColumn[] }
+type HeaderCandidate = { row: number; columns: ExcelHeaderColumn[] }
+type HeaderSheet = { name: string; recommendedRow: number; candidates: HeaderCandidate[] }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -95,7 +98,12 @@ export default function QualityExcelMappingWorkspace({
   const [activeTab, setActiveTab] = useState<'unit' | 'indicator' | 'import'>('unit')
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [mappings, setMappings] = useState<Mapping[]>([])
+  const scope = JSON.stringify([roomId, profileYear, canManage])
+  const beginLoad = useLatestWorkspaceRequest(scope)
+  const [loadedScope, setLoadedScope] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState('')
+  const ready = loadedScope === scope && !loading && !loadError
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -106,10 +114,13 @@ export default function QualityExcelMappingWorkspace({
   const [detectedColumns, setDetectedColumns] = useState<ExcelHeaderColumn[]>([])
   const [headerRow, setHeaderRow] = useState(1)
   const [workbookName, setWorkbookName] = useState('')
+  const [inspecting, setInspecting] = useState(false)
+  const [headerConfirmed, setHeaderConfirmed] = useState(false)
   const [draftHeaders, setDraftHeaders] = useState<Record<string, string>>({})
   const [draftOccurrences, setDraftOccurrences] = useState<Record<string, number>>({})
   const [aiSuggestions, setAiSuggestions] = useState<Suggestion[]>([])
   const [aiBusy, setAiBusy] = useState(false)
+  const fileBusy = saving || inspecting || aiBusy
   const [selectedProfileId, setSelectedProfileId] = useState('')
   const [profileDraft, setProfileDraft] = useState({
     title: '', category: '', unit_of_measure: '', target_text: '',
@@ -132,6 +143,7 @@ export default function QualityExcelMappingWorkspace({
     })
   }
 
+  const activeSheet = sheets.find(sheet => sheet.name === selectedSheet)
   const activeRoom = rooms.find(item => Number(item.id) === Number(roomId)) ?? null
   const availableImporters = useMemo(() => {
     if (roomId == null) return []
@@ -144,10 +156,10 @@ export default function QualityExcelMappingWorkspace({
     }]
   }, [roomId])
   const selectedImporter = availableImporters.find(item => item.key === importerKey) ?? availableImporters[0] ?? null
-  const selectedProfile = profiles.find(item => item.id === selectedProfileId) ?? profiles[0] ?? null
+  const selectedProfile = !ready ? null : profiles.find(item => item.id === selectedProfileId) ?? profiles[0] ?? null
   const activeProfiles = useMemo(
-    () => profiles.filter(item => item.is_active && item.status === 'published').sort((a,b) => a.code.localeCompare(b.code, undefined, { numeric: true })),
-    [profiles],
+    () => !ready ? [] : profiles.filter(item => item.is_active && item.status === 'published').sort((a,b) => a.code.localeCompare(b.code, undefined, { numeric: true })),
+    [profiles, ready],
   )
   const existingByCode = useMemo(() => {
     const map = new Map<string, Mapping>()
@@ -158,14 +170,15 @@ export default function QualityExcelMappingWorkspace({
     }
     return map
   }, [mappings, selectedImporter?.key, importerKey])
-  const sourceColumnFor = (key: string, mapping?: Mapping) => {
-    // Do not silently accept a rule saved for another worksheet.
+  const sourceColumnFor = (key: string, mapping?: Mapping, fallback?: string) => {
     const savedSheet = String(mapping?.transform_json?.source_sheet ?? '').trim()
+    const savedRow = Number(mapping?.transform_json?.header_row)
     const manuallyChosen = Object.hasOwn(draftHeaders, key)
-    if (!manuallyChosen && savedSheet && normalize(savedSheet) !== normalize(selectedSheet)) return null
+    if (!manuallyChosen && mapping?.mapping_status === 'needs_review') return null
+    if (!manuallyChosen && ((savedSheet && normalize(savedSheet) !== normalize(selectedSheet)) || (savedRow > 0 && savedRow !== headerRow))) return null
     return resolveExcelSourceColumn(
       detectedColumns,
-      draftHeaders[key] ?? mapping?.source_header ?? '',
+      draftHeaders[key] ?? mapping?.source_header ?? fallback ?? '',
       draftOccurrences[key] ?? mapping?.occurrence ?? 1,
     )
   }
@@ -176,53 +189,44 @@ export default function QualityExcelMappingWorkspace({
     if (!availableImporters.some(item => item.key === importerKey)) setImporterKey(availableImporters[0]?.key ?? '')
   }, [availableImporters, importerKey])
 
+  useLayoutEffect(() => {
+    setProfiles([]); setMappings([]); setSelectedProfileId('')
+    setWorkbookName(''); setSheets([]); setSelectedSheet(''); setDetectedHeaders([]); setDetectedColumns([])
+    setDraftHeaders({}); setDraftOccurrences({}); setAiSuggestions([]); setHeaderConfirmed(false)
+    setError(''); setNotice('')
+  }, [scope])
+
   const load = useCallback(async () => {
+    const isCurrent = beginLoad()
+    if (!isCurrent) return
+    setLoadError('')
     if (!canManage || roomId == null) {
-      setProfiles([])
-      setMappings([])
+      setLoading(false)
       return
     }
-    setLoading(true); setError(''); setNotice('')
+    setLoading(true)
     try {
-      const [profileResult, mappingResult] = await Promise.all([
-        q().from('indicator_profiles').select('*').eq('room_id', roomId).eq('profile_year', profileYear).order('code'),
+      const [nextProfiles, mappingResult] = await Promise.all([
+        readAllPages<Profile>((from, to) => q().from('indicator_profiles').select('*')
+          .eq('room_id', roomId).eq('profile_year', profileYear).order('code').order('id').range(from, to)),
         q().rpc('quality_excel_header_mapping_list', {
           p_room_id: roomId,
           p_profile_year: profileYear,
           p_importer_key: null,
         }),
       ])
-      if (profileResult.error) throw profileResult.error
       if (mappingResult.error) throw mappingResult.error
-      const nextProfiles = (profileResult.data ?? []) as Profile[]
-      const nextMappings = Array.isArray(mappingResult.data?.mappings) ? mappingResult.data.mappings as Mapping[] : []
+      if (!isCurrent()) return
       setProfiles(nextProfiles)
-      setMappings(nextMappings)
-      hydrateInteractiveExcelHeaderMappings(roomId, profileYear, nextMappings)
-      if (!selectedProfileId || !nextProfiles.some(item => item.id === selectedProfileId)) {
-        setSelectedProfileId(nextProfiles[0]?.id ?? '')
-      }
-      setDraftHeaders(current => {
-        const next = { ...current }
-        for (const profile of nextProfiles) {
-          const mapping = nextMappings.find(item =>
-            item.importer_key === (selectedImporter?.key ?? importerKey) &&
-            item.target_key === profileKey(profile.code),
-          )
-          const key = draftKey(selectedImporter?.key ?? importerKey, profile.code)
-          if (mapping && !next[key]) next[key] = mapping.source_header
-          else if (!next[key] && String(profile.schema_json?.header_label ?? '').trim()) {
-            next[key] = String(profile.schema_json?.header_label ?? '').trim()
-          }
-        }
-        return next
-      })
+      setMappings(Array.isArray(mappingResult.data?.mappings) ? mappingResult.data.mappings as Mapping[] : [])
+      setSelectedProfileId(current => nextProfiles.some(item => item.id === current) ? current : nextProfiles[0]?.id ?? '')
+      setLoadedScope(scope)
     } catch (cause) {
-      setError(toUserFacingError(cause, { fallback: 'Konfigurasi pemetaan Excel belum dapat dimuat. Pastikan migration Pusat Pemetaan Excel telah diterapkan.' }))
+      if (isCurrent()) setLoadError(toUserFacingError(cause, { fallback: 'Konfigurasi pemetaan Excel belum dapat dimuat. Periksa koneksi dan hak akses.' }))
     } finally {
-      setLoading(false)
+      if (isCurrent()) setLoading(false)
     }
-  }, [canManage, roomId, profileYear])
+  }, [beginLoad, canManage, roomId, profileYear, scope])
 
   useEffect(() => { void load() }, [load])
 
@@ -243,11 +247,15 @@ export default function QualityExcelMappingWorkspace({
   }, [selectedProfile?.id, selectedProfile?.version])
 
   const inspectWorkbook = async (file: File) => {
-    setError(''); setNotice(''); setAiSuggestions([]); setWorkbookName(file.name)
+    if (fileBusy || !ready) return
+    setError(''); setNotice(''); setWorkbookName('')
+    setSheets([]); setSelectedSheet(''); setDetectedHeaders([]); setDetectedColumns([])
+    setDraftHeaders({}); setDraftOccurrences({}); setAiSuggestions([]); setHeaderConfirmed(false)
     if (!/\.xlsx$/i.test(file.name) || file.size <= 0 || file.size > 25 * 1024 * 1024) {
       setError('Pilih workbook .xlsx dengan ukuran maksimal 25 MB.')
       return
     }
+    setInspecting(true)
     try {
       const module = await import('exceljs-hardened')
       const ExcelJS: any = (module as any).default ?? module
@@ -255,8 +263,8 @@ export default function QualityExcelMappingWorkspace({
       await workbook.xlsx.load(await file.arrayBuffer())
       const rows: HeaderSheet[] = []
       for (const sheet of workbook.worksheets.slice(0, 50)) {
-        let bestRow = 1
-        let bestColumns: ExcelHeaderColumn[] = []
+        const candidates: HeaderCandidate[] = []
+        let recommended: HeaderCandidate | undefined
         for (let rowNumber = 1; rowNumber <= Math.min(12, sheet.rowCount); rowNumber++) {
           const row = sheet.getRow(rowNumber)
           const limit = Math.min(200, Number(row.cellCount ?? row.actualCellCount ?? 0))
@@ -264,36 +272,48 @@ export default function QualityExcelMappingWorkspace({
             index: index + 1,
             value: row.getCell(index + 1).value,
           })))
-          if (columns.length > bestColumns.length) { bestColumns = columns; bestRow = rowNumber }
+          if (!columns.length) continue
+          const candidate = { row: rowNumber, columns }
+          candidates.push(candidate)
+          if (!recommended || candidate.columns.length > recommended.columns.length) recommended = candidate
         }
-        if (bestColumns.length) rows.push({ name: sheet.name, row: bestRow, columns: bestColumns, headers: bestColumns.map(column => column.header) })
+        if (recommended) rows.push({ name: sheet.name, recommendedRow: recommended.row, candidates })
       }
       if (!rows.length) throw new Error('Tidak ditemukan baris header pada 12 baris pertama workbook.')
+      setWorkbookName(file.name)
       setSheets(rows)
       const chosen = rows.find(item => normalize(item.name) === 'logbook') ?? rows.find(item => /logbook/i.test(item.name)) ?? rows[0]
       setSelectedSheet(chosen.name)
-      setHeaderRow(chosen.row)
-      setDetectedHeaders(chosen.headers)
-      setDetectedColumns(chosen.columns)
-      setDraftHeaders({})
-      setDraftOccurrences({})
-      setAiSuggestions([])
-      setNotice('Workbook berhasil diperiksa. Silakan klik dropdown huruf kolom dari sheet ' + chosen.name + '. Header kembar ditampilkan sebagai pilihan terpisah. Baris data pasien tidak dibaca atau dikirim ke NARA.')
+      selectHeaderRow(chosen, chosen.recommendedRow)
+      setNotice('Workbook berhasil diperiksa. Silakan klik dropdown huruf kolom dari sheet ' + chosen.name + '. Header kembar ditampilkan sebagai pilihan terpisah. Periksa baris yang terdeteksi dan pastikan isinya hanya judul kolom.')
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Workbook tidak dapat dibaca. Pastikan file .xlsx tidak rusak atau diproteksi password.' }))
+    } finally {
+      setInspecting(false)
     }
+  }
+
+  const selectHeaderRow = (sheet: HeaderSheet, row: number) => {
+    const candidate = sheet.candidates.find(item => item.row === row)
+    if (!candidate) return
+    setHeaderRow(row)
+    setDetectedColumns(candidate.columns)
+    setDetectedHeaders(candidate.columns.map(column => column.header))
+    setDraftHeaders({})
+    setDraftOccurrences({})
+    setAiSuggestions([])
+    setHeaderConfirmed(false)
   }
 
   const changeSheet = (name: string) => {
     const sheet = sheets.find(item => item.name === name)
+    if (!sheet) return
     setSelectedSheet(name)
-    if (sheet) { setHeaderRow(sheet.row); setDetectedHeaders(sheet.headers); setDetectedColumns(sheet.columns) }
-    setDraftHeaders({})
-    setDraftOccurrences({})
-    setAiSuggestions([])
+    selectHeaderRow(sheet, sheet.recommendedRow)
   }
 
   const runNaraBulk = async () => {
+    if (!ready || fileBusy || !headerConfirmed) return
     if (!roomId || !selectedImporter || !detectedHeaders.length || !activeProfiles.length) {
       setError('Pilih unit, jenis workbook, dan unggah workbook contoh terlebih dahulu.')
       return
@@ -347,6 +367,7 @@ export default function QualityExcelMappingWorkspace({
   }
 
   const saveUnitMappings = async () => {
+    if (!ready || fileBusy || !headerConfirmed) return
     if (!roomId || !selectedImporter || !activeProfiles.length) {
       setError('Unit dan jenis workbook harus dipilih.')
       return
@@ -357,7 +378,7 @@ export default function QualityExcelMappingWorkspace({
     }
     const rules = activeProfiles.flatMap(profile => {
       const key = draftKey(selectedImporter.key, profile.code)
-      const column = sourceColumnFor(key, existingByCode.get(profile.code))
+      const column = sourceColumnFor(key, existingByCode.get(profile.code), profile.schema_json?.header_label)
       if (!column) return []
       const ai = aiSuggestions.find(item => item.indicator_code === profile.code && normalize(item.source_header) === normalize(column.header))
       return [{
@@ -389,15 +410,9 @@ export default function QualityExcelMappingWorkspace({
         p_decision_note: 'Pemetaan diverifikasi Admin/PMKP pada Pusat Pemetaan Excel. ' + (workbookName ? 'Contoh workbook: ' + workbookName + '.' : ''),
       })
       if (rpcError) throw rpcError
-      const { data: refreshed, error: refreshError } = await q().rpc('quality_excel_header_mapping_list', {
-        p_room_id: roomId, p_profile_year: profileYear, p_importer_key: null,
-      })
-      if (refreshError) throw refreshError
-      const allMappings = Array.isArray(refreshed?.mappings) ? refreshed.mappings as Mapping[] : []
-      setMappings(allMappings)
-      hydrateInteractiveExcelHeaderMappings(roomId, profileYear, allMappings)
-      setNotice(numberLabel(Number(data?.saved_count ?? rules.length)) + ' aturan kolom dari sheet ' + selectedSheet + ' berhasil disimpan untuk unit/tahun/importer ini. ' + (rules.length < activeProfiles.length ? (activeProfiles.length - rules.length) + ' indikator belum dipetakan dalam workbook ini; aturan lain yang sudah tersimpan tidak dihapus. ' : '') + 'Impor berikutnya dapat menggunakan aturan yang sudah disetujui.')
       window.dispatchEvent(new CustomEvent('aureka:excel-mappings-updated', { detail: { roomId, year: profileYear } }))
+      setNotice(numberLabel(Number(data?.saved_count ?? rules.length)) + ' aturan kolom dari sheet ' + selectedSheet + ' berhasil disimpan.')
+      await load()
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Aturan pemetaan belum dapat disimpan. Tidak ada aturan yang diterapkan sebagian.' }))
     } finally {
@@ -406,7 +421,7 @@ export default function QualityExcelMappingWorkspace({
   }
 
   const saveProfile = async () => {
-    if (!selectedProfile) return
+    if (!selectedProfile || !ready || fileBusy) return
     if (profileDraft.reason.trim().length < 10) {
       setError('Alasan perubahan profil minimal 10 karakter.')
       return
@@ -465,7 +480,7 @@ export default function QualityExcelMappingWorkspace({
       .qemButton:disabled{opacity:.5;cursor:not-allowed}
       .qemButton.primary{background:#174f71;border-color:#174f71;color:#fff}
       .qemButton.ai{background:#eaf4fb;border-color:#c8dfef;color:#205879}
-      .qemTabs{display:flex;gap:7px;border-bottom:1px solid #e7edf2;padding-bottom:8px}
+      .qemTabs{display:flex;flex-wrap:wrap;gap:7px;border-bottom:1px solid #e7edf2;padding-bottom:8px}
       .qemTabs button{border:1px solid #dbe5ec;border-radius:9px;padding:8px 12px;background:#fff;color:#5d7181;font-size:12px;font-weight:750;cursor:pointer}
       .qemTabs button[aria-selected="true"]{background:#173e59;color:#fff;border-color:#173e59}
       .qemMessage{padding:10px 12px;border-radius:9px;font-size:12px;line-height:1.5}
@@ -495,13 +510,13 @@ export default function QualityExcelMappingWorkspace({
       <div><h3>Pemetaan Workbook Excel per Unit</h3><p>Atur kolom sumber per unit dan jenis workbook. Definisi indikator tetap terpisah; aturan ini hanya menentukan kolom Excel mana yang memasok setiap indikator.</p></div>
       <div className="qemTools">
         <label className="qemField">Unit
-          <select value={roomId ?? ''} onChange={event => setRoomId(event.target.value ? Number(event.target.value) : null)}>
+          <select value={roomId ?? ''} disabled={fileBusy} onChange={event => setRoomId(event.target.value ? Number(event.target.value) : null)}>
             <option value="">Pilih unit…</option>
             {rooms.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </label>
         <label className="qemField">Tahun
-          <select value={profileYear} onChange={event => setProfileYear(Number(event.target.value))}>
+          <select value={profileYear} disabled={fileBusy} onChange={event => setProfileYear(Number(event.target.value))}>
             {[2024,2025,2026,2027,2028,2029].map(item => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
@@ -517,33 +532,46 @@ export default function QualityExcelMappingWorkspace({
 
     {error && <div className="qemMessage error" role="alert">{error}</div>}
     {notice && <div className="qemMessage notice" role="status">{notice}</div>}
-    {loading && <div className="qemMuted">Memuat profil indikator dan aturan pemetaan…</div>}
+    {loading && <AsyncStatePanel state="loading" title="Memuat profil indikator dan aturan pemetaan" compact/>}
+    {loadError && <AsyncStatePanel state="error" title="Pemetaan Excel belum dapat dimuat" description={loadError} onRetry={() => void load()} compact/>}
 
     {activeTab === 'unit' && <>
       {!roomId ? <div className="qemPanel"><h4>Pilih unit kerja</h4><p className="qemMuted">Pengaturan pemetaan setiap instalasi disimpan terpisah dan tidak mengubah pengaturan unit lain.</p></div> : !selectedImporter ? <div className="qemPanel"><h4>Belum ada importer khusus untuk unit ini</h4><p className="qemMuted">Profil indikator tetap dapat diedit pada tab Pengaturan per Indikator. Jenis workbook dapat ditambahkan setelah alur impor unit disediakan.</p></div> : <>
         <div className="qemPanel">
           <div className="qemTools">
             <label className="qemField">Jenis workbook
-              <select value={selectedImporter.key} onChange={event => { setImporterKey(event.target.value); setAiSuggestions([]) }}>
+              <select value={selectedImporter.key} disabled={fileBusy} onChange={event => { setImporterKey(event.target.value); setAiSuggestions([]) }}>
                 {availableImporters.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
               </select>
             </label>
             <label className="qemField">Workbook contoh (header saja)
-              <input type="file" accept=".xlsx" onChange={event => { const file = event.target.files?.[0]; if (file) void inspectWorkbook(file); event.currentTarget.value = '' }}/>
+              <input type="file" accept=".xlsx" disabled={!ready || fileBusy} onChange={event => { const file = event.target.files?.[0]; if (file) void inspectWorkbook(file); event.currentTarget.value = '' }}/>
             </label>
             {sheets.length > 0 && <label className="qemField">Sheet header
-              <select value={selectedSheet} onChange={event => changeSheet(event.target.value)}>
-                {sheets.map(item => <option key={item.name} value={item.name}>{item.name} · baris {item.row}</option>)}
+              <select value={selectedSheet} disabled={fileBusy} onChange={event => changeSheet(event.target.value)}>
+                {sheets.map(item => <option key={item.name} value={item.name}>{item.name}</option>)}
+              </select>
+            </label>}
+            {activeSheet && <label className="qemField">Baris header
+              <select value={headerRow} disabled={fileBusy} onChange={event => selectHeaderRow(activeSheet, Number(event.target.value))}>
+                {activeSheet.candidates.map(candidate => <option key={candidate.row} value={candidate.row}>Baris {candidate.row} · {candidate.columns.length} kolom</option>)}
               </select>
             </label>}
           </div>
           <p className="qemMuted">Pilih sheet Logbook, kemudian klik dropdown di setiap baris indikator. Pilihan berasal dari huruf kolom dan judul header yang benar-benar ada pada workbook terunggah; tidak ada ketik manual. Baris pasien tidak dianalisis. Untuk unit yang belum memiliki importer khusus, aturan disimpan sebagai konfigurasi awal; alur unggah perlu dihubungkan ke importer sebelum digunakan otomatis.</p>
           {detectedColumns.length > 0 && <div className="qemActions"><span className="qemBadge">{numberLabel(detectedColumns.length)} kolom terdeteksi</span><span className="qemMuted">{workbookName} · sheet {selectedSheet} · baris header {headerRow}</span></div>}
+          {detectedColumns.length > 0 && <details className="qemMuted">
+            <summary>Tinjau judul kolom pada baris {headerRow}</summary>
+            <ol>{detectedColumns.map(column => <li key={column.index}>{describeExcelSourceColumn(column)}</li>)}</ol>
+          </details>}
+          {detectedColumns.length > 0 && <label className="qemMuted">
+            <input type="checkbox" checked={headerConfirmed} disabled={fileBusy} onChange={event => setHeaderConfirmed(event.target.checked)}/> Baris ini hanya berisi judul kolom.
+          </label>}
           <div className="qemActions">
-            <button type="button" className="qemButton ai" disabled={aiBusy || loading || !detectedHeaders.length || !activeProfiles.length} onClick={() => void runNaraBulk()}>
+            <button type="button" className="qemButton ai" disabled={fileBusy || !headerConfirmed || !ready || !detectedHeaders.length || !activeProfiles.length} onClick={() => void runNaraBulk()}>
               {aiBusy ? 'NARA sedang menganalisis…' : 'NARA AI · Petakan massal'}
             </button>
-            <button type="button" className="qemButton primary" disabled={saving || loading || !activeProfiles.length || !detectedColumns.length} onClick={() => void saveUnitMappings()}>
+            <button type="button" className="qemButton primary" disabled={fileBusy || !headerConfirmed || !ready || !activeProfiles.length || !detectedColumns.length} onClick={() => void saveUnitMappings()}>
               {saving ? 'Menyimpan…' : 'Simpan aturan unit'}
             </button>
           </div>
@@ -560,11 +588,11 @@ export default function QualityExcelMappingWorkspace({
                   <td><span className="qemMuted">{String(profile.schema_json?.header_label ?? 'Belum ditetapkan pada profil master')}</span><button type="button" className="qemButton" style={{ display: 'block', marginTop: 6 }} onClick={() => { setSelectedProfileId(profile.id); setActiveTab('indicator') }}>Edit profil</button></td>
                   <td>{(() => {
                     const key = draftKey(selectedImporter.key, profile.code)
-                    const selected = sourceColumnFor(key, mapping)
+                    const selected = sourceColumnFor(key, mapping, profile.schema_json?.header_label)
                     const wanted = draftHeaders[key] ?? mapping?.source_header ?? ''
                     return <>
                       <select aria-label={'Pilih kolom sumber Excel untuk ' + profile.code}
-                        disabled={!detectedColumns.length}
+                        disabled={fileBusy || !ready || !detectedColumns.length}
                         value={selected ? String(selected.index) : ''}
                         onChange={event => {
                           const column = detectedColumns.find(item => item.index === Number(event.target.value))
@@ -656,7 +684,7 @@ export default function QualityExcelMappingWorkspace({
             <p className="qemMuted" style={{ gridColumn: '1 / -1' }}>Header sumber tidak perlu diisi sebagai kode atau teks. Untuk memilih kolom Excel, buka tab Pengaturan per Unit, unggah workbook, lalu pilih kolom melalui dropdown. Metadata instrumen lainnya dipertahankan otomatis.</p>
             <label style={{ gridColumn: '1 / -1' }}>Alasan perubahan / catatan audit<textarea value={profileDraft.reason} onChange={event => setProfileDraft(current => ({ ...current, reason: event.target.value }))} placeholder="Jelaskan dasar perubahan definisi/header/opsi indikator (minimal 10 karakter)."/></label>
           </div>}
-          <div className="qemActions"><button type="button" className="qemButton primary" disabled={saving || !selectedProfile || profileDraft.reason.trim().length < 10} onClick={() => void saveProfile()}>{saving ? 'Menyimpan profil…' : 'Simpan revisi profil indikator'}</button></div>
+          <div className="qemActions"><button type="button" className="qemButton primary" disabled={fileBusy || !ready || !selectedProfile || profileDraft.reason.trim().length < 10} onClick={() => void saveProfile()}>{saving ? 'Menyimpan profil…' : 'Simpan revisi profil indikator'}</button></div>
           <p className="qemMuted">Perubahan profil indikator dicatat dalam audit tersendiri. Jangan mengubah kode klasifikasi klinis hanya agar respons Excel cocok; koreksi opsi master harus disetujui pemilik indikator.</p>
         </div>
       </>}

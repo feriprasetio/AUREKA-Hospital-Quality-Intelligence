@@ -1,4 +1,8 @@
 'use client'
+import AsyncStatePanel from '@/components/AsyncStatePanel'
+import { readAllPages } from '@/lib/aureka/pagination'
+import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { readLocalDocument, parseSpoSections, makeStructuredDocx, downloadBrowserBlob, printStructuredContent, type StructuredSection } from '@/lib/aureka/local-documents'
@@ -40,6 +44,8 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
   const inputRef=useRef<HTMLInputElement>(null)
   const [rows,setRows]=useState<Row[]>([])
   const [loading,setLoading]=useState(true)
+  const [loadError,setLoadError]=useState('')
+  const beginLoad=useLatestWorkspaceRequest(JSON.stringify([role,userId]))
   const [busy,setBusy]=useState(false)
   const [search,setSearch]=useState('')
   const [filter,setFilter]=useState<'all'|Status>('all')
@@ -49,12 +55,20 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
   const [notice,setNotice]=useState<{kind:'success'|'error'|'info';text:string}|null>(null)
 
   const load=useCallback(async()=>{
+    const isCurrent=beginLoad()
+    if(!isCurrent)return
     setLoading(true)
-    const {data,error}=await q().from('standard_operating_procedures').select('*').order('updated_at',{ascending:false})
-    if(error){setRows([]);setNotice({kind:'error',text:'Register SPO belum dapat dimuat. Pastikan migrasi SPO aktif dan hak akses akun sesuai. Detail: '+error.message})}
-    else setRows((data||[]) as Row[])
-    setLoading(false)
-  },[])
+    setLoadError('')
+    try{
+      const nextRows=await readAllPages<Row>((from,to)=>q().from('standard_operating_procedures')
+        .select('*').order('updated_at',{ascending:false}).order('id').range(from,to))
+      if(isCurrent())setRows(nextRows)
+    }catch(error){
+      if(!isCurrent())return
+      setRows([])
+      setLoadError(toUserFacingError(error,{fallback:'Register SPO belum dapat dimuat. Periksa koneksi dan hak akses.'}))
+    }finally{if(isCurrent())setLoading(false)}
+  },[beginLoad])
   useEffect(()=>{void load()},[load])
 
   const counts=useMemo(()=>({all:rows.length,draft:rows.filter(r=>r.status==='draft').length,pending:rows.filter(r=>r.status==='pending_review').length,approved:rows.filter(r=>r.status==='approved').length}),[rows])
@@ -101,47 +115,58 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
   }
 
   const save=async()=>{
-    if(!canManage)return
+    if(!canManage||busy)return
     if(draft.title.trim().length<2){setNotice({kind:'error',text:'Judul SPO wajib diisi.'});return}
     if(!draft.procedure_steps.some(s=>s.content.trim())){setNotice({kind:'error',text:'Isi minimal satu langkah pada bagian PROSEDUR.'});return}
+    const pageCount=draft.page_count.trim()?Number(draft.page_count):null
+    if(pageCount!=null&&(!Number.isInteger(pageCount)||pageCount<1)){
+      setNotice({kind:'error',text:'Jumlah halaman harus berupa bilangan bulat positif.'});return
+    }
     setBusy(true)
     const payload={
       title:draft.title.trim(),document_number:draft.document_number.trim()||null,revision_number:draft.revision_number.trim()||'00',
-      page_count:draft.page_count.trim()?Number(draft.page_count):null,issue_date:draft.issue_date||null,
+      page_count:pageCount,issue_date:draft.issue_date||null,
       approval_title:draft.approval_title.trim()||null,approval_name:draft.approval_name.trim()||null,
       approval_identifier:draft.approval_identifier.trim()||null,understanding:draft.understanding.trim(),purpose:draft.purpose.trim(),
-      policy:draft.policy.trim(),procedure_steps:draft.procedure_steps.map((s,i)=>({step_number:i+1,content:s.content.trim()})).filter(s=>s.content),
+      policy:draft.policy.trim(),procedure_steps:draft.procedure_steps.map(step=>step.content.trim()).filter(Boolean).map((content,i)=>({step_number:i+1,content})),
       related_units:draft.related_units.split(/[\n,;]+/).map(s=>s.trim()).filter(Boolean),
       flowchart:draft.flowchart_code.trim()?{format:'mermaid',code:draft.flowchart_code.trim()}:draft.flowchart_labels.length?{format:'extracted_diagram_labels',labels:draft.flowchart_labels,note:draft.flowchart_note}:draft.flowchart_note?{format:'source_page_text',note:draft.flowchart_note}:null,
       source_file_name:draft.source_file_name||null,source_file_mime_type:draft.source_file_mime_type||null,
-      source_file_size_bytes:draft.source_file_size_bytes,source_storage_path:null,
+      source_file_size_bytes:draft.source_file_size_bytes,source_storage_path:selected?.source_storage_path??null,
       source_sha256:draft.source_sha256||null,analysis_engine:draft.analysis_engine||null,
       analysis_confidence:draft.analysis_confidence,analysis_notes:draft.analysis_notes,review_notes:draft.review_notes.trim()||null,
-      status:'draft' as Status,updated_by:userId,...(selected?{}:{created_by:userId}),
+      status:selected?.status??'draft',updated_by:userId,...(selected?{}:{created_by:userId}),
     }
     try{
       const result=selected
-        ?await q().from('standard_operating_procedures').update(payload).eq('id',selected.id).select('*').single()
+        ?await q().from('standard_operating_procedures').update(payload).eq('id',selected.id).eq('updated_at',selected.updated_at).select('*').maybeSingle()
         :await q().from('standard_operating_procedures').insert(payload).select('*').single()
       if(result.error)throw result.error
+      if(!result.data)throw new Error('Dokumen telah berubah. Muat ulang register dan periksa versi terbaru sebelum menyimpan.')
       setSelected(result.data as Row);setDraft(mapDraft(result.data as Row));setManual(false)
-      setNotice({kind:'success',text:'Draf SPO tersimpan sebagai konten terstruktur. Tidak ada file sumber disimpan di Storage.'})
+      setNotice({kind:'success',text:'Perubahan isi SPO berhasil disimpan. Status: '+labels[(result.data as Row).status]+'.'})
       await load()
-    }catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'Draf SPO gagal disimpan.'})}
+    }catch(error){setNotice({kind:'error',text:toUserFacingError(error,{fallback:'Draf SPO gagal disimpan.'})})}
     finally{setBusy(false)}
   }
   const updateStatus=async(status:Status)=>{
-    if(!selected||!canManage||(status==='approved'&&!canApprove))return
+    if(!selected||busy||!canManage)return
+    const nextStatus: Partial<Record<Status,Status>>={draft:'pending_review',pending_review:'approved',approved:'archived'}
+    if(nextStatus[selected.status]!==status||((status==='approved'||status==='archived')&&!canApprove))return
+    if((status==='pending_review'||status==='approved')&&JSON.stringify({...draft,review_notes:''})!==JSON.stringify({...mapDraft(selected),review_notes:''})){
+      setNotice({kind:'error',text:'Simpan perubahan isi SPO sebelum mengubah status.'});return
+    }
     setBusy(true)
     try{
       const patch:Record<string,unknown>={status,updated_by:userId}
       if(status==='pending_review')patch.review_notes=draft.review_notes.trim()||null
       if(status==='approved'){patch.approved_by=userId;patch.approved_at=new Date().toISOString()}
-      const {data,error}=await q().from('standard_operating_procedures').update(patch).eq('id',selected.id).select('*').single()
+      const {data,error}=await q().from('standard_operating_procedures').update(patch).eq('id',selected.id).eq('updated_at',selected.updated_at).select('*').maybeSingle()
       if(error)throw error
+      if(!data)throw new Error('Dokumen telah berubah. Muat ulang register dan periksa status terbaru.')
       setSelected(data as Row);setDraft(mapDraft(data as Row));setNotice({kind:'success',text:'Status SPO diperbarui menjadi '+labels[status]+'.'})
       await load()
-    }catch(error){setNotice({kind:'error',text:error instanceof Error?error.message:'Perubahan status tidak berhasil.'})}
+    }catch(error){setNotice({kind:'error',text:toUserFacingError(error,{fallback:'Perubahan status tidak berhasil.'})})}
     finally{setBusy(false)}
   }
   const sections=():StructuredSection[]=>[
@@ -213,7 +238,7 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
         <section className="spoSection spoGrid">
           <label>Catatan Review<textarea rows={3} value={draft.review_notes} onChange={e=>setField('review_notes',e.target.value)}/></label>
           <div className="spoSourceMeta"><h3>Dokumen Sumber dan Analisis</h3>
-            {draft.source_file_name?<><strong>{draft.source_file_name}</strong><span>{((draft.source_file_size_bytes||0)/1024/1024).toFixed(2)} MB · tersimpan privat</span></>:<span>Belum ada file sumber.</span>}
+            {draft.source_file_name?<><strong>{draft.source_file_name}</strong><span>{((draft.source_file_size_bytes||0)/1024/1024).toFixed(2)} MB · {draft.source_storage_path?'arsip sumber':'file asal ekstraksi'}</span></>:<span>Belum ada file sumber.</span>}
             {draft.analysis_notes.map((n,i)=><small key={'note-'+i}>{n}</small>)}
           </div>
         </section>
@@ -226,13 +251,13 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
         {!canManage&&<p className="spoMuted">Akun Anda memiliki akses baca. Pengelolaan dan pengesahan dilakukan oleh pejabat berwenang.</p>}
       </footer>
     </section>:<>
-      <section className="spoStats"><div><span>Total Register</span><strong>{counts.all}</strong></div><div><span>Draf</span><strong>{counts.draft}</strong></div><div><span>Menunggu Review</span><strong>{counts.pending}</strong></div><div><span>Disahkan</span><strong>{counts.approved}</strong></div></section>
+      {!loading&&!loadError&&<section className="spoStats"><div><span>Total Register</span><strong>{counts.all}</strong></div><div><span>Draf</span><strong>{counts.draft}</strong></div><div><span>Menunggu Review</span><strong>{counts.pending}</strong></div><div><span>Disahkan</span><strong>{counts.approved}</strong></div></section>}
       <section className="spoRegister"><div className="spoRegisterToolbar"><div><h2>Register SPO</h2><p>Telusuri dokumen berdasarkan judul, nomor dokumentasi, unit, dan status.</p></div><input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari judul, nomor, atau unit…" aria-label="Cari SPO"/></div>
         <nav className="spoFilters" aria-label="Filter status">{(['all','draft','pending_review','approved','archived'] as const).map(value=><button key={value} type="button" className={filter===value?'active':''} onClick={()=>setFilter(value)}>{value==='all'?'Semua':labels[value]}</button>)}</nav>
-        {loading?<div className="spoEmpty">Memuat register SPO…</div>:visible.length?<div className="spoRecords">{visible.map(row=><button type="button" key={row.id} className="spoRecord" onClick={()=>openRow(row)}>
+        {loading?<AsyncStatePanel state="loading" title="Memuat register SPO" compact/>:loadError?<AsyncStatePanel state="error" title="Register SPO belum tersedia" description={loadError} onRetry={()=>void load()} compact/>:visible.length?<div className="spoRecords">{visible.map(row=><button type="button" key={row.id} className="spoRecord" onClick={()=>openRow(row)}>
           <div className="spoRecordTop"><span>{row.document_number||'Nomor belum dicantumkan'}</span><span className={'spoStatus spoStatus-'+row.status}>{labels[row.status]}</span></div>
           <h3>{row.title}</h3><p>Revisi {row.revision_number||'00'} · Terbit {dateLabel(row.issue_date)}</p>
-          <div className="spoRecordBottom"><span>{(row.related_units||[]).slice(0,3).join(' · ')||'Unit terkait belum diisi'}</span><span>{row.source_file_name?'Sumber tersimpan privat':'Input manual'}</span></div>
+          <div className="spoRecordBottom"><span>{(row.related_units||[]).slice(0,3).join(' · ')||'Unit terkait belum diisi'}</span><span>{row.source_file_name?'Hasil ekstraksi dokumen':'Input manual'}</span></div>
         </button>)}</div>:<div className="spoEmpty"><strong>{rows.length?'Tidak ada SPO yang sesuai filter.':'Belum ada register SPO.'}</strong><p>{rows.length?'Ubah kata kunci atau status untuk melihat data lainnya.':'Unggah PDF/DOCX atau mulai dari form manual. AUREKA menampilkan isi terstruktur, bukan file mentah.'}</p></div>}
       </section>
     </>}
