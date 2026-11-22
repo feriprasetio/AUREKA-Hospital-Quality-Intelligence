@@ -1020,7 +1020,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               <div><strong>Status penyusunan profil</strong><p style={{margin:'5px 0 0',fontSize:12,lineHeight:1.55,color:'var(--muted)'}}>Ringkasan status kamus indikator untuk tahun dan cakupan unit yang dipilih. Angka dihitung dari profil yang berhasil dimuat; target yang belum disahkan tidak dianggap sebagai target resmi.</p></div>
               <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                 <button type="button" className="textButton" onClick={()=>{setProfileWorkspaceOpen(true)}}>Lihat Profil Indikator</button>
-                {(role === 'ADMIN' || role === 'PMKP') && <button type="button" className="textButton" onClick={()=>setExcelMappingOpen(true)}>Pilih Kolom dari Excel</button>
+                {(role === 'ADMIN' || role === 'PMKP') && <button type="button" className="textButton" onClick={()=>setExcelMappingOpen(true)}>Pilih Kolom dari Excel</button>}
               </div>
             </div>
           </section>
