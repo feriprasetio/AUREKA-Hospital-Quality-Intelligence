@@ -638,8 +638,9 @@ export default function QualityWorkbookImportPanel({
             responses, attributions: [],
           }
           const identity = dataColumns.subject_key ? clean(source.values[dataColumns.subject_key]) : ''
-          if (dataMode === 'upsert' && !identity) {
-            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'ID subjek', message: 'Mode Upsert memerlukan ID subjek/episode yang stabil; nomor baris Excel tidak aman sebagai identitas.' })
+          if (!identity && (dataMode === 'upsert' || grain === 'patient_episode' || (roomId === 29 && grain === 'event'))) {
+            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Identitas sumber',
+              message: 'Data episode pasien, insiden, dan Upsert memerlukan ID yang stabil (No. RM/ID episode/ID insiden). Nomor baris dan hash berkas tidak dapat menjadi bukti episode unik lintas versi workbook.' })
             continue
           }
           const sourceKey = await hash(JSON.stringify([roomId, year, importerKey, dataSheet, grain,
