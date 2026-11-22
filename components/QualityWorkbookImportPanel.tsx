@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
 import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-source-audit'
+import { isExcelSourceError, isMaterialWorkbookSourceRow } from '@/lib/aureka/quality-import-row-filter'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
 import { shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
@@ -36,7 +37,7 @@ type SavedMapping = WorkbookSourceRule & { target_type: string; target_key: stri
 const headerText = (columnKey: string) => columnKey.replace(/^[A-Z]+: /, '')
 type ImportIssue = { sheet: string; row: number; field: string; message: string }
 type StagedRow = { source_key: string; source_sheet: string; source_row: number; row_payload: Record<string, any> }
-type Preview = { profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; draftRows: number }
+type Preview = { profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; skippedTemplateRows: number; draftRows: number }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -505,10 +506,22 @@ export default function QualityWorkbookImportPanel({
 
     const rows: StagedRow[] = []
     const seenSourceKeys = new Set<string>()
+    let skippedTemplateRows = 0
     if (importMode !== 'profiles_only') {
       if (!dataColumns.date) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Tanggal', message: 'Kolom tanggal wajib dipetakan agar catatan tidak hilang dari filter tahun laporan.' })
       if (importMode === 'data_only' && !activeProfiles.length) issues.push({ sheet: '-', row: 0, field: 'Profil aktif', message: 'Tidak ada profil indikator aktif untuk unit dan tahun terpilih.' })
       for (const source of sourceDataRows) {
+        const identityAndDateColumns = Object.values(dataColumns).filter(Boolean)
+        const responseColumns = [
+          ...Object.values(indicatorColumns), ...Object.values(numeratorColumns),
+          ...Object.values(denominatorColumns),
+        ].filter(Boolean)
+        if (!isMaterialWorkbookSourceRow(source.values, identityAndDateColumns, responseColumns)) {
+          // Numbered blank PMKP template rows and cached formula errors are not cases.
+          // Real rows with a person/date/selected observation still reach validation.
+          skippedTemplateRows++
+          continue
+        }
         const byGrain = new Map<string, any[]>()
         for (const profile of profiles) {
           const schemaMapping = profile.schema_json?.excel_mapping ?? {}
@@ -524,7 +537,7 @@ export default function QualityWorkbookImportPanel({
             // Formula cache errors must never turn into zero, a valid answer,
             // or a patient observation during a clinical import.
             const excelError = [rawCell, numeratorCell, denominatorCell].find(value =>
-              typeof value === 'string' && /^#(?:REF!|VALUE!|NUM!|NAME\?|DIV\/0!|N\/A|NULL!)/i.test(value),
+              isExcelSourceError(value),
             )
             if (excelError) throw new Error('Sumber Excel berisi error ' + excelError + '. Perbaiki sumber/pemetaan sebelum impor.')
             const kind = resolveMeasurementKind(profile)
@@ -657,7 +670,7 @@ export default function QualityWorkbookImportPanel({
     }
     if (rows.length > 10000) issues.push({ sheet: dataSheet, row: 0, field: 'Batas impor', message: 'Jumlah record hasil pemetaan melebihi batas 10.000 per batch.' })
     if (importMode !== 'profiles_only' && !rows.length) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Respons', message: 'Tidak ada respons indikator valid yang dapat disimpan.' })
-    setPreview({ profiles, rows, issues, workbookRows: sourceDataRows.length, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
+    setPreview({ profiles, rows, issues, workbookRows: sourceDataRows.length, skippedTemplateRows, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
     if (issues.length) setError('Pratinjau menemukan ' + issues.length.toLocaleString('id-ID') + ' masalah. Perbaiki pemetaan atau nilai sumber sebelum commit.')
     else setNotice('Pratinjau valid: ' + profiles.length.toLocaleString('id-ID') + ' profil, ' + rows.length.toLocaleString('id-ID') + ' record, ' + sourceDataRows.length.toLocaleString('id-ID') + ' baris sumber. ' + rows.filter(row => row.row_payload.record_payload.status === 'draft').length.toLocaleString('id-ID') + ' record parsial akan tetap draf.')
   }
@@ -862,7 +875,7 @@ export default function QualityWorkbookImportPanel({
     </div>
 
     {preview && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8 }}>
-      {[['Profil',preview.profiles.length],['Baris sumber',preview.workbookRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 11, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
+      {[['Profil',preview.profiles.length],['Baris sumber (termasuk templat)',preview.workbookRows],['Baris templat diabaikan',preview.skippedTemplateRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 11, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
     </div>}
     {preview?.issues?.length ? <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid #f0d7d2', borderRadius: 9, background: '#fff9f8', padding: 10 }}>
       <strong style={{ display: 'block', marginBottom: 7, fontSize: 12, color: '#92483d' }}>Masalah yang harus diperbaiki</strong>
