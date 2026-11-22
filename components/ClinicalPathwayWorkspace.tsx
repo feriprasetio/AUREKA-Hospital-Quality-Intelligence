@@ -956,7 +956,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     lockScroll:true,
   })
 
-  if (loading) return <div className="cpRoot"><style>{CSS}</style><div className="cpGlass cpHead"><div><span className="cpEyebrow">AUREKA · Audit Clinical Pathway</span><h3>Menyiapkan master Clinical Pathway…</h3></div></div></div>
+  if (loading) return <div className="cpRoot"><style>{CSS}</style><div className="cpGlass cpHead"><div><span className="cpEyebrow">AUREKA · Audit Clinical Pathway</span><h3>Memuat Clinical Pathway…</h3></div></div></div>
 
   // Editor format CP tampil sebagai popup di atas layar asal (pustaka/diagnosis).
   const view = screen === 'builder' ? builderReturnScreen : screen
@@ -964,7 +964,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     <style>{CSS}</style>
     <WorkspaceModuleHeader
       className="cpHead"
-      title={view === 'overview' ? 'Clinical Pathway' : view === 'library' ? 'Daftar format dan diagnosis Clinical Pathway' : view === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
+      title={view === 'overview' ? 'Clinical Pathway' : view === 'library' ? 'Daftar Clinical Pathway' : view === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
       actions={<div className="cpActions">
         {/* Tombol kembali ke Audit Indikator Mutu dihapus: Clinical Pathway kini menu tersendiri di Peningkatan Kinerja Klinis (Blueprint v2). */}
         {view === 'overview' ? null : <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(view === 'audit' ? 'diagnosis' : view === 'diagnosis' || view === 'library' ? 'overview' : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
@@ -979,17 +979,17 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     {!masterReady && view !== 'library' && <div className="cpNotice error">Format Clinical Pathway belum lengkap. Audit belum dapat disimpan.</div>}
 
     {view === 'overview' && <>
-      <div className="cpGrid" aria-label="Ringkasan master Clinical Pathway">
-        <LiquidGlass className="cpKpi"><span>Format aktif</span><strong>{templates.filter((template) => template.status === 'published').length.toLocaleString('id-ID')}</strong><small>Master yang sudah diterbitkan</small></LiquidGlass>
-        <LiquidGlass className="cpKpi"><span>Format keseluruhan</span><strong>{templates.length.toLocaleString('id-ID')}</strong><small>Termasuk draf sesuai kewenangan</small></LiquidGlass>
-        <LiquidGlass className="cpKpi"><span>Komponen checklist</span><strong>{templates.filter((template) => template.status === 'published').reduce((total, template) => total + template.items.length, 0).toLocaleString('id-ID')}</strong><small>Item dari format aktif</small></LiquidGlass>
+      <div className="cpGrid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }} aria-label="Ringkasan Clinical Pathway">
+        <LiquidGlass className="cpKpi"><span>Clinical Pathway</span><strong>{templates.filter((template) => template.status === 'published').length.toLocaleString('id-ID')}</strong><small>Tersedia untuk audit</small></LiquidGlass>
+        
+        <LiquidGlass className="cpKpi"><span>Item penilaian</span><strong>{templates.filter((template) => template.status === 'published').reduce((total, template) => total + template.items.length, 0).toLocaleString('id-ID')}</strong><small>Pada Clinical Pathway yang tersedia</small></LiquidGlass>
       </div>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Audit berdasarkan diagnosis</h4><p>Gunakan master yang telah disetujui. Setelah memilih diagnosis, AUREKA menampilkan rekam audit yang sudah tersimpan dan tindakan audit baru.</p></div></div>
+        <div className="cpSectionHead"><div><h4>Audit berdasarkan diagnosis</h4><p>Pilih diagnosis untuk melihat pasien yang tercatat dan melanjutkan atau membuat audit.</p></div></div>
         <div className="cpActions">
           <button type="button" className="cpBtn primary" disabled={!masterReady || templates.filter((template) => template.status === 'published').length === 0} onClick={() => setScreen('library')}>Lihat Daftar Pasien dengan Clinical Pathway</button>
-          {isAdmin && <button type="button" className="cpBtn" onClick={() => { setScreen('library'); beginNewBuilder() }}>Kelola Master Clinical Pathway</button>}
-          <button type="button" className="cpBtn" disabled={loading || saving} onClick={() => void loadTemplates()}>Muat ulang master</button>
+          {isAdmin && <button type="button" className="cpBtn" onClick={() => { setScreen('library'); beginNewBuilder() }}>Kelola Clinical Pathway</button>}
+          <button type="button" className="cpBtn" disabled={loading || saving} onClick={() => void loadTemplates()}>Muat ulang Clinical Pathway</button>
         </div>
         <div className="cpNotice info" style={{marginTop:12}}>
           Kandidat ditarik dari episode logbook yang tertaut ke Direktori Pasien dan dibatasi menurut kewenangan unit. Kecocokan teks/kode hanya penyaringan awal; kelayakan klinis tetap harus dikonfirmasi DPJP dan kriteria inklusi pada Section D.
@@ -998,9 +998,9 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     </>}
     {view === 'library' && <>
       <div className="cpGlass cpLibBar">
-        <div className="cpLibStats" aria-label="Ringkasan master Clinical Pathway">
-          <span><b>{templates.filter((t) => t.status === 'published').length}</b> format CP aktif</span>
-          <span><b>{templates.filter((t) => t.status === 'published').reduce((a, t) => a + t.items.length, 0).toLocaleString('id-ID')}</b> item master</span>
+        <div className="cpLibStats" aria-label="Ringkasan Clinical Pathway">
+          <span><b>{templates.filter((t) => t.status === 'published').length}</b> Clinical Pathway</span>
+          <span><b>{templates.filter((t) => t.status === 'published').reduce((a, t) => a + t.items.length, 0).toLocaleString('id-ID')}</b> item penilaian</span>
           <span><b>{isAdmin ? rooms.length : (initialRoomId ? 1 : 0)}</b> unit</span>
         </div>
         <div className="cpLibTools">
@@ -1008,7 +1008,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
           {isAdmin && !lockRoomScope && <label className="cpLibSel" title="Unit untuk audit baru"><span>Unit audit</span><select value={selectedRoomId == null ? '' : String(selectedRoomId)} onChange={(e) => setSelectedRoomId(e.target.value ? Number(e.target.value) : null)}><option value="">Semua unit (pilih saat audit)</option>{rooms.map(roomOption)}</select></label>}
           {/* Edit format kini lewat tombol di tiap kartu. */}
           {isAdmin && <button type="button" className="cpBtn primary" onClick={beginNewBuilder}>＋ CP baru</button>}
-          <button type="button" className="cpBtn cpIconBtn" title="Muat ulang master" aria-label="Muat ulang master" onClick={() => void loadTemplates()}>↻</button>
+          <button type="button" className="cpBtn cpIconBtn" title="Muat ulang Clinical Pathway" aria-label="Muat ulang Clinical Pathway" onClick={() => void loadTemplates()}>↻</button>
         </div>
             {isAdmin && templates.length === 0 && <div className="cpField" style={{minWidth:260}}>
             <label htmlFor="cp-source-json">Paket JSON Clinical Pathway (8 format)</label>
@@ -1277,17 +1277,17 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
 
     {screen === 'builder' && builder && isAdmin && typeof document !== 'undefined' && createPortal(<div className="cpBuilderOverlay" onMouseDown={(e) => { if (e.target === e.currentTarget && !saving) void (async () => { if (await aurekaConfirm('Tutup editor? Perubahan yang belum disimpan akan hilang.')) closeBuilder() })() }}>
       <div ref={builderDialogRef} tabIndex={-1} className="cpBuilderModal" role="dialog" aria-modal="true" aria-labelledby="cpBuilderTitle">
-      <div className="cpBuilderModalHead"><div><span className="cpEyebrow">Master Clinical Pathway</span><h3 id="cpBuilderTitle">{builderIsNew ? 'Tambah Clinical Pathway baru' : 'Edit format · ' + builder.name}</h3></div><button type="button" className="cpBuilderClose" aria-label="Tutup editor" disabled={saving} onClick={() => void (async () => { if (await aurekaConfirm('Tutup editor? Perubahan yang belum disimpan akan hilang.')) closeBuilder() })()}>✕</button></div>
+      <div className="cpBuilderModalHead"><div><h3 id="cpBuilderTitle">{builderIsNew ? 'Tambah Clinical Pathway baru' : 'Edit format · ' + builder.name}</h3></div><button type="button" className="cpBuilderClose" aria-label="Tutup editor" disabled={saving} onClick={() => void (async () => { if (await aurekaConfirm('Tutup editor? Perubahan yang belum disimpan akan hilang.')) closeBuilder() })()}>✕</button></div>
       <div className="cpBuilderModalBody">
       {message && <div className={'cpNotice ' + (messageKind === 'error' ? 'error' : 'info')} role={messageKind === 'error' ? 'alert' : 'status'}>{message}</div>}
       
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Identitas format Clinical Pathway</h4><p>Lengkapi identitas diagnosis, status publikasi, ambang penilaian, dan definisi perhitungan.</p></div><span className="cpBadge">{builderIsNew ? 'Master baru' : 'Versi ' + builder.version}</span></div>
+        <div className="cpSectionHead"><div><h4>Informasi Clinical Pathway</h4><p>Lengkapi identitas diagnosis, status publikasi, ambang penilaian, dan definisi perhitungan.</p></div><span className="cpBadge">{builderIsNew ? 'Master baru' : 'Versi ' + builder.version}</span></div>
         <div className="cpFormGrid">
           <div className="cpField"><label>Kode internal</label><input aria-label="Kode internal" value={builder.code} readOnly={!builderIsNew} onChange={(e) => patchBuilder({ code: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-') })} placeholder="mis. cp-diagnosis-baru" /><small className="cpTiny">Huruf kecil, angka, dan tanda hubung. Kode format lama dikunci untuk menjaga tautan audit.</small></div>
           <div className="cpField span2"><label>Nama diagnosis / Clinical Pathway *</label><input aria-label="Nama diagnosis atau Clinical Pathway" value={builder.name} onChange={(e) => patchBuilder({ name: e.target.value })} placeholder="Nama diagnosis atau tindakan" /></div>
           <div className="cpField"><label>Kode ICD-10</label><input aria-label="Kode ICD-10" value={builder.icd10} onChange={(e) => patchBuilder({ icd10: e.target.value })} placeholder="Kode ICD-10" /></div>
-          <div className="cpField"><label>Status master</label><select aria-label="Status master" value={builder.status} onChange={(e) => patchBuilder({ status: e.target.value })}><option value="draft">Draf</option><option value="published">Aktif / diterbitkan</option><option value="retired">Tidak aktif</option></select></div>
+          <div className="cpField"><label>Status publikasi</label><select aria-label="Status publikasi" value={builder.status} onChange={(e) => patchBuilder({ status: e.target.value })}><option value="draft">Draf</option><option value="published">Aktif / diterbitkan</option><option value="retired">Tidak aktif</option></select></div>
           <div className="cpField span2"><label>Nama dokumen sumber / rujukan</label><input aria-label="Nama dokumen sumber" value={builder.source_filename} onChange={(e) => patchBuilder({ source_filename: e.target.value })} placeholder="Nama dokumen atau sumber penyusunan" /></div>
           <div className="cpField"><label>Ambang keterisian checklist internal (%)</label><input aria-label="Standar keterisian persen" type="number" min="0" max="100" value={builder.scoring_rules.completion_threshold_pct} onChange={(e) => patchBuilderScoring({ completion_threshold_pct: n(e.target.value) })} /></div>
           <div className="cpField"><label>Target kepatuhan checklist internal (%)</label><input aria-label="Target kepatuhan persen" type="number" min="0" max="100" value={builder.scoring_rules.compliance_target_pct} onChange={(e) => patchBuilderScoring({ compliance_target_pct: n(e.target.value) })} /></div>

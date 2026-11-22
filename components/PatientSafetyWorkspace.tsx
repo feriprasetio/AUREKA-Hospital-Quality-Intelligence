@@ -749,7 +749,7 @@ export default function PatientSafetyWorkspace({
       const requiredForClosure = ['12', '15', '16', '17', '18', '19', '20']
       const missingClosureFields = requiredForClosure.filter(code => !String(investigationData[code] || '').trim())
       if (missingClosureFields.length) {
-        setError('RCA2 belum dapat ditutup. Lengkapi tindakan, hierarki tindakan, owner, tenggat, metode/bukti verifikasi, dan tanggal verifikasi efektivitas.')
+        setError('RCA2 belum dapat ditutup. Lengkapi tindakan, hierarki tindakan, penanggung jawab, tenggat, metode/bukti verifikasi, dan tanggal verifikasi efektivitas.')
         return
       }
       const validIsoDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value + 'T00:00:00Z')) && new Date(value + 'T00:00:00Z').toISOString().slice(0, 10) === value
@@ -1002,7 +1002,7 @@ export default function PatientSafetyWorkspace({
       loading={tab !== 'survey' && loading}
       unavailable={tab !== 'survey' && !!error}
       actions={tab !== 'survey' && <div className="psActions">
-        <span className="psPill green">{canManageWorkflow ? 'Pengelola alur' : 'Ruang kerja PIC'}</span>
+        
         <button type="button" className="psBtn" disabled={loading} onClick={() => void loadData()}>{loading ? 'Memuat…' : '↻ Refresh'}</button>
       </div>}
     />
@@ -1048,16 +1048,16 @@ export default function PatientSafetyWorkspace({
         <p className="psMuted" style={{fontSize:12,margin:'10px 0 0'}}>Dihitung dari {incidents.length} laporan yang dapat diakses pada ruang lingkup akun. Status dihitung dari data register, bukan interpretasi tingkat keparahan.</p>
       </LiquidGlass>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><h4>Alur Kerja Keselamatan Pasien</h4></div><span className="psPill green">WORKFLOW</span></div>
+        <div className="psSectionHead"><div><h4>Alur Kerja Keselamatan Pasien</h4></div></div>
         <div className="psRcaMap">
           <div className="psRcaNode"><b>01 · Pelaporan</b><span>IKP dibuat dan dikirim oleh pelapor.</span></div>
           <div className="psRcaNode"><b>02 · Review</b><span>Validasi oleh pengelola keselamatan pasien.</span></div>
           <div className="psRcaNode"><b>03 · Investigasi</b><span>CMP / SDP, penyebab, akar masalah.</span></div>
           <div className="psRcaNode"><b>04 · Tindakan</b><span>Rekomendasi dan pengurangan risiko.</span></div>
-          <div className="psRcaNode"><b>05 · Pembelajaran</b><span>Efektivitas perbaikan dan closure.</span></div>
+          <div className="psRcaNode"><b>05 · Pembelajaran</b><span>Efektivitas perbaikan dan penyelesaian.</span></div>
         </div>
         <div className="psActions"><button type="button" className="psBtn primary" onClick={() => { try { sessionStorage.setItem('aureka-ikp-new', '1') } catch { /* abaikan */ } newIncident(); setTab('incidents') }}>＋ Buat Laporan IKP</button>
-          {canManageWorkflow ? <button type="button" className="psBtn" onClick={() => setTab('investigation')}>Buka Workspace Investigasi</button> : null}</div>
+          {canManageWorkflow ? <button type="button" className="psBtn" onClick={() => setTab('investigation')}>Buka Investigasi</button> : null}</div>
       </LiquidGlass>
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><h4>Insiden Terbaru</h4></div><button type="button" className="psBtn" onClick={() => setTab('incidents')}>Lihat Semua</button></div>
@@ -1086,12 +1086,12 @@ export default function PatientSafetyWorkspace({
         <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill">{filteredIncidents.length} laporan</span><button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
         <div className="psFilterGrid">
           <div className="psFilter psLocalSearch"><label>Cari laporan</label><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
-          <div className="psFilter"><label>Status</label><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draft</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Closed</option></select></div>
+          <div className="psFilter"><label>Status</label><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draf</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Selesai</option></select></div>
           <div className="psFilter"><label>Unit</label>{scopeUnitName ? <div className="psPill green">{scopeUnitName}</div> : <select value={unitFilter} onChange={event => setUnitFilter(event.target.value)}><option value="all">Semua unit</option>{Array.from(new Set(incidents.map(row => row.unit_name).filter(Boolean))).sort().map(unit => <option key={unit}>{unit}</option>)}</select>}</div>
-          <div className="psFilter"><label>Data tersedia</label><div className="psPill green">{incidents.length} record</div></div>
+          
         </div>
         <div className="psPanel" style={{padding:14,marginTop:12}}>
-          <div className="psSectionHead"><div><h4>Distribusi status pada hasil filter</h4><p>Komposisi workflow register sesuai filter unit, status, dan pencarian saat ini.</p></div><span className="psPill">{filteredIncidents.length} laporan</span></div>
+          <div className="psSectionHead"><div><h4>Distribusi status pada hasil filter</h4><p>Distribusi status laporan sesuai filter yang dipilih.</p></div><span className="psPill">{filteredIncidents.length} laporan</span></div>
           {(['draft','submitted','under_review','investigation','closed'] as const).map(status=>{const count=filteredIncidents.filter(row=>row.status===status).length;const share=filteredIncidents.length?count/filteredIncidents.length*100:0;return <div className="psBarRow" key={status}><span>{statusLabel(status)}</span><div className="psBar"><i style={{width:share+'%'}}/></div><b>{count}</b></div>})}
           <p className="psMuted" style={{fontSize:12,margin:'8px 0 0'}}>Dihitung dari {filteredIncidents.length} laporan hasil filter. Ini merupakan distribusi status laporan, bukan rate insiden.</p>
         </div>
@@ -1116,7 +1116,7 @@ export default function PatientSafetyWorkspace({
         </div>
         <div className="psMetaGrid">
           <div className="psMeta"><span>Kode Laporan</span><strong>{incidentCode || 'Dibuat saat disimpan'}</strong></div>
-          <div className="psMeta"><span>Status Form</span><strong>{statusLabel(incidentStatus)}</strong></div>
+          <div className="psMeta"><span>Status Laporan</span><strong>{statusLabel(incidentStatus)}</strong></div>
           <div className="psMeta"><span>Kelengkapan</span><strong>{incidentCompletion}%</strong></div>
           <div className="psMeta"><span>Isian wajib belum lengkap</span><strong>{missingIncident.length}</strong></div>
         </div>
@@ -1124,15 +1124,15 @@ export default function PatientSafetyWorkspace({
         <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; laporan hanya bisa dibuka oleh petugas yang berwenang.</div>
         <nav className="psSectionJump" aria-label="Loncat ke bagian formulir">{INCIDENT_SECTIONS.map(section => <button type="button" key={section.letter} onClick={() => document.getElementById('ikp-sec-' + section.letter)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><b>{section.letter}</b>{section.title}</button>)}</nav>
         {INCIDENT_SECTIONS.map(section => <section className="psFormSection" id={'ikp-sec-' + section.letter} key={section.letter}>
-          <div className="psFormHeading"><span className="psFormLetter">{section.letter}</span><div><h4>{section.title}</h4><p>Formulir sumber · Bagian {section.letter}</p></div></div>
+          <div className="psFormHeading"><span className="psFormLetter">{section.letter}</span><div><h4>{section.title}</h4></div></div>
           <div className="psFormGrid">{section.fields.map(renderIncidentField)}</div>
           {section.letter === 'D' ? <GradeBox data={incidentData} /> : null}
         </section>)}
         <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 12 }}>{incidentCode ? 'Kode: ' + incidentCode : 'Laporan baru, kode dibuat otomatis saat disimpan.'}</div>
           <div className="psActions">
             {canManageWorkflow && incidentId ? <>
-              <select aria-label="Status workflow insiden" value={incidentStatus} disabled={saving} onChange={event => setIncidentStatus(event.target.value as IncidentStatus)} style={{ minHeight: 41, border: '1px solid rgba(35,63,50,.12)', borderRadius: 12, background: 'rgba(255,255,255,.72)', padding: '8px 10px', fontSize: 12 }}>
-                <option value="draft">Draft</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Closed</option>
+              <select aria-label="Status laporan insiden" value={incidentStatus} disabled={saving} onChange={event => setIncidentStatus(event.target.value as IncidentStatus)} style={{ minHeight: 41, border: '1px solid rgba(35,63,50,.12)', borderRadius: 12, background: 'rgba(255,255,255,.72)', padding: '8px 10px', fontSize: 12 }}>
+                <option value="draft">Draf</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Selesai</option>
               </select>
               <button type="button" className="psBtn primary" disabled={saving} onClick={() => void saveIncident(incidentStatus)}>{saving ? 'Menyimpan…' : 'Simpan Perubahan'}</button>
             </> : <>
@@ -1147,13 +1147,13 @@ export default function PatientSafetyWorkspace({
 
     {tab === 'investigation' ? <>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><div className="psEyebrow">Investigation workspace</div><h4>Investigasi Pascainsiden / RCA2</h4></div>
-          <span className="psPill amber">{canManageWorkflow ? 'Pengelola Investigasi' : 'Akses Baca'}</span>
+        <div className="psSectionHead"><div><h4>Investigasi Pascainsiden / RCA2</h4></div>
+          
         </div>
         <div className="psPanel" style={{padding:14,marginBottom:12}}>
           <div className="psSectionHead"><div><h4>Status investigasi pascainsiden / RCA2</h4><p>Jumlah investigasi menurut status proses, bukan penilaian individu atau tingkat keparahan.</p></div><span className="psPill">{investigations.length} investigasi</span></div>
           {(['draft','active','action_planned','closed'] as const).map(status=>{const count=investigations.filter(row=>row.status===status).length;const share=investigations.length?count/investigations.length*100:0;const label=status==='draft'?'Draft':status==='active'?'Investigasi berjalan':status==='action_planned'?'Rencana tindakan':'Closed';return <div className="psBarRow" key={status}><span>{label}</span><div className="psBar"><i style={{width:share+'%'}}/></div><b>{count}</b></div>})}
-          <p className="psMuted" style={{fontSize:12,margin:'8px 0 0'}}>RCA2 berfokus pada kelemahan sistem dan pembelajaran. Status Closed hanya dapat diberikan setelah tindakan, hierarki kekuatan tindakan, owner, tenggat, metode/bukti, dan tanggal verifikasi efektivitas dicatat.</p>
+          <p className="psMuted" style={{fontSize:12,margin:'8px 0 0'}}>RCA2 berfokus pada kelemahan sistem dan pembelajaran. Investigasi hanya dapat diselesaikan setelah tindakan, hierarki kekuatan tindakan, penanggung jawab, tenggat, metode/bukti, dan tanggal verifikasi efektivitas dicatat.</p>
         </div>
         {!canManageWorkflow ? <div className="psAlert warn">Akses penyuntingan investigasi dibatasi untuk Admin, Komite PMKP, dan Manajemen. Pelapor tetap dapat melihat investigasi yang terkait dengan laporan miliknya.</div> : null}
         <div className="psFormGrid" style={{ marginBottom: 14 }}>
@@ -1164,17 +1164,17 @@ export default function PatientSafetyWorkspace({
             </select>
           </div>
           <div className="psField"><label className="psLabel">Kode Investigasi</label><input value={investigationCode || 'Dibuat saat disimpan'} readOnly /></div>
-          <div className="psField"><label className="psLabel">Status Investigasi</label><select value={investigationStatus} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationStatus(event.target.value)}><option value="draft">Draft</option><option value="active">Investigasi berjalan</option><option value="action_planned">Rencana tindakan</option><option value="closed">Closed</option></select></div>
+          <div className="psField"><label className="psLabel">Status Investigasi</label><select value={investigationStatus} disabled={!canManageWorkflow || saving} onChange={event => setInvestigationStatus(event.target.value)}><option value="draft">Draf</option><option value="active">Investigasi berjalan</option><option value="action_planned">Rencana tindakan</option><option value="closed">Selesai</option></select></div>
         </div>
         {investigationIncidentId ? <div className="psRcaMap"><div className="psRcaNode"><b>01 · Problem</b><span>CMP / SDP</span></div><div className="psRcaNode"><b>02 · Cause</b><span>Penyebab langsung & faktor kontributor</span></div><div className="psRcaNode"><b>03 · Root</b><span>Akar masalah</span></div><div className="psRcaNode"><b>04 · Response</b><span>Rekomendasi dan tindakan</span></div><div className="psRcaNode"><b>05 · Risk Reduction</b><span>Pasien, petugas, fasyankes</span></div></div> : null}
         {investigationIncidentId ? INVESTIGATION_SECTIONS.map(section => <section className="psFormSection" key={section.title}>
-          <div className="psFormHeading"><span className="psFormLetter">{section.title === 'Klasifikasi & Masalah' ? '1' : section.title === 'Analisis Penyebab' ? '2' : section.title === 'Faktor Mitigasi & Deteksi' ? '3' : '4'}</span><div><h4>{section.title}</h4><p>Bagian analisis investigasi</p></div></div>
+          <div className="psFormHeading"><span className="psFormLetter">{section.title === 'Klasifikasi & Masalah' ? '1' : section.title === 'Analisis Penyebab' ? '2' : section.title === 'Faktor Mitigasi & Deteksi' ? '3' : '4'}</span><div><h4>{section.title}</h4></div></div>
           <div className="psFormGrid">{section.codes.map(code => INVESTIGATION_FIELDS.find(field => field.code === code)).filter((field): field is IncidentField => Boolean(field)).map(renderInvestigationField)}</div>
         </section>) : <div className="psEmpty">Pilih laporan terlebih dahulu untuk membuka formulir investigasi.</div>}
         {investigationIncidentId && canManageWorkflow ? <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 12 }}>Status: {statusLabel(investigationStatus)}</div><div className="psActions"><button type="button" className="psBtn" onClick={() => { setInvestigationData(emptyRecord()); setInvestigationStatus('draft'); setInvestigationId(''); setInvestigationCode('') }}>Kosongkan Form</button><button type="button" className="psBtn primary" disabled={saving} onClick={() => void saveInvestigation()}>{saving ? 'Menyimpan…' : 'Simpan Investigasi'}</button></div></div> : null}
       </LiquidGlass>
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><h4>Register Investigasi</h4></div><span className="psPill">{investigations.length} record</span></div>
+        <div className="psSectionHead"><div><h4>Register Investigasi</h4></div><span className="psPill">{investigations.length} investigasi</span></div>
         {investigations.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 3" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode RCA2</th><th>Insiden</th><th>Status</th><th>Diubah</th><th></th></tr></thead><tbody>
           {investigations.map(row => <tr key={row.id}><td><span className="psCode">{row.investigation_code}</span></td><td>{incidents.find(item => item.id === row.incident_id)?.incident_code || 'Insiden terkait'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td>{new Date(row.updated_at).toLocaleDateString('id-ID')}</td><td><button type="button" className="psBtn" onClick={() => { setInvestigationIncidentId(row.incident_id); setTab('investigation') }}>Buka</button></td></tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">Belum ada investigasi yang dapat ditampilkan.</div>}
