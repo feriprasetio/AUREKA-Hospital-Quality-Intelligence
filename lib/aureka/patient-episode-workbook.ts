@@ -4,7 +4,7 @@ import { resolveMeasurementKind, usesCategoricalResponseCapture } from './indica
 
 export type EpisodeOption = {
   label: string
-  code: number
+  code: number | null
   review_required?: boolean
   numerator?: boolean | null
   denominator?: boolean | null
@@ -92,9 +92,9 @@ export type EpisodeStageRow = {
 type EpisodeResponse = {
   indicator_code: string
   response_label: string | null
-  response_code: number
+  response_code: number | null
   review_status: 'pending' | 'not_required'
-  raw_value: { answer?: string; code: number; code_only?: true; source_value: string }
+  raw_value: { answer?: string; code: number | null; code_only?: true; source_value: string }
 }
 
 export const EPISODE_WORKBOOK_IMPORTER = 'patient-episode-workbook'
@@ -226,14 +226,14 @@ function normalizeOptions(value: unknown): EpisodeOption[] {
     if (typeof item === 'string') {
       const parts = item.match(markedCode)
       const prefix = item.match(/^\s*([1-3])\s*[=:.–-]\s*(.+)$/)
-      const code = Number(parts?.[1] ?? prefix?.[1])
-      const label = clean(parts ? item.slice(0, parts.index) : prefix?.[2])
-      return label && [1, 2, 3].includes(code) ? [{ label, code }] : []
+      const code = parts || prefix ? Number(parts?.[1] ?? prefix?.[1]) : null
+      const label = clean(parts ? item.slice(0, parts.index) : prefix?.[2] ?? item)
+      return label && (code === null || [1, 2, 3].includes(code)) ? [{ label, code }] : []
     }
     if (!item || typeof item !== 'object') return []
     const label = clean(item.label)
-    const code = Number(item.code)
-    return label && [1, 2, 3].includes(code) ? [{ ...item, code, label }] : []
+    const code = item.code == null || item.code === '' ? null : Number(item.code)
+    return label && (code === null || [1, 2, 3].includes(code)) ? [{ ...item, code, label }] : []
   })
 }
 
@@ -596,10 +596,10 @@ export function matchEpisodeOption(input: unknown, options: EpisodeOption[], dir
   const label = suffix ? text.slice(0, suffix.index).trim() : text
   const code = Number(bare?.[1] ?? suffix?.[1])
   const matches = (Array.isArray(options) ? options : []).filter(option => {
-    if (![1, 2, 3].includes(Number(option.code))) return false
-    return bare ? Number(option.code) === code : optionKey(option.label) === optionKey(label) && (!suffix || Number(option.code) === code)
+    if (bare) return option.code != null && [1, 2, 3].includes(Number(option.code)) && Number(option.code) === code
+    return optionKey(option.label) === optionKey(label) && (!suffix || (option.code != null && Number(option.code) === code))
   })
-  if (matches.length === 1) return { option: { ...matches[0], code: Number(matches[0].code) }, codeOnly: false } as const
+  if (matches.length === 1) return { option: { ...matches[0], code: matches[0].code == null ? null : Number(matches[0].code) }, codeOnly: false } as const
   if (bare && matches.length > 1) {
     const first = matches[0]
     const same = matches.every(option =>
@@ -731,7 +731,7 @@ export async function prepareEpisodeImport({
         continue
       }
       const option = result.option
-      codes[option.code - 1]++
+      if (option.code != null) codes[option.code - 1]++
       responses.push({
         indicator_code: profile.code,
         response_label: result.codeOnly ? null : option.label, response_code: option.code,

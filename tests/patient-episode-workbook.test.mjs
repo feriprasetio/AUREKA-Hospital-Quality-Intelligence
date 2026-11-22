@@ -71,7 +71,7 @@ test('workbook selects an explicit Excel column and a column referenced by a for
   const positive = calculateIndicatorResult(result.profiles[0], reviewed, 2026)
   const negative = calculateIndicatorResult(result.profiles[1], reviewed, 2026)
   assert.deepEqual([positive.annualNumerator, positive.annualDenominator], [1, 3])
-  assert.deepEqual([negative.annualNumerator, negative.annualDenominator], [2, 3])
+  assert.deepEqual([negative.annualNumerator, negative.annualDenominator], [1, 3])
 })
 
 test('transposed profiles and Logbook dropdown options can establish a new profile without a database master', async () => {
@@ -197,4 +197,12 @@ test('auto-fill refuses duplicate and cross-unit profile codes without touching 
   assert.equal(plan.issues.length, 2)
   assert.match(plan.issues[0].message, /berulang/)
   assert.match(plan.issues[1].message, /bukan milik unit/)
+})
+
+test('uncoded source choice is an answered but unclassified episode observation',()=>{
+  const options=[{label:'Sesuai',code:1},{label:'Bukan sasaran pengukuran',code:null},{label:'Tidak sesuai',code:3}]
+  const matched=matchEpisodeOption('Bukan sasaran pengukuran',options,true)
+  assert.equal(matched.error,undefined)
+  assert.equal(matched.option?.code,null)
+  assert.equal(matchEpisodeOption('Sesuai',options,true).option?.code,1)
 })

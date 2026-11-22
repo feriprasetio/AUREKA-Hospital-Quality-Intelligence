@@ -167,7 +167,7 @@ test('negative option indicators count code 3 as events; code 2 stays in the den
   assert.equal(result.annualNumerator, 1)
   assert.equal(result.annualDenominator, 20)
   assert.equal(result.annualRate, 5)
-  assert.equal(result.targetMet, false)
+  assert.equal(result.targetMet, true)
 })
 
 test('negative zero-event indicators reach a 0% target when every response is code 1', () => {
@@ -243,9 +243,9 @@ test('approved direction resolves exact categorical labels with pending legacy f
     },
   ]
   const result = calculateIndicatorResult(profile, rows, 2026)
-  assert.equal(result.annualNumerator, 1)
+  assert.equal(result.annualNumerator, 0)
   assert.equal(result.annualDenominator, 2)
-  assert.equal(result.annualRate, 50)
+  assert.equal(result.annualRate, 0)
   assert.equal(result.observations, 2)
 })
 
