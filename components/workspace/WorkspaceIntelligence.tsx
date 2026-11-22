@@ -7,10 +7,6 @@ export type WorkspaceIntelligenceMetric = {
 
 const formatNumber = new Intl.NumberFormat('id-ID')
 
-export function WorkspaceIntelligenceLabel() {
-  return <span className="workspaceIntelligenceLabel">Visual Intelligence</span>
-}
-
 export function WorkspaceIntelligenceMetrics({
   metrics, loading = false, unavailable = false,
 }: {
@@ -39,7 +35,7 @@ export function WorkspaceIntelligenceMetrics({
 
 export function WorkspaceIntelligenceHeading({ children }: { children: ReactNode }) {
   return <div className="workspaceIntelligenceHeading">
-    <WorkspaceIntelligenceLabel />
+
     <h2>{children}</h2>
   </div>
 }

@@ -19,7 +19,7 @@ test('Dashboard has one canonical navigation item and embeds Visual Intelligence
   assert.ok(app.includes('<InfographicsDashboard mode="full"'))
   assert.ok(home.includes('onAskNara'))
   assert.ok(home.includes('NARA'))
-  assert.ok(registry.includes("id:'insights', label:'Visual Intelligence', group:'command_center'"))
+  assert.ok(registry.includes("id:'insights', label:'Analitik Rumah Sakit', group:'command_center'"))
   assert.match(app, /\.filter\(\(\{id\}\)=>id!=='nara'&&id!=='insights'\)/)
   assert.ok(!registry.includes("id:'nara_ai', label:'NARA AI'"))
   assert.equal(readWorkspaceHash("#analitik-laporan").module, "home")
@@ -29,7 +29,7 @@ test('primary navigation labels and eight category ownership live in the central
   const registry = read('lib/aureka/module-registry.ts')
   const home = read('components/HomeClient.tsx')
   assert.ok(registry.includes("id:'home', label:'Dashboard', group:'command_center'"))
-  for (const label of ["label:'Dashboard'", "label:'Register Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Visual Intelligence'", "label:'Program & RTL'", "label:'Sekretariat'", "label:'Sumber Daya Manusia'", "label:'Pendidikan dan Pelatihan'", "label:'Pengaturan'"]) {
+  for (const label of ["label:'Dashboard'", "label:'Register Pasien'", "label:'Indikator Mutu'", "label:'Peningkatan Kinerja Klinis'", "label:'Keselamatan Pasien'", "label:'Manajemen Risiko'", "label:'Analitik Rumah Sakit'", "label:'Program & RTL'", "label:'Sekretariat'", "label:'Sumber Daya Manusia'", "label:'Pendidikan dan Pelatihan'", "label:'Pengaturan'"]) {
     assert.ok(registry.includes(label), 'Missing registry label: ' + label)
   }
   for (const id of ['command_center','patient_registry','clinical_performance','quality_patient_safety','hospital_management','education_training','director_supervisory_board','settings']) assert.ok(registry.includes("id:'" + id + "'"), id)
@@ -152,7 +152,7 @@ test('PIC performance is integrated into Quality Monitoring and indicator propos
   assert.match(app, /programTab==='proposals'\?<IndicatorProposalWorkspace/)
   assert.match(app, /active==='quality'&&qualityProfileOpen\?<QualitySettingsWorkspace/)
   assert.match(app, /if\(child==='profile-indicators'\)return qualityProfileOpen/)
-  assert.match(qualitySettings, /Visual Intelligence Profil Indikator/)
+  assert.match(qualitySettings, /Ringkasan Profil Indikator/)
   assert.match(qualitySettings, /const canManageCatalog = role === 'ADMIN'/)
   assert.match(qualitySettings, /canManageCatalog &&/)
   assert.doesNotMatch(qualitySettings, /IndicatorProposalWorkspace/)

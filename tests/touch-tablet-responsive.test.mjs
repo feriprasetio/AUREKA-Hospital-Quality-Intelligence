@@ -15,7 +15,7 @@ test('only phone-sized viewports may use the mobile drawer, regardless of touch 
   assert.match(controller,/if \(!nowMobile\) setIsOpen\(false\)/)
   assert.match(home,/mobileSidebar\.isMobile&&<button type="button" ref=\{mobileSidebar\.triggerRef\}/)
   assert.match(home,/mobileSidebar\.isMobile&&typeof document!=='undefined'&&createPortal\(/)
-  assert.doesNotMatch(home, /TOUCH_DRAWER_MEDIA_QUERY|setSidebarCollapsed/)
+  assert.doesNotMatch(home, /TOUCH_DRAWER_MEDIA_QUERY/)
 })
 
 test('tablets and desktop keep real visible sidebars, without any mobile rail', () => {
@@ -28,6 +28,6 @@ test('tablets and desktop keep real visible sidebars, without any mobile rail', 
   assert.match(nav, /@media \(min-width: 721px\) and \(max-width: 860px\) \{[\s\S]*?grid-template-columns: 210px minmax\(0, 1fr\)/)
   assert.match(nav, /body > \.workspaceNativeNavigation\s*\{\s*display: none !important;/)
   assert.match(nav, /\.workspaceSidebarMenuButton,[\s\S]*?\.workspaceScrim\s*\{\s*display: none !important;/)
-  assert.match(head, /grid-template-areas: "context search nara inbox theme fullscreen bell profile"/)
-  assert.match(head, /"context find nara inbox theme bell profile"\s+"search search search search search search search"/)
+  assert.match(head, /grid-template-areas: "menu context search nara inbox theme fullscreen bell profile"/)
+  assert.match(head, /"menu context find nara inbox theme bell profile"\s+"search search search search search search search search"/)
 })

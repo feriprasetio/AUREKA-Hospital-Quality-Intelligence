@@ -1,6 +1,5 @@
 'use client'
 
-import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -90,7 +89,7 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
 
   const selectedLabel=issuerFilter==='ALL'?'Semua pemberi rekomendasi':ISSUER_LABEL[issuerFilter]
   return <section className="rmPanel govWorkspace" aria-label="Rekomendasi dan rencana tindak lanjut">
-    <div className="rmSectionHead"><div><WorkspaceIntelligenceLabel /><h3>Rekomendasi dan Rencana Tindak Lanjut</h3><p>Satu daftar terpadu. Filter berdasarkan pihak pemberi rekomendasi; setiap tindak lanjut wajib memiliki siklus perbaikan PDCA atau PDSA.</p></div>
+    <div className="rmSectionHead"><div><h3>Rekomendasi dan Rencana Tindak Lanjut</h3><p>Satu daftar terpadu. Filter berdasarkan pihak pemberi rekomendasi; setiap tindak lanjut wajib memiliki siklus perbaikan PDCA atau PDSA.</p></div>
       <div className="govHeadTools">
         <label className="govYear">Pemberi rekomendasi <select value={issuerFilter} onChange={e=>setIssuerFilter(e.target.value as IssuerFilter)}><option value="ALL">Semua</option><option value="DEWAN_PENGAWAS">Dewan Pengawas</option><option value="DIREKTUR">Direktur</option><option value="KETUA_PMKP">Ketua PMKP</option><option value="KABID">Kepala Bidang</option></select></label>
         <label className="govYear">Tahun <select value={year} onChange={e=>setYear(Number(e.target.value))}>{[0,1,2].map(d=>new Date().getFullYear()+1-d).map(y=><option key={y} value={y}>{y}</option>)}</select></label>

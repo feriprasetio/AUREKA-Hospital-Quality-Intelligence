@@ -1033,7 +1033,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         )}
 
         {tab === 'profiles' && !profileWorkspaceOpen && (
-          <section className="qsProfileIntelligence" aria-label="Visual Intelligence Profil Indikator" style={{marginTop:12,display:'grid',gap:14}}>
+          <section className="qsProfileIntelligence" aria-label="Ringkasan Profil Indikator" style={{marginTop:12,display:'grid',gap:14}}>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:10}}>
               <div className="qsProfileIntelligenceMetric"><span>Indikator aktif</span><strong>{activeProfileCount.toLocaleString('id-ID')}</strong></div>
               <div className="qsProfileIntelligenceMetric"><span>Perlu perbaikan teknis</span><strong>{activeReviewCount.toLocaleString('id-ID')}</strong></div>
@@ -1051,7 +1051,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         {tab === 'profiles' && profileWorkspaceOpen && (
           <div style={{ marginTop: 12 }}>
             <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
-              <button type="button" className="textButton" onClick={()=>setProfileWorkspaceOpen(false)}>← Visual Intelligence</button>
+              <button type="button" className="textButton" onClick={()=>setProfileWorkspaceOpen(false)}>Kembali ke ringkasan</button>
             </div>
             <div className="metadataProfileFilters" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
               <input className="qualitySettingsLocalSearch" aria-label="Cari kode, nama indikator, program, kategori, atau unit" placeholder="Cari kode, indikator, program, kategori, unit…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: '1 1 240px', minWidth: 180 }} />

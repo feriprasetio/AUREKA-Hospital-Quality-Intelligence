@@ -393,7 +393,7 @@ export default function StaffDirectoryWorkspace() {
           <button type="button" className="sdBtn primary" onClick={()=>setListOpen(true)}>Lihat Daftar Tenaga Kerja</button>
         </section> : <>
           <div className="sdActions" style={{marginTop:14}}>
-            <button type="button" className="sdBtn" onClick={()=>setListOpen(false)}>← Kembali ke Visual Intelligence</button>
+            <button type="button" className="sdBtn" onClick={()=>setListOpen(false)}>Kembali ke ringkasan</button>
           </div>
         <div className="sdFilters">
           <select aria-label="Filter kelayakan penugasan" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>

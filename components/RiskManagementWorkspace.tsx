@@ -890,7 +890,7 @@ export default function RiskManagementWorkspace({
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'overview' && <>
         <div className="rmOverviewActions" style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
           <button type="button" className="rmButton primary" onClick={() => { openRegisterList(); setTab('register'); clearMessages() }}>Lihat Daftar Risiko</button>
-          {onAskNara && <button type="button" className="rmButton" onClick={() => onAskNara('Analisis data agregat manajemen risiko pada cakupan pengguna. Jelaskan distribusi tingkat risiko, kebutuhan mitigasi, status residual dan tindak lanjut, serta risiko prioritas. Jangan menyimpulkan relasi konektor dari kemiripan kata saja dan jangan mengubah data.', 'Manajemen Risiko · Visual Intelligence')}>Analisis dengan NARA AI</button>}
+          {onAskNara && <button type="button" className="rmButton" onClick={() => onAskNara('Analisis data agregat manajemen risiko pada cakupan pengguna. Jelaskan distribusi tingkat risiko, kebutuhan mitigasi, status residual dan tindak lanjut, serta risiko prioritas. Jangan menyimpulkan relasi konektor dari kemiripan kata saja dan jangan mengubah data.', 'Manajemen Risiko · Ringkasan')}>Analisis dengan NARA AI</button>}
         </div>
         <div className="rmKpis">
           <LiquidGlass className="rmKpi"><span>Risiko terdaftar</span><strong>{counts.total.toLocaleString('id-ID')}</strong><small>{scopedToUnit ? (currentRoom?.name || 'Unit Anda') : 'Seluruh unit kerja'}</small></LiquidGlass>

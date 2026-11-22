@@ -571,7 +571,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       />
       <p className="workspaceClinicalDisclaimer" role="note">Penilaian bukan penetapan kesalahan individu atau kesimpulan otomatis bahwa kematian dapat dicegah.</p>
 
-      {!showList ? <section className="acdVisualOverview" aria-label="Visual Intelligence audit klinis dan kematian">
+      {!showList ? <section className="acdVisualOverview" aria-label="Ringkasan audit klinis dan kematian">
         <div className="acdKpis">
           <article className="acdKpi"><span>Kandidat {auditType === 'death' ? 'audit kematian' : 'audit klinis'}</span><strong>{filteredEpisodes.length.toLocaleString('id-ID')}</strong><small>Episode sesuai cakupan dan tahun aktif</small></article>
           <article className="acdKpi"><span>Sudah ditelaah</span><strong>{startedCount.toLocaleString('id-ID')}</strong><small>Memiliki rekam telaah pada periode</small></article>
@@ -587,7 +587,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         </section>
         <div className="acdInfo">Sumber data: episode pada Logbook AUREKA. Audit kematian hanya memasukkan episode dengan status hasil akhir meninggal yang tercatat eksplisit. Validasi sumber klinis tetap dilakukan oleh reviewer.</div>
       </section> : <>
-        <div className="acdActions"><button type="button" className="acdBtn" onClick={() => setShowList(false)}>← Kembali ke Visual Intelligence</button></div>
+        <div className="acdActions"><button type="button" className="acdBtn" onClick={() => setShowList(false)}>Kembali ke ringkasan</button></div>
 
 
       <section className="acdToolbar" aria-label="Jenis audit dan filter">

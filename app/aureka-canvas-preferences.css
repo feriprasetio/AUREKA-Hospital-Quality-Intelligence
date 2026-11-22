@@ -381,8 +381,8 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 @media (min-width: 1181px) {
   html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     display: grid !important;
-    grid-template-columns: minmax(160px, 240px) minmax(130px, 1fr) repeat(5, 44px) minmax(120px, 190px) !important;
-    grid-template-areas: "context search nara inbox theme fullscreen bell profile" !important;
+    grid-template-columns: 44px minmax(120px, 240px) minmax(110px, 1fr) repeat(5, 44px) minmax(120px, 190px) !important;
+    grid-template-areas: "menu context search nara inbox theme fullscreen bell profile" !important;
     column-gap: 8px !important;
     row-gap: 0 !important;
   }
@@ -393,10 +393,10 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 @media (min-width: 721px) and (max-width: 1180px) {
   html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar {
     display: grid !important;
-    grid-template-columns: minmax(0,1fr) repeat(5,44px) minmax(72px,150px) !important;
+    grid-template-columns: 44px minmax(0,1fr) repeat(5,44px) minmax(60px,130px) !important;
     grid-template-areas:
-      "context find nara inbox theme bell profile"
-      "search search search search search search search" !important;
+      "menu context find nara inbox theme bell profile"
+      "search search search search search search search search" !important;
     gap: 4px !important;
   }
   html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceSearchToggle { display: grid !important; grid-area: find !important; }
@@ -451,7 +451,7 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
     grid-template-columns: repeat(auto-fit, minmax(112px,1fr)) !important;
   }
 }
-html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceSidebarMenuButton { grid-area: menu !important; }
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > :is(.workspaceSidebarMenuButton, .workspaceSidebarToggle) { grid-area: menu !important; }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceContext { grid-area: context !important; }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceGlobalSearch { grid-area: search !important; }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar > .workspaceNaraButton { grid-area: nara !important; }
@@ -571,14 +571,6 @@ html[data-skin="arktik"][data-aureka-motion="off"] body .workspaceRoot.workspace
   line-height: 1.25;
   letter-spacing: -.025em;
   overflow-wrap: anywhere;
-}
-.workspaceIntelligenceLabel {
-  display: block;
-  color: var(--aureka-canvas-muted);
-  font-size: var(--aureka-canvas-small-size);
-  line-height: 1.35;
-  font-weight: 700;
-  letter-spacing: normal;
 }
 .workspaceIntelligenceMetrics {
   display: flex;

@@ -1,6 +1,5 @@
 'use client'
 
-import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -103,7 +102,7 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,
 
   return <section className="rmPanel govWorkspace annualProgramWorkspace" aria-label="Program kerja tahunan">
     <div className="rmSectionHead">
-      <div><WorkspaceIntelligenceLabel /><h3>{screen==='priorities'?'Area Prioritas':screen==='timeline'?'Rencana Kegiatan dan Timeline':'Program Kerja Tahunan'}</h3>
+      <div><h3>{screen==='priorities'?'Area Prioritas':screen==='timeline'?'Rencana Kegiatan dan Timeline':'Program Kerja Tahunan'}</h3>
         <p>{screen==='priorities'?'Tetapkan masalah prioritas, sasaran hasil, pemilik, dan tenggat.':'Jadwal dan progres kegiatan untuk tahun yang dipilih.'}</p>
       </div>
       <div className="govHeadTools">

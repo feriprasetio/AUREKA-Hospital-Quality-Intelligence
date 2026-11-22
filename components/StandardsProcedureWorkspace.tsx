@@ -1,5 +1,4 @@
 'use client'
-import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { readLocalDocument, parseSpoSections, makeStructuredDocx, downloadBrowserBlob, printStructuredContent, type StructuredSection } from '@/lib/aureka/local-documents'
@@ -175,7 +174,7 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
 
   return <main className="spoWorkspace" aria-label="Standar Prosedur Operasional">
     <header className="spoHeader">
-      <div><WorkspaceIntelligenceLabel /><h1>Standar Prosedur Operasional</h1><p>Register SPO terstruktur, ekstraksi dokumen, dan kendali revisi.</p></div>
+      <div><h1>Standar Prosedur Operasional</h1><p>Register SPO terstruktur, ekstraksi dokumen, dan kendali revisi.</p></div>
       {!selected&&<div className="spoHeaderActions">
         {canManage&&<button type="button" className="spoButton spoButtonSecondary" onClick={startManual} disabled={busy}>Tambah Manual</button>}
         {canManage&&<><input ref={inputRef} className="spoHiddenFile" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={e=>void uploadFile(e.target.files?.[0])}/><button type="button" className="spoButton spoButtonPrimary" onClick={()=>inputRef.current?.click()} disabled={busy}>{busy?'Memproses…':'Upload SPO'}</button></>}

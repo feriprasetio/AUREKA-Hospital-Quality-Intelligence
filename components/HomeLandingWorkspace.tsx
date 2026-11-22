@@ -1,6 +1,5 @@
 'use client'
 
-import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useEffect, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { NavigateFn } from '@/lib/aureka/focus'
@@ -215,7 +214,7 @@ export default function HomeLandingWorkspace({
 
     <header className="ccHero">
       <div>
-        <WorkspaceIntelligenceLabel />
+
         <h1>{greeting}, {firstName}.</h1>
         <div className="ccHeroActions">
           <button type="button" className="ccActionBtn" onClick={()=>setRefreshKey(value=>value+1)}>Perbarui data</button>

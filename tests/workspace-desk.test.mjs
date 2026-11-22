@@ -79,7 +79,7 @@ test('workspace intelligence follows the active sheet and distinguishes unavaila
   const safety = read('components/PatientSafetyWorkspace.tsx')
   const risk = read('components/RiskManagementWorkspace.tsx')
   const settings = read('components/GeneralSettings.tsx')
-  assert.match(shared, /className="workspaceIntelligenceLabel">Visual Intelligence/)
+  assert.doesNotMatch(shared, /Visual Intelligence/)
   assert.match(shared, /if \(loading \|\| unavailable\)/)
   assert.match(shared, /typeof value === 'number' \? formatNumber\.format\(value\)/)
   assert.match(safety, /investigation: 'Investigasi dan RCA', survey: 'Survei Budaya Keselamatan'/)
@@ -230,7 +230,7 @@ test('FPPE save and submit controls compile and call the existing validated brid
 test('drawer breakpoint agrees with its controller and is dismissible from inside', () => {
   assert.match(read('components/layout/useAccessibleSidebar.ts'), /matchMedia\(PHONE_DRAWER_MEDIA_QUERY\)\.matches/)
   assert.match(home, /mobileSidebar\.isMobile&&<button type="button" ref=\{mobileSidebar\.triggerRef\}/)
-  assert.doesNotMatch(home, /setSidebarCollapsed|sidebarIsCollapsed/ )
+  assert.match(home, /workspaceSidebarToggle/)
   assert.match(home, /className="workspaceDrawerClose"[^>]*onClick=\{mobileSidebar\.close\}/)
   assert.match(home, /workspaceGlobalSearchInput/)
   assert.doesNotMatch(home, /data-sidebar-autofocus|sidebarSearch|Cari menu/)

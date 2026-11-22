@@ -17,7 +17,7 @@ test('Annual Program owns the timeline, priority areas and proposals', () => {
   assert.match(home, /programTab==='proposals'\?<IndicatorProposalWorkspace/)
   assert.match(home, /Rencana Kegiatan dan Timeline/)
   assert.match(workspace, /Lihat Program Kerja/)
-  assert.match(qualitySettings, /Visual Intelligence Profil Indikator/)
+  assert.match(qualitySettings, /Ringkasan Profil Indikator/)
   assert.doesNotMatch(qualitySettings, /IndicatorProposalWorkspace/)
   assert.match(metadata, /initialTab="profiles"[^>]*role=\{role\}/)
 })

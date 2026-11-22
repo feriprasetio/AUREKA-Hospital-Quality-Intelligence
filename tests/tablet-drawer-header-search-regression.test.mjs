@@ -55,8 +55,8 @@ test('phone drawer and bottom dock remain accessible, but are phone-only', () =>
 test('header and search do not reserve a smartphone menu slot on tablet or desktop', () => {
   const css = read('app/aureka-canvas-preferences.css')
   const home = read('components/HomeClient.tsx')
-  assert.match(css,/grid-template-areas: "context search nara inbox theme fullscreen bell profile"/)
-  assert.match(css,/"context find nara inbox theme bell profile"\s+"search search search search search search search"/)
+  assert.match(css,/grid-template-areas: "menu context search nara inbox theme fullscreen bell profile"/)
+  assert.match(css,/"menu context find nara inbox theme bell profile"\s+"search search search search search search search search"/)
   assert.match(css,/"menu context context theme bell"\s+"profile profile nara inbox find"/)
   assert.match(css,/--aureka-header-surface: rgba\([^)]+, \.9\d\)/)
   assert.match(css,/backdrop-filter: blur\(16px\) saturate\(135%\) !important/)
@@ -64,5 +64,5 @@ test('header and search do not reserve a smartphone menu slot on tablet or deskt
   assert.match(css,/\.workspaceGlobalSearch\s*\{[\s\S]*?overflow: visible !important/)
   assert.match(home,/id="workspaceGlobalSearchInput"/)
   assert.match(home,/role="combobox"/)
-  assert.doesNotMatch(home,/sidebarIsCollapsed|setSidebarCollapsed/)
+  assert.match(home, /workspaceSidebarToggle/)
 })

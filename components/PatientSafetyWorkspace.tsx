@@ -1038,7 +1038,7 @@ export default function PatientSafetyWorkspace({
         <button type="button" className="psBtn primary" onClick={() => { setError(''); setMessage(''); setTab('incidents') }}>Lihat Register Insiden</button>
         {canManageWorkflow && <button type="button" className="psBtn" onClick={() => { setError(''); setMessage(''); setTab('investigation') }}>Lihat Investigasi</button>}
         <button type="button" className="psBtn" onClick={() => { setError(''); setMessage(''); setTab('survey') }}>Form Survei Tahunan</button>
-        {onAskNara && <button type="button" className="psBtn" onClick={() => onAskNara('Analisis agregat keselamatan pasien pada cakupan dan periode data yang sedang diizinkan. Ringkas volume laporan IKP, status proses, investigasi aktif, kelengkapan, dan prioritas pembelajaran. Jangan menampilkan nama pasien, nomor rekam medis, atau identitas pelapor; jangan mengubah data.', 'Keselamatan Pasien · Visual Intelligence')}>Analisis dengan NARA AI</button>}
+        {onAskNara && <button type="button" className="psBtn" onClick={() => onAskNara('Analisis agregat keselamatan pasien pada cakupan dan periode data yang sedang diizinkan. Ringkas volume laporan IKP, status proses, investigasi aktif, kelengkapan, dan prioritas pembelajaran. Jangan menampilkan nama pasien, nomor rekam medis, atau identitas pelapor; jangan mengubah data.', 'Keselamatan Pasien · Ringkasan')}>Analisis dengan NARA AI</button>}
       </div>
       <LiquidGlass className="psPanel">
         <div className="psSectionHead"><div><h4>Distribusi status pelaporan insiden</h4><p>Jumlah laporan pada setiap tahap alur; volume laporan bukan angka insidensi.</p></div><span className="psPill">{incidents.length} laporan</span></div>

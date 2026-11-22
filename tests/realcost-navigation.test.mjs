@@ -32,7 +32,7 @@ test('Realcost import domain separates aggregate, episode detail and patient ide
 test('Realcost dashboard starts with one navigation action and detail workspace owns the rest', () => {
   const workspace = read('components/RealcostAuditWorkspace.tsx')
   const parser = read('lib/aureka/realcost-xlsx-import.ts')
-  assert.match(workspace, /Visual Intelligence Audit Realcost/)
+  assert.match(workspace, /Memuat ringkasan Audit Realcost/)
   assert.match(workspace, />Lihat Audit Realcost</)
   assert.match(workspace, /Diagnosis & Prosedur/)
   assert.match(parser, /NAMA_PASIEN/)

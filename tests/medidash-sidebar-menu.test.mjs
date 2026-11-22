@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('only smartphones render the hamburger; tablet and desktop sidebar cannot collapse', () => {
+test('phone drawer and wide sidebar have separate controls', () => {
   const home = read('components/HomeClient.tsx')
   const workspace = home.slice(home.indexOf("if(view==='workspace')"))
   const menu = workspace.indexOf('className="mobileMenuButton workspaceSidebarMenuButton"')
@@ -11,7 +11,7 @@ test('only smartphones render the hamburger; tablet and desktop sidebar cannot c
   assert.ok(menu >= 0 && context > menu, 'phone menu precedes contextual search')
   assert.match(workspace, /mobileSidebar\.isMobile&&<button type="button" ref=\{mobileSidebar\.triggerRef\}/)
   assert.match(workspace, /onClick=\{event=>mobileSidebar\.open\(event\.currentTarget\)\}/)
-  assert.doesNotMatch(workspace, /setSidebarCollapsed|sidebarIsCollapsed|className="sidebarToggle"|className="mobileSidebarClose"/)
+  assert.match(workspace, /workspaceSidebarToggle[\s\S]*?aria-expanded=\{!sidebarIsCollapsed\}/)
 })
 
 test('Arktik original sidebar stays visible on tablet and desktop, and phone keeps accessible navigation', () => {

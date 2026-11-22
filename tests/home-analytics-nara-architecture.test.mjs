@@ -13,7 +13,7 @@ test('Dashboard combines the operational landing, Visual Intelligence and NARA A
   const navStart = registry.indexOf('export const AUREKA_NAVIGATION_GROUPS')
   const navEnd = registry.indexOf('] as const', navStart)
   const nav = registry.slice(navStart, navEnd)
-  assert.ok(registry.includes("id:'insights', label:'Visual Intelligence', group:'command_center'"))
+  assert.ok(registry.includes("id:'insights', label:'Analitik Rumah Sakit', group:'command_center'"))
   assert.ok(registry.includes("routeHash:'#beranda'"))
   assert.ok(home.includes("active==='home'?<>"))
   assert.ok(home.includes('<HomeLandingWorkspace'))

@@ -1,6 +1,5 @@
 'use client'
 
-import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import CertificateTemplateEditor from '@/components/CertificateTemplateEditor'
 import { loadCertificateLayout, pdfPoint, type CertificateLayout, type CertificateElementId } from '@/lib/aureka/certificate-template'
@@ -581,7 +580,7 @@ export default function StudentOrientationWorkspace({
       <style>{styles}</style>
       <section className="soPanel">
         <div className="soHead">
-          <div><WorkspaceIntelligenceLabel /><h2 className="soTitle">Orientasi Mahasiswa</h2></div>
+          <div><h2 className="soTitle">Orientasi Mahasiswa</h2></div>
           <div className="soActions">
             <select aria-label="Tahun data orientasi" value={selectedYear} onChange={(event) => { setSelectedYear(Number(event.target.value)); setSelectedSourceId(null); setDraft(null) }}>
               {[2025, 2026, 2027, 2028, 2029].map((year) => <option key={year} value={year}>{year}</option>)}

@@ -21,7 +21,7 @@ test('phone uses authorized native dock; desktop and tablet keep a permanently v
   assert.match(css, /@media \(min-width: 721px\) \{[\s\S]*?position: sticky !important;[\s\S]*?visibility: visible !important/)
   assert.match(css, /body > \.workspaceNativeNavigation\s*\{\s*display: none !important/)
   assert.match(home, /mobileSidebar\.isMobile&&typeof document!=='undefined'&&createPortal/)
-  assert.doesNotMatch(home, /sidebarIsCollapsed|setSidebarCollapsed/)
+  assert.match(home, /workspaceSidebarToggle/)
   assert.match(css, /@media \(max-width: 720px\)/)
   assert.match(css, /body > \.workspaceNativeNavigation \{[\s\S]*?display: grid;/)
   assert.match(css, /@media \(min-width: 1181px\)/)

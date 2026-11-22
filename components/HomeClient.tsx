@@ -191,6 +191,7 @@ export default function HomeClient(){
   }catch{}
  },[user?.id,role,roomsList,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id,allRoomsScope])
  const mobileSidebar=useAccessibleSidebar()
+ const [sidebarIsCollapsed,setSidebarCollapsed]=useState(false)
  useEffect(()=>{
   if(typeof document==='undefined')return
   document.documentElement.dataset.theme='solid'
@@ -1084,7 +1085,7 @@ export default function HomeClient(){
    </div>
   </main>
  }
- if(view==='workspace')return <main data-aureka-theme="arktik" className="workspaceRoot workspaceDesk">
+ if(view==='workspace')return <main data-aureka-theme="arktik" className={'workspaceRoot workspaceDesk'+(sidebarIsCollapsed&&!mobileSidebar.isMobile?' sidebarIsCollapsed':'')}>
  <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
  {mobileSidebar.isMobile&&<button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>}
  {mobileSidebar.isMobile&&typeof document!=='undefined'&&createPortal(
@@ -1105,10 +1106,10 @@ export default function HomeClient(){
    {visibleSidebarDomains.map(domain=>{
     if(!domain.items.length)return null
     const selected=activeDomainId===domain.id
-    const isExpanded=effectiveExpandedDomain===domain.id
+    const isExpanded=(!sidebarIsCollapsed||mobileSidebar.isMobile)&&effectiveExpandedDomain===domain.id
     return <section className={'sidebarDomain '+(domain.id==='command_center'?'isCommandCenter ':'')+(selected?'isCurrent ':'')+(isExpanded?'isExpanded':'')} key={domain.id}>
      <div className="sidebarDomainTrigger" role="heading" aria-level={2}>
-      <button type="button" aria-label={domain.label} title={domain.label} aria-expanded={isExpanded} aria-controls={'sidebar-items-'+domain.id} onClick={()=>setExpandedDomain(current=>(current===null?activeDomainId===domain.id:current===domain.id)?'':domain.id)}>
+      <button type="button" aria-label={domain.label} title={domain.label} aria-expanded={isExpanded} aria-controls={'sidebar-items-'+domain.id} onClick={()=>{if(sidebarIsCollapsed&&!mobileSidebar.isMobile){setExpandedDomain(domain.id);setSidebarCollapsed(false);return}setExpandedDomain(current=>(current===null?activeDomainId===domain.id:current===domain.id)?'':domain.id)}}>
        <svg className="sidebarNavIcon" viewBox="0 0 24 24" aria-hidden="true">{BOTTOM_NAV_GLYPH[domain.icon]||BOTTOM_NAV_GLYPH.analytics}</svg>
        <span>{domain.label}</span><span className="sidebarDomainChevron" aria-hidden="true">⌄</span>
       </button>
@@ -1133,6 +1134,13 @@ export default function HomeClient(){
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
    {mobileSidebar.isMobile&&<button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>mobileSidebar.open(event.currentTarget)} aria-label="Buka menu navigasi" title="Buka menu navigasi" aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>}
+   {!mobileSidebar.isMobile&&<button type="button" className="workspaceHeaderIcon workspaceSidebarToggle"
+     onClick={()=>setSidebarCollapsed(value=>!value)}
+     aria-label={sidebarIsCollapsed?'Bentangkan sidebar':'Ringkas sidebar'}
+     title={sidebarIsCollapsed?'Bentangkan sidebar':'Ringkas sidebar'}
+     aria-controls="aureka-primary-sidebar" aria-expanded={!sidebarIsCollapsed}>
+     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+   </button>}
    <div className="workspaceContext" title={(admin?(allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name||'Unit belum dipetakan'):manager?'Seluruh rumah sakit':room?.name||'Unit belum dipetakan')+' · '+currentContainer}>
      {admin
       ? <label className="workspaceUnitSelect" title="Cakupan ruangan untuk workspace">

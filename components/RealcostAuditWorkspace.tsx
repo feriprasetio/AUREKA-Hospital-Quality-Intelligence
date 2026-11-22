@@ -1,6 +1,5 @@
 'use client'
 
-import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, CSSProperties } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -397,7 +396,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
 
   const renderOverview = () => (
     <div style={{ display: 'grid', gap: 16 }}>
-      {loading ? <EmptyPanel title="Memuat Visual Intelligence Audit Realcost" detail="Membaca impor terakhir dan menghitung agregat yang tersimpan." /> :
+      {loading ? <EmptyPanel title="Memuat ringkasan Audit Realcost" detail="Membaca impor terakhir dan menghitung agregat yang tersimpan." /> :
         accessError ? <EmptyPanel title="Akses analisis belum tersedia" detail={accessError} /> :
         !summary || !latestImport ? <EmptyPanel title="Belum ada sumber Realcost" detail="Belum ada workbook Realcost yang selesai diimpor. Buka Audit Realcost untuk mengunggah sumber data yang telah disetujui." /> :
         <>
@@ -666,7 +665,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
   return <main style={{ display: 'grid', gap: 16, paddingBottom: 28 }}>
     {!detailMode ? <>
       <header>
-        <WorkspaceIntelligenceLabel />
+
         <h2 style={{ fontSize: 22, color: 'var(--ink, #0b1f33)', margin: '5px 0 6px' }}>Audit Realcost</h2>
         <p style={{ ...mutedStyle(), maxWidth: 900, fontSize: 13 }}>Analisis biaya pelayanan, struktur komponen, variasi tarif INA-CBG, utilisasi sumber daya, serta rekonsiliasi setiap episode berdasarkan workbook Realcost rumah sakit.</p>
       </header>
@@ -674,7 +673,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
     </> : <>
       <header style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'start', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <WorkspaceIntelligenceLabel />
+
           <h2 style={{ fontSize: 22, color: 'var(--ink, #0b1f33)', margin: '5px 0 6px' }}>Audit Realcost</h2>
           <p style={{ ...mutedStyle(), maxWidth: 820 }}>Audit episode pelayanan dan rekonsiliasi nilai biaya dengan tarif INA-CBG.</p>
         </div>

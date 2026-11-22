@@ -1,6 +1,5 @@
 'use client'
 
-import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -150,7 +149,7 @@ export default function NaraIcd10ReviewWorkspace({ sb, onBack }: { sb: SupabaseC
   return <div className="naraIcdReview">
     <header className="naraIcdHeader">
       <div>
-        <WorkspaceIntelligenceLabel />
+
         <h2>Validasi terminologi & ICD-10</h2>
       </div>
       <div className="naraIcdActions">

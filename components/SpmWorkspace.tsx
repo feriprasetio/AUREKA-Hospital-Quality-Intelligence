@@ -1,6 +1,5 @@
 'use client'
 
-import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -528,7 +527,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
     <section className="spmWorkspace">
       <header className="spmHero">
         <div>
-          <WorkspaceIntelligenceLabel />
+
           <h1>{tab === 'entry' ? 'Logbook Standar Pelayanan Minimal' : 'Standar Pelayanan Minimal'}</h1>
           <p>Monitoring 98 indikator SPM rumah sakit, dengan logbook mandiri dan dua integrasi baca-saja ke sumber Indikator Mutu.</p>
         </div>

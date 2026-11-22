@@ -1,6 +1,5 @@
 'use client'
 
-import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { NATIONAL_INDICATORS } from '@/lib/aureka/national-indicators'
@@ -143,7 +142,7 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
   if(!canStage)return null
   return <section className="aurekaPublishDesk" aria-label="Konsol publikasi publik">
     <div className="aurekaPublishIntro">
-      <WorkspaceIntelligenceLabel />
+
       <h2>Public Publication Desk</h2>
       <p>Susun dan setujui data yang layak tayang untuk masyarakat. Angka harus ditranskripsikan dari hasil yang sudah tervalidasi; draf tidak otomatis menjadi publik.</p>
     </div>

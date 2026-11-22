@@ -1,6 +1,6 @@
 'use client'
 
-import { WorkspaceIntelligenceLabel, WorkspaceIntelligenceMetrics } from '@/components/workspace/WorkspaceIntelligence'
+import { WorkspaceIntelligenceMetrics } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -29,7 +29,7 @@ export default function AuditLogWorkspace() {
   return (
     <section className="rmPanel govWorkspace" aria-label="Audit log">
       <div className="rmSectionHead">
-        <div><WorkspaceIntelligenceLabel /><h3>Audit Log</h3><p>Catatan permanen (tidak dapat diubah atau dihapus) atas perubahan program, tindak lanjut, dan regulasi beserta keputusan persetujuan.</p></div>
+        <div><h3>Audit Log</h3><p>Catatan permanen (tidak dapat diubah atau dihapus) atas perubahan program, tindak lanjut, dan regulasi beserta keputusan persetujuan.</p></div>
         <div className="govHeadTools">
           <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Jenis objek"><option value="">Semua objek</option>{Object.entries(OBJECT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
           <button type="button" className="rmButton" onClick={() => void load()}>↻ Muat ulang</button>
