@@ -8,6 +8,7 @@ import { EPISODE_WORKBOOK_IMPORTER, supportsEpisodeWorkbook } from '@/lib/aureka
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import QualityWorkbookImportPanel from '@/components/QualityWorkbookImportPanel'
+import { classifyQualityWorkbookName } from '@/lib/aureka/quality-workbook-source-audit'
 import QualityOptionEditor from '@/components/quality/QualityOptionEditor'
 import { detectExcelHeaderColumns, resolveExcelSourceColumn, describeExcelSourceColumn, type ExcelHeaderColumn } from '@/lib/aureka/excel-column-picker'
 import { proposeWorkbookIndicatorMappings, provisionalDraftStorageKey, parseProvisionalMappingDraft, type ProvisionalMappingDraft } from '@/lib/aureka/quality-workbook-mapping-draft'
@@ -117,6 +118,10 @@ export default function QualityExcelMappingWorkspace({
   const [detectedColumns, setDetectedColumns] = useState<ExcelHeaderColumn[]>([])
   const [headerRow, setHeaderRow] = useState(1)
   const [workbookName, setWorkbookName] = useState('')
+  // Original Excel files remain in browser memory only. The queue never uploads bytes.
+  const [queuedWorkbooks, setQueuedWorkbooks] = useState<File[]>([])
+  const [selectedQueuedIndex, setSelectedQueuedIndex] = useState<number | null>(null)
+  const [queueError, setQueueError] = useState('')
   const [inspecting, setInspecting] = useState(false)
   const [headerConfirmed, setHeaderConfirmed] = useState(false)
   const [draftHeaders, setDraftHeaders] = useState<Record<string, string>>({})
@@ -754,16 +759,75 @@ export default function QualityExcelMappingWorkspace({
 
 
     {activeTab === 'import' && <>
+      <div className="qemPanel" aria-label="Antrean workbook lokal">
+        <h4>Antrean workbook unit · hanya di browser</h4>
+        <p className="qemMuted">Pilih sekaligus sampai 35 berkas .xlsx. Nama berkas dipakai sebagai petunjuk unit, bukan bukti kesesuaian klinis. Setiap workbook harus ditinjau dan diimpor satu per satu setelah validasi; tidak ada unggah otomatis maupun penggantian profil master.</p>
+        <div className="qemTools">
+          <label className="qemField">Pilih beberapa workbook
+            <input type="file" accept=".xlsx" multiple disabled={fileBusy} onChange={event => {
+              const inputFiles = Array.from(event.target.files ?? [])
+              event.currentTarget.value = ''
+              if (!inputFiles.length) return
+              const invalid = inputFiles.find(file => !/\.xlsx$/i.test(file.name) || file.size === 0 || file.size > 25 * 1024 * 1024)
+              if (invalid) { setQueueError('File tidak didukung atau melebihi 25 MB: ' + invalid.name); return }
+              const combined = [...queuedWorkbooks]
+              const seen = new Set(combined.map(file => [file.name,file.size,file.lastModified].join('|')))
+              for (const file of inputFiles) {
+                const key = [file.name,file.size,file.lastModified].join('|')
+                if (!seen.has(key)) { combined.push(file); seen.add(key) }
+              }
+              if (combined.length > 35 || combined.reduce((total,file) => total + file.size,0) > 256 * 1024 * 1024) {
+                setQueueError('Antrean maksimal 35 workbook dengan total 256 MB. Pilih subset berkas yang lebih kecil.')
+                return
+              }
+              setQueuedWorkbooks(combined)
+              setQueueError('')
+            }}/>
+          </label>
+          {queuedWorkbooks.length > 0 && <button type="button" className="qemButton" onClick={() => {
+            setQueuedWorkbooks([]); setSelectedQueuedIndex(null); setQueueError('')
+          }}>Kosongkan antrean</button>}
+        </div>
+        {queueError && <div className="qemMessage error" role="alert">{queueError}</div>}
+        {queuedWorkbooks.length > 0 && <div className="qemTableWrap" style={{maxHeight:300,overflowY:'auto'}}>
+          <table className="qemTable" aria-label="Daftar workbook yang dipilih">
+            <thead><tr><th>Berkas</th><th>Unit terdeteksi</th><th>Tindakan</th></tr></thead>
+            <tbody>{queuedWorkbooks.map((file,index) => {
+              const hint = classifyQualityWorkbookName(file.name)
+              const specialized = hint?.kind === 'pharmacy_multisheet' || hint?.kind === 'outpatient_matrix'
+              const annual = hint?.kind === 'annual_master'
+              const unit = rooms.find(item => item.id === hint?.roomId)
+              const supported = !annual && !specialized && (!hint?.roomId || !!unit)
+              return <tr key={[file.name,file.size,file.lastModified].join(':')}>
+                <td><strong>{file.name}</strong><span className="qemMuted" style={{display:'block'}}>{(file.size/1048576).toFixed(1)} MB{selectedQueuedIndex===index?' · Dipilih':''}</span></td>
+                <td>{hint?.unit ?? 'Belum dikenali · verifikasi manual'}{specialized && <span className="qemMissing">Memerlukan parser baku khusus unit pada menu Logbook.</span>}{annual && <span className="qemMissing">Master tahunan bukan data logbook.</span>}</td>
+                <td>{supported ? <button type="button" className="qemButton" disabled={fileBusy} onClick={() => {
+                  setSelectedQueuedIndex(index)
+                  if (unit && unit.id !== roomId) setRoomId(unit.id)
+                  setQueueError('')
+                }}>{selectedQueuedIndex===index?'Periksa kembali':'Petakan dan pratinjau'}</button>
+                : <span className="qemMuted">Gunakan alur khusus</span>}</td>
+              </tr>
+            })}</tbody>
+          </table>
+        </div>}
+        {selectedQueuedIndex != null && queuedWorkbooks[selectedQueuedIndex] &&
+          <p className="qemMuted">Workbook dipilih: <strong>{queuedWorkbooks[selectedQueuedIndex].name}</strong>. Lakukan pemetaan di bawah, klik Periksa data, lalu impor hanya setelah lolos validasi. Workbook lain tetap berada di antrean browser.</p>}
+      </div>
       {!roomId || !activeRoom ? (
         <div className="qemPanel"><h4>Pilih unit terlebih dahulu</h4><p className="qemMuted">Impor workbook selalu terikat pada unit dan tahun profil agar konfigurasi antar-ruangan tidak bercampur.</p></div>
+      ) : !ready ? (
+        <AsyncStatePanel state="loading" title="Menyiapkan profil dan pemetaan unit terpilih" compact/>
       ) : (
         <QualityWorkbookImportPanel
+          key={roomId + ':' + profileYear + ':' + (selectedImporter?.key ?? 'unit-logbook') + ':' + String(selectedQueuedIndex ?? 'manual')}
           roomId={roomId}
           roomName={activeRoom.name}
           year={profileYear}
           importerKey={selectedImporter?.key ?? 'unit-logbook'}
           role={role}
           activeProfiles={activeProfiles}
+          initialFile={selectedQueuedIndex == null ? null : queuedWorkbooks[selectedQueuedIndex] ?? null}
           onImported={() => {
             void load()
             window.dispatchEvent(new CustomEvent('aureka:indicator-profiles-updated', { detail: { year: profileYear, scopeRoomId: roomId } }))

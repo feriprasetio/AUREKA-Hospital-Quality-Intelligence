@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
 import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-source-audit'
 import { isExcelSourceError, isMaterialWorkbookSourceRow } from '@/lib/aureka/quality-import-row-filter'
@@ -152,7 +152,7 @@ const clockPair = (value: string) => {
 }
 
 export default function QualityWorkbookImportPanel({
-  roomId, roomName, year, importerKey, role, activeProfiles, onImported, dataOnly = false,
+  roomId, roomName, year, importerKey, role, activeProfiles, onImported, dataOnly = false, initialFile = null,
 }: {
   roomId: number
   roomName: string
@@ -162,9 +162,11 @@ export default function QualityWorkbookImportPanel({
   activeProfiles: Profile[]
   onImported: () => void
   dataOnly?: boolean
+  initialFile?: File | null
 }) {
   const workbookRef = useRef<any>(null)
   const fileRef = useRef<File | null>(null)
+  const lastInitialFile = useRef<File | null>(null)
   const [sheets, setSheets] = useState<SheetMeta[]>([])
   const [fileName, setFileName] = useState('')
   const [fileHash, setFileHash] = useState('')
@@ -346,6 +348,17 @@ export default function QualityWorkbookImportPanel({
       setError(toUserFacingError(cause, { fallback: 'Workbook gagal dibaca. Pastikan berkas bukan hasil ekspor rusak atau dilindungi kata sandi.' }))
     }
   }
+
+  // An inbox selection is inspected exactly once for this scoped importer
+  // instance. Files remain in browser memory until the user validates/commits.
+  useEffect(() => {
+    if (!initialFile || lastInitialFile.current === initialFile) return
+    lastInitialFile.current = initialFile
+    setBusy(true)
+    void inspect(initialFile).finally(() => setBusy(false))
+    // The parent remounts this importer when room/year/workbook changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFile])
 
   const sheetRows = (sheetName: string, headerRow: number): Array<{ rowNumber: number; values: Record<string, any> }> => {
     const sheet = workbookRef.current?.getWorksheet(sheetName)
