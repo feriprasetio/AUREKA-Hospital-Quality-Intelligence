@@ -61,19 +61,21 @@ test('sidebar is two levels only; module tabs and subtabs use the contextual nav
   assert.match(nav, /disabled=\{item\.disabled\}/)
 })
 
-test('clinical and quality contextual navigation follows the document and preserves integrated results', () => {
+test('clinical and quality contextual navigation groups quality outcomes without duplicating the logbook', () => {
   const app = read('components/HomeClient.tsx')
   const quality = read('components/QualityIndicatorWorkspace.tsx')
   assert.match(app, /quality:role==='DEWAN_PENGAWAS' \? \[\] : \[/)
   assert.match(app, /\{id:'audit-indicators',label:'Form Logbook'\}/)
   assert.match(app, /\{id:'profile-indicators',label:'Profil Indikator'\}/)
   assert.match(app, /label:'Monitoring Pelaporan dan Kinerja PIC'/)
-  assert.match(app, /label:'Pusat Rekonsiliasi'/)
-  assert.doesNotMatch(app, /id:'result-indicators',label:'Hasil Capaian'/)
-  assert.match(app, /qualityLogbookResultsStack/)
+  assert.match(app, /label:'Validasi dan Rekonsiliasi'/)
+  assert.match(app, /id:'quality-results',label:'Hasil Capaian dan Analitik',children:\[/)
+  assert.match(app, /id:'result-unit',label:'Per Unit'/)
+  assert.match(app, /id:'result-category',label:'Per Kategori'/)
+  assert.doesNotMatch(app, /qualityLogbookResultsStack/)
   assert.match(quality, /Logbook/)
   assert.match(app, /<QualityIndicatorWorkspace[\s\S]*?initialContainer="Audit Indikator Mutu" showContainerTabs=\{false\}/)
-  assert.match(app, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
+  assert.match(app, /:active==='quality'&&qualityResultsView\?<QualityResultsWorkspace[\s\S]*?mode=\{qualityResultsView\}/)
 })
 
 test('patient safety and risk tabs use the specified hierarchy without invented navigation items', () => {
