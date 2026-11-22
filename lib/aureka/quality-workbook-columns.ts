@@ -6,7 +6,7 @@ export type WorkbookSourceRule = {
   source_header: string
   occurrence?: number
   mapping_status?: string
-  transform_json?: { source_sheet?: string; header_row?: number }
+  transform_json?: { source_sheet?: string; header_row?: number; column_index?: number; column_letter?: string }
 }
 
 export function readWorkbookSourceColumns(row: Row): WorkbookSourceColumn[] {
@@ -29,6 +29,15 @@ export function getWorkbookRuleColumn<T extends ExcelHeaderColumn>(
   const source = rule.transform_json
   if (source?.source_sheet && normalizeExcelHeader(source.source_sheet) !== normalizeExcelHeader(sheetName)) return null
   if (source?.header_row && Number(source.header_row) !== headerRow) return null
-  const column = resolveExcelSourceColumn(columns, rule.source_header, Number(rule.occurrence ?? 1))
-  return columns.find(item => item.index === column?.index) ?? null
+  // The exact physical column chosen by the user wins for duplicate headers.
+  // Never trust a stored position if the actual header has changed.
+  const physicalIndex = Number(source?.column_index)
+  if (Number.isSafeInteger(physicalIndex) && physicalIndex > 0) {
+    const physical = columns.find(item => item.index === physicalIndex)
+    if (physical && normalizeExcelHeader(physical.header) === normalizeExcelHeader(rule.source_header)) {
+      return physical
+    }
+  }
+  // When a distinct header moves, follow its reviewed header/occurrence instead.
+  return resolveExcelSourceColumn(columns, rule.source_header, Number(rule.occurrence ?? 1)) ?? null
 }
