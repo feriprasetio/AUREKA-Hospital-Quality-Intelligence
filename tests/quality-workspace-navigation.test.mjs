@@ -13,7 +13,7 @@ test('Hasil Capaian dan Analitik is one parent tab with Per Unit and Per Kategor
   assert.match(groups, /\{id:'audit-indicators',label:'Form Logbook'\}/)
   assert.match(groups, /\{id:'profile-indicators',label:'Profil Indikator'\}/)
   assert.match(groups, /label:'Monitoring Pelaporan dan Kinerja PIC'/)
-  assert.match(groups, /label:'Pusat Rekonsiliasi'/)
+  assert.match(groups, /label:'Validasi dan Rekonsiliasi'/)
   assert.match(groups, /\{id:'quality-results',label:'Hasil Capaian dan Analitik',children:\[/)
   assert.match(groups, /\{id:'result-unit',label:'Per Unit'\}/)
   assert.match(groups, /\{id:'result-category',label:'Per Kategori'\}/)

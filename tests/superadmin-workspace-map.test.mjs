@@ -28,10 +28,12 @@ test('workspace uses one static contextual tab rail; navigation maps are removed
   assert.ok(!/onPointerEnter|onPointerLeave|wmmMapPanel/.test(navCss))
 })
 
-test('the quality rail keeps the logbook and results together and tracks contextual selections', () => {
-  assert.doesNotMatch(home, /id:'result-indicators',label:'Hasil Capaian'/)
-  assert.ok(home.includes('qualityLogbookResultsStack'))
-  assert.ok(home.includes('<h2>Hasil Capaian Indikator Mutu</h2>'))
+test('the quality rail groups results into two subtabs while isolating the logbook', () => {
+  assert.match(home, /id:'quality-results',label:'Hasil Capaian dan Analitik',children:\[/)
+  assert.match(home, /id:'result-unit',label:'Per Unit'/)
+  assert.match(home, /id:'result-category',label:'Per Kategori'/)
+  assert.match(home, /id:'quality-reconciliation',label:'Validasi dan Rekonsiliasi'/)
+  assert.doesNotMatch(home, /qualityLogbookResultsStack|<h2>Hasil Capaian Indikator Mutu<\/h2>/)
   assert.ok(home.includes("const activeNestedNavGroup=activeNavGroups.find"))
   assert.ok(home.includes('title={activeRailTitle}'))
   assert.ok(home.includes("const activeRailItems=activeNavGroups"))
