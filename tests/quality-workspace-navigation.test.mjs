@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 
 const read = (path) => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
-test('quality audit uses one contextual rail; Form Logbook and Hasil Capaian remain stacked, not separate tabs', () => {
+test('Hasil Capaian dan Analitik is one parent tab with Per Unit and Per Kategori as children', () => {
   const home = read('components/HomeClient.tsx')
   const groupsStart = home.indexOf('const sidebarChildGroups')
   const groupsEnd = home.indexOf('const currentContainer', groupsStart)
@@ -14,7 +14,12 @@ test('quality audit uses one contextual rail; Form Logbook and Hasil Capaian rem
   assert.match(groups, /\{id:'profile-indicators',label:'Profil Indikator'\}/)
   assert.match(groups, /label:'Monitoring Pelaporan dan Kinerja PIC'/)
   assert.match(groups, /label:'Pusat Rekonsiliasi'/)
-  assert.doesNotMatch(groups, /id:'result-indicators'|label:'Hasil Capaian'/)
+  assert.match(groups, /\{id:'quality-results',label:'Hasil Capaian dan Analitik',children:\[/)
+  assert.match(groups, /\{id:'result-unit',label:'Per Unit'\}/)
+  assert.match(groups, /\{id:'result-category',label:'Per Kategori'\}/)
+  assert.match(groups, /\{id:'quality-reconciliation',label:'Validasi dan Rekonsiliasi'\}/)
+  assert.equal((groups.match(/id:'quality-results'/g) ?? []).length, 1)
+  assert.doesNotMatch(groups, /\{id:'result-unit',label:'Hasil Capaian per Unit'\}|\{id:'result-category',label:'Hasil Capaian per Kategori'\}/)
   assert.ok(home.includes('UnifiedModuleNavigation'))
   assert.match(home, /\{activeNavGroups\.length>0&&<UnifiedModuleNavigation/)
   assert.match(home, /activeNestedNavGroup/)
@@ -24,9 +29,11 @@ test('quality audit uses one contextual rail; Form Logbook and Hasil Capaian rem
   assert.match(home, /onOpenLogbook=\{\(\)=>navigateWorkspace\('quality','audit-indicators'\)\}/)
   assert.match(home, /onAskNara=\{openNaraWithContext\}/)
   const qualityBranch = home.slice(home.indexOf(":active==='quality'&&qualityOpen?"), home.indexOf(":active==='quality'?<InfographicsDashboard"))
-  assert.match(qualityBranch, /qualityLogbookResultsStack/)
   assert.match(qualityBranch, /<QualityIndicatorWorkspace[\s\S]*?showContainerTabs=\{false\}/)
-  assert.match(qualityBranch, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
+  assert.doesNotMatch(qualityBranch, /<QualityResultsWorkspace/)
+  assert.match(home, /:active==='quality'&&qualityResultsView\?<QualityResultsWorkspace/)
+  assert.match(home, /activeNestedNavGroup=activeNavGroups\.find\(group=>group\.children\?\.some/)
+  assert.match(home, /key=\{qualityResultsView\+'-'\+String\(activeWorkspaceRoomId\?\?'profile'\)\}/)
 })
 
 test('every non-validator unit logbook exposes a guarded add-note action', () => {
@@ -77,9 +84,9 @@ test('IT workbook upload is visible from the main quality audit workspace', () =
   assert.match(quality, /loadedImportDialogs\.has\('it'\).*ItExcelImportDialog/)
   assert.match(importer, /import_it_logbook_batch/)
   const qualityBranch = home.slice(home.indexOf(":active==='quality'&&qualityOpen?"), home.indexOf(":active==='quality'?<InfographicsDashboard"))
-  assert.ok(qualityBranch.includes('qualityLogbookResultsStack'), 'main Audit Indikator Mutu workspace must retain the integrated logbook/results layout')
+  assert.doesNotMatch(qualityBranch, /qualityLogbookResultsStack|<QualityResultsWorkspace/, 'Form Logbook is independent from the results workspace')
   assert.match(qualityBranch, /<QualityIndicatorWorkspace[\s\S]*?initialContainer="Audit Indikator Mutu" showContainerTabs=\{false\}/)
-  assert.match(qualityBranch, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
+  assert.match(home, /:active==='quality'&&qualityResultsView\?<QualityResultsWorkspace[\s\S]*?mode=\{qualityResultsView\}/)
   assert.doesNotMatch(qualityBranch, /hidePatientEpisodeEntry|patientRegistryMode/)
 })
 test('Rekam Medis 2026 workbook import is available from the main quality audit workspace', () => {
@@ -91,9 +98,9 @@ test('Rekam Medis 2026 workbook import is available from the main quality audit 
   assert.match(quality, /loadedImportDialogs\.has\('rekam-medis'\).*RekamMedisExcelImportDialog/)
   assert.match(importer, /import_rekam_medis_logbook_batch/)
   const qualityBranch = home.slice(home.indexOf(":active==='quality'&&qualityOpen?"), home.indexOf(":active==='quality'?<InfographicsDashboard"))
-  assert.ok(qualityBranch.includes('qualityLogbookResultsStack'), 'main Audit Indikator Mutu workspace must retain the integrated logbook/results layout')
+  assert.doesNotMatch(qualityBranch, /qualityLogbookResultsStack|<QualityResultsWorkspace/, 'Form Logbook is independent from the results workspace')
   assert.match(qualityBranch, /<QualityIndicatorWorkspace[\s\S]*?initialContainer="Audit Indikator Mutu" showContainerTabs=\{false\}/)
-  assert.match(qualityBranch, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
+  assert.match(home, /:active==='quality'&&qualityResultsView\?<QualityResultsWorkspace[\s\S]*?mode=\{qualityResultsView\}/)
   assert.doesNotMatch(qualityBranch, /hidePatientEpisodeEntry|patientRegistryMode/)
 })
 test('Timkordik 2026 workbook import is available from the main quality audit workspace', () => {
@@ -105,9 +112,9 @@ test('Timkordik 2026 workbook import is available from the main quality audit wo
   assert.match(quality, /loadedImportDialogs\.has\('timkordik'\).*TimkordikExcelImportDialog/)
   assert.match(importer, /import_timkordik_logbook_batch/)
   const qualityBranch = home.slice(home.indexOf(":active==='quality'&&qualityOpen?"), home.indexOf(":active==='quality'?<InfographicsDashboard"))
-  assert.ok(qualityBranch.includes('qualityLogbookResultsStack'), 'main Audit Indikator Mutu workspace must retain the integrated logbook/results layout')
+  assert.doesNotMatch(qualityBranch, /qualityLogbookResultsStack|<QualityResultsWorkspace/, 'Form Logbook is independent from the results workspace')
   assert.match(qualityBranch, /<QualityIndicatorWorkspace[\s\S]*?initialContainer="Audit Indikator Mutu" showContainerTabs=\{false\}/)
-  assert.match(qualityBranch, /<QualityResultsWorkspace[\s\S]*?mode="indicators"/)
+  assert.match(home, /:active==='quality'&&qualityResultsView\?<QualityResultsWorkspace[\s\S]*?mode=\{qualityResultsView\}/)
   assert.doesNotMatch(qualityBranch, /hidePatientEpisodeEntry|patientRegistryMode/)
 })
 

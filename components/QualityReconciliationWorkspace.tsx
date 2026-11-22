@@ -132,7 +132,7 @@ export default function QualityReconciliationWorkspace({
 
   const load = useCallback(async (quiet = false) => {
     if (!canManage) {
-      setError('Akses Pusat Rekonsiliasi Data hanya tersedia untuk Admin dan Komite PMKP.')
+      setError('Akses Validasi dan Rekonsiliasi hanya tersedia untuk Admin dan Komite PMKP.')
       setLoading(false)
       return
     }
@@ -354,8 +354,8 @@ export default function QualityReconciliationWorkspace({
     <header className="qrcHead">
       <div>
 
-        <h2>Pusat Rekonsiliasi Data</h2>
-        <p>Kelompokkan warning yang memiliki pola sumber sama, perbaiki pemetaan indikator secara massal, dan simpan audit setiap perubahan. Nilai sumber asli tidak dihapus.</p>
+        <h2>Validasi dan Rekonsiliasi</h2>
+        <p>Tinjau dan validasi klasifikasi respons indikator yang membutuhkan keputusan, rekonsiliasi pemetaan sumber Excel yang bermasalah, serta periksa riwayat setiap tindakan. Nilai sumber asli dan audit trail tetap dipertahankan.</p>
       </div>
       <div className="qrcToolbar">
         <label className="qrcField">Tahun profil

@@ -472,14 +472,16 @@ export default function HomeClient(){
    ],
    quality:role==='DEWAN_PENGAWAS' ? [] : [
     {id:'audit-indicators',label:'Form Logbook'},
-    {id:'result-category',label:'Hasil Capaian per Kategori'},
-    {id:'result-unit',label:'Hasil Capaian per Unit'},
+    {id:'quality-results',label:'Hasil Capaian dan Analitik',children:[
+      {id:'result-unit',label:'Per Unit'},
+      {id:'result-category',label:'Per Kategori'},
+    ]},
     {id:'profile-indicators',label:'Profil Indikator'},
     {id:'quality-monitoring',label:'Monitoring Pelaporan dan Kinerja PIC',children:[
       {id:'quality-reporting',label:'Monitoring Pelaporan'},
       ...(permissionFlags.readPicPerformance?[{id:'pic-performance',label:'Kinerja PIC'}]:[]),
     ]},
-    ...(role==='ADMIN'||role==='PMKP'?[{id:'quality-reconciliation',label:'Pusat Rekonsiliasi'}]:[]),
+    ...(role==='ADMIN'||role==='PMKP'?[{id:'quality-reconciliation',label:'Validasi dan Rekonsiliasi'}]:[]),
    ],
    // Keselamatan Pasien: tab Insiden, analisis reaktif, dan Budaya.
    safety:[
@@ -519,7 +521,7 @@ export default function HomeClient(){
   if(active==='home')return 'Dashboard'
   if(active==='patients')return patientsRegistryTab==='directory'?'Daftar Pasien':patientsRegistryTab==='overview'?'Direktori Pasien':'Pola Perawatan'
   if(active==='secretariat')return secretariatSection==='register'?'Administrasi Kegiatan · Register Kegiatan':'Administrasi Kegiatan · Kirim Undangan'
-  if(active==='quality')return qualityProfileOpen?'Profil Indikator':spoOpen?'Standar Prosedur Operasional':spmOpen?'Standar Pelayanan Minimal (SPM)':qualityReconciliationOpen?'Pusat Rekonsiliasi':qualityMonitorOpen?(qualityMonitorTab==='pic'?'Kinerja PIC':'Monitoring Pelaporan'):qualityResultsView?'Hasil Capaian · Indikator Mutu':'Form Logbook'
+  if(active==='quality')return qualityProfileOpen?'Profil Indikator':spoOpen?'Standar Prosedur Operasional':spmOpen?'Standar Pelayanan Minimal (SPM)':qualityReconciliationOpen?'Validasi dan Rekonsiliasi':qualityMonitorOpen?(qualityMonitorTab==='pic'?'Kinerja PIC':'Monitoring Pelaporan'):qualityResultsView?'Hasil Capaian dan Analitik · '+(qualityResultsGroup==='category'?'Per Kategori':'Per Unit'):'Form Logbook'
   if(active==='clinical')return realcostAuditOpen?'Audit Realcost':qualityResultsView==='pathway'?'Analisis Clinical Pathway':clinicalPathwayOpen?'Audit Clinical Pathway':clinicalAuditType==='death'?'Form Audit Kematian':'Form Audit Klinis'
   if(active==='safety')return ({overview:'Insiden',incidents:'Insiden · Register Insiden',investigation:'Insiden · Investigasi','fmea-reactive':'Insiden · FMEA Reaktif',survey:'Budaya · Form Survei Tahunan',responses:'Budaya · Register Survei Tahunan'} as const)[safetyTab]
   if(active==='risk')return ({overview:'Register Risiko','fmea-overview':'FMEA',register:'Register Risiko · Daftar Risiko',connections:'Register Risiko · Konektor Risiko',profile:'Register Risiko · Profil Risiko',fmea:'FMEA · Analisis FMEA Preventif',mitigation:'FMEA · Mitigasi dan Rencana Tindak Pengendalian',evaluation:'FMEA · Evaluasi Keberhasilan'} as const)[riskTab]
@@ -1278,8 +1280,8 @@ export default function HomeClient(){
      {qualityMonitorTab==='pic'&&permissionFlags.readPicPerformance?<PicPerformanceWorkspace/>:<QualityReportingMonitor supabase={sb} rooms={roomsList} isAdmin={admin} roomId={admin&&allRoomsScope?null:activeWorkspaceRoomId} roomName={activeWorkspaceRoom?.name??null}/>}
     </section>
    :active==='quality'&&role==='DEWAN_PENGAWAS'?<InfographicsDashboard mode="quality" role={role} rooms={roomsList} initialRoomId={null} unitLocked={false}/>
-   :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView+'-'+qualityResultsGroup+'-'+String(activeWorkspaceRoomId??'profile')} groupBy={qualityResultsGroup} onAskNara={openNaraWithContext} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom}/>
-      :active==='quality'&&qualityOpen?<div className="qualityLogbookResultsStack"><section className="qualityLogbookCard"><QualityIndicatorWorkspace key={'audit-indicators-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} initialContainer="Audit Indikator Mutu" showContainerTabs={false}/></section><section className="qualityLogbookCard"><header><h2>Hasil Capaian Indikator Mutu</h2></header><QualityResultsWorkspace key={'quality-inline-results-'+String(activeWorkspaceRoomId??'profile')} mode="indicators" initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} groupBy={qualityResultsGroup} onAskNara={openNaraWithContext}/></section></div>
+   :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView+'-'+String(activeWorkspaceRoomId??'profile')} groupBy={qualityResultsGroup} onAskNara={openNaraWithContext} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom}/>
+      :active==='quality'&&qualityOpen?<QualityIndicatorWorkspace key={'audit-indicators-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom} initialContainer="Audit Indikator Mutu" showContainerTabs={false}/>
    :active==='quality'?<InfographicsDashboard mode="quality" onOpenLogbook={()=>navigateWorkspace('quality','audit-indicators')} role={role} rooms={roomsList} initialRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):activeWorkspaceRoomId} unitLocked={!['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role||'')} onNavigate={(id)=>openMainModule(id)} onRoomChange={admin?updateWorkspaceRoom:undefined} onAskNara={({period,scope})=>openNaraWithContext('Analisis indikator mutu untuk periode '+period+' dan cakupan '+scope+'. Identifikasi indikator yang tidak memenuhi target, tren, variasi, keterbatasan data, dan prioritas tindak lanjut. Jangan mengubah data.','Indikator Mutu · Ikhtisar · '+period+' · '+scope)}/>
    :active==='safety'&&safetyTab==='fmea-reactive'?<ReactiveFmeaWorkspace role={role} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={!admin&&!manager}/>
    :active==='safety'?<PatientSafetyWorkspace key={'safety-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} scopeRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} isSuperAdmin={admin} canManageWorkflow={canManageSafety} focus={safetyFocus} activeTab={safetyTab==='fmea-reactive'?'incidents':safetyTab} showTabs={false} onTabChange={setSafetyTab} onAskNara={openNaraWithContext}/>
