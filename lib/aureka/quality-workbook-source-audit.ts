@@ -59,8 +59,13 @@ export function classifyQualityWorkbookName(fileName: string): QualityWorkbookHi
   // Filename is only a convenience hint. The user must still confirm headers,
   // official profile codes, inclusion criteria and clinical source provenance.
   const matches = rules.filter(rule => normalized.includes(rule.phrase))
-  if (matches.length !== 1) return null
-  const match = matches[0]
+  if (!matches.length) return null
+  // E.g. "Neonatal Intensive Care Unit" contains "Intensive Care Unit":
+  // the most specific named unit wins, never the accidental shorter label.
+  const greatestSpecificity = Math.max(...matches.map(rule => rule.phrase.length))
+  const specific = matches.filter(rule => rule.phrase.length === greatestSpecificity)
+  if (specific.length !== 1) return null
+  const match = specific[0]
   return {
     roomId: match.roomId, kind: match.kind ?? 'unit', unit: match.unit,
     ...(match.headerRow ? {headerRow: match.headerRow} : {}),
