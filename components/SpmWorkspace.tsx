@@ -529,7 +529,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
         <div>
 
           <h1>{tab === 'entry' ? 'Logbook Standar Pelayanan Minimal' : 'Standar Pelayanan Minimal'}</h1>
-          <p>Monitoring 98 indikator SPM rumah sakit, dengan logbook mandiri dan dua integrasi baca-saja ke sumber Indikator Mutu.</p>
+          <p>Pantau capaian 98 indikator SPM rumah sakit melalui pencatatan SPM dan data Indikator Mutu yang terhubung.</p>
         </div>
         <div className="spmHeroFilters">
           <label>Tahun

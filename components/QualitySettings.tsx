@@ -401,7 +401,7 @@ function UnitLiveProfileEditor({
     >
       <div style={{ display: 'grid', gap: 12, padding: 12, maxHeight: '70vh', overflow: 'auto' }}>
         <div style={{ border: '1px solid rgba(28,107,73,.20)', background: 'rgba(28,107,73,.055)', borderRadius: 11, padding: 10, fontSize: 12, lineHeight: 1.55 }}>
-          <strong>Mode unit aktif.</strong> Setiap kartu merupakan satu baris profil indikator. Kolom Excel disimpan pada metadata profil, sehingga hubungan sumber → indikator dapat dilihat dan dikelola tanpa mengubah kode. Gunakan nama header Excel, bukan huruf kolom yang dapat berubah saat urutan worksheet berubah.
+          Setiap kartu mewakili satu profil indikator. Untuk pemetaan Excel, gunakan nama judul kolom agar tetap sesuai jika urutan kolom berubah.
         </div>
         {error && <div role="alert" style={{ color: '#9c3f32', border: '1px solid rgba(184,52,52,.3)', borderRadius: 9, padding: 9, fontSize: 12 }}>{error}</div>}
         {drafts.map((model, index) => (
@@ -935,7 +935,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     <div style={{ marginTop: 12, padding: 14, borderRadius: 16, background: 'rgba(255,255,255,.30)', border: '1px solid rgba(255,255,255,.68)' }}>
       <div className="eyebrow">{model.id ? 'EDIT · TERBITKAN VERSI BARU' : 'INDIKATOR BARU'}</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 9, marginTop: 10 }}>
-        <label className="field" style={fieldStyle}><span>Tahun metadata</span><select value={model.profile_year} onChange={(e) => setModel({ ...model, profile_year: Number(e.target.value) })}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+        <label className="field" style={fieldStyle}><span>Tahun</span><select value={model.profile_year} onChange={(e) => setModel({ ...model, profile_year: Number(e.target.value) })}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Kode indikator</span><input required value={model.code || ''} onChange={(e) => setModel({ ...model, code: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Unit pemilik</span><select required value={model.room_id ?? ''} disabled={lockRoomScope} onChange={(e) => { const selected = rooms.find((item) => String(item.id) === e.target.value); setModel({ ...model, room_id: e.target.value ? Number(e.target.value) : '', unit_name: selected?.name || '' }) }}><option value="">Pilih unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Nama indikator</span><input required value={model.title || ''} onChange={(e) => setModel({ ...model, title: e.target.value })} /></label>
@@ -953,7 +953,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         <div className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Opsi jawaban di logbook</span><OptionsEditor text={model._options_text ?? '[]'} onChange={(next) => setModel({ ...model, _options_text: next })} /></div>
         <details className="qsAdvanced" style={{ gridColumn: '1/-1' }}>
           <summary>Pengaturan lanjutan (khusus admin teknis)</summary>
-          <p>Format data mentah yang dipakai sistem. Biasanya tidak perlu diubah.</p>
+          <p>Pengaturan ini hanya perlu diubah jika struktur instrumen atau pilihan respons diperbarui.</p>
           <label className="field" style={fieldStyle}><span>Struktur instrumen</span><textarea style={{ minHeight: 95, fontFamily: 'ui-monospace,monospace', fontSize: 12 }} value={model._schema_text ?? '{}'} onChange={(e) => setModel({ ...model, _schema_text: e.target.value })} /></label>
           <label className="field" style={fieldStyle}><span>Daftar opsi (format data)</span><textarea style={{ minHeight: 120, fontFamily: 'ui-monospace,monospace', fontSize: 12 }} value={model._options_text ?? '[]'} onChange={(e) => setModel({ ...model, _options_text: e.target.value })} /></label>
         </details>
@@ -997,9 +997,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         {msg && <div className="msg visible" role={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'alert' : 'status'} aria-live={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'assertive' : 'polite'} style={{ color: /gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? '#9c3f32' : '#0f7656', marginTop: 12 }}>{msg}</div>}
 
         <div className="metadataScopeFilters" style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 12, color: 'var(--muted)' }}><span>Tahun metadata</span><select value={year} onChange={(e) => { setYear(Number(e.target.value)); setProgramFilter(''); setSearch('') }}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 12, color: 'var(--muted)' }}><span>Tahun</span><select value={year} onChange={(e) => { setYear(Number(e.target.value)); setProgramFilter(''); setSearch('') }}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
           <label className="field" style={{ display: 'grid', gap: 4, fontSize: 12, color: 'var(--muted)' }}><span>Unit pemilik</span><select value={room} disabled={lockRoomScope} onChange={(e) => { setRoom(e.target.value); setProgramFilter('') }}>{!lockRoomScope && <option value="">Semua unit</option>}{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)' }}>{loading ? 'Memuat metadata…' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
+          <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)' }}>{loading ? 'Memuat profil indikator…' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
         </div>
 
         {!lockRoomScope && room === '' && <div style={{ marginTop: 12 }}><IndicatorCoveragePanel rooms={rooms} year={year} onCopied={() => void load()} onStarterTemplate={() => void downloadStarterTemplate()} onImport={() => { if (importFileRef.current) importFileRef.current.click(); else { setTab('profiles'); onTabChange?.('profiles'); window.setTimeout(() => importFileRef.current?.click(), 60) } }} /></div>}
