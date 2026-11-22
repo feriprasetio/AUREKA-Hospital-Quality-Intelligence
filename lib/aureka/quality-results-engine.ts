@@ -1,5 +1,7 @@
 import {
   compareToTarget,
+  compareContinuousObservation,
+  usesContinuousAttainmentTarget,
   isWithinVisitWindow,
   resolveMeasurementKind,
   usesCategoricalResponseCapture,
@@ -111,14 +113,44 @@ function recordDate(row: ResultRecord): string | null {
 }
 
 function clockMinutes(value: unknown): number | null {
-  const match = String(value ?? '').trim().match(/^(\d{1,2}):(\d{2})$/)
+  const match = String(value ?? '').trim().replace('.', ':').match(/^(\d{1,2}):(\d{2})$/)
   if (!match) return null
   const hours = Number(match[1])
   const minutes = Number(match[2])
   return hours >= 0 && hours < 24 && minutes >= 0 && minutes < 60 ? hours * 60 + minutes : null
 }
 
+function timestampMinutes(value: unknown): number | null {
+  const text = String(value ?? '').trim()
+  const m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{1,2}):(\d{2})(?::(\d{2}))?(Z|[+-]\d{2}:?\d{2})?$/.exec(text)
+  if (!m) return null
+  const [year, month, day, hour, minute, second] = m.slice(1, 7).map(value => Number(value || 0))
+  if (hour > 23 || minute > 59 || second > 59) return null
+  const utc = Date.UTC(year, month - 1, day, hour, minute, second)
+  const check = new Date(utc)
+  if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 ||
+      check.getUTCDate() !== day) return null
+  let offsetMinutes = 0
+  const tz = m[7]
+  if (tz && tz !== 'Z') {
+    const compact = tz.slice(1).replace(':', '')
+    const zoneHours = Number(compact.slice(0, 2))
+    const zoneMinutes = Number(compact.slice(2))
+    if (zoneHours > 23 || zoneMinutes > 59) return null
+    offsetMinutes = (tz[0] === '+' ? 1 : -1) * (zoneHours * 60 + zoneMinutes)
+  }
+  return utc / 60000 - offsetMinutes
+}
+
+/** Explicit timestamps preserve genuine multi-day incidents and timezone
+ * offsets; clock-only inputs roll over once at midnight, never across days. */
 function durationBetween(start: unknown, end: unknown): number | null {
+  const timestampStart = timestampMinutes(start)
+  const timestampEnd = timestampMinutes(end)
+  if (timestampStart != null || timestampEnd != null) {
+    if (timestampStart == null || timestampEnd == null || timestampEnd < timestampStart) return null
+    return Math.round((timestampEnd - timestampStart) * 100) / 100
+  }
   const a = clockMinutes(start)
   const b = clockMinutes(end)
   if (a == null || b == null) return null
@@ -287,19 +319,19 @@ function extractObservation(
   if (kind === 'door') {
     const duration = durationBetween(response.start, response.end)
     if (duration == null) return null
-    return { month, numerator: 0, denominator: 1, value: duration, targetMet: compareToTarget(profile, duration, '<='), inputAt }
+    return { month, numerator: 0, denominator: 1, value: duration, targetMet: compareContinuousObservation(profile, duration, '<='), inputAt }
   }
 
   if (kind === 'minutes') {
     const duration = finiteNumber(response.minutes)
     if (duration == null || duration < 0) return null
-    return { month, numerator: 0, denominator: 1, value: duration, targetMet: compareToTarget(profile, duration, '<='), inputAt }
+    return { month, numerator: 0, denominator: 1, value: duration, targetMet: compareContinuousObservation(profile, duration, '<='), inputAt }
   }
 
   if (kind === 'numeric') {
     const value = finiteNumber(response.value)
     if (value == null) return null
-    return { month, numerator: 0, denominator: 1, value, targetMet: compareToTarget(profile, value), inputAt }
+    return { month, numerator: 0, denominator: 1, value, targetMet: compareContinuousObservation(profile, value, '>='), inputAt }
   }
 
   const optionObservation = extractOptionObservation(profile, response, month, inputAt)
@@ -416,7 +448,7 @@ export function calculateIndicatorResult(
   const annualRate = continuous
     ? (targetDenominator ? (targetCount / targetDenominator) * 100 : null)
     : (annualDenominator ? (annualNumerator / annualDenominator) * 100 : null)
-  const assessedValue = continuous ? annualMean : annualRate
+  const assessedValue = continuous ? (usesContinuousAttainmentTarget(profile) ? annualRate : annualMean) : annualRate
 
   return {
     profile,
