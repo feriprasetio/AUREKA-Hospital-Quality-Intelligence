@@ -4,6 +4,7 @@ import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
 import { shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
+import { isIndicatorApplicableToDiagnosis } from '@/lib/aureka/quality-logbook-coverage'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Profile = {
@@ -30,7 +31,7 @@ type Profile = {
 type SheetMeta = { name: string; headerRow: number; headers: string[] }
 type ImportIssue = { sheet: string; row: number; field: string; message: string }
 type StagedRow = { source_key: string; source_sheet: string; source_row: number; row_payload: Record<string, any> }
-type Preview = { profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number }
+type Preview = { profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; draftRows: number }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -441,7 +442,9 @@ export default function QualityWorkbookImportPanel({
     }
 
     const rows: StagedRow[] = []
+    const seenSourceKeys = new Set<string>()
     if (importMode !== 'profiles_only') {
+      if (!dataColumns.date) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Tanggal', message: 'Kolom tanggal wajib dipetakan agar catatan tidak hilang dari filter tahun laporan.' })
       if (importMode === 'data_only' && !activeProfiles.length) issues.push({ sheet: '-', row: 0, field: 'Profil aktif', message: 'Tidak ada profil indikator aktif untuk unit dan tahun terpilih.' })
       for (const source of sourceDataRows) {
         const byGrain = new Map<string, any[]>()
@@ -526,6 +529,16 @@ export default function QualityWorkbookImportPanel({
           const diagnosisHeader = dataColumns.diagnosis
           const dpjpHeader = dataColumns.dpjp
           const formFields = { ...source.values }
+          const sourceDiagnosis = dataColumns.diagnosis ? clean(source.values[dataColumns.diagnosis]) : ''
+          const applicableProfiles = profiles.filter(profile =>
+            grainValue(profile.measurement_grain) === grain &&
+            isIndicatorApplicableToDiagnosis(profile.indicator_type, sourceDiagnosis))
+          const isReady = applicableProfiles.length > 0 && applicableProfiles.every(profile =>
+            responses.some(response => response.indicator_code === profile.code))
+          if (!dateValue) {
+            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Tanggal', message: 'Tanggal pengamatan tidak valid atau belum dipetakan.' })
+            continue
+          }
           const payload = {
             record_payload: {
               room_id: roomId, profile_year: year, measurement_grain: grain,
@@ -544,21 +557,33 @@ export default function QualityWorkbookImportPanel({
                   { ...response.raw_value, review_status: response.review_status },
                 ])),
               },
-              status: 'ready',
+              status: isReady ? 'ready' : 'draft',
               review_required: responses.some(r => r.review_status === 'pending'),
             },
             responses, attributions: [],
           }
-          const sourceKey = await hash([roomId, year, importerKey, dataSheet, source.rowNumber, grain].join('|'))
+          const identity = dataColumns.subject_key ? clean(source.values[dataColumns.subject_key]) : ''
+          if (dataMode === 'upsert' && !identity) {
+            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'ID subjek', message: 'Mode Upsert memerlukan ID subjek/episode yang stabil; nomor baris Excel tidak aman sebagai identitas.' })
+            continue
+          }
+          const sourceKey = await hash(JSON.stringify([roomId, year, importerKey, dataSheet, grain,
+            identity ? identity.normalize('NFKC').toUpperCase().replace(/\s+/g, '') : 'baris:'+source.rowNumber,
+            identity ? dateValue : null]))
+          if (seenSourceKeys.has(sourceKey)) {
+            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Identitas episode', message: 'ID subjek dan tanggal sama pada grain yang sama. Gunakan ID episode unik agar data tidak saling menimpa.' })
+            continue
+          }
+          seenSourceKeys.add(sourceKey)
           rows.push({ source_key: sourceKey, source_sheet: dataSheet, source_row: source.rowNumber, row_payload: payload })
         }
       }
     }
     if (rows.length > 10000) issues.push({ sheet: dataSheet, row: 0, field: 'Batas impor', message: 'Jumlah record hasil pemetaan melebihi batas 10.000 per batch.' })
     if (importMode !== 'profiles_only' && !rows.length) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Respons', message: 'Tidak ada respons indikator valid yang dapat disimpan.' })
-    setPreview({ profiles, rows, issues, workbookRows: sourceDataRows.length })
+    setPreview({ profiles, rows, issues, workbookRows: sourceDataRows.length, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
     if (issues.length) setError('Pratinjau menemukan ' + issues.length.toLocaleString('id-ID') + ' masalah. Perbaiki pemetaan atau nilai sumber sebelum commit.')
-    else setNotice('Pratinjau valid: ' + profiles.length.toLocaleString('id-ID') + ' profil, ' + rows.length.toLocaleString('id-ID') + ' record, ' + sourceDataRows.length.toLocaleString('id-ID') + ' baris sumber.')
+    else setNotice('Pratinjau valid: ' + profiles.length.toLocaleString('id-ID') + ' profil, ' + rows.length.toLocaleString('id-ID') + ' record, ' + sourceDataRows.length.toLocaleString('id-ID') + ' baris sumber. ' + rows.filter(row => row.row_payload.record_payload.status === 'draft').length.toLocaleString('id-ID') + ' record parsial akan tetap draf.')
   }
 
   const runImport = async () => {
@@ -777,7 +802,7 @@ export default function QualityWorkbookImportPanel({
     </div>
 
     {preview && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8 }}>
-      {[['Profil',preview.profiles.length],['Baris sumber',preview.workbookRows],['Record per grain',preview.rows.length],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 10, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
+      {[['Profil',preview.profiles.length],['Baris sumber',preview.workbookRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 10, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
     </div>}
     {preview?.issues?.length ? <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid #f0d7d2', borderRadius: 9, background: '#fff9f8', padding: 10 }}>
       <strong style={{ display: 'block', marginBottom: 7, fontSize: 12, color: '#92483d' }}>Masalah yang harus diperbaiki</strong>
