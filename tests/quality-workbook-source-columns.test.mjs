@@ -17,6 +17,25 @@ test('retains physical duplicate headers and checks source provenance', () => {
   assert.equal(getWorkbookRuleColumn(columns, 'Data', 3, rule).index, 3)
   assert.equal(getWorkbookRuleColumn(columns, 'Data', 2, rule), null)
   assert.equal(getWorkbookRuleColumn(columns, 'Data', 3, {...rule,mapping_status:'needs_review'}), null)
+
+  // Explicitly choosing physical column C must win when both B and C
+  // display exactly the same header and their occurrence order is ambiguous.
+  const physicalRule = {
+    source_header: 'Respons',
+    occurrence: 1,
+    transform_json: {source_sheet:'Data', header_row:3, column_index:3, column_letter:'C'},
+  }
+  assert.equal(getWorkbookRuleColumn(columns, 'Data', 3, physicalRule)?.index, 3)
+
+  // A moved unique column is still found by its reviewed header rather than
+  // accidentally reusing a now-unrelated column at the old position.
+  const moved = workbook.addWorksheet('Reordered')
+  moved.getRow(3).values = ['Tanggal', 'Catatan', 'Respons']
+  const movedColumns = readWorkbookSourceColumns(moved.getRow(3))
+  assert.equal(getWorkbookRuleColumn(movedColumns, 'Reordered', 3, {
+    ...physicalRule, transform_json:{source_sheet:'Reordered', header_row:3, column_index:2},
+  })?.index, 3)
+  assert.equal(getWorkbookRuleColumn(movedColumns, 'Reordered', 2, physicalRule), null)
 })
 
 test('annual master retains reviewed codes and reports unknown owners', () => {
