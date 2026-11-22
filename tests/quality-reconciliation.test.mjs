@@ -33,7 +33,7 @@ test('clinical conflicts and null-coded master options are not auto-fixed', () =
   assert.match(migration, /AND \(g\.source_code IS NULL OR g\.source_code = candidate\.target_code::text\)/)
   assert.match(migration, /g\.mapping_status NOT IN \('source_master_conflict','source_code_conflict','ambiguous_master','not_in_master'\)/)
   assert.match(workspace, /auto_fixable_group_count/)
-  assert.match(workspace, /Butuh konfirmasi; tidak akan ditebak oleh sistem/)
+  assert.match(workspace, /Perlu konfirmasi sebelum respons dapat dipetakan\./)
   assert.match(workspace, /applyResponseGroup\(item, 'manual'\)/)
 })
 
