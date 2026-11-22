@@ -114,6 +114,22 @@ export default function QualityExcelMappingWorkspace({
     title: '', category: '', unit_of_measure: '', target_text: '',
     numerator_definition: '', denominator_definition: '', schema_text: '{}', options_text: '[]', reason: '',
   })
+  const profileSchema = useMemo<Record<string, any>>(() => {
+    try {
+      const parsed = JSON.parse(profileDraft.schema_text)
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+    } catch { return {} }
+  }, [profileDraft.schema_text])
+  const updateProfileSchema = (patch: Record<string, unknown>) => {
+    setProfileDraft(current => {
+      let schema: Record<string, any> = {}
+      try {
+        const parsed = JSON.parse(current.schema_text)
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) schema = parsed
+      } catch { /* preserve untouched defaults */ }
+      return { ...current, schema_text: JSON.stringify({ ...schema, ...patch }) }
+    })
+  }
 
   const activeRoom = rooms.find(item => Number(item.id) === Number(roomId)) ?? null
   const availableImporters = useMemo(() => {
@@ -453,7 +469,7 @@ export default function QualityExcelMappingWorkspace({
       .qemGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
       .qemGrid label{display:grid;gap:5px;color:#6b7e8d;font-size:11px;font-weight:750}
       .qemGrid input,.qemGrid textarea,.qemGrid select{width:100%;min-width:0;min-height:37px;padding:8px 9px;border:1px solid #d8e3eb;border-radius:8px;background:#fff;color:#223b50;font:inherit;font-size:12px;font-weight:450}
-      .qemGrid textarea{min-height:135px;resize:vertical;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px}
+      .qemGrid textarea{min-height:96px;resize:vertical;font-family:inherit;font-size:12px}
       .qemTableWrap{overflow:auto;border:1px solid #e3eaf0;border-radius:11px;background:#fff}
       .qemTable{width:100%;min-width:860px;border-collapse:collapse;font-size:12px}
       .qemTable th,.qemTable td{padding:9px 10px;border-bottom:1px solid #edf1f4;text-align:left;vertical-align:top}
@@ -601,8 +617,35 @@ export default function QualityExcelMappingWorkspace({
             <label>Target indikator<input value={profileDraft.target_text} onChange={event => setProfileDraft(current => ({ ...current, target_text: event.target.value }))}/></label>
             <label>Definisi numerator<textarea value={profileDraft.numerator_definition} onChange={event => setProfileDraft(current => ({ ...current, numerator_definition: event.target.value }))}/></label>
             <label>Definisi denominator<textarea value={profileDraft.denominator_definition} onChange={event => setProfileDraft(current => ({ ...current, denominator_definition: event.target.value }))}/></label>
-            <label>Schema JSON (termasuk header_label dan excel_header_aliases)<textarea value={profileDraft.schema_text} onChange={event => setProfileDraft(current => ({ ...current, schema_text: event.target.value }))}/></label>
-            <label>Opsi klasifikasi JSON<textarea value={profileDraft.options_text} onChange={event => setProfileDraft(current => ({ ...current, options_text: event.target.value }))}/></label>
+            <label>Tipe pengukuran
+              <select value={String(profileSchema.measurement_type ?? '')}
+                onChange={event => updateProfileSchema({ measurement_type: event.target.value })}>
+                <option value="">Pilih tipe pengukuran</option>
+                {profileSchema.measurement_type && !['ratio','compliance','visit','door','minutes','numeric','occurrence'].includes(String(profileSchema.measurement_type)) &&
+                  <option value={String(profileSchema.measurement_type)}>Tipe sebelumnya: {String(profileSchema.measurement_type)}</option>}
+                <option value="ratio">Rasio Numerator / Denominator</option>
+                <option value="compliance">Kepatuhan / kategori</option>
+                <option value="visit">Waktu visite</option>
+                <option value="door">Durasi antar waktu</option>
+                <option value="minutes">Durasi menit</option>
+                <option value="numeric">Nilai numerik</option>
+                <option value="occurrence">Kejadian</option>
+              </select>
+            </label>
+            <label>Arah penilaian indikator
+              <select value={String(profileSchema.indicator_direction ?? '')}
+                onChange={event => updateProfileSchema({ indicator_direction: event.target.value })}>
+                <option value="">Pilih arah penilaian</option>
+                <option value="positive">Positif · makin tinggi makin baik</option>
+                <option value="negative">Negatif · makin rendah makin baik</option>
+              </select>
+            </label>
+            <div style={{ gridColumn: '1 / -1', display: 'grid', gap: 7 }}>
+              <strong style={{ fontSize: 12 }}>Kode dan opsi jawaban logbook</strong>
+              <QualityOptionEditor text={profileDraft.options_text}
+                onChange={value => setProfileDraft(current => ({ ...current, options_text: value }))} />
+            </div>
+            <p className="qemMuted" style={{ gridColumn: '1 / -1' }}>Header sumber tidak perlu diisi sebagai kode atau teks. Untuk memilih kolom Excel, buka tab Pengaturan per Unit, unggah workbook, lalu pilih kolom melalui dropdown. Metadata instrumen lainnya dipertahankan otomatis.</p>
             <label style={{ gridColumn: '1 / -1' }}>Alasan perubahan / catatan audit<textarea value={profileDraft.reason} onChange={event => setProfileDraft(current => ({ ...current, reason: event.target.value }))} placeholder="Jelaskan dasar perubahan definisi/header/opsi indikator (minimal 10 karakter)."/></label>
           </div>}
           <div className="qemActions"><button type="button" className="qemButton primary" disabled={saving || !selectedProfile || profileDraft.reason.trim().length < 10} onClick={() => void saveProfile()}>{saving ? 'Menyimpan profil…' : 'Simpan revisi profil indikator'}</button></div>
