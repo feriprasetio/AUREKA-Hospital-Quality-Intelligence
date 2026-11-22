@@ -628,8 +628,9 @@ export default function QualityWorkbookImportPanel({
       if (importMode !== 'profiles_only' && dataSheet) {
         const profilesForMapping = importMode === 'data_only' ? activeProfiles : preview.profiles
         const rules: Array<Record<string, any>> = []
+        const sourceProvenance = { source_sheet: dataSheet, header_row: dataHeaderRow }
         const addField = (key: string, label: string, header: string) => {
-          if (header) rules.push({ target_type: 'field', target_key: 'field:' + key, target_label: label, source_header: header, occurrence: 1, transform_json: {} })
+          if (header) rules.push({ target_type: 'field', target_key: 'field:' + key, target_label: label, source_header: header, occurrence: 1, transform_json: sourceProvenance })
         }
         addField('record_date', 'Tanggal pencatatan', dataColumns.date)
         addField('subject_key', 'Kunci subjek / No. RM', dataColumns.subject_key)
@@ -639,11 +640,11 @@ export default function QualityWorkbookImportPanel({
         for (const profile of profilesForMapping) {
           const schemaMapping = profile.schema_json?.excel_mapping ?? {}
           const valueHeader = indicatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.indicator_header, profile.schema_json?.header_label, profile.code, profile.title].filter(Boolean))
-          if (valueHeader) rules.push({ target_type: 'indicator', target_key: 'indicator:' + profile.code, indicator_code: profile.code, target_label: profile.code + ' · ' + profile.title, source_header: valueHeader, occurrence: 1, transform_json: {} })
+          if (valueHeader) rules.push({ target_type: 'indicator', target_key: 'indicator:' + profile.code, indicator_code: profile.code, target_label: profile.code + ' · ' + profile.title, source_header: valueHeader, occurrence: 1, transform_json: sourceProvenance })
           const numHeader = numeratorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.numerator_header].filter(Boolean))
           const denHeader = denominatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.denominator_header].filter(Boolean))
-          if (numHeader) rules.push({ target_type: 'field', target_key: 'field:' + profile.code + ':numerator', target_label: profile.code + ' · numerator', source_header: numHeader, occurrence: 1, transform_json: {} })
-          if (denHeader) rules.push({ target_type: 'field', target_key: 'field:' + profile.code + ':denominator', target_label: profile.code + ' · denominator', source_header: denHeader, occurrence: 1, transform_json: {} })
+          if (numHeader) rules.push({ target_type: 'field', target_key: 'field:' + profile.code + ':numerator', target_label: profile.code + ' · numerator', source_header: numHeader, occurrence: 1, transform_json: sourceProvenance })
+          if (denHeader) rules.push({ target_type: 'field', target_key: 'field:' + profile.code + ':denominator', target_label: profile.code + ' · denominator', source_header: denHeader, occurrence: 1, transform_json: sourceProvenance })
         }
         for (let index = 0; index < rules.length; index += 200) {
           const { error: mapError, data: mapResult } = await q().rpc('quality_excel_header_mapping_upsert_bulk', {
