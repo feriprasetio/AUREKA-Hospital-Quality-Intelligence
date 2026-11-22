@@ -78,8 +78,8 @@ export function resolveMeasurementKind(profile: IndicatorProfile): MeasurementKi
     const declared = normalize(value)
     if (!declared) continue
     if (['ratio', 'proportion', 'percentage', 'rate', 'numerator_denominator', 'numerator/denominator'].includes(declared)) return 'ratio'
-    if (['visit_window', 'clock_window', 'time_window', 'visit_time'].includes(declared)) return 'visit'
-    if (['door_to_decision', 'duration_between_times', 'time_interval', 'duration_between_events'].includes(declared)) return 'door'
+    if (['visit', 'visit_window', 'clock_window', 'time_window', 'visit_time'].includes(declared)) return 'visit'
+    if (['door', 'door_to_decision', 'duration_between_times', 'time_interval', 'duration_between_events'].includes(declared)) return 'door'
     if (['duration', 'duration_minutes', 'minutes', 'response_time_minutes'].includes(declared)) return 'minutes'
     if (['numeric', 'number', 'numeric_target', 'continuous_numeric'].includes(declared)) return 'numeric'
     if (['occurrence', 'event_occurrence', 'binary_event', 'event_count'].includes(declared)) return 'occurrence'
