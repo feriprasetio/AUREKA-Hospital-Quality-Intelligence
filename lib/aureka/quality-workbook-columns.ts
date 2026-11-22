@@ -39,5 +39,6 @@ export function getWorkbookRuleColumn<T extends ExcelHeaderColumn>(
     }
   }
   // When a distinct header moves, follow its reviewed header/occurrence instead.
-  return resolveExcelSourceColumn(columns, rule.source_header, Number(rule.occurrence ?? 1)) ?? null
+  const moved = resolveExcelSourceColumn(columns, rule.source_header, Number(rule.occurrence ?? 1))
+  return columns.find(item => item.index === moved?.index) ?? null
 }
