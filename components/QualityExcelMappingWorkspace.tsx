@@ -41,7 +41,7 @@ type Mapping = {
   target_label: string
   source_header: string
   occurrence: number
-  transform_json?: { source_sheet?: string; header_row?: number } | null
+  transform_json?: { source_sheet?: string; header_row?: number; column_index?: number; column_letter?: string } | null
   mapping_status: string
   ai_confidence?: number | null
   ai_rationale?: string | null
@@ -203,9 +203,15 @@ export default function QualityExcelMappingWorkspace({
     if (!manuallyChosen && mapping?.mapping_status === 'needs_review') return null
     if (!manuallyChosen && ((savedSheet && normalize(savedSheet) !== normalize(selectedSheet)) || (savedRow > 0 && savedRow !== headerRow))) return null
     const provisional = browserDraft.find(row => normalize(row.indicatorLabel) === normalize(indicatorLabel))
+    const wantedHeader = draftHeaders[key] ?? mapping?.source_header ?? provisional?.sourceHeader ?? fallback ?? indicatorLabel ?? ''
+    // Retain the user's exact N/O selection when a worksheet contains duplicate headers.
+    if (!manuallyChosen && mapping?.transform_json?.column_index) {
+      const saved = detectedColumns.find(column => column.index === Number(mapping.transform_json?.column_index))
+      if (saved && normalize(saved.header) === normalize(wantedHeader)) return saved
+    }
     return resolveExcelSourceColumn(
       detectedColumns,
-      draftHeaders[key] ?? mapping?.source_header ?? provisional?.sourceHeader ?? fallback ?? indicatorLabel ?? '',
+      wantedHeader,
       draftOccurrences[key] ?? mapping?.occurrence ?? provisional?.occurrence ?? 1,
     )
   }
@@ -469,7 +475,7 @@ export default function QualityExcelMappingWorkspace({
         indicator_code: profile.code,
         source_header: column.header,
         occurrence: column.occurrence,
-        transform_json: { source_sheet: selectedSheet, header_row: headerRow },
+        transform_json: { source_sheet: selectedSheet, header_row: headerRow, column_index: column.index, column_letter: column.letter },
         ai_confidence: ai?.confidence ?? null,
         ai_rationale: ai?.rationale ?? null,
       }]
@@ -640,7 +646,7 @@ export default function QualityExcelMappingWorkspace({
               </select>
             </label>}
           </div>
-          <p className="qemMuted">Pilih sheet Logbook, kemudian klik dropdown di setiap baris indikator. Pilihan berasal dari huruf kolom dan judul header yang benar-benar ada pada workbook terunggah; tidak ada ketik manual. Baris pasien tidak dianalisis. Untuk unit yang belum memiliki importer khusus, aturan disimpan sebagai konfigurasi awal; alur unggah perlu dihubungkan ke importer sebelum digunakan otomatis.</p>
+          <p className="qemMuted"><strong>Langkah 1:</strong> Unggah workbook → pilih sheet dan baris header. <strong>Langkah 2:</strong> Pada tabel di bawah, klik dropdown tiap indikator dan pilih kolom seperti N atau O. <strong>Langkah 3:</strong> Konfirmasi baris header lalu simpan aturan. Kolom tidak perlu diketik. Workbook asli tetap di browser; hanya aturan pemetaan yang disimpan. Untuk unit tanpa importer khusus, alur unggah perlu dihubungkan ke importer sebelum digunakan otomatis.</p>
           {detectedColumns.length > 0 && <div className="qemActions"><span className="qemBadge">{numberLabel(detectedColumns.length)} kolom terdeteksi</span><span className="qemMuted">{workbookName} · sheet {selectedSheet} · baris header {headerRow}</span></div>}
           {detectedColumns.length > 0 && <div className="qemMuted">
             Sumber siap dipetakan: <strong>{provisionalRows.length > 0 && !activeProfiles.length ? provisionalRows.length + ' calon indikator' : activeProfiles.length + ' indikator aktif'}</strong>.
@@ -698,7 +704,7 @@ export default function QualityExcelMappingWorkspace({
           </div>
           {provisionalRows.length === 0 && <div className="qemMuted" style={{padding:12}}>Belum ada nama indikator yang cocok otomatis. Pilih kolom Excel di atas untuk menambahkan calon indikator tanpa mengetik header.</div>}
         </div>}
-        {activeProfiles.length > 0 &&         <div className="qemTableWrap">
+        {activeProfiles.length > 0 && <div className="qemTableWrap" aria-label="Pilih kolom sumber Excel per indikator">
           <table className="qemTable">
             <thead><tr><th>Kode / indikator</th><th>Header master saat ini</th><th>Kolom sumber Excel</th><th>NARA</th></tr></thead>
             <tbody>
