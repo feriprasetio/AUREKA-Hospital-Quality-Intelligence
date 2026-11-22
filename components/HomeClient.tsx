@@ -239,7 +239,19 @@ export default function HomeClient(){
  // Setiap pindah menu/submenu (dan setelah login) halaman mulai dari paling atas.
  useEffect(()=>{if(view!=='workspace'||typeof window==='undefined')return;const top=()=>{window.scrollTo({top:0,left:0,behavior:'auto'});document.querySelectorAll<HTMLElement>('.workspaceMain,.workspaceContent,#workspace-main-content').forEach(el=>{if(el.scrollTop)el.scrollTop=0})};top();const t=window.setTimeout(top,60);return()=>window.clearTimeout(t)},[view,active,patientsRegistryTab,settingsSection,qualityOpen,clinicalPathwayOpen,qualityResultsView,qualityResultsGroup,qualityReconciliationOpen,qualityMonitorOpen,safetyTab,riskTab,programTab,staffTab,qualityProfileOpen,analyticsDirectoryTab])
  const toggleUiMode=()=>setAurekaMode(uiMode==='terang'?'gelap':'terang')
- useEffect(()=>{rooms().then(rows=>{setRoomsList(rows);setRoomOptionsLoaded(true)});const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}syncMyEmail();if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null);if(currentRole==='ADMIN'&&r)setSelectedWorkspaceRoomId(Number(r.id))}setActive('home');setQualityOpen(false);setView(p.must_change_password?'force-password':'workspace')}}).finally(()=>{requestAnimationFrame(()=>document.documentElement.removeAttribute('data-ak-booting'))})},[])
+ // The public portal and login do not need the room directory.
+ // Fetch it only when registration or an authenticated workspace needs it.
+ useEffect(()=>{
+  if((view!=='signup'&&view!=='workspace')||roomOptionsLoaded)return
+  let active=true
+  void rooms().then(rows=>{
+   if(!active)return
+   setRoomsList(rows)
+   setRoomOptionsLoaded(true)
+  })
+  return()=>{active=false}
+ },[view,roomOptionsLoaded])
+ useEffect(()=>{const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}syncMyEmail();if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null);if(currentRole==='ADMIN'&&r)setSelectedWorkspaceRoomId(Number(r.id))}setActive('home');setQualityOpen(false);setView(p.must_change_password?'force-password':'workspace')}}).finally(()=>{requestAnimationFrame(()=>document.documentElement.removeAttribute('data-ak-booting'))})},[])
  const lastAppliedHash=useRef<string|null>(null)
  const [incomingHash,setIncomingHash]=useState<string|null>(null)
  useEffect(()=>{
