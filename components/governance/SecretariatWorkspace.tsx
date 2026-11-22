@@ -442,13 +442,13 @@ export default function SecretariatWorkspace({
 
       {activeMeeting&&metadataDraft&&typeof document!=='undefined'&&createPortal(<div className="secModalBackdrop" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!busy)closeDocuments()}}>
         <section ref={documentsDialogRef} tabIndex={-1} className="secModal secDocumentsModal" role="dialog" aria-modal="true" aria-labelledby="sec-document-title">
-          <header className="secModalHeader"><div><span className="secEyebrow">MEETING ID · {activeMeeting.meeting_code}</span><h2 id="sec-document-title">Isi Dokumen — {activeMeeting.title}</h2></div><button type="button" aria-label="Tutup pop-up isi dokumen" onClick={closeDocuments} disabled={busy}>×</button></header>
+          <header className="secModalHeader"><div><span className="secEyebrow">Kode rapat · {activeMeeting.meeting_code}</span><h2 id="sec-document-title">Isi Dokumen — {activeMeeting.title}</h2></div><button type="button" aria-label="Tutup pop-up isi dokumen" onClick={closeDocuments} disabled={busy}>×</button></header>
           <div className="secMetadataEditor">
             <label>Tanggal Dokumen<input type="date" value={metadataDraft.document_date} disabled={!canManage||busy} onChange={(e)=>setMetadataDraft((old)=>old?({...old,document_date:e.target.value}):old)}/></label>
             <label>Nomor Dokumen<input value={metadataDraft.document_number} disabled={!canManage||busy} onChange={(e)=>setMetadataDraft((old)=>old?({...old,document_number:e.target.value}):old)} placeholder="Otomatis dari hasil pembacaan"/></label>
             <label>Judul Dokumen<input value={metadataDraft.title} disabled={!canManage||busy} onChange={(e)=>setMetadataDraft((old)=>old?({...old,title:e.target.value}):old)}/></label>
             <label>Jenis Dokumen<select value={metadataDraft.meeting_type} disabled={!canManage||busy} onChange={(e)=>setMetadataDraft((old)=>old?({...old,meeting_type:e.target.value}):old)}>{registerTypes.map((type)=><option key={type}>{type}</option>)}</select></label>
-            {canManage&&<button type="button" className="secSecondaryButton" onClick={()=>void saveMetadata()} disabled={busy}>Simpan Metadata</button>}
+            {canManage&&<button type="button" className="secSecondaryButton" onClick={()=>void saveMetadata()} disabled={busy}>Simpan Data Dokumen</button>}
           </div>
           {notice&&<div className={'secNotice secNotice-'+notice.kind} role="status">{notice.text}<button type="button" aria-label="Tutup pesan" onClick={()=>setNotice(null)}>×</button></div>}
           <div className="secUploadAll">

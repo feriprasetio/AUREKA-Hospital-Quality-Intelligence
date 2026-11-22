@@ -101,10 +101,10 @@ export default function MetadataStatisticsWorkspace({
       {showTabs && (
         <header className="mswHeader">
           <div>
-            <div className="mswEyebrow">Tata Kelola · Metadata Rumah Sakit</div>
+            
             <h3 className="mswTitle">Metadata</h3>
             <p className="mswDescription">
-              Satu ruang kendali untuk klasifikasi program kerja, definisi profil indikator, dan data induk sumber daya manusia.
+              Kelola program kerja, profil indikator, dan direktori tenaga kerja.
             </p>
           </div>
           <div className="mswTabs" role="tablist" aria-label="Bagian Metadata">

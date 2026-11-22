@@ -545,16 +545,16 @@ export default function FppeEvaluationWorkspace({
       />
       {error && <div className="fppeAlert fppeError" role="alert">{error}</div>}
       {notice && <div className="fppeAlert fppeSuccess" role="status" aria-live="polite">{notice}</div>}
-      {activeEvaluation && <div className="fppeSelected"><span>Status FPPE: <b>{STATUS_LABEL[activeEvaluation.status] || activeEvaluation.status}</b></span><span>ID: <code>{String(activeEvaluation.id).slice(0, 8)}…</code></span></div>}
+      {activeEvaluation && <div className="fppeSelected"><span>Status FPPE: <b>{STATUS_LABEL[activeEvaluation.status] || activeEvaluation.status}</b></span></div>}
       <section className="fppePanel" aria-label="Distribusi status evaluasi FPPE">
-        <div className="fppeHistoryHead"><div><div className="fppeEyebrow">Ringkasan workflow</div><h4>Status evaluasi FPPE</h4></div><span>{filtered.length} rekaman dalam cakupan filter</span></div>
+        <div className="fppeHistoryHead"><div><h4>Status evaluasi FPPE</h4></div><span>{filtered.length} evaluasi</span></div>
         {evaluationStatusSummary.length ? evaluationStatusSummary.map(item=><div key={item.status} style={{display:'grid',gridTemplateColumns:'minmax(115px,1fr) minmax(90px,2fr) 34px',gap:9,alignItems:'center',margin:'9px 0',fontSize:12}}>
           <span>{item.label}</span><span style={{height:8,borderRadius:99,background:'var(--line,#dce5ed)',overflow:'hidden'}}><i style={{display:'block',height:'100%',width:(filtered.length?item.count/filtered.length*100:0)+'%',background:'#16507a',borderRadius:99}}/></span><b>{item.count}</b>
-        </div>) : <div className="fppeEmpty">Belum ada rekaman FPPE pada filter ini.</div>}
-        <p className="fppeMuted">Dihitung dari {filtered.length} rekaman FPPE pada unit dan pencarian saat ini. Distribusi status administratif; bukan kesimpulan kompetensi tenaga.</p>
+        </div>) : <div className="fppeEmpty">Belum ada evaluasi FPPE pada filter ini.</div>}
+        <p className="fppeMuted">Dihitung dari {filtered.length} evaluasi FPPE pada unit dan pencarian saat ini. Distribusi status administratif; bukan kesimpulan kompetensi tenaga.</p>
       </section>
       <details className="workspaceSummary fppeHistorySummary" open={search.trim() ? true : undefined}>
-        <summary><b>Riwayat & ekspor evaluasi</b><span>{roster.length} tenaga pada roster unit · {loading ? 'Memuat riwayat…' : `${filtered.length} rekaman FPPE`}</span></summary>
+        <summary><b>Riwayat & ekspor evaluasi</b><span>{roster.length} tenaga pada roster unit · {loading ? 'Memuat riwayat…' : `${filtered.length} evaluasi FPPE`}</span></summary>
         <aside className="fppePanel fppeHistory">
           <div className="fppeHistoryHead"><div><div className="fppeEyebrow">Arsip FPPE</div><h4>Riwayat evaluasi</h4></div><span>{filtered.length}</span></div>
           <input className="fppeLocalSearch" aria-label="Cari arsip FPPE berdasarkan nama, kode, jabatan, atau trigger" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
