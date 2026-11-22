@@ -6,6 +6,8 @@ import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { useEffect, useMemo, useState } from 'react'
 import AurekaModal from '@/components/ui/AurekaModal'
 import SpcChart from '@/components/quality/SpcChart'
+import QualityCategoryIntelligence from '@/components/quality/QualityCategoryIntelligence'
+import { resolveQualityCategory } from '@/lib/aureka/quality-category-engine'
 import { groupComparable, buildInmRows, isInm, INM_COLUMNS } from '@/lib/aureka/unit-compare'
 import { buildCsv } from '@/lib/aureka/csv-export'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -39,6 +41,7 @@ type Props = {
   lockRoomScope?: boolean
   /** Blueprint v2 §3: Hasil Capaian — 'unit' (Unit Keseluruhan) atau 'category' (Kategori Indikator) */
   groupBy?: 'unit' | 'category'
+  onAskNara?: (prompt: string, source: string) => void
 }
 type IndicatorDataset = { profiles: IndicatorProfileForResults[]; rows: ResultRecord[] }
 type IndicatorResponseReview = { record_id: string; indicator_id: string; review_status: string | null; response_code?: number | null; response_label?: string | null; raw_value?: Record<string, any> | null }
@@ -222,7 +225,7 @@ async function readPaged<T>(build: (from: number, to: number) => any, maximum = 
 
 const RESULTS_CACHE = new Map<string, { at: number; indicator?: IndicatorDataset; pathway?: PathwayDataset; clinical?: ClinicalDataset }>()
 
-export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false, groupBy = 'unit' }: Props) {
+export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false, groupBy = 'unit', onAskNara }: Props) {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
   useEffect(() => {
@@ -424,26 +427,18 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     indicatorData.profiles, indicatorData.rows, year,
   ), [indicatorData, year])
   const assessedIndicators = indicatorResults.filter((result) => result.observations > 0 && result.targetMet != null)
-  const categoryOf = (result: { profile: IndicatorProfileForResults }) => String(result.profile.indicator_type || '').trim() || 'Tanpa kategori'
-  const categorySummary = useMemo(() => {
-    const map = new Map<string, { name: string; total: number; assessed: number; met: number; observations: number }>()
-    for (const result of indicatorResults) {
-      const name = categoryOf(result)
-      const entry = map.get(name) || { name, total: 0, assessed: 0, met: 0, observations: 0 }
-      entry.total++
-      entry.observations += result.observations
-      if (result.observations > 0 && result.targetMet != null) { entry.assessed++; if (result.targetMet) entry.met++ }
-      map.set(name, entry)
-    }
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'id'))
-  }, [indicatorResults]) // eslint-disable-line react-hooks/exhaustive-deps
+  // A category is resolved from the published indicator's program (workbook column G).
+  // The classification catalogue is independent of the profile import lifecycle.
+  const officialIndicatorResults = useMemo(() => calculateIndicatorResultsForProfiles(
+    rawIndicatorData.profiles, rawIndicatorData.rows, year,
+  ), [rawIndicatorData, year])
   const roomNameOf = (id: number) => rooms.find((room) => Number(room.id) === id)?.name ?? 'Unit ' + id
   const compareGroups = useMemo(() => roomId == null ? groupComparable(indicatorResults, roomNameOf) : [], [indicatorResults, roomId, rooms]) // eslint-disable-line react-hooks/exhaustive-deps
   const [compareOpen, setCompareOpen] = useState(false)
   const hasInm = indicatorResults.some(isInm)
-  const inmHasData = useMemo(() => buildInmRows(indicatorResults, year, () => '').length > 0, [indicatorResults, year])
+  const inmHasData = useMemo(() => buildInmRows(officialIndicatorResults, year, () => '').length > 0, [officialIndicatorResults, year])
   const exportInm = () => {
-    const rows = buildInmRows(indicatorResults, year, roomNameOf)
+    const rows = buildInmRows(officialIndicatorResults, year, roomNameOf)
     if (!rows.length) return
     const blob = new Blob([buildCsv(rows, INM_COLUMNS)], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -522,7 +517,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       rows: withValues.slice(0, 25),
     }
   }, [sourceFor, sourceMonth, indicatorData.rows])
-  const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => categoryOf(result) === categoryFilter) : indicatorResults
+  const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => resolveQualityCategory(result.profile).id === categoryFilter) : indicatorResults
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
   const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
   const readyCount = mode === 'indicators'
@@ -789,17 +784,11 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}><input type="checkbox" checked={includeReady} onChange={(event) => setIncludeReady(event.target.checked)} /> Hitung juga laporan yang belum divalidasi</label>
             </div>
             {groupBy === 'category' && <section className="qraPanel" aria-label="Capaian per kategori indikator">
-              <div className="qraPanelHead"><div><h3>Capaian per kategori indikator</h3><p className="qraMuted">Kategori mengikuti program kerja pada Profil Indikator (mis. INM, IMP-RS, IMP-Unit). Klik kategori untuk menyaring tabel di bawah.</p></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
-              {categorySummary.length === 0 ? <EmptyState title="Belum ada kategori" detail="Belum ada indikator aktif pada unit dan tahun ini." /> : <div className="qraCategoryGrid">
-                <button type="button" className={'qraCategoryCard' + (categoryFilter === '' ? ' active' : '')} onClick={() => setCategoryFilter('')}><span>Semua kategori</span><strong>{assessedIndicators.length ? formatPct(metIndicators / assessedIndicators.length * 100) : '-'}</strong><small>{metIndicators} dari {assessedIndicators.length} indikator berdata memenuhi target</small></button>
-                {categorySummary.map((cat) => <button type="button" key={cat.name} className={'qraCategoryCard' + (categoryFilter === cat.name ? ' active' : '')} onClick={() => setCategoryFilter(categoryFilter === cat.name ? '' : cat.name)}>
-                  <span>{cat.name}</span>
-                  <strong>{cat.assessed ? formatPct(cat.met / cat.assessed * 100) : '-'}</strong>
-                  <small>{cat.met} dari {cat.assessed} memenuhi target · {cat.total} indikator · n={formatCount(cat.observations)}</small>
-                  <i className="qraCategoryBar"><b style={{ width: (cat.assessed ? cat.met / cat.assessed * 100 : 0) + '%' }} /></i>
-                  {cat.assessed > 0 && cat.assessed < 3 && <em>Data sedikit, tafsirkan hati-hati</em>}
-                </button>)}
-              </div>}
+              <QualityCategoryIntelligence
+                results={indicatorResults} records={indicatorData.rows} year={year}
+                scopeLabel={selectedRoomName} selectedCategoryId={categoryFilter}
+                onSelectCategory={setCategoryFilter} includeReady={includeReady}
+                onAskNara={onAskNara} roomName={roomNameOf}/>
             </section>}
             {compareGroups.length > 0 && <section className="qraPanel" aria-label="Perbandingan antar unit">
               <div className="qraPanelHead"><div><h3>Perbandingan antar unit</h3><p className="qraMuted">Indikator yang sama diukur di beberapa unit. Urutan dari capaian terbaik; merah berarti belum memenuhi target.</p></div><span className="qraPill">{compareGroups.length} indikator</span></div>
