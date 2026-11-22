@@ -72,11 +72,12 @@ const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus'
 const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'] as const
 const YEARS=[2025,2026,2027,2028,2029]
 
-const episodeLegacyImporters: Partial<Record<number, { key: ImportDialogKey; classic2026?: boolean }>> = {
- 4:{key:'ibs'},6:{key:'igd'},14:{key:'icu',classic2026:true},18:{key:'nicu',classic2026:true},
- 19:{key:'nifas'},20:{key:'perinatology',classic2026:true},22:{key:'pediatric-inpatient',classic2026:true},
- 23:{key:'surgical-inpatient',classic2026:true},24:{key:'isolasi-inpatient',classic2026:true},
- 25:{key:'penyakit-dalam-inpatient',classic2026:true},26:{key:'saraf-inpatient',classic2026:true},33:{key:'ponek',classic2026:true},
+const unitWorkbookFormats: Partial<Record<number,{key:ImportDialogKey;classic2026?:boolean}>>={
+ 1:{key:'complaint'},2:{key:'it',classic2026:true},3:{key:'ambulance'},4:{key:'ibs'},5:{key:'pharmacy'},6:{key:'igd'},
+ 7:{key:'gizi'},9:{key:'laboratory'},11:{key:'outpatient'},12:{key:'rehab'},13:{key:'rekam-medis'},14:{key:'icu',classic2026:true},
+ 18:{key:'nicu',classic2026:true},19:{key:'nifas'},20:{key:'perinatology',classic2026:true},
+ 22:{key:'pediatric-inpatient',classic2026:true},23:{key:'surgical-inpatient',classic2026:true},24:{key:'isolasi-inpatient',classic2026:true},
+ 25:{key:'penyakit-dalam-inpatient',classic2026:true},26:{key:'saraf-inpatient',classic2026:true},30:{key:'timkordik',classic2026:true},33:{key:'ponek',classic2026:true},
 }
 type ImportDialogKey='complaint'|'it'|'rekam-medis'|'timkordik'|'ambulance'|'ibs'|'pharmacy'|'gizi'|'laboratory'|'igd'|'outpatient'|'rehab'|'icu'|'perinatology'|'nicu'|'nifas'|'ponek'|'pediatric-inpatient'|'surgical-inpatient'|'isolasi-inpatient'|'saraf-inpatient'|'penyakit-dalam-inpatient'
 type Room={id:number;name:string};type Profile=Record<string,any>;type TeamStaffOption={id:string;employee_code:string;display_name:string;profession_group:string;position_title:string;directory_status:'available';room_id:number};type AuditLayout={roomId:number;fields:string[];indicators:string[];measurementGrain?:string;providerGroups?:{clinic:string;doctors:string[]}[];fieldOptions?:Record<string,string[]>;indicatorOptions?:Record<string,string[]>;fieldTypes?:Record<string,'select'|'date'|'datetime-local'|'time'|'number'|'textarea'|'text'>;indicatorControl?:'select'|'radio'};type Resp={answer?:string;occurrence?:string;time?:string;start?:string;end?:string;minutes?:number|null;value?:number|null;numerator?:number|null;denominator?:number|null;noncompliant?:number|null;evidence?:string;reference?:string;notes?:string;code?:number|null;code_only?:boolean;review_status?:string;source_value?:string;source_label?:string;source_option?:boolean;review_required?:boolean;free_text?:string};type Patient=Record<string,any>
@@ -88,6 +89,7 @@ const CSS=`
 .aqAuditWorkspace{gap:10px;min-width:0}
 .aqAuditWorkspace .aqFilters{padding:11px 13px;border-radius:13px;background:#fff;border-color:#e5ece7;box-shadow:0 1px 2px rgba(20,48,34,.035)}
 .aqAuditWorkspace .aqGrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(95px,120px) minmax(150px,200px);grid-template-areas:"unit year month" "actions actions actions";gap:10px;align-items:end}
+.aqAuditWorkspace .aqGrid>.aqField[hidden]{display:none!important}
 .aqAuditWorkspace .aqGrid>.aqField:nth-of-type(1){grid-area:unit;min-width:0}
 .aqAuditWorkspace .aqGrid>.aqField:nth-of-type(2){grid-area:year;min-width:0}
 .aqAuditWorkspace .aqGrid>.aqField:nth-of-type(3){grid-area:month;min-width:0}
@@ -173,6 +175,7 @@ const CSS=`
  .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqFilterActions>button,.aqAuditWorkspace .aqRowActions .aqBtn{min-height:44px!important}
  .moduleEnter>.aq.aqAuditWorkspace>.aqFilters .aqField select{min-height:44px;font-size:16px}
 }
+.aqWorkbookChoices{display:grid;gap:8px;padding:14px}.aqWorkbookChoices button{min-width:0;min-height:44px;white-space:normal;text-align:left}
 .aqAuditWorkspace .aqRowActions{display:flex;align-items:center;gap:6px}
 .aqAuditWorkspace .aqRegisterSummary>div{min-width:0}
 .aqAuditWorkspace .aqRegisterSummary>div span{white-space:normal}
@@ -654,7 +657,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const editorSnapshot=useRef<{id:string,json:string}|null>(null)
  useEffect(()=>{if(!patientOpen||typeof document==='undefined')return;const prev=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=prev}},[patientOpen])
  const [episodeWorkbookOpen,setEpisodeWorkbookOpen]=useState(false)
- const [masterWorkbookOpen,setMasterWorkbookOpen]=useState(false)
+ const [genericWorkbookOpen,setGenericWorkbookOpen]=useState(false)
+ const [importOptionsOpen,setImportOptionsOpen]=useState(false)
+ const [pharmacyEntryOpen,setPharmacyEntryOpen]=useState(false)
  const [loadedImportDialogs,setLoadedImportDialogs]=useState<Set<ImportDialogKey>>(()=>new Set())
  const [complaintImportOpen,setComplaintImportOpen]=useState(false)
  const [itImportOpen,setItImportOpen]=useState(false)
@@ -706,7 +711,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  useLayoutEffect(()=>{
   setSelected(null);setPatientOpen(false);setConfirmCloseEditor(false);setPendingArchive(null)
   setShowIdentity(false);setDraft({});setLoadedImportDialogs(new Set())
-  setEpisodeWorkbookOpen(false);setMasterWorkbookOpen(false);setMonthlyReviewBusy(false)
+  setEpisodeWorkbookOpen(false);setGenericWorkbookOpen(false);setImportOptionsOpen(false);setPharmacyEntryOpen(false);setMonthlyReviewBusy(false)
   setBusy(false);setLoading(true)
   return clearInteractiveExcelHeaderMappingScope
  },[scopeKey])
@@ -717,7 +722,15 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const activeLayout=useMemo(()=>getLayout(roomId),[roomId])
  const activeGrain=useMemo(()=>dominantGrain(profiles,activeLayout),[profiles,activeLayout])
  const episodeWorkbookEligible=!isValidator&&year>=2026&&supportsEpisodeWorkbook(roomId,activeLayout?.measurementGrain,profiles.map(p=>({room_id:Number(p.room_id),measurement_grain:p.measurement_grain})))
- const legacyEpisodeImporter=roomId!=null?episodeLegacyImporters[roomId]:undefined
+ const unitWorkbookFormat=roomId!=null?unitWorkbookFormats[roomId]:undefined
+ const availableUnitFormat=unitWorkbookFormat&&(!unitWorkbookFormat.classic2026||year===2026)?unitWorkbookFormat.key:null
+ const canOpenImport=!isValidator&&roomId!=null&&year>=2026&&(canImportWorkbook||(roomId===11&&canImportOutpatientWorkbook))
+ const openWorkbookOptions=()=>{
+   if(!canOpenImport||!canUseLogbook)return
+   if(!canImportWorkbook&&roomId===11){openImportDialog('outpatient');return}
+   if(!availableUnitFormat&&!episodeWorkbookEligible){setGenericWorkbookOpen(true);return}
+   setImportOptionsOpen(true)
+ }
  const selectedLayout=useMemo(()=>selected?(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??'')):activeLayout,[selected,activeLayout])
  const patientProfiles=useMemo(()=>layoutProfiles(profiles,activeLayout).filter(p=>!(Number(activeLayout?.roomId)===11&&/waktu tunggu rawat jalan/i.test(displayTitle(p)))),[profiles,activeLayout])
  const summaryFields=useMemo(()=>{
@@ -1424,18 +1437,13 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    {showContainerTabs&&<nav className="glass aqTabs">{CONTAINERS.map(x=><button key={x} className={`aqTab ${container===x?'active':''}`} onClick={()=>setContainer(x)}>{x}</button>)}</nav>}
     {isValidator&&<section className="glass" style={{padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><div><strong style={{fontSize:14}}>Pemeriksaan laporan bulanan</strong>{monthlyReview?.reviewed&&<div className="aqMetaText" style={{marginTop:5}}>{monthlyReview.is_current?'Terakhir diperiksa':'Ada perubahan laporan setelah pemeriksaan'} · {monthlyReview.reviewed_at?fmtDateTime(monthlyReview.reviewed_at):'-'} · {monthlyReview.quality_record_count??0} logbook, {monthlyReview.clinical_pathway_count??0} CP, {monthlyReview.clinical_death_count??0} telaah klinis/kematian</div>}</div><div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}><select aria-label="Bulan pemeriksaan" value={reviewMonth} disabled={monthlyReviewBusy} onChange={(e:any)=>setReviewMonth(Number(e.target.value))} style={{minHeight:40,border:'1px solid var(--line)',borderRadius:10,padding:'8px 10px',background:'#fff'}}>{MONTHS.map((m,i)=><option key={m} value={i+1}>{m}</option>)}</select><button type="button" className="aqBtn primary" disabled={monthlyReviewBusy||!canUseLogbook||roomId==null||!monthlyReview} onClick={()=>void confirmMonthlyReview()}>{monthlyReviewBusy?'Menyimpan…':monthlyReview?.is_current?'Sudah Diperiksa · Perbarui':'Sudah Diperiksa'}</button></div></section>}
    {container==='Audit Klinis dan Kematian'?<ClinicalDeathAuditWorkspace initialRoomId={initialRoomId} rooms={rooms} isAdmin={isAdmin||canViewAllRooms} isValidator={isValidator} lockRoomScope={lockRoomScope}/>:<>
-     <section className="glass aqFilters"><div className="aqGrid"><label className="aqField"><span>Unit</span><select aria-label="Unit" title="Unit" value={roomId??''} disabled={!isAdmin||lockRoomScope||!rooms.length||working||monthlyReviewBusy} onChange={(e:any)=>{const next=normalizeRoomIdValue(e.target.value);setRoomId(next);onRoomChange?.(next)}}>{isAdmin&&!lockRoomScope&&<option value="">Seluruh rumah sakit · pilih ruangan di bawah</option>}{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><label className="aqField"><span>Tahun</span><select aria-label="Tahun" title="Tahun" value={year} disabled={working||monthlyReviewBusy} onChange={(e:any)=>setYear(Number(e.target.value))}>{YEARS.map(y=><option key={y}>{y}</option>)}</select></label><label className="aqField aqMonthSelect"><span>Bulan Pengamatan</span><select aria-label="Bulan pengamatan" title="Bulan pengamatan" value={monthFilter} onChange={(e:any)=>setMonthFilter(Number(e.target.value))}><option value={0}>Semua bulan</option>{MONTHS.map((m,i)=><option key={m} value={i+1}>{m}</option>)}</select></label><div className="aqFilterActions">
-   {(isAdmin||canViewAllRooms)&&roomId!=null&&container==='Audit Indikator Mutu'&&
-    <button type="button" className="aqBtn" disabled={busy} onClick={()=>setExcelMappingOpen(value=>!value)}>{excelMappingOpen?'Tutup Pengaturan Pemetaan':'Pengaturan Pemetaan Excel'}</button>
-   }
-   {isAdmin&&!isValidator&&roomId!=null&&container==='Audit Indikator Mutu'&&
-      <button type="button" className="aqBtn aqImportButton" disabled={busy} onClick={()=>setMasterWorkbookOpen(true)}>
-        ↥ Impor Master / Profil Indikator .xlsx
-      </button>
-    }
-
-{episodeWorkbookEligible?<button type="button" className="aqBtn aqImportButton" disabled={!canUseLogbook||!canImportWorkbook} onClick={()=>setEpisodeWorkbookOpen(true)}>↥ Upload worksheet.xlsx</button>:!isValidator&&year>=2026&&[1,2,3,4,5,6,7,9,11,12,13,14,18,19,20,22,23,24,25,26,30,33].includes(Number(roomId))&&<button type="button" className="aqBtn aqImportButton" disabled={!canUseLogbook||!(Number(roomId)===11?canImportOutpatientWorkbook:canImportWorkbook)||((Number(roomId)===2||Number(roomId)===14||Number(roomId)===18||Number(roomId)===20||Number(roomId)===22||Number(roomId)===23||Number(roomId)===24||Number(roomId)===25||Number(roomId)===26||Number(roomId)===30||Number(roomId)===33)&&year!==2026)} onClick={()=>{const id=Number(roomId);if(id===1)openImportDialog('complaint');else if(id===2)openImportDialog('it');else if(id===3)openImportDialog('ambulance');else if(id===4)openImportDialog('ibs');else if(id===5)openImportDialog('pharmacy');else if(id===6)openImportDialog('igd');else if(id===7)openImportDialog('gizi');else if(id===9)openImportDialog('laboratory');else if(id===11)openImportDialog('outpatient');else if(id===12)openImportDialog('rehab');else if(id===13)openImportDialog('rekam-medis');else if(id===14)openImportDialog('icu');else if(id===18)openImportDialog('nicu');else if(id===19)openImportDialog('nifas');else if(id===20)openImportDialog('perinatology');else if(id===22)openImportDialog('pediatric-inpatient');else if(id===23)openImportDialog('surgical-inpatient');else if(id===24)openImportDialog('isolasi-inpatient');else if(id===25)openImportDialog('penyakit-dalam-inpatient');else if(id===26)openImportDialog('saraf-inpatient');else if(id===30)openImportDialog('timkordik');else if(id===33)openImportDialog('ponek')}} title={Number(roomId)===30?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Tim Koordinasi Pendidikan 2026":"Impor Tim Koordinasi Pendidikan tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===2?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Informatika dan Teknologi 2026":"Impor Informatika dan Teknologi tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===18?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx NICU 2026":"Impor NICU tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===19?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Nifas 2026":"Impor Nifas tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===20?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Perinatology & Neonatology":"Impor Perinatologi tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===22?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Anak 2026":"Impor Rawat Inap Anak tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===23?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Bedah 2026":"Impor Rawat Inap Bedah tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===24?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Isolasi 2026":"Impor Rawat Inap Isolasi tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===25?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Penyakit Dalam 2026":"Impor Penyakit Dalam tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===26?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Rawat Inap Saraf 2026":"Impor Rawat Inap Saraf tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===33?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx PONEK 2026":"Impor PONEK tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===13?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx Instalasi Rekam Medis 2026":"Impor Instalasi Rekam Medis tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===14?(canImportWorkbook&&year===2026?"Pilih workbook .xlsx ICU/HCU 2026":"Impor ICU tersedia untuk Admin/Komite PMKP pada profil 2026"):Number(roomId)===11?(canImportOutpatientWorkbook?"Pilih workbook .xlsx Instalasi Rawat Jalan":"Akun ini belum memiliki kewenangan impor"):canImportWorkbook?"Pilih workbook .xlsx untuk unit terpilih":"Unggah workbook hanya dapat dijalankan oleh Admin/Komite PMKP."}>↥ Upload worksheet.xlsx</button>}
-{(!hidePatientEpisodeEntry||activeGrain!=='patient_episode')&&!isValidator&&roomId===5&&year>=2026?<><button type="button" className="aqBtn aqAddButton" disabled={!canUseLogbook} onClick={()=>newPatient(5,{'Alur layanan':'Rawat Jalan'})}><svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> Input Rawat Jalan</button><button type="button" className="aqBtn aqAddButton" disabled={!canUseLogbook} onClick={()=>newPatient(5,{'Alur layanan':'Rawat Inap'})}><svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> Input Rawat Inap</button></>:(!hidePatientEpisodeEntry||activeGrain!=='patient_episode')&&!isValidator&&roomId!=null&&<button type="button" className="aqBtn primary aqAddButton" disabled={!canUseLogbook} onClick={()=>newPatient()}><svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> Tambah catatan</button>}</div></div></section>
+     <section className="glass aqFilters"><div className="aqGrid"><label className="aqField" hidden={lockRoomScope}><span>Unit</span><select aria-label="Unit" title="Unit" value={roomId??''} disabled={!isAdmin||lockRoomScope||!rooms.length||working||monthlyReviewBusy} onChange={(e:any)=>{const next=normalizeRoomIdValue(e.target.value);setRoomId(next);onRoomChange?.(next)}}>{isAdmin&&!lockRoomScope&&<option value="">Seluruh rumah sakit · pilih ruangan di bawah</option>}{rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label><label className="aqField"><span>Tahun</span><select aria-label="Tahun" title="Tahun" value={year} disabled={working||monthlyReviewBusy} onChange={(e:any)=>setYear(Number(e.target.value))}>{YEARS.map(y=><option key={y}>{y}</option>)}</select></label><label className="aqField aqMonthSelect"><span>Bulan Pengamatan</span><select aria-label="Bulan pengamatan" title="Bulan pengamatan" value={monthFilter} onChange={(e:any)=>setMonthFilter(Number(e.target.value))}><option value={0}>Semua bulan</option>{MONTHS.map((m,i)=><option key={m} value={i+1}>{m}</option>)}</select></label><div className="aqFilterActions">
+    {canOpenImport&&<button type="button" className="aqBtn aqImportButton" disabled={!canUseLogbook} onClick={openWorkbookOptions}>Impor Excel</button>}
+    {(!hidePatientEpisodeEntry||activeGrain!=='patient_episode')&&!isValidator&&roomId!=null&&
+     <button type="button" className="aqBtn primary aqAddButton" disabled={!canUseLogbook} onClick={()=>roomId===5?setPharmacyEntryOpen(true):newPatient()}>
+      <svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> Tambah catatan
+     </button>}
+    </div></div></section>
    {excelMappingOpen&&roomId!=null&&<QualityExcelMappingWorkspace rooms={rooms} initialRoomId={roomId} year={year} role={isAdmin?'ADMIN':'PMKP'} onClose={()=>setExcelMappingOpen(false)}/>}
 
 {scopeReady&&<div className="aqDataBar" aria-label="Statistik catatan logbook">
@@ -1495,25 +1503,33 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    {patientOpen&&selected&&typeof document!=='undefined'&&createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack aqEditorBack" role="presentation"><div ref={editorDialogRef} className="aqEditorDialog" role="dialog" aria-modal="true" aria-label={`Formulir logbook ${recordTitle(selected)}`} tabIndex={-1}>{renderPatientEditor()}</div>
     {confirmCloseEditor&&<div className="aqBack aqDeleteConfirmBack" role="presentation"><section ref={closeConfirmDialogRef} className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqCloseConfirmTitle" tabIndex={-1}><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span></div><h4 id="aqCloseConfirmTitle">Tutup tanpa menyimpan?</h4><p>Isian pada formulir ini belum disimpan. Jika ditutup sekarang, perubahan akan hilang.</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" data-dialog-autofocus onClick={()=>setConfirmCloseEditor(false)}>Lanjut mengisi</button><button type="button" className="aqBtn danger" onClick={()=>{setConfirmCloseEditor(false);setPatientOpen(false)}}>Tutup tanpa simpan</button></div></section></div>}
    </div></div>,document.body)}
-   {masterWorkbookOpen&&isAdmin&&roomId!=null&&<AurekaModal
-     open title="Impor master dan profil indikator dari Excel" subtitle={(roomMap.get(roomId)??'Unit '+roomId)+' · '+year}
-     size="xl" onClose={()=>setMasterWorkbookOpen(false)}>
+   {pharmacyEntryOpen&&<AurekaModal open title="Catatan Farmasi" size="md" onClose={()=>setPharmacyEntryOpen(false)}>
+    <div className="aqWorkbookChoices">
+     {['Rawat Jalan','Rawat Inap'].map(stream=><button type="button" key={stream} className="aqBtn" onClick={()=>{setPharmacyEntryOpen(false);newPatient(5,{'Alur layanan':stream})}}>{stream}</button>)}
+    </div>
+   </AurekaModal>}
+   {importOptionsOpen&&roomId!=null&&<AurekaModal open title="Impor Excel" subtitle={(roomMap.get(roomId)??'Unit '+roomId)+' · '+year} size="md" onClose={()=>setImportOptionsOpen(false)}>
+    <div className="aqWorkbookChoices">
+     {availableUnitFormat&&<button type="button" className="aqBtn primary" onClick={()=>{setImportOptionsOpen(false);openImportDialog(availableUnitFormat)}}>Workbook baku unit</button>}
+     {episodeWorkbookEligible&&<button type="button" className="aqBtn" onClick={()=>{setImportOptionsOpen(false);setEpisodeWorkbookOpen(true)}}>Workbook episode pasien</button>}
+     <button type="button" className="aqBtn" onClick={()=>{setImportOptionsOpen(false);setGenericWorkbookOpen(true)}}>Tautkan kolom atau impor tabel</button>
+    </div>
+   </AurekaModal>}
+   {genericWorkbookOpen&&canImportWorkbook&&roomId!=null&&<AurekaModal
+     open title="Impor data dan tautkan kolom" subtitle={(roomMap.get(roomId)??'Unit '+roomId)+' · '+year}
+     size="xl" onClose={()=>setGenericWorkbookOpen(false)}>
      <QualityWorkbookImportPanel key={roomId+':'+year} roomId={roomId}
        roomName={roomMap.get(roomId)??'Unit '+roomId} year={year}
-       importerKey="aureka-indicator-master"
-       role="ADMIN"
-       activeProfiles={profiles.filter(profile=>Number(profile.room_id)===roomId) as any}
-       onImported={async()=>{setMasterWorkbookOpen(false);if(await load())setMessage('Master/profil indikator berhasil dimuat ulang setelah impor workbook.')}}/>
+       importerKey="unit-logbook" role={isAdmin?'ADMIN':'PMKP'} dataOnly
+       activeProfiles={profiles.filter(profile=>profile.code&&profile.title&&Number(profile.room_id)===roomId) as React.ComponentProps<typeof QualityWorkbookImportPanel>['activeProfiles']}
+       onImported={async()=>{setGenericWorkbookOpen(false);await load()}}/>
    </AurekaModal>}
    {episodeWorkbookOpen&&episodeWorkbookEligible&&canImportWorkbook&&roomId!=null&&<PatientEpisodeWorkbookDialog
      key={roomId+':'+year}
      roomId={roomId} roomName={roomMap.get(roomId)??'Unit '+roomId} year={year} admin={isAdmin}
      dateField={primaryDateField(activeLayout)} layoutFields={activeLayout?.fields??[]}
      onClose={()=>setEpisodeWorkbookOpen(false)}
-     onLegacyImport={legacyEpisodeImporter&&(!legacyEpisodeImporter.classic2026||year===2026)?()=>{
-      setEpisodeWorkbookOpen(false)
-      openImportDialog(legacyEpisodeImporter.key)
-     }:undefined}
+     onLegacyImport={availableUnitFormat?()=>{setEpisodeWorkbookOpen(false);openImportDialog(availableUnitFormat)}:undefined}
      onImported={notice=>{
       setEpisodeWorkbookOpen(false)
        void load().then(loaded=>{if(loaded)setMessage(notice)})

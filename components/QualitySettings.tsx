@@ -1,6 +1,8 @@
 'use client'
 
 import AsyncStatePanel from '@/components/AsyncStatePanel'
+import { prepareAnnualQualityCatalog, type AnnualCatalogPlan } from '@/lib/aureka/annual-quality-workbook'
+import { readQualityReference2026 } from '@/lib/aureka/quality-reference-2026'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
@@ -454,6 +456,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const editorRef = useRef<HTMLDivElement | null>(null)
   const importFileRef = useRef<HTMLInputElement | null>(null)
   const [importPreview, setImportPreview] = useState<IndicatorProfileBackup | null>(null)
+  const [annualImport, setAnnualImport] = useState<AnnualCatalogPlan | null>(null)
   const [replaceConfirmed, setReplaceConfirmed] = useState(false)
   const [msg, setMsg] = useState('')
   useEffect(() => {
@@ -506,7 +509,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   useEffect(() => { void load() }, [load])
   useEffect(() => {
     setEdit(null); setNewOne(null); setUnitBatchOpen(false); setPendingDelete(null)
-    setImportPreview(null); setReplaceConfirmed(false); setExcelMappingOpen(false)
+    setImportPreview(null); setAnnualImport(null); setReplaceConfirmed(false); setExcelMappingOpen(false)
   }, [scope])
 
   useEffect(() => { setTab(initialTab); setProfileWorkspaceOpen(false) }, [initialTab])
@@ -787,15 +790,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   // Template awal untuk tahun yang belum punya profil: profil aktif yang ada + profil bawaan 2026 yang ikut dalam aplikasi.
   const downloadStarterTemplate = async () => {
     try {
-      const chunks = year === 2026 ? await Promise.all([
-        import('@/data/quality-profile-2026/chunk-01.json'), import('@/data/quality-profile-2026/chunk-02.json'),
-        import('@/data/quality-profile-2026/chunk-03.json'), import('@/data/quality-profile-2026/chunk-04.json'),
-        import('@/data/quality-profile-2026/chunk-05.json'), import('@/data/quality-profile-2026/chunk-06.json'),
-        import('@/data/quality-profile-2026/chunk-07.json'), import('@/data/quality-profile-2026/chunk-08.json'),
-        import('@/data/quality-profile-2026/chunk-09.json'), import('@/data/quality-profile-2026/chunk-10.json'),
-        import('@/data/quality-profile-2026/chunk-11.json'), import('@/data/quality-profile-2026/chunk-12.json'),
-      ]) : []
-      const bundled = chunks.flatMap((m: any) => (m.default || m) as Array<Record<string, any>>)
+      const bundled = year === 2026 ? await readQualityReference2026() : []
       const active = profiles.filter((p) => p.is_active === true && p.status === 'published')
       const activeCodes = new Set(active.map((p) => String(p.code)))
       const merged = [...active, ...bundled.filter((p) => !activeCodes.has(String(p.code))).map((p) => ({ ...p, id: '', profile_year: year, is_active: true, status: 'published' }))]
@@ -851,7 +846,21 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       if (!/\\.xlsx$/i.test(file.name)) {
         throw new Error('Format impor harus .xlsx. Berkas JSON tidak lagi didukung.')
       }
-      const parsed = await parseIndicatorProfileXlsx(await file.arrayBuffer())
+      if (file.size > 25 * 1024 * 1024) throw new Error('Pilih workbook XLSX dengan ukuran maksimal 25 MB.')
+      const bytes = await file.arrayBuffer()
+      const Excel = (await import('exceljs-hardened')).default
+      const workbook = new Excel.Workbook()
+      await workbook.xlsx.load(bytes)
+      if (workbook.getWorksheet('Indikator')) {
+        const annual = prepareAnnualQualityCatalog(workbook, await readQualityReference2026())
+        if (annual) {
+          setAnnualImport(annual)
+          setImportPreview(null)
+          setReplaceConfirmed(false)
+          return
+        }
+      }
+      const parsed = await parseIndicatorProfileXlsx(bytes)
       const selectedScopeRoomId = room ? Number(room) : null
       if (parsed.scope.room_id !== selectedScopeRoomId) {
         throw new Error(
@@ -1090,6 +1099,17 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                 void readProfileImportFile(file)
               }}
             />
+            <AurekaModal open={Boolean(annualImport)} title="Katalog Tahunan 2026" size="lg"
+              onClose={() => setAnnualImport(null)}>
+              {annualImport && <div style={{ display: 'grid', gap: 12, padding: 14 }}>
+                <p><strong>{annualImport.profiles.length.toLocaleString('id-ID')} profil cocok</strong> dengan kode dan unit AUREKA.</p>
+                {annualImport.unresolved.length > 0 && <div role="status">
+                  <strong>Perlu penetapan unit atau kode</strong>
+                  <ul>{annualImport.unresolved.map(item => <li key={item.row}>Baris {item.row} · {item.owner} · {item.title}</li>)}</ul>
+                </div>}
+                <p>Gunakan katalog tahunan untuk memeriksa kecocokan sumber. Perubahan master mengikuti alur versi pada Profil Indikator.</p>
+              </div>}
+            </AurekaModal>
             <AurekaModal
               open={Boolean(importPreview)}
               title="Konfirmasi penggantian Profil Indikator"

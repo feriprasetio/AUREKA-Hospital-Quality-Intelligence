@@ -1,10 +1,12 @@
 'use client'
 
 import { useMemo, useRef, useState, type CSSProperties } from 'react'
+import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
 import { shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
 import { isIndicatorApplicableToDiagnosis } from '@/lib/aureka/quality-logbook-coverage'
+import { getWorkbookRuleColumn, readWorkbookSourceColumns, type WorkbookSourceColumn, type WorkbookSourceRule } from '@/lib/aureka/quality-workbook-columns'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Profile = {
@@ -28,7 +30,9 @@ type Profile = {
   schema_json?: Record<string, any> | null
   options_json?: Array<{ label?: unknown; code?: unknown; review_required?: boolean }> | null
 }
-type SheetMeta = { name: string; headerRow: number; headers: string[] }
+type SheetMeta = { name: string; headerRow: number; headers: string[]; columns: WorkbookSourceColumn[] }
+type SavedMapping = WorkbookSourceRule & { target_type: string; target_key: string }
+const headerText = (columnKey: string) => columnKey.replace(/^[A-Z]+: /, '')
 type ImportIssue = { sheet: string; row: number; field: string; message: string }
 type StagedRow = { source_key: string; source_sheet: string; source_row: number; row_payload: Record<string, any> }
 type Preview = { profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; draftRows: number }
@@ -113,10 +117,10 @@ const grainValue = (value: unknown): string => {
 }
 const findHeader = (headers: string[], synonyms: string[]) => {
   const aliases = synonyms.filter(Boolean).map(normalize)
-  const exact = headers.filter(header => aliases.includes(normalize(header)))
+  const exact = headers.filter(header => aliases.includes(normalize(headerText(header))))
   if (exact.length === 1) return exact[0]
   if (exact.length > 1) return ''
-  const partial = headers.filter(header => aliases.some(alias => alias.length >= 5 && normalize(header).includes(alias)))
+  const partial = headers.filter(header => aliases.some(alias => alias.length >= 5 && normalize(headerText(header)).includes(alias)))
   return partial.length === 1 ? partial[0] : ''
 }
 const hash = async (value: string) => {
@@ -145,7 +149,7 @@ const clockPair = (value: string) => {
 }
 
 export default function QualityWorkbookImportPanel({
-  roomId, roomName, year, importerKey, role, activeProfiles, onImported,
+  roomId, roomName, year, importerKey, role, activeProfiles, onImported, dataOnly = false,
 }: {
   roomId: number
   roomName: string
@@ -154,6 +158,7 @@ export default function QualityWorkbookImportPanel({
   role: string | null
   activeProfiles: Profile[]
   onImported: () => void
+  dataOnly?: boolean
 }) {
   const workbookRef = useRef<any>(null)
   const fileRef = useRef<File | null>(null)
@@ -172,7 +177,7 @@ export default function QualityWorkbookImportPanel({
   const [indicatorColumns, setIndicatorColumns] = useState<Record<string, string>>({})
   const [numeratorColumns, setNumeratorColumns] = useState<Record<string, string>>({})
   const [denominatorColumns, setDenominatorColumns] = useState<Record<string, string>>({})
-  const [importMode, setImportMode] = useState<'profiles_and_data' | 'profiles_only' | 'data_only'>(role === 'ADMIN' ? 'profiles_and_data' : 'data_only')
+  const [importMode, setImportMode] = useState<'profiles_and_data' | 'profiles_only' | 'data_only'>('data_only')
   const [dataMode, setDataMode] = useState<'append' | 'upsert'>('append')
   const [preview, setPreview] = useState<Preview | null>(null)
   const [busy, setBusy] = useState(false)
@@ -185,10 +190,31 @@ export default function QualityWorkbookImportPanel({
   const dataHeaders = sheets.find(sheet => sheet.name === dataSheet)?.headers ?? []
   const profileHeaders = sheets.find(sheet => sheet.name === profileSheet)?.headers ?? []
   const optionHeaders = sheets.find(sheet => sheet.name === optionsSheet)?.headers ?? []
-  const roleCanImportProfiles = role === 'ADMIN'
+  const roleCanImportProfiles = role === 'ADMIN' && !dataOnly
+  const currentAliases = year === 2026 ? (unitAliases as Record<string, Record<string,string>>)[roomId] ?? {} : {}
+  const aliasesFor = (profile: Profile) => Object.entries(currentAliases).filter(([, code]) => code === profile.code).map(([name]) => name)
+  const dataScope = sheets.find(sheet => sheet.name === dataSheet)
+  const canSaveMappings = role === 'ADMIN' || role === 'PMKP'
+
+  const applySheetHeader = (name: string, rowNumber: number) => {
+    const sheet = workbookRef.current?.getWorksheet(name)
+    if (!sheet || !Number.isInteger(rowNumber) || rowNumber < 1 || rowNumber > sheet.rowCount) return
+    const columns = readWorkbookSourceColumns(sheet.getRow(rowNumber))
+    setSheets(current => current.map(item => item.name === name
+      ? { ...item, headerRow: rowNumber, headers: columns.map(column => column.key), columns } : item))
+  }
+
+  const changeDataSource = (name: string, header: number) => {
+    setDataSheet(name); setDataHeaderRow(header); setPreview(null)
+    setDataColumns({}); setIndicatorColumns({}); setNumeratorColumns({}); setDenominatorColumns({})
+    applySheetHeader(name, header)
+  }
 
   const inspect = async (file: File) => {
     setError(''); setNotice(''); setPreview(null); setBatchId(''); setReplaceConfirmed(false)
+    setSheets([]); setFileName(''); setFileHash('')
+    workbookRef.current = null
+    fileRef.current = null
     if (!/\.xlsx$/i.test(file.name) || file.size <= 0 || file.size > 25 * 1024 * 1024) {
       setError('Pilih workbook .xlsx yang valid dengan ukuran maksimum 25 MB.')
       return
@@ -201,31 +227,17 @@ export default function QualityWorkbookImportPanel({
       const detected: SheetMeta[] = []
       for (const sheet of workbook.worksheets.slice(0, 50)) {
         let bestRow = 1
-        let bestHeaders: string[] = []
+        let bestColumns: WorkbookSourceColumn[] = []
+        let bestScore = -1
         for (let rowNumber = 1; rowNumber <= Math.min(15, sheet.rowCount); rowNumber++) {
-          const row = sheet.getRow(rowNumber)
-          const headers: string[] = []
-          for (let column = 1; column <= Math.min(200, row.cellCount || 200); column++) {
-            const label = clean(asCell(row.getCell(column).value))
-            if (label && !headers.some(item => normalize(item) === normalize(label))) headers.push(label)
-          }
-          if (headers.length > bestHeaders.length) { bestHeaders = headers; bestRow = rowNumber }
+          const columns = readWorkbookSourceColumns(sheet.getRow(rowNumber))
+          const structure = columns.filter(column => /^(no\.?$|nama pasien|tanggal |tanggal$|kode indikator|judul indikator|nama indikator|nomor rekam medis|no\.? rm|bulan$)/i.test(column.header)).length
+          const score = structure * 100 + columns.filter(column => /\p{L}/u.test(column.header)).length
+          if (score > bestScore && columns.length) { bestColumns = columns; bestRow = rowNumber; bestScore = score }
         }
-        if (bestHeaders.length) detected.push({ name: sheet.name, headerRow: bestRow, headers: bestHeaders })
+        if (bestColumns.length) detected.push({ name: sheet.name, headerRow: bestRow, columns: bestColumns, headers: bestColumns.map(column => column.key) })
       }
       if (!detected.length) throw new Error('Tidak ditemukan header pada 15 baris pertama workbook.')
-      for (const detectedSheet of detected) {
-        const sheet=workbook.getWorksheet(detectedSheet.name)
-        if (!sheet) continue
-        const seen=new Set<string>(),duplicates=new Set<string>()
-        sheet.getRow(detectedSheet.headerRow).eachCell({includeEmpty:false},(cell:any)=>{
-          const label=normalize(asCell(cell.value))
-          if (!label) return
-          if (seen.has(label)) duplicates.add(label)
-          seen.add(label)
-        })
-        if (duplicates.size) throw new Error('Header ganda pada sheet '+detectedSheet.name+': '+[...duplicates].join(', ')+'. Gunakan pemetaan eksplisit per kolom; impor umum tidak boleh menimpa nilai kolom yang namanya sama.')
-      }
       workbookRef.current = workbook
       fileRef.current = file
       setFileName(file.name)
@@ -237,8 +249,34 @@ export default function QualityWorkbookImportPanel({
         ?? detected.find(s => findHeader(s.headers, ['kode indikator', 'indicator code', 'code']) && findHeader(s.headers, ['nama indikator', 'indicator name', 'title']))
       const oSheet = detected.find(s => /opsi.*indikator|pilihan.*indikator|opsi/i.test(s.name))
         ?? detected.find(s => findHeader(s.headers, ['kode opsi', 'option code']) && findHeader(s.headers, ['kode indikator', 'indicator code']))
-      const dSheet = detected.find(s => /logbook|rekap|data/i.test(s.name) && s.name !== pSheet?.name && s.name !== oSheet?.name)
+      let dSheet = detected.find(s => /^logbook$/i.test(s.name)) ?? detected.find(s => /logbook|rekap|data/i.test(s.name) && s.name !== pSheet?.name && s.name !== oSheet?.name)
         ?? detected.find(s => s.name !== pSheet?.name && s.name !== oSheet?.name)
+      const { data: savedMap } = await q().rpc('quality_excel_header_mapping_list', {
+        p_room_id: roomId, p_profile_year: year, p_importer_key: importerKey,
+      })
+      const saved: SavedMapping[] = Array.isArray(savedMap?.mappings) ? savedMap.mappings : []
+      const sources = new Map<string, { sheet: string; row: number }>()
+      for (const rule of saved) {
+        const sheet = rule.transform_json?.source_sheet
+        const row = Number(rule.transform_json?.header_row)
+        if (rule.mapping_status === 'needs_review' || !sheet || !Number.isInteger(row) || row < 1) continue
+        const match = workbook.getWorksheet(sheet)
+        if (match && row <= match.rowCount) sources.set(JSON.stringify([sheet, row]), { sheet, row })
+      }
+      if (sources.size === 1) {
+        const source = [...sources.values()][0]
+        const sheet = workbook.getWorksheet(source.sheet)
+        const columns = readWorkbookSourceColumns(sheet.getRow(source.row))
+        if (columns.length) {
+          dSheet = { name: source.sheet, headerRow: source.row, headers: columns.map(column => column.key), columns }
+          setSheets(current => [...current.filter(item => item.name !== source.sheet), dSheet!])
+        }
+      }
+      const findSaved = (type: string, key: string) => {
+        if (!dSheet) return undefined
+        const rule = saved.find(item => item.mapping_status !== 'needs_review' && item.target_type === type && item.target_key === key)
+        return rule ? getWorkbookRuleColumn(dSheet.columns, dSheet.name, dSheet.headerRow, rule)?.key ?? '' : undefined
+      }
       setProfileSheet(pSheet?.name ?? '')
       setOptionsSheet(oSheet?.name ?? '')
       setDataSheet(dSheet?.name ?? '')
@@ -261,11 +299,11 @@ export default function QualityWorkbookImportPanel({
       } : {}
       setOptionColumns(nextOptions)
       const nextData: Record<string, string> = dSheet ? {
-        date: findHeader(dSheet.headers, ['tanggal', 'tanggal pengamatan', 'tanggal pelayanan', 'date', 'record date']),
-        subject_key: findHeader(dSheet.headers, ['no. rm', 'no rm', 'nomor rekam medis', 'no. rekam medis', 'id subjek', 'kode pegawai']),
-        patient_name: findHeader(dSheet.headers, ['nama pasien', 'nama', 'patient name']),
-        diagnosis: findHeader(dSheet.headers, ['diagnosa', 'diagnosis', 'diagnosis tegak']),
-        dpjp: findHeader(dSheet.headers, ['dpjp', 'dokter penanggung jawab']),
+        date: findSaved('field', 'field:record_date') ?? findHeader(dSheet.headers, ['tanggal masuk','tanggal aduan','tanggal permintaan','tanggal audit','tanggal kunjungan','tanggal pengamatan','tanggal pelayanan','tanggal dilayani','tanggal survei','tanggal lapor','tanggal','date','record date']),
+        subject_key: findSaved('field','field:subject_key') ?? findHeader(dSheet.headers, ['no. rm', 'no rm', 'nomor rekam medis', 'no. rekam medis', 'id subjek', 'kode pegawai']),
+        patient_name: findSaved('field','field:patient_name') ?? findHeader(dSheet.headers, ['nama pasien', 'nama', 'patient name']),
+        diagnosis: findSaved('field','field:diagnosis') ?? findHeader(dSheet.headers, ['diagnosa', 'diagnosis', 'diagnosis tegak']),
+        dpjp: findSaved('field','field:dpjp') ?? findHeader(dSheet.headers, ['dpjp', 'dokter penanggung jawab']),
       } : {}
       setDataColumns(nextData)
       const nextIndicators: Record<string, string> = {}
@@ -274,48 +312,15 @@ export default function QualityWorkbookImportPanel({
       for (const p of activeProfiles) {
         const schema = p.schema_json ?? {}
         const mapping = schema.excel_mapping ?? {}
-        nextIndicators[p.code] = findHeader(dSheet?.headers ?? [], [
-          mapping.indicator_header, schema.header_label, p.code, p.title,
+        nextIndicators[p.code] = findSaved('indicator', 'indicator:' + p.code) ?? findHeader(dSheet?.headers ?? [], [
+          mapping.indicator_header, schema.header_label, p.code, p.title, ...aliasesFor(p),
         ].filter(Boolean))
-        nextNums[p.code] = findHeader(dSheet?.headers ?? [], [mapping.numerator_header, p.code + ' numerator'].filter(Boolean))
-        nextDens[p.code] = findHeader(dSheet?.headers ?? [], [mapping.denominator_header, p.code + ' denominator'].filter(Boolean))
+        nextNums[p.code] = findSaved('field', 'field:' + p.code + ':numerator') ?? findHeader(dSheet?.headers ?? [], [mapping.numerator_header, p.code + ' numerator'].filter(Boolean))
+        nextDens[p.code] = findSaved('field', 'field:' + p.code + ':denominator') ?? findHeader(dSheet?.headers ?? [], [mapping.denominator_header, p.code + ' denominator'].filter(Boolean))
       }
       setIndicatorColumns(nextIndicators)
       setNumeratorColumns(nextNums)
       setDenominatorColumns(nextDens)
-      // Reuse previously approved mappings for this unit/year/workbook type.
-      try {
-        const { data: savedMap, error: savedMapError } = await q().rpc('quality_excel_header_mapping_list', {
-          p_room_id: roomId, p_profile_year: year, p_importer_key: importerKey,
-        })
-        if (!savedMapError) {
-          const saved = Array.isArray(savedMap?.mappings) ? savedMap.mappings : []
-          const sourceFor = (type: string, key: string) => saved.find((item: any) => item.target_type === type && item.target_key === key)?.source_header ?? ''
-          setDataColumns(current => ({
-            ...current,
-            date: sourceFor('field','field:record_date') || current.date,
-            subject_key: sourceFor('field','field:subject_key') || current.subject_key,
-            patient_name: sourceFor('field','field:patient_name') || current.patient_name,
-            diagnosis: sourceFor('field','field:diagnosis') || current.diagnosis,
-            dpjp: sourceFor('field','field:dpjp') || current.dpjp,
-          }))
-          setIndicatorColumns(current => {
-            const next = { ...current }
-            for (const profile of activeProfiles) next[profile.code] = sourceFor('indicator','indicator:' + profile.code) || next[profile.code] || ''
-            return next
-          })
-          setNumeratorColumns(current => {
-            const next = { ...current }
-            for (const profile of activeProfiles) next[profile.code] = sourceFor('field','field:' + profile.code + ':numerator') || next[profile.code] || ''
-            return next
-          })
-          setDenominatorColumns(current => {
-            const next = { ...current }
-            for (const profile of activeProfiles) next[profile.code] = sourceFor('field','field:' + profile.code + ':denominator') || next[profile.code] || ''
-            return next
-          })
-        }
-      } catch { /* mapping lookup is optional; explicit user mapping remains available */ }
       setNotice('Worksheet dikenali. Periksa kembali peran sheet dan pemetaan setiap kolom sebelum membuat pratinjau. Aturan tersimpan per unit akan dipakai kembali. Baris data tidak dikirim ke NARA.')
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Workbook gagal dibaca. Pastikan berkas bukan hasil ekspor rusak atau dilindungi kata sandi.' }))
@@ -325,22 +330,59 @@ export default function QualityWorkbookImportPanel({
   const sheetRows = (sheetName: string, headerRow: number): Array<{ rowNumber: number; values: Record<string, any> }> => {
     const sheet = workbookRef.current?.getWorksheet(sheetName)
     if (!sheet) return []
-    const headers: Record<number, string> = {}
-    sheet.getRow(headerRow).eachCell({ includeEmpty: false }, (cell: any, col: number) => {
-      const name = clean(asCell(cell.value))
-      if (name) headers[col] = name
-    })
+    const columns = readWorkbookSourceColumns(sheet.getRow(headerRow))
     const rows: Array<{ rowNumber: number; values: Record<string, any> }> = []
     for (let rowNumber = headerRow + 1; rowNumber <= sheet.rowCount; rowNumber++) {
       const row = sheet.getRow(rowNumber)
       const values: Record<string, any> = {}
-      for (const [colText, header] of Object.entries(headers)) {
-        const value = asCell(row.getCell(Number(colText)).value)
-        if (value !== null && value !== undefined && clean(value) !== '') values[header] = value
+      for (const column of columns) {
+        const value = asCell(row.getCell(column.index).value)
+        if (value != null && clean(value) !== '') values[column.key] = value
       }
       if (Object.keys(values).length) rows.push({ rowNumber, values })
     }
     return rows
+  }
+
+  async function persistMappings(profiles: Profile[]) {
+    if (!dataScope || !canSaveMappings) return 0
+    const rules: Array<Record<string, unknown>> = []
+    const source = { source_sheet: dataSheet, header_row: dataHeaderRow }
+    const add = (type: 'indicator' | 'field', target: string, title: string, key: string, code?: string) => {
+      const column = dataScope.columns.find(item => item.key === key)
+      if (!column) return
+      rules.push({ target_type: type, target_key: type + ':' + target, target_label: title,
+        source_header: column.header, occurrence: column.occurrence, transform_json: source, indicator_code: code })
+    }
+    for (const [field, value] of Object.entries(dataColumns)) {
+      add('field', field === 'date' ? 'record_date' : field, field, value)
+    }
+    for (const profile of profiles) {
+      add('indicator', profile.code, profile.code + ' · ' + profile.title, indicatorColumns[profile.code], profile.code)
+      add('field', profile.code + ':numerator', profile.code + ' · Pembilang', numeratorColumns[profile.code])
+      add('field', profile.code + ':denominator', profile.code + ' · Penyebut', denominatorColumns[profile.code])
+    }
+    if (!rules.length) return 0
+    if (rules.length > 200) throw new Error('Simpan tautan untuk maksimal 200 kolom per unit.')
+    const { data, error } = await q().rpc('quality_excel_header_mapping_upsert_bulk', {
+      p_room_id: roomId, p_profile_year: year, p_importer_key: importerKey,
+      p_rules: rules, p_decision_note: 'Kolom sumber workbook ditautkan melalui Indikator Mutu.',
+    })
+    if (error) throw error
+    window.dispatchEvent(new CustomEvent('aureka:excel-mappings-updated', { detail: { roomId, year } }))
+    return Number(data?.saved_count ?? rules.length)
+  }
+
+  async function saveSelectedMappings() {
+    if (busy) return
+    setBusy(true); setError(''); setNotice('')
+    try {
+      const saved = await persistMappings(activeProfiles)
+      if (!saved) throw new Error('Tautkan minimal satu kolom sebelum menyimpan.')
+      setNotice(saved.toLocaleString('id-ID') + ' tautan kolom tersimpan.')
+    } catch (cause) {
+      setError(toUserFacingError(cause, { fallback: 'Tautan kolom belum dapat disimpan.' }))
+    } finally { setBusy(false) }
   }
 
   const buildPreview = async () => {
@@ -450,9 +492,9 @@ export default function QualityWorkbookImportPanel({
         const byGrain = new Map<string, any[]>()
         for (const profile of profiles) {
           const schemaMapping = profile.schema_json?.excel_mapping ?? {}
-          const valueHeader = indicatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.indicator_header, profile.schema_json?.header_label, profile.code, profile.title].filter(Boolean))
-          const numeratorHeader = numeratorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.numerator_header].filter(Boolean))
-          const denominatorHeader = denominatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.denominator_header].filter(Boolean))
+          const valueHeader = indicatorColumns[profile.code] ?? findHeader(dataHeaders, [schemaMapping.indicator_header, profile.schema_json?.header_label, profile.code, profile.title, ...aliasesFor(profile)].filter(Boolean))
+          const numeratorHeader = numeratorColumns[profile.code] ?? findHeader(dataHeaders, [schemaMapping.numerator_header].filter(Boolean))
+          const denominatorHeader = denominatorColumns[profile.code] ?? findHeader(dataHeaders, [schemaMapping.denominator_header].filter(Boolean))
           const rawCell = valueHeader ? source.values[valueHeader] : null
           const numeratorCell = numeratorHeader ? source.values[numeratorHeader] : null
           const denominatorCell = denominatorHeader ? source.values[denominatorHeader] : null
@@ -523,12 +565,15 @@ export default function QualityWorkbookImportPanel({
         }
         for (const [grain, responses] of byGrain.entries()) {
           const dateHeader = dataColumns.date
-          const dateValue = dateHeader ? parseDate(source.values[dateHeader]) : null
+          const dateCell = dateHeader ? source.values[dateHeader] : null
+          const dateValue = parseDate(typeof dateCell === 'number' && workbookRef.current?.properties.date1904 ? dateCell + 1462 : dateCell)
           const subjectHeader = dataColumns.subject_key
           const nameHeader = dataColumns.patient_name
           const diagnosisHeader = dataColumns.diagnosis
           const dpjpHeader = dataColumns.dpjp
-          const formFields = { ...source.values }
+          const formFields = Object.fromEntries((dataScope?.columns ?? []).flatMap(column =>
+            Object.hasOwn(source.values, column.key) ? [[column.occurrence === 1 ? column.header : column.key, source.values[column.key]]] : [],
+          ))
           const sourceDiagnosis = dataColumns.diagnosis ? clean(source.values[dataColumns.diagnosis]) : ''
           const applicableProfiles = profiles.filter(profile =>
             grainValue(profile.measurement_grain) === grain &&
@@ -537,6 +582,10 @@ export default function QualityWorkbookImportPanel({
             responses.some(response => response.indicator_code === profile.code))
           if (!dateValue) {
             issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Tanggal', message: 'Tanggal pengamatan tidak valid atau belum dipetakan.' })
+            continue
+          }
+          if (Number(dateValue.slice(0,4)) !== year) {
+            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Tanggal', message: 'Tanggal data berada di luar tahun profil yang dipilih.' })
             continue
           }
           const payload = {
@@ -568,7 +617,7 @@ export default function QualityWorkbookImportPanel({
             continue
           }
           const sourceKey = await hash(JSON.stringify([roomId, year, importerKey, dataSheet, grain,
-            identity ? identity.normalize('NFKC').toUpperCase().replace(/\s+/g, '') : 'baris:'+source.rowNumber,
+            identity ? identity.normalize('NFKC').toUpperCase().replace(/\s+/g, '') : fileHash + ':' + source.rowNumber,
             identity ? dateValue : null]))
           if (seenSourceKeys.has(sourceKey)) {
             issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Identitas episode', message: 'ID subjek dan tanggal sama pada grain yang sama. Gunakan ID episode unik agar data tidak saling menimpa.' })
@@ -623,38 +672,10 @@ export default function QualityWorkbookImportPanel({
       if (commitError) throw commitError
       if (committed?.status !== 'committed') throw new Error('Server belum menyatakan batch berhasil di-commit.')
 
-      // Persist selected source columns so the next upload for this unit can reuse them.
       let mappingSaved = 0
-      if (importMode !== 'profiles_only' && dataSheet) {
-        const profilesForMapping = importMode === 'data_only' ? activeProfiles : preview.profiles
-        const rules: Array<Record<string, any>> = []
-        const sourceProvenance = { source_sheet: dataSheet, header_row: dataHeaderRow }
-        const addField = (key: string, label: string, header: string) => {
-          if (header) rules.push({ target_type: 'field', target_key: 'field:' + key, target_label: label, source_header: header, occurrence: 1, transform_json: sourceProvenance })
-        }
-        addField('record_date', 'Tanggal pencatatan', dataColumns.date)
-        addField('subject_key', 'Kunci subjek / No. RM', dataColumns.subject_key)
-        addField('patient_name', 'Nama pasien / subjek', dataColumns.patient_name)
-        addField('diagnosis', 'Diagnosis', dataColumns.diagnosis)
-        addField('dpjp', 'DPJP / penanggung jawab', dataColumns.dpjp)
-        for (const profile of profilesForMapping) {
-          const schemaMapping = profile.schema_json?.excel_mapping ?? {}
-          const valueHeader = indicatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.indicator_header, profile.schema_json?.header_label, profile.code, profile.title].filter(Boolean))
-          if (valueHeader) rules.push({ target_type: 'indicator', target_key: 'indicator:' + profile.code, indicator_code: profile.code, target_label: profile.code + ' · ' + profile.title, source_header: valueHeader, occurrence: 1, transform_json: sourceProvenance })
-          const numHeader = numeratorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.numerator_header].filter(Boolean))
-          const denHeader = denominatorColumns[profile.code] || findHeader(dataHeaders, [schemaMapping.denominator_header].filter(Boolean))
-          if (numHeader) rules.push({ target_type: 'field', target_key: 'field:' + profile.code + ':numerator', target_label: profile.code + ' · numerator', source_header: numHeader, occurrence: 1, transform_json: sourceProvenance })
-          if (denHeader) rules.push({ target_type: 'field', target_key: 'field:' + profile.code + ':denominator', target_label: profile.code + ' · denominator', source_header: denHeader, occurrence: 1, transform_json: sourceProvenance })
-        }
-        for (let index = 0; index < rules.length; index += 200) {
-          const { error: mapError, data: mapResult } = await q().rpc('quality_excel_header_mapping_upsert_bulk', {
-            p_room_id: roomId, p_profile_year: year, p_importer_key: importerKey,
-            p_rules: rules.slice(index, index + 200),
-            p_decision_note: 'Pemetaan kolom diverifikasi melalui impor workbook AUREKA V2.',
-          })
-          if (mapError) { setError('Data berhasil diimpor, tetapi penyimpanan aturan pemetaan tidak berhasil: ' + toUserFacingError(mapError)); break }
-          mappingSaved += Number(mapResult?.saved_count ?? 0)
-        }
+      if (canSaveMappings && importMode !== 'profiles_only') {
+        try { mappingSaved = await persistMappings(importMode === 'data_only' ? activeProfiles : preview.profiles) }
+        catch (cause) { setError('Data sudah tersimpan. Tautan belum tersimpan: ' + toUserFacingError(cause)) }
       }
       setNotice('Impor selesai. ' + Number(committed.imported_rows ?? 0).toLocaleString('id-ID') +
         ' record tersimpan dan ' + Number(committed.profile_count ?? 0).toLocaleString('id-ID') +
@@ -701,7 +722,7 @@ export default function QualityWorkbookImportPanel({
 
   return <section style={{ display: 'grid', gap: 12, padding: 14, border: '1px solid #dce7ed', borderRadius: 12, background: '#fbfdfe' }}>
     <header>
-      <div style={{ fontSize: 10, letterSpacing: '.1em', fontWeight: 850, color: '#3a788e' }}>AUREKA · IMPORT ENGINE V2</div>
+      <div style={{ fontSize: 11, letterSpacing: '.1em', fontWeight: 850, color: '#3a788e' }}>AUREKA · IMPORT ENGINE V2</div>
       <strong style={{ display: 'block', marginTop: 4, fontSize: 16 }}>Impor Profil dan Logbook dari Excel</strong>
       <p style={{ margin: '5px 0 0', color: '#708391', fontSize: 12, lineHeight: 1.5 }}>
         Workbook unit menjadi sumber konfigurasi dan data. AUREKA membaca sheet profil, opsi, dan logbook; setiap kolom dapat dipetakan ulang sebelum validasi dan commit.
@@ -723,7 +744,7 @@ export default function QualityWorkbookImportPanel({
         </select>
       </label>
       <label style={fieldStyle}>Workbook .xlsx
-        <input type="file" accept=".xlsx" disabled={busy} onChange={event => { const file = event.target.files?.[0]; if (file) void inspect(file); event.currentTarget.value = '' }} style={{ ...selectStyle, padding: '6px 8px' }}/>
+        <input type="file" accept=".xlsx" disabled={busy} onChange={event => { const file = event.target.files?.[0]; if (file) { setBusy(true); void inspect(file).finally(() => setBusy(false)) }; event.currentTarget.value = '' }} style={{ ...selectStyle, padding: '6px 8px' }}/>
       </label>
     </div>
     {fileName && <div style={{ fontSize: 11, color: '#5d7481' }}>File: <strong>{fileName}</strong> · {sheets.length} worksheet terdeteksi · SHA-256 aktif</div>}
@@ -743,12 +764,18 @@ export default function QualityWorkbookImportPanel({
           </label>
         </>}
         {importMode !== 'profiles_only' && <label style={fieldStyle}>Sheet Logbook / Data
-          <select style={selectStyle} value={dataSheet} onChange={event => { setDataSheet(event.target.value); setPreview(null); const s=sheets.find(x=>x.name===event.target.value); if(s)setDataHeaderRow(s.headerRow) }}>
+          <select style={selectStyle} value={dataSheet} onChange={event => { const next=sheets.find(item=>item.name===event.target.value); changeDataSource(event.target.value,next?.headerRow??1) }}>
             <option value="">Pilih sheet data</option>{sheets.map(s=><option key={s.name} value={s.name}>{s.name}</option>)}
           </select>
         </label>}
       </div>
-      <div style={{ fontSize: 11, color: '#7b8c96' }}>Baris header dapat dipastikan melalui pemetaan kolom. AUREKA mendeteksi kandidat header pada 15 baris awal setiap sheet.</div>
+      {dataSheet && importMode !== 'profiles_only' && <label style={fieldStyle}>Baris header sumber
+        <input type="number" min={1} max={500} key={dataSheet + ':' + dataHeaderRow} defaultValue={dataHeaderRow} style={selectStyle}
+          onBlur={event => {
+            const row = Number(event.currentTarget.value)
+            if (row !== dataHeaderRow && Number.isInteger(row) && row > 0 && row <= 500) changeDataSource(dataSheet,row)
+          }}/>
+      </label>}
     </>}
 
     {roleCanImportProfiles && importMode !== 'data_only' && profileSheet && <details style={{ border: '1px solid #e4ebef', borderRadius: 9, padding: 10 }}>
@@ -769,18 +796,18 @@ export default function QualityWorkbookImportPanel({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 9 }}>
         {(['date','subject_key','patient_name','diagnosis','dpjp'] as const).map(key => <div key={key}>{mappingSelect(dataHeaders, dataColumns[key] ?? '', value => setDataColumns(current => ({ ...current, [key]: value })), ({date:'Tanggal pencatatan',subject_key:'Nomor RM / kunci subjek',patient_name:'Nama pasien / subjek',diagnosis:'Diagnosa',dpjp:'DPJP / penanggung jawab'} as any)[key])}</div>)}
       </div>
-      <details open style={{ border: '1px solid #e4ebef', borderRadius: 9, padding: 10 }}>
+      <details style={{ border: '1px solid #e4ebef', borderRadius: 9, padding: 10 }}>
         <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: '#335d73' }}>Pemetaan kolom per indikator ({currentProfiles.length})</summary>
         <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
           {currentProfiles.map(profile => {
             const isRatio = resolveMeasurementKind(profile) === 'ratio' && !usesCategoricalResponseCapture(profile)
-            return <div key={profile.code} style={{ display: 'grid', gridTemplateColumns: 'minmax(150px,1fr) repeat(2,minmax(150px,1fr))', gap: 8, alignItems: 'end', padding: '8px 0', borderBottom: '1px solid #edf1f4' }}>
-              <div><strong style={{ display: 'block', fontSize: 11, color: '#2d5368' }}>{profile.code} · {profile.title}</strong><span style={{ fontSize: 10, color: '#8a9aa2' }}>{profile.measurement_grain} · {resolveMeasurementKind(profile)}{usesCategoricalResponseCapture(profile) ? ' · dropdown 1/2/3' : ''}</span></div>
+            return <div key={profile.code} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,170px),1fr))', gap: 8, alignItems: 'end', padding: '8px 0', borderBottom: '1px solid #edf1f4' }}>
+              <div><strong style={{ display: 'block', fontSize: 11, color: '#2d5368' }}>{profile.code} · {profile.title}</strong><span style={{ fontSize: 11, color: '#8a9aa2' }}>{profile.measurement_grain} · {resolveMeasurementKind(profile)}{usesCategoricalResponseCapture(profile) ? ' · dropdown 1/2/3' : ''}</span></div>
               {mappingSelect(dataHeaders, indicatorColumns[profile.code] ?? '', value => setIndicatorColumns(current => ({ ...current, [profile.code]: value })), 'Kolom respons / nilai')}
               {isRatio ? <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 {mappingSelect(dataHeaders, numeratorColumns[profile.code] ?? '', value => setNumeratorColumns(current => ({ ...current, [profile.code]: value })), 'Pembilang')}
                 {mappingSelect(dataHeaders, denominatorColumns[profile.code] ?? '', value => setDenominatorColumns(current => ({ ...current, [profile.code]: value })), 'Penyebut')}
-              </div> : <div style={{ fontSize: 10, color: '#82929b', paddingBottom: 9 }}>Satu kolom sumber</div>}
+              </div> : <div style={{ fontSize: 11, color: '#82929b', paddingBottom: 9 }}>Satu kolom sumber</div>}
             </div>
           })}
         </div>
@@ -797,22 +824,24 @@ export default function QualityWorkbookImportPanel({
         </span>
       </label>}
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      <button type="button" disabled={!sheets.length || busy} onClick={() => void buildPreview()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#e9f2f7', color: '#26536e', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>Buat pratinjau & validasi lokal</button>
-      <button type="button" disabled={!preview || !!preview.issues.length || busy || (importMode !== 'data_only' && activeProfiles.length > 0 && !replaceConfirmed)} onClick={() => void runImport()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#176d4d', color: '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>{busy ? 'Memproses batch…' : 'Validasi server & commit atomik'}</button>
+      <button type="button" disabled={!sheets.length || busy} onClick={() => void buildPreview()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#e9f2f7', color: '#26536e', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>Periksa data</button>
+      <button type="button" disabled={!preview || !!preview.issues.length || busy || (importMode !== 'data_only' && activeProfiles.length > 0 && !replaceConfirmed)} onClick={() => void runImport()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#176d4d', color: '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>{busy ? 'Memproses batch…' : 'Impor data terverifikasi'}</button>
+      {canSaveMappings && dataSheet && importMode === 'data_only' && <button type="button" disabled={busy}
+        className="workspaceSecondaryButton" onClick={() => void saveSelectedMappings()}>Simpan tautan kolom</button>}
       <button type="button" disabled={!batchId || busy} onClick={() => void cancelBatch()} style={{ border: '1px solid #e1d4ce', borderRadius: 8, padding: '9px 13px', background: '#fff', color: '#8d5142', fontWeight: 750, fontSize: 12, cursor: 'pointer' }}>Batalkan batch</button>
     </div>
 
     {preview && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8 }}>
-      {[['Profil',preview.profiles.length],['Baris sumber',preview.workbookRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 10, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
+      {[['Profil',preview.profiles.length],['Baris sumber',preview.workbookRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 11, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
     </div>}
     {preview?.issues?.length ? <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid #f0d7d2', borderRadius: 9, background: '#fff9f8', padding: 10 }}>
       <strong style={{ display: 'block', marginBottom: 7, fontSize: 12, color: '#92483d' }}>Masalah yang harus diperbaiki</strong>
       {preview.issues.slice(0, 100).map((issue,index)=><div key={index} style={{ padding: '5px 0', borderBottom: '1px solid #f5e9e6', fontSize: 11, color: '#7f5049' }}>{issue.sheet} · baris {issue.row || '-'} · {issue.field}: {issue.message}</div>)}
-      {preview.issues.length>100&&<div style={{ marginTop: 6, fontSize: 10, color: '#92584e' }}>Menampilkan 100 masalah pertama dari {preview.issues.length}.</div>}
+      {preview.issues.length>100&&<div style={{ marginTop: 6, fontSize: 11, color: '#92584e' }}>Menampilkan 100 masalah pertama dari {preview.issues.length}.</div>}
     </div> : null}
     {error && <div role="alert" style={{ padding: 10, borderRadius: 8, background: '#fff0ee', border: '1px solid #efd0ca', color: '#93463d', fontSize: 11 }}>{error}</div>}
     {notice && <div role="status" style={{ padding: 10, borderRadius: 8, background: '#eef7f2', border: '1px solid #d4e9dc', color: '#3c7253', fontSize: 11 }}>{notice}</div>}
-    <div style={{ fontSize: 10, color: '#8999a2', lineHeight: 1.5 }}>
+    <div style={{ fontSize: 11, color: '#8999a2', lineHeight: 1.5 }}>
       Unit: <strong>{roomName}</strong> · Tahun: <strong>{year}</strong> · Mode categorical mengikuti kode opsi 1/2/3 dari profil. Data pasien diproses di browser lalu dikirim ke staging Supabase dengan akses RPC terkontrol; data baris tidak dikirim ke NARA.
     </div>
   </section>

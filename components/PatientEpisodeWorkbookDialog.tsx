@@ -5,9 +5,9 @@ import AurekaModal from '@/components/ui/AurekaModal'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
 import {
-  EPISODE_WORKBOOK_IMPORTER, buildEpisodeMappings, detectEpisodeFields, inspectEpisodeWorkbook,
+  EPISODE_WORKBOOK_IMPORTER, buildEpisodeMappings, detectEpisodeFields, findEpisodeSourceColumn, inspectEpisodeWorkbook,
   overrideEpisodeLogbookHeader, prepareEpisodeImport, prepareMissingEpisodeProfiles, workbookSha256,
-  type EpisodeColumn, type EpisodeFields, type EpisodeProfile, type EpisodeWorkbook, type ProfileMapping,
+  type EpisodeColumn, type EpisodeFields, type EpisodeProfile, type EpisodeWorkbook, type EpisodeSourceRule, type ProfileMapping,
 } from '@/lib/aureka/patient-episode-workbook'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
@@ -18,7 +18,7 @@ const fieldLabels: Record<keyof EpisodeFields, string> = {
 }
 const fileLimit = 25 * 1024 * 1024
 
-type SavedMapping = { target_type: string; target_key: string; indicator_code?: string; source_header: string; occurrence: number }
+type SavedMapping = EpisodeSourceRule & { target_type: string; target_key: string }
 type OpenWorkbook = {
   name: string
   hash: string
@@ -64,6 +64,7 @@ export default function PatientEpisodeWorkbookDialog({
   const [mappings, setMappings] = useState<ProfileMapping[]>([])
   const [applyProfiles, setApplyProfiles] = useState(false)
   const [matchingHeader, setMatchingHeader] = useState('')
+  const [confirmedHeldRows,setConfirmedHeldRows] = useState(false)
   const [preview, setPreview] = useState<Preview | null>(null)
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
@@ -71,15 +72,14 @@ export default function PatientEpisodeWorkbookDialog({
   const running = useRef(false)
   const aliases = year === 2026 ? (unitAliases as Record<string, Record<string, string>>)[roomId] ?? {} : {}
 
-  function invalidatePreview() { setPreview(null); setError('') }
+  function invalidatePreview() { setPreview(null); setConfirmedHeldRows(false); setError('') }
 
   function initializeColumns(next: OpenWorkbook, useProfiles: boolean) {
     const columns = next.parsed.logbook.columns
-    const nextFields = detectEpisodeFields(columns, dateField)
+    const nextFields = detectEpisodeFields(columns, dateField, roomId)
     for (const key of Object.keys(fieldLabels) as Array<keyof EpisodeFields>) {
       const rule = next.saved.find(item => item.target_type === 'field' && item.target_key === 'field:' + key)
-      const column = columns.find(item => item.name === rule?.source_header && item.occurrence === rule?.occurrence)
-      if (column) nextFields[key] = column.index
+      if (rule?.mapping_status !== 'needs_review' && rule) nextFields[key] = findEpisodeSourceColumn(next.parsed.logbook, rule)
     }
     setFields(nextFields)
     setMatchingHeader(String(next.parsed.logbook.header))
@@ -111,9 +111,10 @@ export default function PatientEpisodeWorkbookDialog({
       const ExcelJS = module.default ?? module
       const workbook = new ExcelJS.Workbook()
       await workbook.xlsx.load(bytes)
-      const parsed = inspectEpisodeWorkbook(workbook, dateField)
+      const savedRules: SavedMapping[] = Array.isArray(saved.data?.mappings) ? saved.data.mappings : []
+      const parsed = inspectEpisodeWorkbook(workbook, dateField, savedRules)
       const next = { name: input.name, hash: await workbookSha256(bytes), parsed, profiles, reference,
-        saved: Array.isArray(saved.data?.mappings) ? saved.data.mappings as SavedMapping[] : [] }
+        saved: savedRules }
       // Missing profiles are created independently of Logbook validation.
       // Never switch to destructive whole-set replacement as a side effect of uploading.
       setApplyProfiles(false)
@@ -176,7 +177,7 @@ export default function PatientEpisodeWorkbookDialog({
     try {
       setPreview(await prepareEpisodeImport({
         parsed: file.parsed, fields, mappings, activeProfiles: file.profiles,
-        includeProfiles: applyProfiles, roomId, roomName, year, layoutFields,
+        includeProfiles: applyProfiles, roomId, roomName, year, layoutFields, allowReviewQueue: !applyProfiles,
       }))
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Pratinjau belum dapat dibuat. Periksa pemetaan dan nilai pada workbook.' }))
@@ -186,24 +187,26 @@ export default function PatientEpisodeWorkbookDialog({
     }
   }
 
-  async function saveMappings(next: Preview) {
+  async function saveMappings(next?: Preview) {
     if (!file) return
     const columns = file.parsed.logbook.columns
+    const provenance = { source_sheet: file.parsed.logbook.sheet.name, header_row: file.parsed.logbook.header }
     const rules: Array<Record<string, unknown>> = []
     for (const key of Object.keys(fieldLabels) as Array<keyof EpisodeFields>) {
       const column = columns.find(item => item.index === fields[key])
-      if (column) rules.push({ target_type: 'field', target_key: 'field:' + key, target_label: fieldLabels[key], source_header: column.name, occurrence: column.occurrence })
+      if (column) rules.push({ target_type: 'field', target_key: 'field:' + key, target_label: fieldLabels[key], source_header: column.name, occurrence: column.occurrence, transform_json: provenance })
     }
-    const profiles = next.profiles.length ? next.profiles : file.profiles
+    const profiles = next?.profiles.length ? next.profiles : file.profiles
     for (const mapping of mappings) {
       const column = columns.find(item => item.index === mapping.column)
       const profile = profiles.find(item => item.code.toUpperCase() === mapping.code.trim().toUpperCase())
       if (!column || !profile) continue
       rules.push({
         target_type: 'indicator', target_key: 'indicator:' + profile.code, target_label: profile.code + ' · ' + profile.title,
-        indicator_code: profile.code, source_header: column.name, occurrence: column.occurrence,
+        indicator_code: profile.code, source_header: column.name, occurrence: column.occurrence, transform_json: provenance,
       })
     }
+    if (!rules.length) throw new Error('Pilih kolom sumber sebelum menyimpan tautan.')
     for (let index = 0; index < rules.length; index += 200) {
       const { error } = await quality().rpc('quality_excel_header_mapping_upsert_bulk', {
         p_room_id: roomId, p_profile_year: year, p_importer_key: EPISODE_WORKBOOK_IMPORTER,
@@ -213,8 +216,20 @@ export default function PatientEpisodeWorkbookDialog({
     }
   }
 
+  async function saveLinks() {
+    if (running.current || !file) return
+    running.current = true
+    setBusy('Menyimpan tautan…'); setError('')
+    try {
+      await saveMappings()
+      setAutofillNotice('Tautan kolom tersimpan. Gunakan pratinjau untuk memeriksa data sebelum impor.')
+    } catch (cause) {
+      setError(toUserFacingError(cause, { fallback: 'Tautan kolom belum tersimpan.' }))
+    } finally { running.current = false; setBusy('') }
+  }
+
   async function runImport() {
-    if (!file || !preview || preview.issues.length || !preview.rows.length || running.current) return
+    if (!file || !preview || preview.issues.length || !preview.rows.length || running.current || (preview.heldRows > 0 && !confirmedHeldRows)) return
     running.current = true
     setError('')
     setBusy('Menyiapkan impor…')
@@ -253,6 +268,7 @@ export default function PatientEpisodeWorkbookDialog({
       if (result.data?.status !== 'committed') throw new Error('Penyimpanan belum dikonfirmasi. Periksa daftar episode.')
       committed = true
       let message = Number(result.data.imported_rows ?? preview.rows.length).toLocaleString('id-ID') + ' episode berhasil diimpor.'
+      if (preview.heldRows) message += ' ' + preview.heldRows.toLocaleString('id-ID') + ' baris masih perlu perbaikan sumber.'
       if (preview.profiles.length) message += ' Profil workbook tersimpan.'
       try { await saveMappings(preview) } catch {
         message += ' Pemetaan belum tersimpan untuk unggahan berikutnya.'
@@ -278,8 +294,9 @@ export default function PatientEpisodeWorkbookDialog({
     onClose={onClose} closeDisabled={!!busy}
     footer={<div className="episodeWorkbookActions">
       <button type="button" disabled={!!busy} onClick={onClose}>Tutup</button>
+      {!!file?.parsed.hasLogbook && <button type="button" disabled={!!busy || selectedCount === 0} onClick={() => void saveLinks()}>Simpan tautan kolom</button>}
       <button type="button" disabled={!file?.parsed.hasLogbook || !!busy} onClick={() => void buildPreview()}>Pratinjau Logbook</button>
-      <button type="button" className="episodeWorkbookPrimary" disabled={!!busy || !preview?.rows.length || !!preview?.issues.length} onClick={() => void runImport()}>{labelImport}</button>
+      <button type="button" className="episodeWorkbookPrimary" disabled={!!busy || !preview?.rows.length || !!preview?.issues.length || (Boolean(preview?.heldRows) && !confirmedHeldRows)} onClick={() => void runImport()}>{labelImport}</button>
     </div>}>
     <div className="episodeWorkbook">
       <fieldset disabled={!!busy}>
@@ -337,11 +354,16 @@ export default function PatientEpisodeWorkbookDialog({
       {autofillNotice && <p className="episodeWorkbookSuccess" role="status">{autofillNotice}</p>}
       {!!busy && <p className="episodeWorkbookMeta" role="status">{busy}</p>}
       {error && <p className="episodeWorkbookError" role="alert">{error}</p>}
+      {!!preview?.heldRows && <section className="episodeWorkbookError">
+        <strong>{preview.heldRows.toLocaleString('id-ID')} baris ditahan untuk koreksi sumber</strong>
+        <details><summary>Lihat temuan per baris</summary><ul>{preview.rowIssues.map((issue,index)=><li key={index}>{issue.location}: {issue.message}</li>)}</ul></details>
+        {!!preview.rows.length && <label><input type="checkbox" checked={confirmedHeldRows} onChange={event=>setConfirmedHeldRows(event.target.checked)}/> Impor baris yang siap dan sisakan baris di atas untuk ditinjau.</label>}
+      </section>}
       {preview && (preview.issues.length ? <div className="episodeWorkbookError" role="alert">
         <strong>Periksa {preview.issues.length} temuan sebelum impor</strong>
         <ul>{preview.issues.map((issue, index) => <li key={index}>{issue.location}: {issue.message}</li>)}</ul>
       </div> : <p className="episodeWorkbookSuccess" role="status">
-        {preview.rows.length.toLocaleString('id-ID')} episode siap diimpor · {preview.codes.map((count, index) => 'Kode ' + (index + 1) + ': ' + count.toLocaleString('id-ID')).join(' · ')}
+        {preview.rows.length.toLocaleString('id-ID')} episode siap disimpan · {preview.rows.filter(row=>row.row_payload.record_payload.status==='draft').length.toLocaleString('id-ID')} draf memerlukan rekonsiliasi respons
       </p>)}
     </div>
   </AurekaModal>

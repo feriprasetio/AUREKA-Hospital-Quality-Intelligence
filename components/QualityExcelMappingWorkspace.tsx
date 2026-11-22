@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'reac
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
 import { readAllPages } from '@/lib/aureka/pagination'
+import { EPISODE_WORKBOOK_IMPORTER, supportsEpisodeWorkbook } from '@/lib/aureka/patient-episode-workbook'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import QualityWorkbookImportPanel from '@/components/QualityWorkbookImportPanel'
@@ -154,12 +155,11 @@ export default function QualityExcelMappingWorkspace({
   const availableImporters = useMemo(() => {
     if (roomId == null) return []
     const configured = importers.filter(item => item.room_id === Number(roomId))
-    if (configured.length) return configured
-    return [{
-      room_id: Number(roomId),
-      key: 'unit-logbook',
-      label: 'Workbook Logbook Unit · Konfigurasi Awal',
-    }]
+    return [
+      { room_id: Number(roomId), key: 'unit-logbook', label: 'Tautkan kolom atau impor tabel' },
+      ...(supportsEpisodeWorkbook(roomId) ? [{ room_id: roomId, key: EPISODE_WORKBOOK_IMPORTER, label: 'Workbook episode pasien' }] : []),
+      ...configured,
+    ]
   }, [roomId])
   const selectedImporter = availableImporters.find(item => item.key === importerKey) ?? availableImporters[0] ?? null
   const selectedProfile = !ready ? null : profiles.find(item => item.id === selectedProfileId) ?? profiles[0] ?? null
