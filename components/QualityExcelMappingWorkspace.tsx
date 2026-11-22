@@ -9,6 +9,7 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import QualityWorkbookImportPanel from '@/components/QualityWorkbookImportPanel'
 import QualityOptionEditor from '@/components/quality/QualityOptionEditor'
 import { detectExcelHeaderColumns, resolveExcelSourceColumn, describeExcelSourceColumn, type ExcelHeaderColumn } from '@/lib/aureka/excel-column-picker'
+import { proposeWorkbookIndicatorMappings, provisionalDraftStorageKey, parseProvisionalMappingDraft, type ProvisionalMappingDraft } from '@/lib/aureka/quality-workbook-mapping-draft'
 
 type Room = { id: number; name: string }
 type Profile = {
@@ -118,6 +119,10 @@ export default function QualityExcelMappingWorkspace({
   const [headerConfirmed, setHeaderConfirmed] = useState(false)
   const [draftHeaders, setDraftHeaders] = useState<Record<string, string>>({})
   const [draftOccurrences, setDraftOccurrences] = useState<Record<string, number>>({})
+  const [provisionalChoices, setProvisionalChoices] = useState<Record<string, number>>({})
+  const [additionalColumns, setAdditionalColumns] = useState<number[]>([])
+  const [newColumnIndex, setNewColumnIndex] = useState('')
+  const [browserDraft, setBrowserDraft] = useState<ProvisionalMappingDraft['mappings']>([])
   const [aiSuggestions, setAiSuggestions] = useState<Suggestion[]>([])
   const [aiBusy, setAiBusy] = useState(false)
   const fileBusy = saving || inspecting || aiBusy
@@ -161,6 +166,26 @@ export default function QualityExcelMappingWorkspace({
     () => !ready ? [] : profiles.filter(item => item.is_active && item.status === 'published').sort((a,b) => a.code.localeCompare(b.code, undefined, { numeric: true })),
     [profiles, ready],
   )
+  const suggestedProvisionalMappings = useMemo(
+    () => activeProfiles.length || !ready ? [] : proposeWorkbookIndicatorMappings(roomId, detectedColumns),
+    [activeProfiles.length, ready, roomId, detectedColumns],
+  )
+  const provisionalRows = useMemo(() => [
+    ...suggestedProvisionalMappings,
+    ...additionalColumns.flatMap(index => {
+      const column = detectedColumns.find(item => item.index === index)
+      if (!column || suggestedProvisionalMappings.some(item => normalize(item.indicatorLabel) === normalize(column.header))) return []
+      return [{
+        key: 'additional:' + index,
+        indicatorLabel: column.header,
+        columnIndex: index,
+        sourceHeader: column.header,
+        occurrence: column.occurrence,
+      }]
+    }),
+  ], [suggestedProvisionalMappings, additionalColumns, detectedColumns])
+  const provisionalColumn = (row: { key: string; columnIndex: number }) =>
+    detectedColumns.find(item => item.index === (provisionalChoices[row.key] ?? row.columnIndex))
   const existingByCode = useMemo(() => {
     const map = new Map<string, Mapping>()
     for (const row of mappings) {
@@ -170,16 +195,17 @@ export default function QualityExcelMappingWorkspace({
     }
     return map
   }, [mappings, selectedImporter?.key, importerKey])
-  const sourceColumnFor = (key: string, mapping?: Mapping, fallback?: string) => {
+  const sourceColumnFor = (key: string, mapping?: Mapping, fallback?: string, indicatorLabel?: string) => {
     const savedSheet = String(mapping?.transform_json?.source_sheet ?? '').trim()
     const savedRow = Number(mapping?.transform_json?.header_row)
     const manuallyChosen = Object.hasOwn(draftHeaders, key)
     if (!manuallyChosen && mapping?.mapping_status === 'needs_review') return null
     if (!manuallyChosen && ((savedSheet && normalize(savedSheet) !== normalize(selectedSheet)) || (savedRow > 0 && savedRow !== headerRow))) return null
+    const provisional = browserDraft.find(row => normalize(row.indicatorLabel) === normalize(indicatorLabel))
     return resolveExcelSourceColumn(
       detectedColumns,
-      draftHeaders[key] ?? mapping?.source_header ?? fallback ?? '',
-      draftOccurrences[key] ?? mapping?.occurrence ?? 1,
+      draftHeaders[key] ?? mapping?.source_header ?? provisional?.sourceHeader ?? fallback ?? indicatorLabel ?? '',
+      draftOccurrences[key] ?? mapping?.occurrence ?? provisional?.occurrence ?? 1,
     )
   }
 
@@ -193,6 +219,7 @@ export default function QualityExcelMappingWorkspace({
     setProfiles([]); setMappings([]); setSelectedProfileId('')
     setWorkbookName(''); setSheets([]); setSelectedSheet(''); setDetectedHeaders([]); setDetectedColumns([])
     setDraftHeaders({}); setDraftOccurrences({}); setAiSuggestions([]); setHeaderConfirmed(false)
+    setProvisionalChoices({}); setAdditionalColumns([]); setNewColumnIndex(''); setBrowserDraft([])
     setError(''); setNotice('')
   }, [scope])
 
@@ -251,6 +278,7 @@ export default function QualityExcelMappingWorkspace({
     setError(''); setNotice(''); setWorkbookName('')
     setSheets([]); setSelectedSheet(''); setDetectedHeaders([]); setDetectedColumns([])
     setDraftHeaders({}); setDraftOccurrences({}); setAiSuggestions([]); setHeaderConfirmed(false)
+    setProvisionalChoices({}); setAdditionalColumns([]); setNewColumnIndex(''); setBrowserDraft([])
     if (!/\.xlsx$/i.test(file.name) || file.size <= 0 || file.size > 25 * 1024 * 1024) {
       setError('Pilih workbook .xlsx dengan ukuran maksimal 25 MB.')
       return
@@ -301,6 +329,10 @@ export default function QualityExcelMappingWorkspace({
     setDetectedHeaders(candidate.columns.map(column => column.header))
     setDraftHeaders({})
     setDraftOccurrences({})
+    setProvisionalChoices({})
+    setAdditionalColumns([])
+    setNewColumnIndex('')
+    setBrowserDraft([])
     setAiSuggestions([])
     setHeaderConfirmed(false)
   }
@@ -310,6 +342,54 @@ export default function QualityExcelMappingWorkspace({
     if (!sheet) return
     setSelectedSheet(name)
     selectHeaderRow(sheet, sheet.recommendedRow)
+  }
+
+  useEffect(() => {
+    if (!ready || !roomId || !selectedImporter || !selectedSheet || !detectedColumns.length) return
+    try {
+      const raw = window.localStorage.getItem(provisionalDraftStorageKey(roomId, profileYear, selectedImporter.key, selectedSheet))
+      const stored = parseProvisionalMappingDraft(raw ? JSON.parse(raw) : null)
+      if (!stored || stored.roomId !== roomId || stored.year !== profileYear ||
+          stored.importerKey !== selectedImporter.key || normalize(stored.sourceSheet) !== normalize(selectedSheet) ||
+          stored.headerRow !== headerRow) return
+      const choices: Record<string, number> = {}
+      const added: number[] = []
+      for (const mapping of stored.mappings) {
+        const col = resolveExcelSourceColumn(detectedColumns, mapping.sourceHeader, mapping.occurrence)
+        if (!col) continue
+        const proposal = suggestedProvisionalMappings.find(item => normalize(item.indicatorLabel) === normalize(mapping.indicatorLabel))
+        if (proposal) choices[proposal.key] = col.index
+        else added.push(col.index)
+      }
+      setProvisionalChoices(choices)
+      setAdditionalColumns([...new Set(added)])
+      setBrowserDraft(stored.mappings)
+    } catch { /* local browser metadata may be absent or invalid */ }
+  }, [ready, roomId, profileYear, selectedImporter?.key, selectedSheet, headerRow, detectedColumns, suggestedProvisionalMappings])
+
+  const saveProvisionalDraft = () => {
+    if (!roomId || !selectedImporter || !selectedSheet || !headerConfirmed || !provisionalRows.length) {
+      setError('Pilih unit, konfirmasi baris header, dan pasangkan minimal satu calon indikator.')
+      return
+    }
+    const mappings = provisionalRows.flatMap(row => {
+      const source = provisionalColumn(row)
+      return source ? [{ indicatorLabel: row.indicatorLabel, sourceHeader: source.header, occurrence: source.occurrence }] : []
+    })
+    if (!mappings.length) { setError('Pilih kolom sumber melalui dropdown terlebih dahulu.'); return }
+    const draft: ProvisionalMappingDraft = {
+      version: 1, roomId, year: profileYear, importerKey: selectedImporter.key,
+      sourceSheet: selectedSheet, headerRow, mappings,
+    }
+    try {
+      window.localStorage.setItem(
+        provisionalDraftStorageKey(roomId, profileYear, selectedImporter.key, selectedSheet),
+        JSON.stringify(draft),
+      )
+      setBrowserDraft(mappings)
+      setError('')
+      setNotice(mappings.length + ' pasangan indikator dan kolom disimpan sebagai draf di browser ini. Profil resmi belum diterbitkan, sehingga tidak ada perubahan master atau data pasien di Supabase.')
+    } catch { setError('Browser tidak mengizinkan penyimpanan draf. Periksa pengaturan penyimpanan situs.') }
   }
 
   const runNaraBulk = async () => {
@@ -378,7 +458,7 @@ export default function QualityExcelMappingWorkspace({
     }
     const rules = activeProfiles.flatMap(profile => {
       const key = draftKey(selectedImporter.key, profile.code)
-      const column = sourceColumnFor(key, existingByCode.get(profile.code), profile.schema_json?.header_label)
+      const column = sourceColumnFor(key, existingByCode.get(profile.code), profile.schema_json?.header_label, profile.title)
       if (!column) return []
       const ai = aiSuggestions.find(item => item.indicator_code === profile.code && normalize(item.source_header) === normalize(column.header))
       return [{
@@ -501,6 +581,7 @@ export default function QualityExcelMappingWorkspace({
       .qemTable strong{color:#213b50}
       .qemTable input,.qemTable select{width:100%;min-width:220px;max-width:520px;min-height:37px;padding:7px 8px;border:1px solid #d8e3eb;border-radius:8px;font-size:12px;background:#fff;color:#213b50}
       .qemTable select:disabled{background:#f0f3f4;color:#89959c}
+      .qemTableWrap .qemActions{border-top:1px solid #e3eaf0}
       .qemMissing{display:block;font-size:11px;color:#9a583e;line-height:1.5;margin-top:5px}
       .qemBadge{display:inline-flex;padding:4px 7px;border-radius:7px;background:#edf5f8;color:#32627a;font-size:10px;font-weight:800}
       .qemActions{display:flex;gap:8px;flex-wrap:wrap}
@@ -560,23 +641,63 @@ export default function QualityExcelMappingWorkspace({
           </div>
           <p className="qemMuted">Pilih sheet Logbook, kemudian klik dropdown di setiap baris indikator. Pilihan berasal dari huruf kolom dan judul header yang benar-benar ada pada workbook terunggah; tidak ada ketik manual. Baris pasien tidak dianalisis. Untuk unit yang belum memiliki importer khusus, aturan disimpan sebagai konfigurasi awal; alur unggah perlu dihubungkan ke importer sebelum digunakan otomatis.</p>
           {detectedColumns.length > 0 && <div className="qemActions"><span className="qemBadge">{numberLabel(detectedColumns.length)} kolom terdeteksi</span><span className="qemMuted">{workbookName} · sheet {selectedSheet} · baris header {headerRow}</span></div>}
-          {detectedColumns.length > 0 && <details className="qemMuted">
-            <summary>Tinjau judul kolom pada baris {headerRow}</summary>
-            <ol>{detectedColumns.map(column => <li key={column.index}>{describeExcelSourceColumn(column)}</li>)}</ol>
-          </details>}
+          {detectedColumns.length > 0 && <div className="qemMuted">
+            Sumber siap dipetakan: <strong>{provisionalRows.length > 0 && !activeProfiles.length ? provisionalRows.length + ' calon indikator' : activeProfiles.length + ' indikator aktif'}</strong>.
+            Daftar lengkap seluruh judul kolom tersedia di bawah tabel pemetaan.
+          </div>
           {detectedColumns.length > 0 && <label className="qemMuted">
             <input type="checkbox" checked={headerConfirmed} disabled={fileBusy} onChange={event => setHeaderConfirmed(event.target.checked)}/> Baris ini hanya berisi judul kolom.
           </label>}
+          {ready && activeProfiles.length === 0 && detectedColumns.length > 0 && <div className="qemMessage notice" role="status">
+            Belum ada profil indikator aktif untuk unit/tahun ini. Pilihan calon indikator di bawah hanya usulan berdasarkan kecocokan nama pada format unit dan workbook; ini bukan impor master indikator. Anda tetap dapat memasangkan kolom dan menyimpan draf secara lokal.
+          </div>}
           <div className="qemActions">
             <button type="button" className="qemButton ai" disabled={fileBusy || !headerConfirmed || !ready || !detectedHeaders.length || !activeProfiles.length} onClick={() => void runNaraBulk()}>
               {aiBusy ? 'NARA sedang menganalisis…' : 'NARA AI · Petakan massal'}
             </button>
-            <button type="button" className="qemButton primary" disabled={fileBusy || !headerConfirmed || !ready || !activeProfiles.length || !detectedColumns.length} onClick={() => void saveUnitMappings()}>
-              {saving ? 'Menyimpan…' : 'Simpan aturan unit'}
-            </button>
+            {activeProfiles.length > 0 ? <button type="button" className="qemButton primary" disabled={fileBusy || !headerConfirmed || !ready || !detectedColumns.length} onClick={() => void saveUnitMappings()}>
+              {saving ? 'Menyimpan…' : 'Simpan aturan resmi'}
+            </button> : <button type="button" className="qemButton primary" disabled={fileBusy || !headerConfirmed || !ready || !provisionalRows.length} onClick={saveProvisionalDraft}>
+              Simpan draf di browser
+            </button>}
           </div>
         </div>
-        <div className="qemTableWrap">
+        {activeProfiles.length === 0 && ready && detectedColumns.length > 0 && <div className="qemTableWrap" aria-label="Draf pemetaan indikator dan kolom workbook">
+          <table className="qemTable">
+            <thead><tr><th>Calon indikator (belum diterbitkan)</th><th>Pilih kolom sumber dari Excel</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              {provisionalRows.map(row => {
+                const chosen = provisionalColumn(row)
+                return <tr key={row.key}>
+                  <td><strong>{row.indicatorLabel}</strong><span className="qemMuted" style={{display:'block'}}>Draf pemetaan, bukan profil master</span></td>
+                  <td><select aria-label={'Pilih kolom Excel untuk calon indikator ' + row.indicatorLabel}
+                    value={chosen ? String(chosen.index) : ''}
+                    onChange={event => setProvisionalChoices(current => ({...current, [row.key]: Number(event.target.value)}))}>
+                    <option value="">— Pilih kolom sumber —</option>
+                    {detectedColumns.map(column => <option key={column.index} value={String(column.index)}>{describeExcelSourceColumn(column)}</option>)}
+                  </select></td>
+                  <td><span className="qemBadge">{chosen ? 'Kolom ' + chosen.letter + ' · perlu profil resmi' : 'Belum dipetakan'}</span></td>
+                </tr>
+              })}
+            </tbody>
+          </table>
+          <div className="qemActions" style={{padding:12,alignItems:'center'}}>
+            <label className="qemField">Tambahkan calon indikator dari kolom lain
+              <select value={newColumnIndex} onChange={event => setNewColumnIndex(event.target.value)}>
+                <option value="">— Pilih kolom Excel —</option>
+                {detectedColumns.filter(column => !provisionalRows.some(row => normalize(row.indicatorLabel) === normalize(column.header)))
+                  .map(column => <option key={column.index} value={String(column.index)}>{describeExcelSourceColumn(column)}</option>)}
+              </select>
+            </label>
+            <button type="button" className="qemButton" disabled={!newColumnIndex} onClick={() => {
+              const index = Number(newColumnIndex)
+              if (detectedColumns.some(column => column.index === index)) setAdditionalColumns(current => current.includes(index) ? current : [...current,index])
+              setNewColumnIndex('')
+            }}>Tambahkan ke pemetaan</button>
+          </div>
+          {provisionalRows.length === 0 && <div className="qemMuted" style={{padding:12}}>Belum ada nama indikator yang cocok otomatis. Pilih kolom Excel di atas untuk menambahkan calon indikator tanpa mengetik header.</div>}
+        </div>}
+        {activeProfiles.length > 0 &&         <div className="qemTableWrap">
           <table className="qemTable">
             <thead><tr><th>Kode / indikator</th><th>Header master saat ini</th><th>Kolom sumber Excel</th><th>NARA</th></tr></thead>
             <tbody>
@@ -588,7 +709,7 @@ export default function QualityExcelMappingWorkspace({
                   <td><span className="qemMuted">{String(profile.schema_json?.header_label ?? 'Belum ditetapkan pada profil master')}</span><button type="button" className="qemButton" style={{ display: 'block', marginTop: 6 }} onClick={() => { setSelectedProfileId(profile.id); setActiveTab('indicator') }}>Edit profil</button></td>
                   <td>{(() => {
                     const key = draftKey(selectedImporter.key, profile.code)
-                    const selected = sourceColumnFor(key, mapping, profile.schema_json?.header_label)
+                    const selected = sourceColumnFor(key, mapping, profile.schema_json?.header_label, profile.title)
                     const wanted = draftHeaders[key] ?? mapping?.source_header ?? ''
                     return <>
                       <select aria-label={'Pilih kolom sumber Excel untuk ' + profile.code}
@@ -614,7 +735,13 @@ export default function QualityExcelMappingWorkspace({
             </tbody>
           </table>
           {!detectedColumns.length && <div className="qemMuted" style={{padding:12}}>Unggah workbook contoh terlebih dahulu agar pilihan kolom muncul secara otomatis.</div>}
-        </div>
+        </div>}
+        {detectedColumns.length > 0 && <details className="qemMuted" style={{padding:'8px 12px',border:'1px solid #e3eaf0',borderRadius:9}}>
+          <summary>Tinjau seluruh {detectedColumns.length} judul kolom pada baris {headerRow}</summary>
+          <ol style={{maxHeight:180,overflow:'auto',marginTop:8}}>
+            {detectedColumns.map(column => <li key={column.index}>{describeExcelSourceColumn(column)}</li>)}
+          </ol>
+        </details>
       </>}
     </>}
 
