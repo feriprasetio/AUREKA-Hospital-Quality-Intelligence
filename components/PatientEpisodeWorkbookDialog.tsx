@@ -195,10 +195,13 @@ export default function PatientEpisodeWorkbookDialog({
     if (!file) return
     const columns = file.parsed.logbook.columns
     const provenance = { source_sheet: file.parsed.logbook.sheet.name, header_row: file.parsed.logbook.header }
+    const sourceOf = (column: EpisodeColumn) => ({
+      ...provenance, column_index: column.index, column_letter: column.letter,
+    })
     const rules: Array<Record<string, unknown>> = []
     for (const key of Object.keys(fieldLabels) as Array<keyof EpisodeFields>) {
       const column = columns.find(item => item.index === fields[key])
-      if (column) rules.push({ target_type: 'field', target_key: 'field:' + key, target_label: fieldLabels[key], source_header: column.name, occurrence: column.occurrence, transform_json: provenance })
+      if (column) rules.push({ target_type: 'field', target_key: 'field:' + key, target_label: fieldLabels[key], source_header: column.name, occurrence: column.occurrence, transform_json: sourceOf(column) })
     }
     const profiles = next?.profiles.length ? next.profiles : file.profiles
     for (const mapping of mappings) {
@@ -207,7 +210,7 @@ export default function PatientEpisodeWorkbookDialog({
       if (!column || !profile) continue
       rules.push({
         target_type: 'indicator', target_key: 'indicator:' + profile.code, target_label: profile.code + ' · ' + profile.title,
-        indicator_code: profile.code, source_header: column.name, occurrence: column.occurrence, transform_json: provenance,
+        indicator_code: profile.code, source_header: column.name, occurrence: column.occurrence, transform_json: sourceOf(column),
       })
     }
     if (!rules.length) throw new Error('Pilih kolom sumber sebelum menyimpan tautan.')
@@ -322,7 +325,12 @@ export default function PatientEpisodeWorkbookDialog({
           {file.parsed.hasLogbook && <details open={!fields.date || !(fields.mrn || fields.episode) || undefined}>
             <summary>Identitas episode dan header Logbook</summary>
             <div className="episodeWorkbookHeaderRow">
-              <label>Baris judul kolom<input type="number" min={1} value={matchingHeader} onChange={event => setMatchingHeader(event.target.value)}/></label>
+              <label>Baris judul kolom
+                <select value={matchingHeader} onChange={event => setMatchingHeader(event.target.value)}>
+                  {Array.from({length:Math.min(100,file.parsed.logbook.sheet.rowCount)},(_,index)=>index+1)
+                    .map(row=><option key={row} value={row}>Baris {row}</option>)}
+                </select>
+              </label>
               <button type="button" onClick={changeHeader}>Terapkan baris</button>
             </div>
             <div className="episodeWorkbookFields">
