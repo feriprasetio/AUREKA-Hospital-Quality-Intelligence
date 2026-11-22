@@ -63,7 +63,8 @@ const asCell = (value: any): any => {
   if (value == null) return null
   if (value instanceof Date) return value
   if (typeof value === 'object') {
-    if ('formula' in value || 'sharedFormula' in value) return value.result ?? null
+    if ('formula' in value || 'sharedFormula' in value) return asCell(value.result ?? null)
+    if ('error' in value) return String(value.error)
     if ('text' in value) return value.text
     if ('richText' in value) return value.richText.map((part: any) => part.text).join('')
     if ('result' in value) return value.result
@@ -352,7 +353,8 @@ export default function QualityWorkbookImportPanel({
       const column = dataScope.columns.find(item => item.key === key)
       if (!column) return
       rules.push({ target_type: type, target_key: type + ':' + target, target_label: title,
-        source_header: column.header, occurrence: column.occurrence, transform_json: source, indicator_code: code })
+        source_header: column.header, occurrence: column.occurrence,
+        transform_json: { ...source, column_index: column.index, column_letter: column.letter }, indicator_code: code })
     }
     for (const [field, value] of Object.entries(dataColumns)) {
       add('field', field === 'date' ? 'record_date' : field, field, value)
@@ -501,6 +503,12 @@ export default function QualityWorkbookImportPanel({
           const hasValue = [rawCell, numeratorCell, denominatorCell].some(value => value !== null && value !== undefined && clean(value) !== '')
           if (!hasValue) continue
           try {
+            // Formula cache errors must never turn into zero, a valid answer,
+            // or a patient observation during a clinical import.
+            const excelError = [rawCell, numeratorCell, denominatorCell].find(value =>
+              typeof value === 'string' && /^#(?:REF!|VALUE!|NUM!|NAME\?|DIV\/0!|N\/A|NULL!)/i.test(value),
+            )
+            if (excelError) throw new Error('Sumber Excel berisi error ' + excelError + '. Perbaiki sumber/pemetaan sebelum impor.')
             const kind = resolveMeasurementKind(profile)
             const categorical = usesCategoricalResponseCapture(profile) || shouldUseIndicatorDropdown(profile as any)
             let response: Record<string, any> = { indicator_code: profile.code, response_label: null, response_code: null, raw_value: {}, review_status: 'not_required' }
@@ -722,7 +730,7 @@ export default function QualityWorkbookImportPanel({
 
   return <section style={{ display: 'grid', gap: 12, padding: 14, border: '1px solid #dce7ed', borderRadius: 12, background: '#fbfdfe' }}>
     <header>
-      <div style={{ fontSize: 11, letterSpacing: '.1em', fontWeight: 850, color: '#3a788e' }}>AUREKA · IMPORT ENGINE V2</div>
+      <div style={{ fontSize: 11, letterSpacing: '.1em', fontWeight: 850, color: '#3a788e' }}>INDIKATOR MUTU · IMPOR EXCEL</div>
       <strong style={{ display: 'block', marginTop: 4, fontSize: 16 }}>Impor Profil dan Logbook dari Excel</strong>
       <p style={{ margin: '5px 0 0', color: '#708391', fontSize: 12, lineHeight: 1.5 }}>
         Workbook unit menjadi sumber konfigurasi dan data. AUREKA membaca sheet profil, opsi, dan logbook; setiap kolom dapat dipetakan ulang sebelum validasi dan commit.
@@ -770,11 +778,10 @@ export default function QualityWorkbookImportPanel({
         </label>}
       </div>
       {dataSheet && importMode !== 'profiles_only' && <label style={fieldStyle}>Baris header sumber
-        <input type="number" min={1} max={500} key={dataSheet + ':' + dataHeaderRow} defaultValue={dataHeaderRow} style={selectStyle}
-          onBlur={event => {
-            const row = Number(event.currentTarget.value)
-            if (row !== dataHeaderRow && Number.isInteger(row) && row > 0 && row <= 500) changeDataSource(dataSheet,row)
-          }}/>
+        <select style={selectStyle} value={dataHeaderRow} disabled={busy} onChange={event => changeDataSource(dataSheet,Number(event.target.value))}>
+          {Array.from({ length: Math.min(100, workbookRef.current?.getWorksheet(dataSheet)?.rowCount ?? 0) }, (_, index) => index + 1)
+            .map(row => <option key={row} value={row}>Baris {row}</option>)}
+        </select>
       </label>}
     </>}
 
@@ -796,8 +803,9 @@ export default function QualityWorkbookImportPanel({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 9 }}>
         {(['date','subject_key','patient_name','diagnosis','dpjp'] as const).map(key => <div key={key}>{mappingSelect(dataHeaders, dataColumns[key] ?? '', value => setDataColumns(current => ({ ...current, [key]: value })), ({date:'Tanggal pencatatan',subject_key:'Nomor RM / kunci subjek',patient_name:'Nama pasien / subjek',diagnosis:'Diagnosa',dpjp:'DPJP / penanggung jawab'} as any)[key])}</div>)}
       </div>
-      <details style={{ border: '1px solid #e4ebef', borderRadius: 9, padding: 10 }}>
-        <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: '#335d73' }}>Pemetaan kolom per indikator ({currentProfiles.length})</summary>
+      <details open style={{ border: '1px solid #e4ebef', borderRadius: 9, padding: 10 }}>
+        <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: '#335d73' }}>Pilih kolom Excel untuk setiap indikator ({currentProfiles.length}) · dropdown N / O / dst.</summary>
+        <p style={{ fontSize: 12, color: '#607987', lineHeight: 1.6 }}>Pilih kolom respons, pembilang, dan penyebut langsung dari daftar huruf kolom dan nama header. Pemetaan tidak memerlukan pengetikan judul kolom atau konfigurasi kode.</p>
         <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
           {currentProfiles.map(profile => {
             const isRatio = resolveMeasurementKind(profile) === 'ratio' && !usesCategoricalResponseCapture(profile)
