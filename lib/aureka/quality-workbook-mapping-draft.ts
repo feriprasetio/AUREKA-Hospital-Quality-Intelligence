@@ -1,4 +1,3 @@
-import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
   normalizeExcelHeader,
   type ExcelHeaderColumn,
@@ -22,9 +21,10 @@ type UnitLayout = { roomId: number; indicators?: string[] }
 export function proposeWorkbookIndicatorMappings(
   roomId: number | null,
   columns: readonly ExcelHeaderColumn[],
+  layouts: readonly UnitLayout[],
 ): ProvisionalIndicatorMapping[] {
   if (roomId == null || !columns.length) return []
-  const layout = (qualityAuditLayout2026 as UnitLayout[]).find(
+  const layout = layouts.find(
     candidate => Number(candidate.roomId) === Number(roomId),
   )
   if (!layout?.indicators?.length) return []

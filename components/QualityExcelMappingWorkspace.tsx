@@ -10,6 +10,7 @@ import QualityWorkbookImportPanel from '@/components/QualityWorkbookImportPanel'
 import QualityOptionEditor from '@/components/quality/QualityOptionEditor'
 import { detectExcelHeaderColumns, resolveExcelSourceColumn, describeExcelSourceColumn, type ExcelHeaderColumn } from '@/lib/aureka/excel-column-picker'
 import { proposeWorkbookIndicatorMappings, provisionalDraftStorageKey, parseProvisionalMappingDraft, type ProvisionalMappingDraft } from '@/lib/aureka/quality-workbook-mapping-draft'
+import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 
 type Room = { id: number; name: string }
 type Profile = {
@@ -167,7 +168,7 @@ export default function QualityExcelMappingWorkspace({
     [profiles, ready],
   )
   const suggestedProvisionalMappings = useMemo(
-    () => activeProfiles.length || !ready ? [] : proposeWorkbookIndicatorMappings(roomId, detectedColumns),
+    () => activeProfiles.length || !ready ? [] : proposeWorkbookIndicatorMappings(roomId, detectedColumns, qualityAuditLayout2026),
     [activeProfiles.length, ready, roomId, detectedColumns],
   )
   const provisionalRows = useMemo(() => [
