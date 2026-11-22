@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
+import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-source-audit'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
 import { shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
@@ -184,6 +185,7 @@ export default function QualityWorkbookImportPanel({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [sourceNotes, setSourceNotes] = useState<string[]>([])
   const [batchId, setBatchId] = useState('')
   const [replaceConfirmed, setReplaceConfirmed] = useState(false)
 
@@ -213,13 +215,19 @@ export default function QualityWorkbookImportPanel({
 
   const inspect = async (file: File) => {
     setError(''); setNotice(''); setPreview(null); setBatchId(''); setReplaceConfirmed(false)
-    setSheets([]); setFileName(''); setFileHash('')
+    setSheets([]); setFileName(''); setFileHash(''); setSourceNotes([])
     workbookRef.current = null
     fileRef.current = null
     if (!/\.xlsx$/i.test(file.name) || file.size <= 0 || file.size > 25 * 1024 * 1024) {
       setError('Pilih workbook .xlsx yang valid dengan ukuran maksimum 25 MB.')
       return
     }
+    const routing = inspectQualityWorkbookRouting(file.name, roomId, year)
+    if (routing.blockers.length) {
+      setError(routing.blockers.join(' '))
+      return
+    }
+    setSourceNotes(routing.notes)
     try {
       const module = await import('exceljs-hardened')
       const ExcelJS: any = (module as any).default ?? module
@@ -252,6 +260,16 @@ export default function QualityWorkbookImportPanel({
         ?? detected.find(s => findHeader(s.headers, ['kode opsi', 'option code']) && findHeader(s.headers, ['kode indikator', 'indicator code']))
       let dSheet = detected.find(s => /^logbook$/i.test(s.name)) ?? detected.find(s => /logbook|rekap|data/i.test(s.name) && s.name !== pSheet?.name && s.name !== oSheet?.name)
         ?? detected.find(s => s.name !== pSheet?.name && s.name !== oSheet?.name)
+      // A known PMKP template (notably IGD) may use a non-default header row.
+      const verifiedRow = routing.hint?.headerRow
+      if (dSheet && /^logbook$/i.test(dSheet.name) && verifiedRow) {
+        const namedSheet = workbook.getWorksheet(dSheet.name)
+        const knownColumns = namedSheet ? readWorkbookSourceColumns(namedSheet.getRow(verifiedRow)) : []
+        if (knownColumns.length >= 3) dSheet = {
+          ...dSheet, headerRow: verifiedRow, columns: knownColumns,
+          headers: knownColumns.map(column => column.key),
+        }
+      }
       const { data: savedMap } = await q().rpc('quality_excel_header_mapping_list', {
         p_room_id: roomId, p_profile_year: year, p_importer_key: importerKey,
       })
@@ -756,6 +774,9 @@ export default function QualityWorkbookImportPanel({
       </label>
     </div>
     {fileName && <div style={{ fontSize: 11, color: '#5d7481' }}>File: <strong>{fileName}</strong> · {sheets.length} worksheet terdeteksi · SHA-256 aktif</div>}
+    {sourceNotes.length > 0 && <div role="status" style={{fontSize:12,lineHeight:1.55,color:'#6c6045',padding:10,border:'1px solid #e9dfc5',borderRadius:9,background:'#fffcf3'}}>
+      {sourceNotes.map((item,index)=><p key={index} style={{margin:index?'5px 0 0':0}}>{item}</p>)}
+    </div>}}
 
     {sheets.length > 0 && <>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 9 }}>
