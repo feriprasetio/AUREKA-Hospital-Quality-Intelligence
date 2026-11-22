@@ -110,7 +110,14 @@ const grainValue = (value: unknown): string => {
   }
   return aliases[raw] ?? raw
 }
-const findHeader = (headers: string[], synonyms: string[]) => headers.find(h => synonyms.some(s => normalize(h) === normalize(s) || normalize(h).includes(normalize(s)))) ?? ''
+const findHeader = (headers: string[], synonyms: string[]) => {
+  const aliases = synonyms.filter(Boolean).map(normalize)
+  const exact = headers.filter(header => aliases.includes(normalize(header)))
+  if (exact.length === 1) return exact[0]
+  if (exact.length > 1) return ''
+  const partial = headers.filter(header => aliases.some(alias => alias.length >= 5 && normalize(header).includes(alias)))
+  return partial.length === 1 ? partial[0] : ''
+}
 const hash = async (value: string) => {
   const bytes = new TextEncoder().encode(value)
   const digest = await crypto.subtle.digest('SHA-256', bytes)
@@ -206,6 +213,18 @@ export default function QualityWorkbookImportPanel({
         if (bestHeaders.length) detected.push({ name: sheet.name, headerRow: bestRow, headers: bestHeaders })
       }
       if (!detected.length) throw new Error('Tidak ditemukan header pada 15 baris pertama workbook.')
+      for (const detectedSheet of detected) {
+        const sheet=workbook.getWorksheet(detectedSheet.name)
+        if (!sheet) continue
+        const seen=new Set<string>(),duplicates=new Set<string>()
+        sheet.getRow(detectedSheet.headerRow).eachCell({includeEmpty:false},(cell:any)=>{
+          const label=normalize(asCell(cell.value))
+          if (!label) return
+          if (seen.has(label)) duplicates.add(label)
+          seen.add(label)
+        })
+        if (duplicates.size) throw new Error('Header ganda pada sheet '+detectedSheet.name+': '+[...duplicates].join(', ')+'. Gunakan pemetaan eksplisit per kolom; impor umum tidak boleh menimpa nilai kolom yang namanya sama.')
+      }
       workbookRef.current = workbook
       fileRef.current = file
       setFileName(file.name)
@@ -442,9 +461,9 @@ export default function QualityWorkbookImportPanel({
             let response: Record<string, any> = { indicator_code: profile.code, response_label: null, response_code: null, raw_value: {}, review_status: 'not_required' }
             if (categorical) {
               const option = optionForValue(profile, rawCell)
-              if (!option || ![1, 2, 3].includes(Number(option.code))) throw new Error('Nilai "' + clean(rawCell) + '" tidak cocok tepat dengan opsi berkode 1/2/3. Periksa pemetaan atau master opsi.')
+              if (!option || (option.code != null && ![1, 2, 3].includes(Number(option.code)))) throw new Error('Nilai "' + clean(rawCell) + '" tidak cocok tepat dengan opsi profil. Periksa pemetaan atau master opsi.')
               response.response_label = String(option.label)
-              response.response_code = Number(option.code)
+              response.response_code = option.code == null ? null : Number(option.code)
               response.raw_value = { answer: String(option.label), code: response.response_code }
               response.review_status = option.review_required ? 'pending' : 'not_required'
             } else if (kind === 'ratio') {
@@ -517,7 +536,14 @@ export default function QualityWorkbookImportPanel({
                 diagnosis: diagnosisHeader ? clean(source.values[diagnosisHeader]) : '',
                 dpjp: dpjpHeader ? clean(source.values[dpjpHeader]) : '',
               },
-              core_data: { form_fields: formFields, import_source: 'AUREKA Excel Workbook Import V2' },
+              core_data: {
+                form_fields: formFields, import_source: 'AUREKA Excel Workbook Import V2',
+                record_date: dateValue,
+                indicator_values: Object.fromEntries(responses.map(response => [
+                  response.indicator_code,
+                  { ...response.raw_value, review_status: response.review_status },
+                ])),
+              },
               status: 'ready',
               review_required: responses.some(r => r.review_status === 'pending'),
             },

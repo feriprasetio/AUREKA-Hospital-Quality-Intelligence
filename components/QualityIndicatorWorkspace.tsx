@@ -26,6 +26,7 @@ import {useAccessibleDialog} from '@/components/layout/useAccessibleDialog'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { compareToTarget, isWithinVisitWindow, resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
 import { buildIndicatorDropdownOptions, findIndicatorDropdownSelection, shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
+import { isCategoricalResponseRecorded, isIndicatorApplicableToDiagnosis } from '@/lib/aureka/quality-logbook-coverage'
 import { getOutpatientDoctorsForClinic } from '@/lib/aureka/outpatient-logbook'
 import { calculateInclusiveDurationDays, matchLogbookOption } from '@/lib/aureka/complaint-logbook'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
@@ -228,8 +229,7 @@ function responseComplete(p:Profile,r:Resp|undefined){
  if(r.code_only&&validResponseCode(r.code)!=null)return opts.some((option:any)=>Number(option.code)===r.code)
  if(isCategoricalResponseCapture(p)){
    if(!String(r.answer??'').trim())return false
-   const selected=opts.find((x:any)=>String(x.label)===String(r.answer))
-   return selected?.code!=null||r.source_option===true||r.review_required===true||!!r.notes||!!r.evidence
+   return isCategoricalResponseRecorded(opts,r)
  }
  if(k==='ratio')return r.numerator!=null&&r.denominator!=null&&Number.isFinite(Number(r.numerator))&&Number.isFinite(Number(r.denominator))&&Number(r.numerator)>=0&&Number(r.denominator)>0&&Number(r.numerator)<=Number(r.denominator)
  if(k==='visit')return !!r.answer&&!!r.time
@@ -239,14 +239,14 @@ function responseComplete(p:Profile,r:Resp|undefined){
  if(opts.length>0){
    if(!r.answer)return false
    const o=opts.find((x:any)=>String(x.label)===String(r.answer))
-   return o?.code!=null||r.source_option===true||r.review_required===true||!!r.notes||!!r.evidence
+   return isCategoricalResponseRecorded(opts,r)
  }
  if(k==='occurrence')return !!r.occurrence
  return !!r.answer
 }
 function filled(r:Resp|undefined){return!!r&&(!!r.answer||(r.code_only===true&&validResponseCode(r.code)!=null)||!!r.occurrence||!!r.time||!!r.start||!!r.end||r.minutes!=null||r.value!=null||(r.numerator!=null&&r.denominator!=null&&Number(r.denominator)>0))}
 function empty(p:Profile):Resp{
- if(String(p.schema_json?.input_mode??'')==='free_text_event')return{free_text:'',answer:'Tidak terjadi kekosongan obat',code:1}
+ if(String(p.schema_json?.input_mode??'')==='free_text_event')return{free_text:'',answer:'',code:null}
  if(isCategoricalResponseCapture(p))return{answer:'',code:null}
  const k=kind(p);return k==='ratio'?{numerator:null,denominator:null}:k==='occurrence'?{occurrence:''}:k==='numeric'?{value:null}:k==='minutes'?{minutes:null}:k==='door'?{start:'',end:'',minutes:null}:k==='visit'?{time:'',answer:''}:{answer:''}
 }
@@ -386,19 +386,14 @@ function profileMatchesHeader(header:string,p:Profile){
  if(stripDomain(h)===stripDomain(l))return true
  return false
 }
-function unmatchedHeaders(all:Profile[],layout:AuditLayout|undefined){
- if(!layout)return []
- return layout.indicators.filter(header=>!all.some(p=>Number(p.room_id)===Number(layout.roomId)&&profileMatchesHeader(header,p)))
+function unmatchedHeaders(_all:Profile[],_layout:AuditLayout|undefined){
+ // The legacy layout's 195 source headers are NOT indicator obligations.
+ // Only the published master determines what is required in a unit.
+ return [] as string[]
 }
 function layoutProfiles(all:Profile[],layout:AuditLayout|undefined){
- const mapped=layout
-  ? all.filter(p=>(layout.indicators??[]).some(h=>profileMatchesHeader(h,p)))
-  : all
- const dynamic=all.filter(p=>p.is_active===true&&p.status==='published'&&(p.schema_json?.oppe_dynamic===true||p.schema_json?.episode_workbook_profile===true))
- const result=[...mapped]
- const seen=new Set(result.map(p=>String(p.id??p.code)))
- dynamic.forEach(p=>{const id=String(p.id??p.code);if(!seen.has(id)){result.push(p);seen.add(id)}})
- return result
+ return all.filter(p=>p.is_active===true&&p.status==='published'&&
+   (!layout||Number(p.room_id)===Number(layout.roomId)))
 }
 function isComputedField(field:string,layout:AuditLayout|undefined){
  const n=normHeader(field)
@@ -797,6 +792,30 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        }
      })()
      const [,,rows]=await Promise.all([profilesTask,staffTask,recordsTask,mappingTask])
+     // Restore legacy imported responses whose core_data.indicator_values projection was absent.
+     const responseValuesByRecord=new Map<string,Record<string,Resp>>()
+     const profileById=new Map(loadedProfiles.map(profile=>[String(profile.id),profile]))
+     const missingResponseIds=rows.filter((r:any)=>Object.keys(r.core_data?.indicator_values??{}).length===0).map((r:any)=>String(r.id))
+     for(let offset=0;offset<missingResponseIds.length;offset+=80){
+       const ids=missingResponseIds.slice(offset,offset+80)
+       let from=0
+       while(true){
+         const {data,error}=await q().from('quality_record_responses')
+           .select('record_id,indicator_id,response_label,response_code,raw_value,review_status')
+           .in('record_id',ids).order('record_id').order('indicator_id').range(from,from+499)
+         if(error)throw error
+         for(const item of data??[]){
+           const profile=profileById.get(String(item.indicator_id))
+           if(!profile)continue
+           const byCode=responseValuesByRecord.get(String(item.record_id))??{}
+           const raw=item.raw_value&&typeof item.raw_value==='object'?item.raw_value as Resp:{}
+           byCode[String(profile.code)]={...raw,answer:raw.answer??item.response_label??'',code:raw.code??item.response_code??null,review_status:item.review_status??'not_required'}
+           responseValuesByRecord.set(String(item.record_id),byCode)
+         }
+         if(!data||data.length<500)break
+         from+=500
+       }
+     }
      const attributionByRecord=new Map<string,Record<string,string>>()
      const databaseRecordIds=rows.map((r:any)=>String(r.id)).filter(Boolean)
      const attrBatches:string[][]=[]
@@ -833,7 +852,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        const rm=String(c.medical_record_no??c.rm??formData['No. Rekam Medis']??formData['No. RM']??'')
        const diagnosis=String(c.diagnosis??formData['Diagnosa Tegak']??formData['Diagnosa']??formData['Diagnosa IGD']??formData['Diagnosa Pasien']??formData['Diagnosis Medis']??formData['Diagnosa Operasi']??c.dx??'')
        const dpjp=String(c.dpjp??formData['DPJP']??formData['Dpjp']??'')
-       return {id:String(r.id),recordId:String(r.id),enteredBy:String(r.entered_by??''),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:r.status==='ready'?'Ready for Review':r.status==='validated'?'Validated':r.status==='reopened'?'Reopened':r.status==='draft'?'Draft':String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),databaseStatus:String(r.status??'draft'),reviewRequired:!!r.review_required,validationNote:String(r.validation_note??''),validatedBy:r.validated_by??null,validatedAt:r.validated_at??null,indicatorValues:(c.indicator_values??{}),formData,allowCrossYear:c.source_import?.allow_cross_year===true,excludeFromYearMetrics:c.source_import?.exclude_from_profile_year_metrics===true,staffIdByField:attributionByRecord.get(String(r.id))??{},measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
+       return {id:String(r.id),recordId:String(r.id),enteredBy:String(r.entered_by??''),roomId:rowRoom,unit,name,rm,sex:String(c.sex??formData['Jenis Kelamin']??''),age:c.age==null||c.age===''?null:Number(c.age),admit,discharge,diagnosis,dpjp,status:r.status==='ready'?'Ready for Review':r.status==='validated'?'Validated':r.status==='reopened'?'Reopened':r.status==='draft'?'Draft':String(c.workflow_status??c.status??(discharge?'Ready for Review':'Aktif')),databaseStatus:String(r.status??'draft'),reviewRequired:!!r.review_required,validationNote:String(r.validation_note??''),validatedBy:r.validated_by??null,validatedAt:r.validated_at??null,indicatorValues:{...(responseValuesByRecord.get(String(r.id))??{}),...(c.indicator_values??{})},formData,allowCrossYear:c.source_import?.allow_cross_year===true,excludeFromYearMetrics:c.source_import?.exclude_from_profile_year_metrics===true,staffIdByField:attributionByRecord.get(String(r.id))??{},measurementGrain:String(r.measurement_grain??c.measurement_grain??'event'),source:'database',updatedAt:String(r.updated_at??r.created_at??'')}
      })
      const finalPatients=db.filter((row:Patient)=>String(row.databaseStatus??'')!=='archived')
      setPatients(finalPatients)
@@ -874,9 +893,14 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    return (ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&roomOk&&monthOk&&hay.includes(search.toLowerCase().trim())
  }),[patients,year,roomId,roomMap,monthFilter,search])
  const yearPatients=useMemo(()=>patients.filter(p=>!p.excludeFromYearMetrics&&(ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&(roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId)))),[patients,year,roomId,roomMap])
+ const filledObservations=useMemo(()=>yearPatients.reduce((sum,p)=>{
+   const unitProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId)))
+     .filter(ind=>Number(ind.room_id)===Number(p.roomId)&&isIndicatorApplicableToDiagnosis(ind.indicator_type,p.diagnosis))
+   return sum+unitProfiles.filter(ind=>responseComplete(ind,p.indicatorValues?.[ind.code])).length
+ },0),[yearPatients,profiles])
  const unmatchedIndicatorHeaders=useMemo(()=>unmatchedHeaders(profiles,activeLayout),[profiles,activeLayout])
  const selectedUnmatchedHeaders=useMemo(()=>unmatchedHeaders(profiles,selectedLayout),[profiles,selectedLayout])
- const applicable=useMemo(()=>selected?layoutProfiles(profiles,selectedLayout).filter(p=>Number(p.room_id)===Number(selected.roomId)&&!(Number(selected.roomId)===11&&/waktu tunggu rawat jalan/i.test(displayTitle(p)))).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,profiles,selectedLayout])
+ const applicable=useMemo(()=>selected?layoutProfiles(profiles,selectedLayout).filter(p=>Number(p.room_id)===Number(selected.roomId)&&isIndicatorApplicableToDiagnosis(p.indicator_type,selected.diagnosis)&&!(Number(selected.roomId)===11&&/waktu tunggu rawat jalan/i.test(displayTitle(p)))).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,profiles,selectedLayout])
  const filledN=useMemo(()=>applicable.filter(p=>responseComplete(p,draft[p.id??p.code])).length,[applicable,draft])
 
  const openPatient=async(p:Patient)=>{
@@ -1085,7 +1109,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
      return
    }
     const saved:Patient={...selected,id:recordId??selected.id,enteredBy:savedEnteredBy,databaseStatus:payloadStatus,name:normalizedName,rm:normalizedRm,admit:String(recordDate??selected.admit??''),discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,formData,staffIdByField:selected.staffIdByField??{},measurementGrain:grain,recordId:recordId??null,status:finalStatus,updatedAt:now,indicatorValues:values,source:backend?'database':'local'}
-   setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&(!(x.rm&&saved.rm)||x.rm!==saved.rm))])
+   setPatients(p=>[saved,...p.filter(x=>x.id!==selected.id&&x.id!==saved.id)])
    setSelected(saved);setPatientOpen(false);setMessage('Laporan final berhasil disimpan. PIC tetap dapat membuka dan mengedit laporan ini.');setBusy(false)
    return true
  }
@@ -1180,7 +1204,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        }
        return <><div className="aqTwo"><label className="aqField"><span>{numeratorLabel}</span><input disabled={isValidator} type="number" min="0" max={inverseInput?(r.denominator??undefined):undefined} step="1" value={rawInputNumber??''} onChange={(e:any)=>setInputNumber(e.target.value===''?null:Number(e.target.value))} placeholder="Masukkan jumlah sesuai definisi sumber"/></label><label className="aqField"><span>{denominatorLabel}</span><input disabled={isValidator} type="number" min="0" step="1" value={r.denominator??''} onChange={(e:any)=>setInputDenominator(e.target.value===''?null:Number(e.target.value))} placeholder="Masukkan total yang diamati"/></label></div><div className="aqAuto" style={{marginTop:10}}><span>{inverseInput?'Kepatuhan':'Hasil'}</span><strong>{rateNow==null?'Menunggu pembilang dan penyebut':rateNow.toFixed(2)+'%'}</strong><small>{rateNow==null?'Penyebut harus lebih besar dari nol.':'Target '+(p.target_text||'-')+' · '+(metricMet==null?'Periksa target pada master':metricMet?'Memenuhi target':'Belum memenuhi target')+(inverseInput?' · N master = total sampel − obat tidak berlabel. Perhitungan ini hanya mencakup High Alert, belum LASA.':'')}</small></div></>
      })()}
-     {freeTextEvent&&<label className="aqField" style={{marginTop:10}}><span>Nama obat yang tidak tersedia</span><input disabled={isValidator} type="text" value={r.free_text??''} onChange={(e:any)=>{const name=String(e.target.value??'');const present=!!name.trim();setResp(p,{free_text:name,answer:present?'Terjadi kekosongan obat':'Tidak terjadi kekosongan obat',code:present?3:1})}} placeholder="Tuliskan nama obat; kosongkan bila tidak terjadi kekosongan"/><small style={{color:'var(--muted)'}}>Nama obat yang diisi mencatat kejadian kekosongan (code 3); tidak diisi berarti tidak ada kejadian (code 1).</small></label>}
+     {freeTextEvent&&<div className="aqTwo" style={{marginTop:10}}><label className="aqField"><span>Hasil pengamatan stok</span><select disabled={isValidator} value={r.code===1?'none':r.code===3?'event':''} onChange={(e:any)=>{const event=e.target.value;setResp(p,{answer:event==='none'?'Tidak terjadi kekosongan obat':event==='event'?'Terjadi kekosongan obat':'',code:event==='none'?1:event==='event'?3:null,free_text:event==='event'?r.free_text??'':''})}}><option value="">Belum diamati</option><option value="none">Tidak terjadi kekosongan</option><option value="event">Terjadi kekosongan</option></select></label><label className="aqField"><span>Nama obat yang tidak tersedia</span><input disabled={isValidator||r.code!==3} type="text" value={r.free_text??''} onChange={(e:any)=>setResp(p,{free_text:String(e.target.value??'')})} placeholder="Wajib jika terjadi kekosongan"/></label></div>}
      {!categoricalCapture&&kindNow==='visit'&&<><div className="aqTwo" style={{marginTop:10}}><label className="aqField"><span>Waktu visite aktual</span><input disabled={isValidator} type="time" value={r.time??''} onChange={(e:any)=>{const value=e.target.value,met=isWithinVisitWindow(p,value);setResp(p,{time:value,answer:met==null?'':met?'Ya':'Tidak',code:met==null?null:met?1:3})}}/></label><div className="aqAuto"><span>Hasil</span><strong>{r.time?(metricMet==null?'Target belum ditentukan':metricMet?'Memenuhi target':'Tidak memenuhi target'):'Belum dihitung'}</strong><small>Target {p.target_text||'belum ditetapkan pada master'}</small></div></div></>}
      {!categoricalCapture&&kindNow==='door'&&<><div className="aqTwo"><label className="aqField"><span>Waktu pasien tiba</span><input disabled={isValidator} type="time" value={r.start??''} onChange={(e:any)=>{const value=e.target.value,met=targetMet(p,{...r,start:value});setResp(p,{start:value,code:met==null?null:met?1:3})}}/></label><label className="aqField"><span>Waktu keputusan medis</span><input disabled={isValidator} type="time" value={r.end??''} onChange={(e:any)=>{const value=e.target.value,met=targetMet(p,{...r,end:value});setResp(p,{end:value,code:met==null?null:met?1:3})}}/></label></div><div className="aqAuto" style={{marginTop:10}}><span>Durasi</span><strong>{r.start&&r.end&&diff(r.start,r.end)!=null?`${diff(r.start,r.end)} menit`:'Belum dihitung'}</strong><small>Target {p.target_text||'belum ditetapkan pada master'}</small></div></>}
      {!categoricalCapture&&kindNow==='minutes'&&<div className="aqTwo"><label className="aqField"><span>Waktu aktual (menit)</span><input disabled={isValidator} type="number" min="0" value={r.minutes??''} onChange={(e:any)=>{const v=e.target.value===''?null:Number(e.target.value),met=targetMet(p,{...r,minutes:v});setResp(p,{minutes:v,code:met==null?null:met?1:3})}}/></label><div className="aqAuto"><span>Interpretasi</span><strong>{r.minutes==null?'Belum diisi':metricMet==null?'Target perlu dilengkapi':metricMet?'Memenuhi target':'Tidak memenuhi target'}</strong></div></div>}
@@ -1356,11 +1380,11 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
 <div className="aqRegisterSummary"><div><span>{activeGrain==='patient_episode'?'Total episode':activeGrain==='provider_day'?'Catatan dokter/hari':activeGrain==='daily_metric'?'Catatan harian':activeGrain==='event'?'Kejadian':activeGrain==='activity'?'Aktivitas':'Total catatan'}</span><strong>{yearPatients.length}</strong></div>
 <div><span>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Masih dirawat':activeGrain==='provider_day'?'Ada nama dokter':activeGrain==='event'?'Belum dikirim / ditutup':'Dengan data'}</span><strong>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?yearPatients.filter(p=>!p.discharge).length:activeGrain==='provider_day'?yearPatients.filter(p=>String(p.formData?.['Dokter']??'').trim()).length:activeGrain==='daily_metric'?yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)||(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length:activeGrain==='event'?yearPatients.filter(p=>!/(selesai|ditutup|closed|ready for review|validated)/i.test(String(p.status??''))).length:yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)).length}</strong></div>
 <div><span>Indikator tersedia</span><strong>{patientProfiles.length}</strong></div><div><span>Identitas pasien</span><button type="button" className="aqBtn" style={{marginTop:4}} aria-pressed={showIdentity} onClick={()=>setShowIdentity(v=>!v)}>{showIdentity?'Samarkan':'Tampilkan'}</button></div>
-<div><span>Indikator terisi</span><strong>{yearPatients.filter(p=>(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length}</strong></div>
+<div><span>Respons indikator terisi</span><strong>{filledObservations}</strong></div>
 <div><span>Ditampilkan</span><strong>{filtered.length}</strong></div></div>
 </div>
       {unmatchedIndicatorHeaders.length>0&&<div className="aqNotice" role="alert">Sebagian indikator pada template belum memiliki profil master yang cocok: {unmatchedIndicatorHeaders.join(", ")}. Capaian ditampilkan terhadap seluruh indikator yang diharapkan agar kelengkapan tidak tampak lebih tinggi dari keadaan sebenarnya.</div>}
- <section className={`glass aqTable aqHideStatus ${isValidator?"aqValidatorLogbook":""}`}>{filtered.length===0?<div className="aqEmpty" role="status">{busy?'Memuat data logbook…':isValidator?'Belum ada catatan yang perlu ditelaah pada periode ini. Ganti bulan atau tahun di atas untuk melihat periode lain.':'Belum ada catatan pada periode ini. Tekan "＋ Tambah catatan" untuk mencatat pasien pertama, atau ganti bulan/tahun di atas.'}</div>:<WorkspaceTableViewport label="Logbook indikator mutu" className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{summaryFields.map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>{Number(roomId)===11?'Pengukuran terisi':'Indikator terisi'}</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>{filtered.map((p:any,i:number)=>{const isOutpatient=Number(p.roomId)===11,rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(x=>Number(x.room_id)===Number(p.roomId)&&!(isOutpatient&&/waktu tunggu rawat jalan/i.test(displayTitle(x)))),total=isOutpatient?1:(rowProfiles.length+unmatchedHeaders(rowProfiles,getLayout(Number(p.roomId))).length),count=isOutpatient?(String(p.formData?.['Klinik']??'').trim()&&String(p.formData?.['Dokter']??'').trim()&&Number.isFinite(Number(p.formData?.['Waktu Tunggu Rawat Jalan (Menit)']))&&Number(p.formData?.['Waktu Tunggu Rawat Jalan (Menit)'])>=0&&Number(p.formData?.['Waktu Tunggu Rawat Jalan (Menit)'])<=1440?1:0):rowProfiles.filter(x=>responseComplete(x,p.indicatorValues?.[x.code])).length;return <Fragment key={`${p.id}-${p.rm||i}`}><tr tabIndex={0} aria-expanded={patientOpen&&String(selected?.id)===String(p.id)} onClick={()=>{if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}} onKeyDown={(e:any)=>{if(e.target!==e.currentTarget)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}}}><td>{i+1}</td>{summaryFields.map((field,j)=>{const raw=String(summaryCellValue(p,field)??'')||'-';return <td key={field+'-'+j}>{showIdentity?raw:maskIdentity(field,raw)}</td>})}<td><span className="aqFilled">{count}/{total}</span></td><td><span className={`aqStatus ${String(p.status).toLowerCase().replaceAll(' ','-')}`}>{statusLabel(p.status)}</span></td><td><div style={{display:'flex',gap:6,alignItems:'center'}}>{isValidator?(['Ready for Review','Reopened'].includes(String(p.status))&&p.source==='database'?<><button className="aqBtn primary" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'validated')}}>Validasi</button><button className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'reopened')}}>Kembalikan</button></>:<span className="aqMetaText">{p.status==='Validated'?'Sudah divalidasi':p.status==='Draft'?'Menunggu kelengkapan':'Tidak ada tindakan'}</span>):((p.source==='local'&&!p.recordId)||(p.source==='database'&&p.recordId&&(isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&!['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase()))?<button type="button" className="aqBtn aqDeleteBtn" disabled={busy} onClick={(e:any)=>{e.preventDefault();e.stopPropagation();setPendingArchive(p)}}>Hapus</button>:<span className="aqMetaText">-</span>)}</div></td></tr></Fragment>})}</tbody></table></WorkspaceTableViewport>}
+ <section className={`glass aqTable aqHideStatus ${isValidator?"aqValidatorLogbook":""}`}>{filtered.length===0?<div className="aqEmpty" role="status">{busy?'Memuat data logbook…':isValidator?'Belum ada catatan yang perlu ditelaah pada periode ini. Ganti bulan atau tahun di atas untuk melihat periode lain.':'Belum ada catatan pada periode ini. Tekan "＋ Tambah catatan" untuk mencatat pasien pertama, atau ganti bulan/tahun di atas.'}</div>:<WorkspaceTableViewport label="Logbook indikator mutu" className="aqWrap"><table className="aqData"><thead><tr><th>No.</th>{summaryFields.map((field,i)=><th key={field+'-'+i}>{field}</th>)}<th>{Number(roomId)===11?'Pengukuran terisi':'Indikator terisi'}</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>{filtered.map((p:any,i:number)=>{const isOutpatient=Number(p.roomId)===11,rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(x=>Number(x.room_id)===Number(p.roomId)&&isIndicatorApplicableToDiagnosis(x.indicator_type,p.diagnosis)&&!(isOutpatient&&/waktu tunggu rawat jalan/i.test(displayTitle(x)))),total=isOutpatient?1:rowProfiles.length,count=isOutpatient?(String(p.formData?.['Klinik']??'').trim()&&String(p.formData?.['Dokter']??'').trim()&&Number.isFinite(Number(p.formData?.['Waktu Tunggu Rawat Jalan (Menit)']))&&Number(p.formData?.['Waktu Tunggu Rawat Jalan (Menit)'])>=0&&Number(p.formData?.['Waktu Tunggu Rawat Jalan (Menit)'])<=1440?1:0):rowProfiles.filter(x=>responseComplete(x,p.indicatorValues?.[x.code])).length;return <Fragment key={`${p.id}-${p.rm||i}`}><tr tabIndex={0} aria-expanded={patientOpen&&String(selected?.id)===String(p.id)} onClick={()=>{if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}} onKeyDown={(e:any)=>{if(e.target!==e.currentTarget)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();if(patientOpen&&String(selected?.id)===String(p.id)){setPatientOpen(false)}else{openPatient(p)}}}}><td>{i+1}</td>{summaryFields.map((field,j)=>{const raw=String(summaryCellValue(p,field)??'')||'-';return <td key={field+'-'+j}>{showIdentity?raw:maskIdentity(field,raw)}</td>})}<td><span className="aqFilled">{count}/{total}</span></td><td><span className={`aqStatus ${String(p.status).toLowerCase().replaceAll(' ','-')}`}>{statusLabel(p.status)}</span></td><td><div style={{display:'flex',gap:6,alignItems:'center'}}>{isValidator?(['Ready for Review','Reopened'].includes(String(p.status))&&p.source==='database'?<><button className="aqBtn primary" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'validated')}}>Validasi</button><button className="aqBtn" disabled={busy} onClick={(e:any)=>{e.stopPropagation();void reviewRecord(p,'reopened')}}>Kembalikan</button></>:<span className="aqMetaText">{p.status==='Validated'?'Sudah divalidasi':p.status==='Draft'?'Menunggu kelengkapan':'Tidak ada tindakan'}</span>):((p.source==='local'&&!p.recordId)||(p.source==='database'&&p.recordId&&(isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&!['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase()))?<button type="button" className="aqBtn aqDeleteBtn" disabled={busy} onClick={(e:any)=>{e.preventDefault();e.stopPropagation();setPendingArchive(p)}}>Hapus</button>:<span className="aqMetaText">-</span>)}</div></td></tr></Fragment>})}</tbody></table></WorkspaceTableViewport>}
 <div className="aqTableFooter"><span><span>{filtered.length} dari {yearPatients.length} catatan pada filter aktif</span></span><button type="button" className="aqBtn" disabled={busy} onClick={()=>void load()}>{busy?'Memuat…':'↻ Muat ulang data'}</button></div>
 </section></>}
 

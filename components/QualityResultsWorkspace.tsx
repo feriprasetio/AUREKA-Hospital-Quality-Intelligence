@@ -41,7 +41,7 @@ type Props = {
   groupBy?: 'unit' | 'category'
 }
 type IndicatorDataset = { profiles: IndicatorProfileForResults[]; rows: ResultRecord[] }
-type IndicatorResponseReview = { record_id: string; indicator_id: string; review_status: string | null }
+type IndicatorResponseReview = { record_id: string; indicator_id: string; review_status: string | null; response_code?: number | null; response_label?: string | null; raw_value?: Record<string, any> | null }
 type PathwayDataset = ClinicalPathwayRow[]
 type ClinicalDataset = ClinicalDeathAuditResultRow[]
 
@@ -245,7 +245,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   const [rawIndicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
   // Laporan PIC berstatus "ready" ikut dihitung (default), karena validasi dilakukan terpisah per bulan.
   // Bisa dimatikan untuk melihat capaian yang hanya berasal dari data tervalidasi.
-  const [includeReady, setIncludeReady] = useState(true)
+  const [includeReady, setIncludeReady] = useState(false)
   const rawReadyCount = useMemo(() => rawIndicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'ready').length, [rawIndicatorData])
   const rawValidatedCount = useMemo(() => rawIndicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'validated').length, [rawIndicatorData])
   const indicatorData = useMemo<IndicatorDataset>(() => includeReady
@@ -321,7 +321,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         const profileIds = activeProfiles.map((profile) => String(profile.id ?? '')).filter(Boolean)
         if (profileIds.length > 0 && recordResult.rows.length > 0) {
           reviewResult = await readPaged<IndicatorResponseReview>((from, to) => q().from('quality_record_responses')
-            .select('record_id,indicator_id,review_status')
+            .select('record_id,indicator_id,review_status,response_code,response_label,raw_value')
             .in('indicator_id', profileIds)
             .order('record_id')
             .order('indicator_id')
@@ -335,11 +335,13 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         const rowById = new Map<string, ResultRecord>()
         recordResult.rows.forEach((row) => rowById.set(String(row.id), row))
         const reviewByRecordProfile = new Map<string, string>()
+        const normalizedResponseByKey = new Map<string, IndicatorResponseReview>()
         for (const item of reviewResult.rows) {
           const key = String(item.record_id) + '|' + String(item.indicator_id)
           const status = String(item.review_status ?? 'pending').trim().toLowerCase() || 'pending'
           const existing = reviewByRecordProfile.get(key)
           const isApproved = (value: string) => value === 'classified' || value === 'not_required'
+          if (!normalizedResponseByKey.has(key)) normalizedResponseByKey.set(key,item)
           // Any unknown/pending duplicate must never be downgraded by an approved row.
           if (!existing || (!isApproved(status) && isApproved(existing))) reviewByRecordProfile.set(key, status)
         }
@@ -355,8 +357,15 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           const idKey = String(profile.id ?? '')
           const valueKey = Object.prototype.hasOwnProperty.call(values, codeKey) ? codeKey
             : Object.prototype.hasOwnProperty.call(values, idKey) ? idKey : ''
-          if (!valueKey || !values[valueKey] || typeof values[valueKey] !== 'object') continue
-          values[valueKey] = { ...values[valueKey], review_status: reviewStatus }
+          if (!valueKey || !values[valueKey] || typeof values[valueKey] !== 'object') {
+            const response=normalizedResponseByKey.get(key)
+            if (!response) continue
+            const raw=response.raw_value&&typeof response.raw_value==='object'?response.raw_value:{}
+            if (!Object.keys(raw).length && response.response_label == null && response.response_code == null) continue
+            values[codeKey]={...raw,answer:raw.answer??response.response_label??'',code:raw.code??response.response_code??null,review_status:reviewStatus}
+          } else {
+            values[valueKey] = { ...values[valueKey], review_status: reviewStatus }
+          }
           row.core_data = { ...(row.core_data ?? {}), indicator_values: values }
         }
         if (cancelled) return

@@ -140,7 +140,7 @@ test('positive option indicators count code 1 as the numerator regardless of leg
   assert.equal(result.targetMet, true)
 })
 
-test('negative option indicators count codes 2 and 3 as events against all classified responses', () => {
+test('negative option indicators count code 3 as events; code 2 stays in the denominator', () => {
   const profile = {
     id: 'p-negative',
     room_id: 33,
@@ -164,9 +164,9 @@ test('negative option indicators count codes 2 and 3 as events against all class
     core_data: { indicator_values: { '33.2': { answer: code === 1 ? 'Aman' : code === 2 ? 'Ruptur faktor ibu' : 'Ruptur faktor teknis', code } } },
   }))
   const result = calculateIndicatorResult(profile, rows, 2026)
-  assert.equal(result.annualNumerator, 2)
+  assert.equal(result.annualNumerator, 1)
   assert.equal(result.annualDenominator, 20)
-  assert.equal(result.annualRate, 10)
+  assert.equal(result.annualRate, 5)
   assert.equal(result.targetMet, false)
 })
 
@@ -771,9 +771,9 @@ test('IBS 4.3 patient-episode categorical codes aggregate through the negative r
   const result = calculateIndicatorResult(profile, rows, 2026)
   assert.equal(result.kind, 'ratio')
   assert.equal(result.observations, 3)
-  assert.equal(result.annualNumerator, 2)
+  assert.equal(result.annualNumerator, 1)
   assert.equal(result.annualDenominator, 3)
-  assert.equal(result.annualRate, 66.67)
+  assert.equal(result.annualRate, 33.33)
 })
 
 

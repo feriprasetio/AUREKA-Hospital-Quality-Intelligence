@@ -797,7 +797,10 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       const chunks = year === 2026 ? await Promise.all([
         import('@/data/quality-profile-2026/chunk-01.json'), import('@/data/quality-profile-2026/chunk-02.json'),
         import('@/data/quality-profile-2026/chunk-03.json'), import('@/data/quality-profile-2026/chunk-04.json'),
-        import('@/data/quality-profile-2026/chunk-11.json'),
+        import('@/data/quality-profile-2026/chunk-05.json'), import('@/data/quality-profile-2026/chunk-06.json'),
+        import('@/data/quality-profile-2026/chunk-07.json'), import('@/data/quality-profile-2026/chunk-08.json'),
+        import('@/data/quality-profile-2026/chunk-09.json'), import('@/data/quality-profile-2026/chunk-10.json'),
+        import('@/data/quality-profile-2026/chunk-11.json'), import('@/data/quality-profile-2026/chunk-12.json'),
       ]) : []
       const bundled = chunks.flatMap((m: any) => (m.default || m) as Array<Record<string, any>>)
       const active = profiles.filter((p) => p.is_active === true && p.status === 'published')

@@ -220,12 +220,11 @@ function extractOptionObservation(
   ) return null
 
   if (direction) {
-    // Code 1 is favorable. For negative indicators, codes 2 and 3 form the event
-    // numerator; for positive indicators, code 1 forms the compliance numerator.
+    // Code 2 is an excused exception: included in D but never in raw N.
+    // Positive N = Code 1; negative N = Code 3; D = Codes 1 + 2 + 3.
     const code = optionCode
     if (code == null || ![1, 2, 3].includes(code)) return null
-    const favorable = code === 1
-    const metricNumerator = direction === 'negative' ? !favorable : favorable
+    const metricNumerator = direction === 'negative' ? code === 3 : code === 1
     return { month, numerator: metricNumerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
   }
 
