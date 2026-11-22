@@ -985,16 +985,29 @@ export default function PatientSafetyWorkspace({
 
   return <div className="ps">
     <style dangerouslySetInnerHTML={{ __html: CSS }} />
-    {tab !== 'survey' && <WorkspaceModuleHeader
+    <WorkspaceModuleHeader
       className="psHead"
-      title="Alur kerja keselamatan pasien"
-      actions={<div className="psActions">
+      title={{
+        overview: 'Keselamatan Pasien', incidents: 'Register Insiden',
+        investigation: 'Investigasi dan RCA', survey: 'Survei Budaya Keselamatan',
+        responses: 'Rekap Survei Budaya Keselamatan',
+      }[tab]}
+      metrics={tab === 'survey'
+        ? [{ label: 'Periode survei', value: surveyPeriod || null }]
+        : tab === 'responses' && canReadResponses
+          ? [{ label: 'Kelompok dalam rekap yang diizinkan', value: responseRows.length }]
+          : tab === 'investigation'
+            ? [{ label: 'Investigasi aktif', value: openInvestigations.length }]
+            : undefined}
+      loading={tab !== 'survey' && loading}
+      unavailable={tab !== 'survey' && !!error}
+      actions={tab !== 'survey' && <div className="psActions">
         <span className="psPill green">{canManageWorkflow ? 'Pengelola alur' : 'Ruang kerja PIC'}</span>
         <button type="button" className="psBtn" disabled={loading} onClick={() => void loadData()}>{loading ? 'Memuat…' : '↻ Refresh'}</button>
       </div>}
-    />}
+    />
 
-    {tab !== 'survey' && <details className="workspaceSummary" open={tab === 'overview' ? true : undefined}>
+    {(tab === 'overview' || tab === 'incidents') && <details className="workspaceSummary" open={tab === 'overview' ? true : undefined}>
       <summary><b>Ringkasan keselamatan</b><span>{incidents.length} laporan · {openInvestigations.length} investigasi aktif</span></summary>
     <div className="psKpis">
       <LiquidGlass className="psKpi"><span>Laporan IKP</span><strong>{incidents.length}</strong></LiquidGlass>

@@ -591,7 +591,17 @@ export default function GeneralSettings({
         })}
       </nav>}
       <div className="stMain">
-      <WorkspaceModuleHeader title="Pengaturan" actions={onSettingsNavigate && (
+      <WorkspaceModuleHeader title={{
+        general: { profile: 'Profil Pengguna', units: 'Unit dan Instalasi', security: 'Keamanan' }[tab],
+        users: 'Pengguna dan Akun Unit', permissions: 'Role dan Hak Akses',
+        appearance: 'Preferensi Tampilan', system: 'Konfigurasi Sistem', mydata: 'Data Saya untuk PMKP',
+      }[section]} metrics={
+        section === 'general' && tab === 'profile'
+          ? [{ label: 'Role akun', value: roleLabel }, { label: 'Status akun', value: me ? me.is_active ? 'Aktif' : 'Nonaktif' : null }]
+          : section === 'general' && tab === 'units'
+            ? [{ label: 'Unit aktif tersedia', value: rooms.length }]
+            : undefined
+      } actions={onSettingsNavigate && (
         <>
           {section === 'general' && tab === 'profile' && !isAdmin && <button type="button" className="uBtn" onClick={() => onSettingsNavigate('mydata')}>Data Saya untuk PMKP</button>}
           {(section === 'mydata' || (section === 'general' && tab === 'security')) && <button type="button" className="uBtn" onClick={() => onSettingsNavigate('profile')}>Kembali ke Profil Pengguna</button>}
@@ -610,9 +620,7 @@ export default function GeneralSettings({
               <h3>{me?.full_name || 'Akun AUREKA'}</h3>
               <p>{me?.email || 'Akun AUREKA'}</p>
               <div className="stChips">
-                <span className="stChip">{roleLabel}</span>
                 <span className="stChip">{rooms.find((r) => r.id === me?.primary_room_id)?.name || 'Unit belum dipetakan'}</span>
-                <span className={'stChip ' + (me?.is_active ? 'ok' : 'warn')}>{me?.is_active ? 'Akun aktif' : 'Akun nonaktif'}</span>
               </div>
             </div>
           </LiquidGlass>}

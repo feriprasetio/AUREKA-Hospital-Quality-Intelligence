@@ -1,5 +1,6 @@
 'use client'
 
+import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -126,7 +127,8 @@ export default function PatientMedicalRecordsAnalytics({
         html[data-mode="gelap"] .pmaNote{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:#bdc9d4}
       `}</style>
       <header>
-        <h2>{view === 'overview' ? 'Visual Intelligence Pola Perawatan' : 'Pola Perawatan'}</h2>
+        <WorkspaceIntelligenceLabel />
+        <h2>{view === 'readmisi' ? 'Readmisi' : view === 'los' ? 'Lama Rawat (LOS)' : view === 'icd' ? 'Diagnosis ICD-10' : 'Pola Perawatan'}</h2>
         <p>Analisis longitudinal dari episode yang sudah tercatat: LOS, diagnosis/ICD-10, kelengkapan identitas rekam medis, tren episode, dan pemanfaatan layanan. Halaman ini hanya membaca data agregat, bukan tempat input atau validasi logbook.</p>
       </header>
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, CSSProperties } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -665,15 +666,15 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
   return <main style={{ display: 'grid', gap: 16, paddingBottom: 28 }}>
     {!detailMode ? <>
       <header>
-        <div style={{ ...mutedStyle(), fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase' }}>Peningkatan Kinerja Klinis</div>
-        <h2 style={{ fontSize: 22, color: 'var(--ink, #0b1f33)', margin: '5px 0 6px' }}>Visual Intelligence Audit Realcost</h2>
+        <WorkspaceIntelligenceLabel />
+        <h2 style={{ fontSize: 22, color: 'var(--ink, #0b1f33)', margin: '5px 0 6px' }}>Audit Realcost</h2>
         <p style={{ ...mutedStyle(), maxWidth: 900, fontSize: 13 }}>Analisis biaya pelayanan, struktur komponen, variasi tarif INA-CBG, utilisasi sumber daya, serta rekonsiliasi setiap episode berdasarkan workbook Realcost rumah sakit.</p>
       </header>
       {renderOverview()}
     </> : <>
       <header style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'start', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <div style={{ ...mutedStyle(), fontWeight: 700 }}>Peningkatan Kinerja Klinis / Audit Realcost</div>
+          <WorkspaceIntelligenceLabel />
           <h2 style={{ fontSize: 22, color: 'var(--ink, #0b1f33)', margin: '5px 0 6px' }}>Audit Realcost</h2>
           <p style={{ ...mutedStyle(), maxWidth: 820 }}>Audit episode pelayanan dan rekonsiliasi nilai biaya dengan tarif INA-CBG.</p>
         </div>

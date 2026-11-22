@@ -915,6 +915,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     const pct = (v: number | null) => v == null ? '-' : v.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + '%'
     const passClass = (pass: boolean) => pass ? 'cpPass' : 'cpFail'
     return <div className="cpRoot">
+      <WorkspaceModuleHeader title="Penyusunan Format Clinical Pathway" />
       <div className="cpScoreGrid">
         <div className="cpGlass cpScore"><span>Keterisian jadwal CP (internal)</span><strong>{pct(c.completion)}</strong><small>{c.filled}/{c.expected} kotak harian dari {c.selectedItemCount} pilihan aktif sudah diputuskan · ambang checklist lokal ≥{c.threshold}%</small><div className={'cpBadge ' + (c.completionPass ? '' : 'draft')}>{c.completionPass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
         <div className="cpGlass cpScore"><span>Kepatuhan item CP per episode (internal)</span><strong>{pct(c.compliance)}</strong><small>{c.done} sesuai dari {c.evaluation} sel checklist yang dinilai · target lokal {c.target}%</small><div className={'cpBadge ' + (c.compliancePass ? '' : 'draft')}>{c.compliancePass ? 'Memenuhi' : 'Belum memenuhi'}</div></div>
@@ -963,7 +964,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
     <style>{CSS}</style>
     <WorkspaceModuleHeader
       className="cpHead"
-      title={view === 'overview' ? 'Visual Intelligence Clinical Pathway' : view === 'library' ? 'Daftar format dan diagnosis Clinical Pathway' : view === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
+      title={view === 'overview' ? 'Clinical Pathway' : view === 'library' ? 'Daftar format dan diagnosis Clinical Pathway' : view === 'diagnosis' ? (selectedTemplate?.name || 'Clinical Pathway') : screen === 'builder' ? (builderIsNew ? 'Tambah Clinical Pathway' : 'Edit Format CP') : 'Audit Pasien · ' + (form?.template.name || '')}
       actions={<div className="cpActions">
         {/* Tombol kembali ke Audit Indikator Mutu dihapus: Clinical Pathway kini menu tersendiri di Peningkatan Kinerja Klinis (Blueprint v2). */}
         {view === 'overview' ? null : <button type="button" className="cpBtn" onClick={() => { setMessage(''); setScreen(view === 'audit' ? 'diagnosis' : view === 'diagnosis' || view === 'library' ? 'overview' : 'library'); setFocusedCell(null); setForm(null); setBuilder(null); setBuilderIsNew(false) }}>← Kembali</button>}
@@ -984,7 +985,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         <LiquidGlass className="cpKpi"><span>Komponen checklist</span><strong>{templates.filter((template) => template.status === 'published').reduce((total, template) => total + template.items.length, 0).toLocaleString('id-ID')}</strong><small>Item dari format aktif</small></LiquidGlass>
       </div>
       <div className="cpGlass cpPanel">
-        <div className="cpSectionHead"><div><h4>Visual Intelligence Clinical Pathway</h4><p>Gunakan master yang telah disetujui. Setelah memilih diagnosis, AUREKA menampilkan rekam audit yang sudah tersimpan dan tindakan audit baru.</p></div></div>
+        <div className="cpSectionHead"><div><h4>Audit berdasarkan diagnosis</h4><p>Gunakan master yang telah disetujui. Setelah memilih diagnosis, AUREKA menampilkan rekam audit yang sudah tersimpan dan tindakan audit baru.</p></div></div>
         <div className="cpActions">
           <button type="button" className="cpBtn primary" disabled={!masterReady || templates.filter((template) => template.status === 'published').length === 0} onClick={() => setScreen('library')}>Lihat Daftar Pasien dengan Clinical Pathway</button>
           {isAdmin && <button type="button" className="cpBtn" onClick={() => { setScreen('library'); beginNewBuilder() }}>Kelola Master Clinical Pathway</button>}

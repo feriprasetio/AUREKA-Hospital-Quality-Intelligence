@@ -1,5 +1,6 @@
 'use client'
 
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import PatientIndexTab from '@/components/patient-registry/PatientIndexTab'
 import PatientRegistryIntelligence from '@/components/PatientRegistryIntelligence'
 import PatientMedicalRecordsAnalytics from '@/components/patient-registry/PatientMedicalRecordsAnalytics'
@@ -41,7 +42,9 @@ export default function PatientRegistryWorkspace({
     <section className="patientRegistry" aria-label="Register Pasien">
       {registryTab === 'directory' ? (
         <>
-          <button type="button" className="prButton" onClick={() => onRegistryTabChange?.('overview')}>Kembali ke Direktori Pasien</button>
+          <WorkspaceModuleHeader title="Daftar Pasien" actions={
+            <button type="button" className="prButton" onClick={() => onRegistryTabChange?.('overview')}>Kembali ke Direktori Pasien</button>
+          } />
           <PatientIndexTab isAdmin={isAdmin} rooms={rooms} />
         </>
       ) : registryTab === 'patterns' || registryTab === 'analysis' ? (

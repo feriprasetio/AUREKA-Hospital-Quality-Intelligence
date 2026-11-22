@@ -1,5 +1,6 @@
 'use client'
 
+import { WorkspaceIntelligenceLabel, WorkspaceIntelligenceMetrics } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -28,12 +29,16 @@ export default function AuditLogWorkspace() {
   return (
     <section className="rmPanel govWorkspace" aria-label="Audit log">
       <div className="rmSectionHead">
-        <div><span className="rmEyebrow">Pengaturan</span><h3>Audit Log</h3><p>Catatan permanen (tidak dapat diubah atau dihapus) atas perubahan program, tindak lanjut, dan regulasi beserta keputusan persetujuan.</p></div>
+        <div><WorkspaceIntelligenceLabel /><h3>Audit Log</h3><p>Catatan permanen (tidak dapat diubah atau dihapus) atas perubahan program, tindak lanjut, dan regulasi beserta keputusan persetujuan.</p></div>
         <div className="govHeadTools">
           <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Jenis objek"><option value="">Semua objek</option>{Object.entries(OBJECT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
           <button type="button" className="rmButton" onClick={() => void load()}>↻ Muat ulang</button>
         </div>
       </div>
+      <WorkspaceIntelligenceMetrics loading={loading} unavailable={!!error} metrics={[
+        { label: 'Peristiwa dimuat', value: rows.length },
+        { label: 'Jenis objek dalam hasil', value: new Set(rows.map(row => row.object_type)).size },
+      ]} />
       {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
       {loading ? <div className="rmLoading"><span className="rmSpinner" />Memuat…</div> : !error && (
         <WorkspaceTableViewport label="Audit log" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Waktu</th><th>Pengguna</th><th>Role</th><th>Tindakan</th><th>Objek</th><th>Rincian</th></tr></thead><tbody>

@@ -839,14 +839,24 @@ export default function RiskManagementWorkspace({
 
   return (
     <div className="rmWorkspace">
-      {tab === 'overview' && <WorkspaceModuleHeader
+      <WorkspaceModuleHeader
         className="rmHero"
-        title="Pengelolaan risiko"
-        actions={<div className="rmHeroActions">
+        title={{
+          overview: 'Pengelolaan Risiko', register: 'Daftar Risiko',
+          connections: 'Konektor Risiko', profile: 'Profil Risiko',
+          'fmea-overview': 'FMEA, Mitigasi dan RTP', fmea: 'Analisis FMEA Preventif',
+          mitigation: 'Rencana Tindak Pengendalian', evaluation: 'Evaluasi Pengendalian Risiko',
+        }[tab]}
+        loading={loading}
+        unavailable={unitMissing || error.startsWith('Data Manajemen Risiko')}
+        metrics={tab === 'register' ? [{ label: 'Risiko dalam hasil filter', value: filteredRisks.length }]
+          : tab === 'connections' ? [{ label: 'Relasi pada risiko terpilih', value: selectedRiskId ? activeLinks.length : null }]
+          : undefined}
+        actions={tab === 'overview' && <div className="rmHeroActions">
           <span className="rmRoleChip">{roleLabel(role)}{scopedToUnit && currentRoom ? ' · ' + currentRoom.name : ''}</span>
           <button type="button" className="rmButton primary" onClick={openNewRisk} disabled={unitMissing}>＋ Risiko baru</button>
         </div>}
-      />}
+      />
 
       {unitMissing && <div className="rmNotice error" role="alert">
         <span>Unit belum dipetakan</span><p>Akun Anda belum terhubung ke ruangan/unit kerja, sehingga register risiko unit belum dapat ditampilkan atau diisi. Hubungi Super Admin untuk memetakan unit utama akun Anda di menu Pengaturan.</p>
@@ -1224,7 +1234,7 @@ export default function RiskManagementWorkspace({
       })()}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'fmea-overview' && <LiquidGlass className="rmPanel">
-        <div className="rmSectionHead"><h4>Visual Intelligence FMEA, Mitigasi dan RTP</h4></div>
+        <div className="rmSectionHead"><h4>Status analisis dan mitigasi</h4></div>
         <div className="rmKpis">
           <LiquidGlass className="rmKpi"><span>Analisis FMEA</span><strong>{fmeas.length}</strong></LiquidGlass>
           <LiquidGlass className="rmKpi"><span>FMEA prioritas tinggi</span><strong>{fmeas.filter(item => item.priority === 'Tinggi').length}</strong></LiquidGlass>

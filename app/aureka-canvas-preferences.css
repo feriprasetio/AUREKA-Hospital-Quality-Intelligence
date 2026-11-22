@@ -118,6 +118,7 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   .rfmeaPanel, .rfmeaKpi, .ihtCard, .ihtMetrics > div,
   .acdHero, .acdSection, .acdPhase, .igGlass,
   .stMain, .stNav, .stPrefExtras,
+  .priHero, .aqRoomOverview, .spmHero, .ifHero,
   [class$="Card"], [class$="Panel"], [class$="Kpi"], [class$="Tile"],
   [class$="KPI"], [class$="Metrics"]
 ):not(:is([role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [aria-modal="true"], form, .akModalRoot)):not(:is([role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [aria-modal="true"], form, .akModalRoot) *) {
@@ -142,7 +143,8 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 }
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter :is(
   .secSummary > div, .ppKpi, .legalMetrics > div, .ihtMetrics > div, .rfmeaKpi,
-  .ovKpi, .rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .aqKpi
+  .ovKpi, .rmKpi, .psKpi, .qraKpi, .sdKpi, .stKpi, .cpKpi, .aqKpi,
+  .priMetric, .aqRegisterSummary > div, .soKpi, .spmKpis > article, .ifKpi
 ) {
   padding: var(--aureka-canvas-block-pad) clamp(8px, 1.4vw, 18px) !important;
   border: 0 !important;
@@ -555,4 +557,61 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
 html[data-skin="arktik"][data-aureka-motion="off"] body .workspaceRoot.workspaceDesk[data-aureka-theme] * {
   transition-duration: .01ms !important;
   animation-duration: .01ms !important;
+}
+
+.workspaceIntelligenceHeading {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.workspaceIntelligenceHeading h2 {
+  margin: 0;
+  color: var(--aureka-color-foreground);
+  font-size: calc(clamp(1.125rem, 2vw, 1.375rem) * var(--aureka-canvas-heading-scale));
+  line-height: 1.25;
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
+}
+.workspaceIntelligenceLabel {
+  display: block;
+  color: var(--aureka-canvas-muted);
+  font-size: var(--aureka-canvas-small-size);
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: normal;
+}
+.workspaceIntelligenceMetrics {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  gap: 8px clamp(12px, 2.5vw, 26px);
+  min-width: 0;
+  margin: 4px 0;
+  padding: 0;
+}
+.workspaceIntelligenceMetrics > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  padding-inline-start: 9px;
+  border-inline-start: 1px solid var(--aureka-canvas-divider-strong);
+  overflow-wrap: anywhere;
+}
+.workspaceIntelligenceMetrics dt,
+.workspaceIntelligenceStatus {
+  color: var(--aureka-canvas-muted);
+  font-size: var(--aureka-canvas-small-size);
+  line-height: 1.4;
+}
+.workspaceIntelligenceMetrics dd {
+  margin: 0;
+  color: var(--aureka-color-foreground);
+  font-size: calc(1.125rem * var(--aureka-canvas-heading-scale));
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+}
+.workspaceIntelligenceStatus {
+  flex-basis: 100%;
+  margin: 4px 0;
 }

@@ -1,4 +1,5 @@
 'use client'
+import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 type PatientIndexSummary = { total: number; kunjungan_berulang: number; dengan_nik: number; terhubung_simrs: number; terakhir_diperbarui: string | null }
@@ -31,7 +32,7 @@ export default function PatientRegistryIntelligence({ onOpenDirectory }: Props) 
   ]
   return <section className="patientRegistryIntelligence" aria-labelledby="patient-registry-intelligence-title" aria-busy={loading}>
     <header className="priHero">
-      <h2 id="patient-registry-intelligence-title">Ringkasan pasien</h2>
+      <div><WorkspaceIntelligenceLabel /><h2 id="patient-registry-intelligence-title">Direktori Pasien</h2></div>
       {loading && <span className="priStatus" role="status">Memuat data</span>}
     </header>
     {error && <div className="priNotice" role="status">{error}</div>}

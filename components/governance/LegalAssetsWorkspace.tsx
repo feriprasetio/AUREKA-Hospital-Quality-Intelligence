@@ -1,5 +1,6 @@
 'use client'
 
+import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { documentVerificationQrUrl, documentVerificationUrl } from '@/lib/aureka/document-signature-stamp'
@@ -99,7 +100,7 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
 
   return <section className="legalWorkspace">
     <header className="legalHero">
-      <div><h1>Legal dan Asset</h1></div>
+      <div><WorkspaceIntelligenceLabel /><h1>Legal dan Asset</h1></div>
       <button className="legalRefresh" type="button" onClick={()=>void load()} disabled={loading}>Muat ulang</button>
     </header>
 

@@ -561,7 +561,12 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       <style>{CSS}</style>
       <WorkspaceModuleHeader
         className="acdHero"
-        title="Penemuan kasus & telaah episode"
+        title={auditType === 'death' ? 'Audit Kematian' : 'Audit Klinis'}
+        metrics={showList ? [
+          { label: 'Kandidat dalam cakupan', value: filteredEpisodes.length },
+          { label: 'Sudah ditelaah', value: startedCount },
+        ] : undefined}
+        loading={loading}
         actions={<button type="button" className="acdBtn" disabled={loading || saving} onClick={() => void load()}>{loading ? 'Memuat…' : '↻ Muat ulang'}</button>}
       />
       <p className="workspaceClinicalDisclaimer" role="note">Penilaian bukan penetapan kesalahan individu atau kesimpulan otomatis bahwa kematian dapat dicegah.</p>
@@ -573,7 +578,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
           <article className="acdKpi"><span>Belum diajukan / perlu perbaikan</span><strong>{pendingCount.toLocaleString('id-ID')}</strong><small>Perlu tindakan reviewer</small></article>
         </div>
         <section className="acdPanel">
-          <div className="acdSectionTitle"><div><h5>Visual Intelligence · {auditType === 'death' ? 'Audit Kematian' : 'Audit Klinis'}</h5><p>Ringkasan agregat dari episode yang dapat diakses. Identitas tidak ditampilkan pada ikhtisar.</p></div></div>
+          <div className="acdSectionTitle"><div><h5>Perkembangan telaah</h5><p>Ringkasan agregat dari episode yang dapat diakses. Identitas tidak ditampilkan pada ikhtisar.</p></div></div>
           <div className="acdActions">
             <button type="button" className="acdBtn primary" disabled={loading} onClick={() => setShowList(true)}>{auditType === 'death' ? 'Lihat Daftar Pasien Meninggal' : 'Lihat Daftar Pasien dengan Audit Klinis'}</button>
             {onAskNara && <button type="button" className="acdBtn" onClick={() => onAskNara('Analisis agregat Audit ' + (auditType === 'death' ? 'Kematian' : 'Klinis') + ' pada cakupan dan periode yang sedang dipilih. Jelaskan jumlah kandidat, status telaah, kelengkapan data dan prioritas perbaikan. Jangan menampilkan nama atau nomor rekam medis dan jangan mengubah data.', 'Peningkatan Kinerja Klinis · Visual Intelligence · ' + (auditType === 'death' ? 'Audit Kematian' : 'Audit Klinis'))}>Analisis dengan NARA AI</button>}

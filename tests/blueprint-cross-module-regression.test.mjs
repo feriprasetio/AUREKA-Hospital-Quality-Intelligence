@@ -52,7 +52,7 @@ test('Secretariat opens with a Visual Intelligence landing and does not claim PI
   const workspace = read('components/governance/SecretariatWorkspace.tsx')
   const registry = read('lib/aureka/module-registry.ts')
 
-  assert.match(workspace, /VISUAL INTELLIGENCE · SEKRETARIAT/)
+  assert.match(workspace, /<WorkspaceModuleHeader[\s\S]*?Administrasi Kegiatan/)
   assert.match(workspace, /Lihat Register Kegiatan/)
   assert.match(workspace, /Undangan, Materi, Absensi Digital, Notulensi, dan Gambar/)
   assert.match(workspace, /Pengiriman undangan langsung ke PIC unit belum diaktifkan/)

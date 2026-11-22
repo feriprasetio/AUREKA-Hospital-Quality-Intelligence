@@ -402,7 +402,7 @@ export default function SecretariatWorkspace({
   return (
     <section className="secWorkspace" aria-label="Sekretariat">
       <WorkspaceModuleHeader
-        title="Sekretariat"
+        title={section === 'invitations' ? 'Register Undangan' : 'Administrasi Kegiatan'}
       />
       {showRegister ? <>
       <div className="secToolbar">
@@ -480,7 +480,7 @@ export default function SecretariatWorkspace({
       </div>,document.body)}
       </> : <div className="secLanding">
         <div className="secSummary"><div><span>Total Kegiatan / Register</span><strong>{rows.length}</strong></div><div><span>Undangan Tercatat</span><strong>{rows.filter((row)=>/undangan/i.test(row.meeting_type)).length}</strong></div><div><span>Kategori UMANG</span><strong>5</strong></div></div>
-        <section className="secTablePanel"><span className="secEyebrow">VISUAL INTELLIGENCE · SEKRETARIAT</span><h2>Administrasi Kegiatan</h2><p>Ringkasan register kegiatan dan dokumentasi UMANG dalam satu Meeting ID. Pilih register untuk menelusuri nomor surat dan seluruh dokumen kegiatan.</p><div className="secToolbar"><div><strong>Administrasi Kegiatan Rumah Sakit</strong><p>Undangan, Materi, Absensi Digital, Notulensi, dan Gambar disimpan sebagai dokumen terstruktur.</p></div><button type="button" className="secPrimaryButton" onClick={()=>setShowRegister(true)}>Lihat Register Kegiatan</button></div>
+        <section className="secTablePanel"><p>Ringkasan register kegiatan dan dokumentasi UMANG dalam satu Meeting ID. Pilih register untuk menelusuri nomor surat dan seluruh dokumen kegiatan.</p><div className="secToolbar"><div><strong>Administrasi Kegiatan Rumah Sakit</strong><p>Undangan, Materi, Absensi Digital, Notulensi, dan Gambar disimpan sebagai dokumen terstruktur.</p></div><button type="button" className="secPrimaryButton" onClick={()=>setShowRegister(true)}>Lihat Register Kegiatan</button></div>
           {section === 'invitations' && <div className="secNotice secNotice-info" role="status">Bagian ini saat ini menampilkan register dokumen undangan. Pengiriman undangan langsung ke PIC unit belum diaktifkan; tidak ada undangan yang dikirim otomatis.</div>}
         </section>
       </div>}

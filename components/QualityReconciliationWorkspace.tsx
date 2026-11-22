@@ -1,5 +1,6 @@
 'use client'
 
+import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -353,7 +354,7 @@ export default function QualityReconciliationWorkspace({
 
     <header className="qrcHead">
       <div>
-        <span className="qrcEyebrow">Quality Data Governance · Lintas Unit</span>
+        <WorkspaceIntelligenceLabel />
         <h2>Pusat Rekonsiliasi Data</h2>
         <p>Kelompokkan warning yang memiliki pola sumber sama, perbaiki pemetaan indikator secara massal, dan simpan audit setiap perubahan. Nilai sumber asli tidak dihapus.</p>
       </div>

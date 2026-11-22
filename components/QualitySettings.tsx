@@ -973,6 +973,11 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       <LiquidGlass className="qualitySettingsSurface" style={{ padding: 14 }}>
         <WorkspaceModuleHeader
           title={tab === 'programs' ? 'Program Kerja' : 'Profil Indikator'}
+          loading={loading}
+          metrics={tab === 'profiles' && profileWorkspaceOpen ? [
+            { label: 'Indikator aktif', value: activeProfileCount },
+            { label: 'Perlu perbaikan teknis', value: activeReviewCount },
+          ] : undefined}
         />
 {showTabs && (
           <WorkspaceTabs
@@ -1036,7 +1041,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               <div className="qsProfileIntelligenceMetric"><span>Target belum tersedia / klarifikasi</span><strong>{activeTargetUnavailableCount.toLocaleString('id-ID')}</strong></div>
             </div>
             <div style={{border:'1px solid var(--line,rgba(20,34,27,.12))',borderRadius:14,padding:16,display:'grid',gap:10}}>
-              <div><strong>Visual Intelligence Profil Indikator</strong><p style={{margin:'5px 0 0',fontSize:12,lineHeight:1.55,color:'var(--muted)'}}>Ringkasan status kamus indikator untuk tahun dan cakupan unit yang dipilih. Angka dihitung dari profil yang berhasil dimuat; target yang belum disahkan tidak dianggap sebagai target resmi.</p></div>
+              <div><strong>Status penyusunan profil</strong><p style={{margin:'5px 0 0',fontSize:12,lineHeight:1.55,color:'var(--muted)'}}>Ringkasan status kamus indikator untuk tahun dan cakupan unit yang dipilih. Angka dihitung dari profil yang berhasil dimuat; target yang belum disahkan tidak dianggap sebagai target resmi.</p></div>
               <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                 <button type="button" className="textButton" onClick={()=>{setProfileWorkspaceOpen(true)}}>Lihat Profil Indikator</button>
               </div>

@@ -1,4 +1,5 @@
 'use client'
+import { WorkspaceIntelligenceMetrics } from '@/components/workspace/WorkspaceIntelligence'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -126,6 +127,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
   if (notReady) return <AsyncStatePanel state="error" title="Direktori pasien belum tersedia" description="Jika kendala berlanjut, hubungi administrator." retrying={loading} onRetry={() => void load()} compact />
 
   return <section className="piWrap">
+    <WorkspaceIntelligenceMetrics loading={loading} unavailable={!!error} metrics={[{ label: 'Hasil pencarian pasien', value: total }]} />
     <header className="piHead">
       <div className="piActions">
         <button type="button" className="prButton" onClick={() => void toggleIdentity()}>{showIdentity ? 'Samarkan identitas' : 'Tampilkan identitas'}</button>

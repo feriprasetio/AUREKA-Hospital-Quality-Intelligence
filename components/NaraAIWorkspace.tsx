@@ -1,5 +1,6 @@
 'use client'
 
+import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -122,6 +123,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
   }), [firstName])
 
   return <div className={'naraWorkspace' + (listOpen ? ' listOpen' : '')} aria-label="NARA AI">
+    {workspaceView === 'chat' && <WorkspaceModuleHeader className="naraOverview" title="NARA AI" metrics={[{ label: 'Percakapan di perangkat ini', value: uid ? convos.length : null }]} />}
     <aside className="naraHistory" aria-label="Riwayat percakapan NARA">
       <button type="button" className="naraNew" onClick={startNew}><span aria-hidden="true">+</span> Percakapan baru</button>
       <button type="button" className="naraReviewNav" aria-pressed={workspaceView === 'icd10'} onClick={() => { setWorkspaceView('icd10'); setListOpen(false) }}>Validasi ICD-10</button>
@@ -155,6 +157,8 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
 
     <style jsx>{`
       .naraWorkspace{display:grid;grid-template-columns:minmax(150px, 22%) minmax(0,1fr);gap:clamp(12px, 2vw, 22px);min-width:0;min-height:calc(100dvh - 190px);color:var(--aureka-color-foreground)}
+      .naraWorkspace:has(> :global(.naraOverview)){grid-template-rows:auto minmax(0,1fr)}
+      .naraWorkspace > :global(.naraOverview){grid-column:1/-1}
       .naraHistory{display:flex;flex-direction:column;gap:10px;min-height:0;padding:4px 12px 4px 0;border-inline-end:1px solid var(--aureka-canvas-divider);position:sticky;top:calc(var(--aur-header-h, 64px) + 12px);align-self:start;max-height:calc(100dvh - 120px);overflow-y:auto;overscroll-behavior:contain}
       .naraHistory > :not(.naraHistoryList){flex-shrink:0}
       .naraNew{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:0;border-radius:10px;background:var(--aureka-color-primary);color:var(--aureka-color-on-primary);font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:transform .12s ease}
@@ -198,7 +202,7 @@ export default function NaraAIWorkspace({ sb, page, userName = '', initialPrompt
       @media(prefers-reduced-motion:no-preference){.naraStageWrap :global(.tanyaStage),.naraStageWrap :global(.tanyaStageChips){animation:naraRise .45s cubic-bezier(.22,1,.36,1) both}.naraStageWrap :global(.tanyaStageChips){animation-delay:.08s}}
       @keyframes naraRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
       @media(max-width:900px){
-        .naraWorkspace{grid-template-columns:1fr;min-height:calc(100dvh - 230px)}
+        .naraWorkspace,.naraWorkspace:has(> :global(.naraOverview)){grid-template-columns:1fr;grid-template-rows:none;align-content:start;min-height:calc(100dvh - 230px)}
         .naraHistory{display:none;position:static;max-height:none;overflow:visible;border-inline-end:0;border-block-end:1px solid var(--aureka-canvas-divider);padding:0 0 10px}
 
         .naraWorkspace.listOpen .naraHistory{display:flex;max-height:min(52dvh,420px);overflow:hidden}

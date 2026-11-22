@@ -1198,7 +1198,7 @@ export default function OppeAuditWorkspace({
       <div id="oppe-active-panel" className="workspaceActivePanel" role="tabpanel" aria-labelledby={'oppe-tab-' + screen} tabIndex={0}>
       {screen === 'overview' && (
         <section className="oppeGlass oppeSection" aria-label="Visual Intelligence OPPE">
-          <div className="oppeSectionHead"><div><div className="oppeEyebrow">Visual Intelligence · Evaluasi praktik profesional</div><h4>Ikhtisar OPPE {year} · {quarters.find((item) => item.value === quarter)?.label}</h4><p>Ikhtisar dihitung dari master indikator, pemetaan profesi, logbook tervalidasi dan penilaian yang tersimpan pada cakupan unit aktif. Angka bukan keputusan otomatis tentang kewenangan klinis.</p></div><span className="oppeStatus oppeNeutral">{loading ? 'Memuat data' : 'Data terukur'}</span></div>
+          <div className="oppeSectionHead"><div><h4>Ikhtisar OPPE {year} · {quarters.find((item) => item.value === quarter)?.label}</h4><p>Ikhtisar dihitung dari master indikator, pemetaan profesi, logbook tervalidasi dan penilaian yang tersimpan pada cakupan unit aktif. Angka bukan keputusan otomatis tentang kewenangan klinis.</p></div><span className="oppeStatus oppeNeutral">{loading ? 'Memuat data' : 'Data terukur'}</span></div>
           <div className="oppeOverviewKpis" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:10}}>
             <div className="oppeMiniMetric"><span>Profil indikator tersedia</span><strong>{loading?'…':profiles.length.toLocaleString('id-ID')}</strong></div>
             <div className="oppeMiniMetric"><span>Pemetaan OPPE aktif</span><strong>{loading?'…':selectedRuleCount.toLocaleString('id-ID')}</strong></div>

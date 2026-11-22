@@ -61,7 +61,7 @@ test('submodule navigation participates in history and legacy links resolve to a
 test('operational modules use the same small header while retaining their own actions', () => {
   const header = read('components/workspace/WorkspaceModuleHeader.tsx')
   assert.doesNotMatch(header, /workspaceModuleGuide|description|eyebrow/)
-  assert.match(header, /<h2>\{title\}<\/h2>/)
+  assert.match(header, /<WorkspaceIntelligenceHeading>\{title\}<\/WorkspaceIntelligenceHeading>/)
   assert.match(header, /\{actions\}/)
   assert.doesNotMatch(header, /fetch\(|localStorage|supabase/i)
   for (const name of [
@@ -72,6 +72,21 @@ test('operational modules use the same small header while retaining their own ac
   ]) {
     assert.ok(read(`components/${name}.tsx`).includes('<WorkspaceModuleHeader'), name)
   }
+})
+
+test('workspace intelligence follows the active sheet and distinguishes unavailable data from zero', () => {
+  const shared = read('components/workspace/WorkspaceIntelligence.tsx')
+  const safety = read('components/PatientSafetyWorkspace.tsx')
+  const risk = read('components/RiskManagementWorkspace.tsx')
+  const settings = read('components/GeneralSettings.tsx')
+  assert.match(shared, /className="workspaceIntelligenceLabel">Visual Intelligence/)
+  assert.match(shared, /if \(loading \|\| unavailable\)/)
+  assert.match(shared, /typeof value === 'number' \? formatNumber\.format\(value\)/)
+  assert.match(safety, /investigation: 'Investigasi dan RCA', survey: 'Survei Budaya Keselamatan'/)
+  assert.match(safety, /canReadResponses\s*\? \[\{ label: 'Kelompok dalam rekap yang diizinkan', value: responseRows\.length/)
+  assert.match(risk, /connections: 'Konektor Risiko', profile: 'Profil Risiko'/)
+  assert.match(settings, /appearance: 'Preferensi Tampilan', system: 'Konfigurasi Sistem'/)
+  assert.doesNotMatch(read('app/typography.css'), /\.stMain > \.workspaceModuleHeader\s*\{\s*display: none/)
 })
 
 test('table regions measure actual column overflow and provide keyboard and button access', () => {

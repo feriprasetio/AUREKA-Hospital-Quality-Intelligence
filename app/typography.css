@@ -102,7 +102,6 @@ html[data-mode="gelap"] body:not(#_) .workspaceRoot .workspaceHeaderBar .workspa
 html body:not(#_) .workspaceRoot .settingsWorkspace .stNav { display: none !important; }
 html body:not(#_) .workspaceRoot .settingsWorkspace .stLayout { display: block !important; }
 html body:not(#_) .workspaceRoot .settingsWorkspace .stMain { display: grid; gap: 16px; max-width: 1080px; }
-html body:not(#_) .workspaceRoot .settingsWorkspace .stMain > .workspaceModuleHeader { display: none !important; }
 html body:not(#_) .workspaceRoot .settingsWorkspace label.field { display: grid !important; gap: 6px !important; align-items: stretch !important; margin: 0 !important; }
 html body:not(#_) .workspaceRoot .settingsWorkspace label.field > span { font-size: 13px; font-weight: 650; }
 html body:not(#_) .workspaceRoot .settingsWorkspace label.field :is(input, select) { min-height: 42px; }

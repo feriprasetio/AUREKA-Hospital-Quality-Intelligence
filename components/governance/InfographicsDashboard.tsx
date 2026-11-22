@@ -1,4 +1,5 @@
 'use client'
+import { WorkspaceIntelligenceHeading } from '@/components/workspace/WorkspaceIntelligence'
 import { useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { readAurekaPortfolioSummary, readAurekaQualityRoomReportingStatus, type AurekaPortfolioSummary, type MetricCount, type MetricMonth } from '@/lib/aureka/metric-contracts'
@@ -23,7 +24,7 @@ const fmt = (v: unknown) => n(v).toLocaleString('id-ID')
 const pct = (v: unknown) => n(v).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'
 const css = [
 '.infographicsDashboard{display:grid;gap:14px;color:var(--arktik-ink,#21374f)}',
-'.ifHero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 20px;border:1px solid var(--arktik-edge,#dbe4ed);border-radius:18px;background:linear-gradient(120deg,rgba(232,242,250,.94),rgba(247,250,253,.98));}',
+'.ifHero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:8px 0;border-block-end:1px solid var(--aureka-canvas-divider);background:transparent;}',
 '.ifHero h2{margin:0;color:var(--arktik-ink,#21374f);font-size:20px;font-weight:850;letter-spacing:-.03em}',
 '.ifHero p{max-width:720px;margin:6px 0 0;color:var(--ak-muted,#73849a);font-size:12px;line-height:1.6}',
 '.ifFilters{display:flex;align-items:end;gap:9px;flex-wrap:wrap}',
@@ -68,7 +69,7 @@ const css = [
 '.ifNote,.ifEmpty{margin:0;color:var(--ak-muted,#73849a);font-size:12px;line-height:1.55}',
 '.ifLoading,.ifError{padding:12px 14px;border-radius:10px;font-size:12px}.ifLoading{background:rgba(112,139,166,.08);color:var(--ak-muted,#73849a)}.ifError{background:#fff5e8;color:#88591e}',
 '@media(max-width:980px){.ifKpiGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}',
-'@media(max-width:620px){.ifHero{display:grid;padding:14px}.ifHero h2{font-size:17px}.ifKpiGrid{grid-template-columns:1fr 1fr}.ifLowerGrid{grid-template-columns:1fr}.ifFilters{width:100%}.ifFilters label{flex:1}.ifFilters select{width:100%;min-width:0}.ifChartToolbar{display:grid}.ifChartToolbar .ifChartChoice{min-width:0}.ifTypeSwitch{width:100%;justify-content:space-between}.ifTypeSwitch button{flex:1}.ifChartSvg{min-height:160px}}',
+'@media(max-width:620px){.ifHero{display:grid;padding:8px 0}.ifHero h2{font-size:17px}.ifKpiGrid{grid-template-columns:1fr 1fr}.ifLowerGrid{grid-template-columns:1fr}.ifFilters{width:100%}.ifFilters label{flex:1}.ifFilters select{width:100%;min-width:0}.ifChartToolbar{display:grid}.ifChartToolbar .ifChartChoice{min-width:0}.ifTypeSwitch{width:100%;justify-content:space-between}.ifTypeSwitch button{flex:1}.ifChartSvg{min-height:160px}}',
 '@media(max-width:380px){.ifKpiGrid,.ifLowerGrid{grid-template-columns:1fr}}'
 ].join('')
 
@@ -288,7 +289,7 @@ export default function InfographicsDashboard({ rooms, role, mode = 'full', init
   return <section className="infographicsDashboard" aria-label={qualityOnly ? 'Ikhtisar indikator mutu' : 'Ikhtisar kinerja rumah sakit'}>
     <style>{css}</style>
     <header className="ifHero">
-      <h2>{qualityOnly ? 'Capaian Indikator Mutu' : 'Analitik & Infografis Rumah Sakit'}</h2>
+      <WorkspaceIntelligenceHeading>{qualityOnly ? 'Capaian Indikator Mutu' : 'Analitik & Infografis Rumah Sakit'}</WorkspaceIntelligenceHeading>
       <div className="ifFilters">
         <label>Periode<select value={year} onChange={(event) => setYear(event.target.value)}>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
         {canChooseRoom && <label>Unit<select value={roomValue} onChange={(event) => { const next = event.target.value; setRoomValue(next); onRoomChange?.(next ? Number(next) : null) }}><option value="">Seluruh rumah sakit</option>{rooms.map((room) => <option key={room.id} value={String(room.id)}>{room.name}</option>)}</select></label>}

@@ -1,4 +1,5 @@
 'use client'
+import { WorkspaceIntelligenceLabel } from '@/components/workspace/WorkspaceIntelligence'
 import {Fragment,useEffect,useMemo,useState} from 'react'
 import type {SupabaseClient} from '@supabase/supabase-js'
 import { readAurekaQualityRoomReportingStatus, type QualityRoomReportingRow } from '@/lib/aureka/metric-contracts'
@@ -89,7 +90,7 @@ html[data-mode="gelap"] .hlReportingTable td{color:#e2e8f0;border-color:rgba(148
 @media(max-width:640px){.hlRepActions{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.hlRepBar i{transition:none}}
 `}</style>
-  <header className="hlPanelHead"><div><h3>Pelaporan indikator {year}</h3><span>{ready?`${reportedThisMonth} dari ${sortedRooms.length} ruangan lapor ${MONTHS[nowMonth-1]}`:(roomId!=null?(roomName||'Ruangan terpilih'):isAdmin?'Seluruh rumah sakit':'Ruangan saya')}</span></div>{ready&&sortedRooms.length>LIMIT&&<button type="button" className="hlRepLink" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Lihat ${sortedRooms.length} ruangan`}</button>}</header>
+  <header className="hlPanelHead"><div><WorkspaceIntelligenceLabel /><h3>Pelaporan indikator {year}</h3><span>{ready?`${reportedThisMonth} dari ${sortedRooms.length} ruangan lapor ${MONTHS[nowMonth-1]}`:(roomId!=null?(roomName||'Ruangan terpilih'):isAdmin?'Seluruh rumah sakit':'Ruangan saya')}</span></div>{ready&&sortedRooms.length>LIMIT&&<button type="button" className="hlRepLink" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Lihat ${sortedRooms.length} ruangan`}</button>}</header>
   {busy&&<p className="hlEmpty" role="status">Memuat progres pelaporan ruangan…</p>}
   {error&&<p className="hlNotice" role="alert">{error}</p>}
   {!busy&&!error&&!sortedRooms.length&&<p className="hlEmpty">Ruangan belum terhubung ke akun ini.</p>}

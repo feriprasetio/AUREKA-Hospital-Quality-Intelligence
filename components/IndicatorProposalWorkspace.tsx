@@ -129,7 +129,10 @@ export default function IndicatorProposalWorkspace({rooms,role,currentRoomId}:{r
       @media(max-width:640px){.ipPanel{padding:13px}.ipFormGrid{grid-template-columns:1fr}.ipField.full{grid-column:auto}.ipActivation{grid-template-columns:1fr}}
     `}</style>
     <div className="ipPanel">
-      <WorkspaceModuleHeader title="Usulan Indikator Mutu Baru" actions={<div className="ipToolbar">{canSubmit&&<button className="ipBtn primary" type="button" onClick={startNew}>+ Ajukan indikator</button>}<button className="ipBtn" type="button" onClick={()=>void load()} disabled={loading}>Muat ulang</button></div>}/>
+      <WorkspaceModuleHeader title="Usulan Indikator Mutu Baru" loading={loading} unavailable={!!error && rows.length === 0} metrics={[
+        { label: 'Usulan dalam hasil filter', value: visible.length },
+        { label: 'Menunggu telaah', value: visible.filter(row => row.status === 'diajukan').length },
+      ]} actions={<div className="ipToolbar">{canSubmit&&<button className="ipBtn primary" type="button" onClick={startNew}>+ Ajukan indikator</button>}<button className="ipBtn" type="button" onClick={()=>void load()} disabled={loading}>Muat ulang</button></div>}/>
 
       {error&&<div className="ipError" role="alert">{error}</div>}{message&&<div className="ipSuccess" role="status">{message}</div>}
       <div className="ipFilters"><select aria-label="Filter status usulan" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">Semua status</option>{Object.entries(statusText).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select><span className="ipMeta">{visible.length} dari {rows.length} usulan</span></div>
