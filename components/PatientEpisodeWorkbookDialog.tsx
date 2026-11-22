@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import AurekaModal from '@/components/ui/AurekaModal'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
+import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-source-audit'
 import {
   EPISODE_WORKBOOK_IMPORTER, buildEpisodeMappings, detectEpisodeFields, findEpisodeSourceColumn, inspectEpisodeWorkbook,
   overrideEpisodeLogbookHeader, prepareEpisodeImport, prepareMissingEpisodeProfiles, workbookSha256,
@@ -69,6 +70,7 @@ export default function PatientEpisodeWorkbookDialog({
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
   const [autofillNotice, setAutofillNotice] = useState('')
+  const [sourceNotes, setSourceNotes] = useState<string[]>([])
   const running = useRef(false)
   const aliases = year === 2026 ? (unitAliases as Record<string, Record<string, string>>)[roomId] ?? {} : {}
 
@@ -93,7 +95,14 @@ export default function PatientEpisodeWorkbookDialog({
     setFile(null)
     setMappings([])
     setAutofillNotice('')
+    setSourceNotes([])
     invalidatePreview()
+    const routing = inspectQualityWorkbookRouting(input.name, roomId, year)
+    if (routing.blockers.length) {
+      setError(routing.blockers.join(' '))
+      return
+    }
+    setSourceNotes(routing.notes)
     if (!/\.xlsx$/i.test(input.name) || input.size === 0 || input.size > fileLimit) {
       setError('Pilih berkas .xlsx dengan ukuran maksimal 25 MB.')
       return
@@ -363,7 +372,10 @@ export default function PatientEpisodeWorkbookDialog({
           </section>}
         </>}
       </fieldset>
-      {autofillNotice && <p className="episodeWorkbookSuccess" role="status">{autofillNotice}</p>}
+      {sourceNotes.length > 0 && <section className="episodeWorkbookMeta" role="status">
+        {sourceNotes.map((note,index)=><p key={index}>{note}</p>)}
+      </section>}
+      {autofillNotice && <p className="episodeWorkbookSuccess" role="status">{autofillNotice}</p>
       {!!busy && <p className="episodeWorkbookMeta" role="status">{busy}</p>}
       {error && <p className="episodeWorkbookError" role="alert">{error}</p>}
       {!!preview?.heldRows && <section className="episodeWorkbookError">
