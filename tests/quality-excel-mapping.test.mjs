@@ -34,10 +34,10 @@ test('profile edits are separate from source-header mapping and write an audit r
   assert.match(mappingUi, /Simpan revisi profil indikator/)
 })
 
-test('mapping workspace supports the 37-unit directory and keeps unsupported importers marked as initial setup', () => {
+test('mapping workspace supports the 37-unit directory and exposes the common workbook flow from the 37-unit directory', () => {
   assert.match(mappingUi, /Pemetaan Workbook Excel per Unit/)
   assert.match(mappingUi, /Pengaturan per Unit/)
-  assert.match(mappingUi, /Workbook Logbook Unit · Konfigurasi Awal/)
+  assert.match(mappingUi, /Tautkan kolom atau impor tabel/)
   assert.match(mappingUi, /alur unggah perlu dihubungkan ke importer sebelum digunakan otomatis/)
   assert.match(logbook, /Pengaturan Pemetaan Excel/)
   assert.match(logbook, /quality_excel_header_mapping_list/)

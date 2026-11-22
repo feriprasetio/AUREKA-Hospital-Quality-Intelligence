@@ -1,5 +1,6 @@
 import type { Cell, Workbook, Worksheet } from 'exceljs-hardened'
 import { normalizeIgdDateTime } from './igd-logbook.ts'
+import { getWorkbookRuleColumn, type WorkbookSourceRule } from './quality-workbook-columns.ts'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from './indicator-engine.ts'
 
 export type EpisodeOption = {
@@ -67,6 +68,8 @@ export type ProfileMapping = {
   direction: Direction | ''
 }
 
+export type EpisodeSourceRule = WorkbookSourceRule & { indicator_code?: string; target_key?: string }
+
 type CoreField = 'date' | 'mrn' | 'episode' | 'name' | 'discharge' | 'diagnosis' | 'dpjp'
 export type EpisodeFields = Record<CoreField, number>
 export type EpisodeStageRow = {
@@ -82,7 +85,7 @@ export type EpisodeStageRow = {
       subject_key: string
       core_data: Record<string, unknown>
       subject_json: Record<string, unknown>
-      status: 'ready'
+      status: 'ready' | 'draft'
       review_required: boolean
     }
     responses: EpisodeResponse[]
@@ -94,7 +97,7 @@ type EpisodeResponse = {
   response_label: string | null
   response_code: number | null
   review_status: 'pending' | 'not_required'
-  raw_value: { answer?: string; code: number | null; code_only?: true; source_value: string }
+  raw_value: { answer?: string; code: number | null; code_only?: true; source_value: string; review_required?: true }
 }
 
 export const EPISODE_WORKBOOK_IMPORTER = 'patient-episode-workbook'
@@ -138,7 +141,7 @@ const PROFILE_ALIASES = {
 } as const
 
 const CORE_ALIASES: Record<CoreField, string[]> = {
-  date: ['Tanggal pencatatan', 'Tanggal Masuk', 'Waktu Masuk', 'Tanggal masuk pasien', 'Tanggal Kunjungan', 'Tanggal Berkunjung', 'Tanggal Visite', 'Tanggal pengamatan', 'Tanggal audit', 'Tanggal masuk IGD', 'Tanggal pelayanan', 'Tanggal tindakan', 'Tanggal operasi', 'Tanggal', 'Record date', 'Date'],
+  date: ['Tanggal pencatatan', 'Tanggal Masuk', 'Waktu Masuk', 'Tanggal masuk pasien', 'Tanggal Kunjungan', 'Tanggal Berkunjung', 'Tanggal Visite', 'Tanggal pengamatan', 'Tanggal audit', 'Tanggal masuk IGD', 'Tanggal pelayanan', 'Tanggal tindakan', 'Tanggal operasi', 'Tanggal Survei', 'Tanggal Dilayani', 'Tanggal Lapor', 'Tanggal Masuk Rumah Sakit', 'Tanggal', 'Record date', 'Date'],
   mrn: ['No. Rekam Medis', 'Nomor Rekam Medis', 'No. RM', 'Nomor RM', 'No. Reg. Medis', 'No. MR', 'Medical record no', 'MRN'],
   episode: ['ID Episode', 'Kode Episode', 'No. Episode', 'Nomor Kunjungan', 'No. Kunjungan', 'No. Registrasi', 'Nomor Registrasi', 'Encounter ID'],
   name: ['Nama Pasien', 'Patient name', 'Nama'],
@@ -189,10 +192,16 @@ function matchColumn(columns: EpisodeColumn[], aliases: readonly unknown[], requ
   return 0
 }
 
-export function detectEpisodeFields(columns: EpisodeColumn[], roomDateField?: string): EpisodeFields {
-  return Object.fromEntries(Object.entries(CORE_ALIASES).map(([key, names]) => [
+export function detectEpisodeFields(columns: EpisodeColumn[], roomDateField?: string, roomId?: number): EpisodeFields {
+  const fields = Object.fromEntries(Object.entries(CORE_ALIASES).map(([key, names]) => [
     key, matchColumn(columns, key === 'date' && roomDateField ? [roomDateField, ...names] : names),
   ])) as EpisodeFields
+  if (roomId === 23 && !fields.mrn && matchColumn(columns,['Nama Pasien']) === 2 &&
+      matchColumn(columns,['Tanggal Masuk']) === 4 && matchColumn(columns,['Tanggal Keluar']) === 5) {
+    fields.mrn = columns.find(column=>column.index === 3 && column.name === 'Column1')?.index ?? 0
+  }
+  if (roomId === 27 && !fields.date) fields.date = matchColumn(columns,['Pelayanan di Ruangan'])
+  return fields
 }
 
 function detectLogbook(sheet: Worksheet, roomDateField?: string): EpisodeSheet {
@@ -391,13 +400,29 @@ function profileEntries(sheet: Worksheet, logbook: EpisodeSheet, groups: Map<str
   return entries
 }
 
-export function inspectEpisodeWorkbook(workbook: Workbook, roomDateField?: string): EpisodeWorkbook {
-  const sheet = workbook.worksheets.find(item => normalize(item.name) === 'logbook')
+export function findEpisodeSourceColumn(logbook: EpisodeSheet, rule?: EpisodeSourceRule) {
+  return getWorkbookRuleColumn(logbook.columns.map(column=>({...column,header:column.name})),
+    logbook.sheet.name, logbook.header, rule)?.index ?? 0
+}
+
+export function inspectEpisodeWorkbook(workbook: Workbook, roomDateField?: string, saved: EpisodeSourceRule[] = []): EpisodeWorkbook {
+  const sources = new Map<string, { sheet: Worksheet; header: number }>()
+  for (const rule of saved) {
+    const provenance = rule.transform_json
+    const header = Number(provenance?.header_row)
+    if (rule.mapping_status === 'needs_review' || !provenance?.source_sheet || !Number.isInteger(header) || header < 1) continue
+    const sheet = workbook.getWorksheet(provenance.source_sheet)
+    if (sheet && header <= sheet.rowCount) sources.set(JSON.stringify([sheet.name,header]),{sheet,header})
+  }
+  const savedSource = sources.size === 1 ? [...sources.values()][0] : undefined
+  const sheet = savedSource?.sheet ?? workbook.worksheets.find(item => normalize(item.name) === 'logbook')
     ?? workbook.worksheets.find(item => /^logbook\b/.test(normalize(item.name)))
   const profile = workbook.worksheets.find(item => ['profil', 'profil indikator', 'profil indikator mutu', 'master indikator'].includes(normalize(item.name)))
   if (!sheet && !profile) throw new Error('Sheet Logbook atau Profil/Master Indikator tidak ditemukan.')
   // A profile-only workbook can seed the empty master without any patient rows.
-  const logbook: EpisodeSheet = sheet ? detectLogbook(sheet, roomDateField) :
+  const logbook: EpisodeSheet = savedSource
+    ? { ...savedSource, columns: headerColumns(savedSource.sheet,savedSource.header) }
+    : sheet ? detectLogbook(sheet, roomDateField) :
     { sheet: profile!, header: 0, columns: [] }
   if (sheet && !logbook.columns.length) throw new Error('Header sheet Logbook tidak ditemukan.')
   return {
@@ -493,7 +518,7 @@ export function isWorkbookCodedProfile(profile: EpisodeProfile) {
 
 export function buildEpisodeMappings(
   book: EpisodeWorkbook, active: EpisodeProfile[], reference: EpisodeProfile[], aliases: Record<string, string>,
-  saved: Array<{ indicator_code?: string; source_header?: string; occurrence?: number }>,
+  saved: EpisodeSourceRule[],
   includeProfiles: boolean,
 ): ProfileMapping[] {
   const profiles = active.filter(isWorkbookCodedProfile)
@@ -503,15 +528,16 @@ export function buildEpisodeMappings(
   const create = (entry: WorkbookProfile | undefined, master: EpisodeProfile | undefined, key: string): ProfileMapping => {
     const code = master?.code || entry?.code || ''
     const title = entry?.title || master?.title || code
-    const savedRule = saved.find(item => normalizeCode(item.indicator_code) === normalizeCode(code))
-    const savedColumn = columns.find(item => normalize(item.name) === normalize(savedRule?.source_header) && item.occurrence === (savedRule?.occurrence ?? 1))?.index ?? 0
+    const savedRule = saved.find(item => item.mapping_status !== 'needs_review' &&
+      normalizeCode(item.indicator_code ?? item.target_key?.replace(/^indicator:/,'')) === normalizeCode(code))
+    const savedColumn = findEpisodeSourceColumn(book.logbook, savedRule)
     const schema = master?.schema_json ?? {}
     const schemaMapping = schema.excel_mapping as { indicator_header?: string } | undefined
     const matchingAliases = Object.entries(aliases).filter(([, value]) => normalizeCode(value) === normalizeCode(code)).map(([name]) => name)
-    let column = declaredSourceIndex(entry?.source ?? '', columns)
-    if (!column && !entry?.source) {
-      column = entry?.sourceColumns.length === 1 ? entry.sourceColumns[0] : savedColumn
-      column ||= matchColumn(columns, [schemaMapping?.indicator_header, schema.header_label, code, title, master?.title, ...matchingAliases])
+    let column = savedRule ? savedColumn : declaredSourceIndex(entry?.source ?? '', columns)
+    if (!savedRule && !column && !entry?.source) {
+      column = entry?.sourceColumns.length === 1 ? entry.sourceColumns[0] :
+        matchColumn(columns, [schemaMapping?.indicator_header, schema.header_label, code, title, master?.title, ...matchingAliases])
     }
     return { key, entry, master, code, title, column, direction: entry?.direction || directionValue(schema.indicator_direction) }
   }
@@ -639,13 +665,14 @@ function profileContent(profile: EpisodeProfile) {
 }
 
 export async function prepareEpisodeImport({
-  parsed, fields, mappings, activeProfiles, includeProfiles, roomId, roomName, year, layoutFields,
+  parsed, fields, mappings, activeProfiles, includeProfiles, roomId, roomName, year, layoutFields, allowReviewQueue = false,
 }: {
   parsed: EpisodeWorkbook; fields: EpisodeFields; mappings: ProfileMapping[]; activeProfiles: EpisodeProfile[];
-  includeProfiles: boolean; roomId: number; roomName: string; year: number; layoutFields: string[];
+  includeProfiles: boolean; roomId: number; roomName: string; year: number; layoutFields: string[]; allowReviewQueue?: boolean;
 }) {
   const issues: WorkbookIssue[] = []
   const rows: EpisodeStageRow[] = []
+  const rowIssues: WorkbookIssue[] = []
   const selected = mappings.filter(mapping => mapping.column)
   if (!fields.date || !(fields.mrn || fields.episode)) issues.push({ location: 'Logbook', message: 'Pilih kolom tanggal dan No. RM atau ID episode.' })
   if (!selected.length) issues.push({ location: 'Logbook', message: 'Petakan paling sedikit satu indikator.' })
@@ -677,13 +704,20 @@ export async function prepareEpisodeImport({
   const profiles = profileChanged ? [...configured.map(item => item.profile), ...retained] : []
   if (profiles.length > 500) issues.push({ location: 'Profil', message: 'Jumlah profil yang dapat disimpan adalah maksimal 500.' })
   if (profileChanged && activeProfiles.some(profile => profile.status === 'draft')) issues.push({ location: 'Profil', message: 'Selesaikan profil draf di Pengaturan sebelum menerapkan profil workbook.' })
-  if (issues.length) return { issues, rows, profiles, codes: [0, 0, 0] }
+  if (issues.length) return { issues, rowIssues, rows, profiles, codes: [0, 0, 0], heldRows: 0 }
   const { sheet, header, columns } = parsed.logbook
   const layoutColumns = layoutFields.flatMap(field => {
     const column = matchColumn(columns, [field])
     return column ? [{ field, column }] : []
   })
-  const episodeKeys = new Set<string>()
+  const episodeKeys = new Map<string, number>()
+  const ambiguousRows = new Set<number>()
+  const heldRows = new Set<number>()
+  const hold = (index: number, location: string, message: string) => {
+    if (!allowReviewQueue) { issues.push({ location, message }); return }
+    heldRows.add(index)
+    if (rowIssues.length < 100) rowIssues.push({ location, message })
+  }
   const codes = [0, 0, 0]
   const dateValue = (value: unknown) => normalizeIgdDateTime(
     parsed.workbook.properties.date1904 && typeof value === 'number' ? value + 1462 : value,
@@ -691,7 +725,7 @@ export async function prepareEpisodeImport({
   const picked = configured.filter(item => item.mapping.column > 0)
   const staged: Array<Omit<EpisodeStageRow, 'source_key'>> = []
   sheet.eachRow((row, index) => {
-    if (index <= header || issues.length >= 100 || staged.length > 10000) return
+    if (index <= header || (!allowReviewQueue && issues.length >= 100) || staged.length > 10000) return
     const get = (col: number) => col ? cellValue(row.getCell(col)) : null
     const id = (col: number) => col ? identityCell(row.getCell(col)) : ''
     const mrn = id(fields.mrn), episode = id(fields.episode)
@@ -699,6 +733,7 @@ export async function prepareEpisodeImport({
     const date = dateValue(get(fields.date))
     const location = sheet.name + ' · baris ' + index
     const hasIdentity = Boolean(mrn || episode || name)
+    let unrecoverableFormula = false
     const filled = picked.filter(({ mapping, profile }) => {
       const cell = row.getCell(mapping.column)
       const value = get(mapping.column)
@@ -706,28 +741,47 @@ export async function prepareEpisodeImport({
       // Template formulas may extend beyond recorded episodes.
       if (!hasIdentity && !date) return false
       if (value == null && hasIdentity && date) {
-        issues.push({ location: location + ' · ' + profile.code, message: 'Hasil formula belum tersimpan. Hitung ulang workbook di Excel dan simpan kembali.' })
+        hold(index, location + ' · ' + profile.code, 'Hasil formula belum tersimpan. Hitung ulang workbook di Excel dan simpan kembali.')
+        unrecoverableFormula = true
       }
       return clean(value) !== ''
     })
-    if (!filled.length) return
+    if (!filled.length || unrecoverableFormula) return
+    if (fields.mrn && get(fields.mrn) instanceof Date && !episode) {
+      hold(index, location, 'No. RM terbaca sebagai tanggal. Perbaiki format nomor atau pilih ID episode.')
+      return
+    }
     if (!date || !(mrn || episode)) {
-      issues.push({ location, message: 'Tanggal dan No. RM atau ID episode harus terisi.' })
+      hold(index, location, 'Tanggal dan No. RM atau ID episode harus terisi.')
+      return
+    }
+    if (allowReviewQueue && Number(date.slice(0,4)) !== year) {
+      hold(index, location, 'Tanggal episode berada di luar tahun profil yang dipilih.')
       return
     }
     const normalizedMrn = mrn.toUpperCase().replace(/[\s.-]+/g, '')
     const key = JSON.stringify(episode ? ['episode', normalizeCode(episode)] : ['rm', normalizedMrn, date])
-    if (episodeKeys.has(key)) {
-      issues.push({ location, message: 'Episode ganda. Periksa ID episode atau waktu kunjungan.' })
+    const previous = episodeKeys.get(key)
+    if (previous != null) {
+      ambiguousRows.add(previous)
+      heldRows.add(previous)
+      hold(index, location, 'Episode ganda dengan baris ' + previous + '. Periksa ID episode atau waktu kunjungan.')
       return
     }
-    episodeKeys.add(key)
+    episodeKeys.set(key,index)
     const responses: EpisodeResponse[] = []
     for (const { mapping, profile } of filled) {
       const raw = get(mapping.column)
       const result = matchEpisodeOption(raw, profile.options_json ?? [], Boolean(directionValue(profile.schema_json?.indicator_direction)))
       if ('error' in result) {
-        issues.push({ location: location + ' · ' + profile.code, message: result.error! })
+        if (!allowReviewQueue || typeof raw === 'object' || typeof raw === 'boolean') {
+          hold(index, location + ' · ' + profile.code, result.error!)
+          continue
+        }
+        responses.push({
+          indicator_code: profile.code, response_label: clean(raw), response_code: null, review_status: 'pending',
+          raw_value: { answer: clean(raw), code: null, source_value: clean(raw), review_required: true },
+        })
         continue
       }
       const option = result.option
@@ -739,7 +793,7 @@ export async function prepareEpisodeImport({
         raw_value: { ...(result.codeOnly ? { code_only: true as const } : { answer: option.label }), code: option.code, source_value: clean(raw) },
       })
     }
-    if (!responses.length) return
+    if (!responses.length || heldRows.has(index)) return
     const diagnosis = clean(get(fields.diagnosis)), dpjp = clean(get(fields.dpjp))
     const discharge = dateValue(get(fields.discharge))
     const formFields = Object.fromEntries(layoutColumns.map(({ field, column }) => {
@@ -758,7 +812,7 @@ export async function prepareEpisodeImport({
     const core = {
       patient_name: name, medical_record_no: mrn, admission_at: date, discharge_at: discharge,
       diagnosis, dpjp, unit_name: roomName, form_fields: formFields, indicator_values: indicatorValues,
-      source_import: { source_sheet: sheet.name, source_excel_row: index, import_scope: EPISODE_WORKBOOK_IMPORTER },
+      source_import: { source_sheet: sheet.name, source_header_row: header, source_excel_row: index, import_scope: EPISODE_WORKBOOK_IMPORTER },
     }
     staged.push({
       source_sheet: sheet.name, source_row: index,
@@ -766,7 +820,7 @@ export async function prepareEpisodeImport({
         record_payload: {
           room_id: roomId, profile_year: year, measurement_grain: 'patient_episode',
           record_date: date.slice(0, 10), subject_key: key,
-          core_data: core, subject_json: core, status: 'ready',
+          core_data: core, subject_json: core, status: responses.some(response => response.response_code == null && response.review_status === 'pending') ? 'draft' : 'ready',
           review_required: responses.some(response => response.review_status === 'pending'),
         },
         responses, attributions: [],
@@ -775,13 +829,14 @@ export async function prepareEpisodeImport({
   })
   if (staged.length > 10000) issues.push({ location: 'Logbook', message: 'Pisahkan workbook menjadi maksimal 10.000 episode per unggahan.' })
   if (!staged.length && !issues.length) issues.push({ location: 'Logbook', message: 'Tidak ada episode berisi respons indikator yang valid.' })
-  if (issues.length) return { issues, rows, profiles, codes }
+  if (issues.length) return { issues, rowIssues, rows, profiles, codes, heldRows: heldRows.size }
   for (let index = 0; index < staged.length; index += 250) {
-    const chunk = staged.slice(index, index + 250)
+    const chunk = staged.slice(index, index + 250).filter(row=>!ambiguousRows.has(row.source_row))
     rows.push(...await Promise.all(chunk.map(async row => {
       const key = await workbookSha256(JSON.stringify([roomId, year, row.row_payload.record_payload.subject_key]))
       return { ...row, source_key: key, row_payload: { ...row.row_payload, record_payload: { ...row.row_payload.record_payload, subject_key: EPISODE_WORKBOOK_IMPORTER + ':' + key } } }
     })))
   }
-  return { issues, rows, profiles, codes }
+  if (!rows.length && !issues.length) issues.push({ location: 'Logbook', message: 'Belum ada episode yang siap disimpan.' })
+  return { issues, rowIssues, rows, profiles, codes, heldRows: heldRows.size }
 }

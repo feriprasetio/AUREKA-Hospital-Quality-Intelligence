@@ -5,15 +5,12 @@ import { readFile } from 'node:fs/promises'
 const source = await readFile(new URL('../components/QualityIndicatorWorkspace.tsx', import.meta.url), 'utf8')
 const panel = await readFile(new URL('../components/QualityWorkbookImportPanel.tsx', import.meta.url), 'utf8')
 
-test('indicator workspace exposes unit-scoped universal profile Excel import for Superadmin', () => {
+test('logbook has one import entry and a data-only workbook panel', () => {
   assert.match(source, /QualityWorkbookImportPanel=dynamic/)
-  assert.match(source, /isAdmin&&!isValidator&&roomId!=null&&container==='Audit Indikator Mutu'/)
-  assert.match(source, /Impor Master \/ Profil Indikator \.xlsx/)
-  assert.match(source, /masterWorkbookOpen&&isAdmin&&roomId!=null&&<AurekaModal/)
-  assert.match(source, /importerKey="aureka-indicator-master"/)
-  assert.match(source, /role="ADMIN"/)
-  assert.match(source, /activeProfiles=\{profiles\.filter\(profile=>Number\(profile\.room_id\)===roomId\)/)
-  assert.match(source, /setMasterWorkbookOpen\(false\);if\(await load\(\)\)/)
+  assert.match(source, /onClick=\{openWorkbookOptions\}>Impor Excel/)
+  assert.match(source, /genericWorkbookOpen&&canImportWorkbook&&roomId!=null&&<AurekaModal/)
+  assert.match(source, /importerKey="unit-logbook" role=\{isAdmin\?'ADMIN':'PMKP'\} dataOnly/)
+  assert.doesNotMatch(source, /Impor Master \/ Profil Indikator/)
 })
 
 test('universal importer supports profile-only without patient data, and checks provenance before atomic RPC commit', () => {

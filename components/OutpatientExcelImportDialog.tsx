@@ -8,7 +8,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import { normalizeProviderName, type OutpatientProviderGroup } from '@/lib/aureka/outpatient-logbook'
-import { makeOutpatientProviderDaySubjectKey, normalizeOutpatientImportDate, parseOutpatientWaitingMinutes } from '@/lib/aureka/outpatient-excel-import'
+import { makeOutpatientProviderDaySubjectKey, normalizeOutpatientImportDate, parseOutpatientWaitingMinutes, parseOutpatientMatrixSheet, readOutpatientCell as readCell, outpatientCellText as cellText, type OutpatientPreparedRow as PreparedRow } from '@/lib/aureka/outpatient-excel-import'
 
 const sb = aurekaSupabase
 const quality = () => sb.schema('aureka_quality')
@@ -16,26 +16,8 @@ const MAX_FILE_BYTES = 15 * 1024 * 1024
 const MAX_DATA_ROWS = 5000
 const BATCH_SIZE = 25
 type Layout = { roomId: number; fields: string[]; providerGroups?: OutpatientProviderGroup[] }
-type PreparedRow = { sourceRow:number; sourceSheet:string; date:string; clinic:string; doctor:string; waitingMinutes:number }
 type Props = { open:boolean; roomId:number|null; year:number; authorized:boolean; layout?:Layout; onClose:()=>void; onImported:(summary:{imported:number;skipped:number;received:number})=>void|Promise<void> }
 
-function readCell(cell:any):unknown {
-  const value=cell?.value
-  if(value==null)return ''
-  if(value instanceof Date)return value
-  if(typeof value==='object'){
-    if('result' in value&&value.result!=null)return value.result
-    if(Array.isArray(value.richText))return value.richText.map((part:any)=>String(part?.text??'')).join('')
-    if(typeof value.text==='string')return value.text
-    if(typeof value.hyperlink==='string')return value.text??value.hyperlink
-    return ''
-  }
-  return value
-}
-function cellText(cell:any):string {
-  const value=readCell(cell)
-  return value instanceof Date?normalizeOutpatientImportDate(value)??'':String(value??'').trim()
-}
 function headerMap(row:any):Map<string,number[]>{
   const columns=new Map<string,number[]>()
   const count=Math.min(Number(row.cellCount??row.actualCellCount??100),100)
@@ -87,69 +69,6 @@ function findHeaderRow(sheet:any):{rowNumber:number;columns:Map<string,number[]>
   }
   return null
 }
-function parseMatrixSheet(sheet:any,year:number,groups:OutpatientProviderGroup[],seen:Set<string>):{matched:boolean;rows:PreparedRow[];errors:string[]}{
- const rows:PreparedRow[]=[],errors:string[]=[]
- const firstLabel=cellText(sheet.getRow(1).getCell(1)).toLocaleLowerCase('id-ID')
- const sheetName=String(sheet.name??'').toLocaleLowerCase('id-ID')
- if(!/poliklinik|klinik/.test(firstLabel)&&!/(^|\s)logbook(\s|$)/.test(sheetName))return {matched:false,rows,errors}
- let headerRow=0,firstDateColumn=0,dateColumns:Array<{column:number;date:string}>=[]
- // Official PMKP logbook: first column contains clinic group labels and
- // each following column is a calendar date. Date formulas may have no
- // cached result in some Excel readers, so continue a sequential date series
- // only when the cell is an Excel formula.
- for(let r=1;r<=Math.min(15,sheet.rowCount);r++){
-  for(let c=1;c<=Math.min(Number(sheet.columnCount??500),500);c++){
-   const cell=sheet.getRow(r).getCell(c)
-   const value=readCell(cell)
-   const date=normalizeOutpatientImportDate(value)
-   if(date&&Number(date.slice(0,4))===year){headerRow=r;firstDateColumn=c;break}
-  }
-  if(headerRow)break
- }
- if(!headerRow)return {matched:false,rows,errors}
- let currentDate=normalizeOutpatientImportDate(readCell(sheet.getRow(headerRow).getCell(firstDateColumn)))!
- for(let c=firstDateColumn;c<=Math.min(Number(sheet.columnCount??500),500);c++){
-  const cell=sheet.getRow(headerRow).getCell(c)
-  const raw=readCell(cell)
-  const parsed=normalizeOutpatientImportDate(raw)
-  if(parsed&&Number(parsed.slice(0,4))===year){currentDate=parsed;dateColumns.push({column:c,date:parsed});continue}
-  const original=cell?.value
-  const formula=original&&typeof original==='object'?String(original.formula??''):(typeof original==='string'?original:'')
-  if(c>firstDateColumn&&/^=/.test(formula)){
-   const next=new Date(currentDate+'T00:00:00Z');next.setUTCDate(next.getUTCDate()+1);currentDate=next.toISOString().slice(0,10)
-   if(Number(currentDate.slice(0,4))===year)dateColumns.push({column:c,date:currentDate})
-   continue
-  }
-  if(c>firstDateColumn)break
- }
- if(!dateColumns.length)return {matched:false,rows,errors}
- const clinicByKey=new Map(groups.map(group=>[normalizeProviderName(group.clinic),group]))
- let activeClinic:OutpatientProviderGroup|null=null
- for(let r=headerRow+1;r<=Math.min(sheet.rowCount,headerRow+5000);r++){
-  const source=sheet.getRow(r),label=cellText(source.getCell(1))
-  if(!label)continue
-  const clinic=clinicByKey.get(normalizeProviderName(label))
-  if(clinic){activeClinic=clinic;continue}
-  const doctor=activeClinic?.doctors.find(name=>normalizeProviderName(name)===normalizeProviderName(label))
-  if(!doctor){
-   const hasValues=dateColumns.some(({column})=>{const value=readCell(source.getCell(column));return value!==''&&value!=null})
-   if(hasValues)errors.push('Sheet "'+String(sheet.name??'Logbook')+'" · baris '+r+': dokter "'+label+'" tidak ditemukan pada roster klinik '+(activeClinic?.clinic??'Rawat Jalan')+'.')
-   continue
-  }
-  for(const {column,date} of dateColumns){
-   const raw=readCell(source.getCell(column))
-   if(raw===''||raw==null)continue
-   const waitingMinutes=parseOutpatientWaitingMinutes(raw)
-   if(waitingMinutes==null)throw new Error('Sheet "'+String(sheet.name??'Logbook')+'" · baris '+r+', kolom '+column+': waktu tunggu harus berupa angka 0–1.440 menit.')
-   const row:PreparedRow={sourceRow:r,sourceSheet:String(sheet.name??'Logbook'),date,clinic:activeClinic!.clinic,doctor,waitingMinutes}
-   const key=makeOutpatientProviderDaySubjectKey(row.date,row.clinic,row.doctor)
-   if(seen.has(key)){errors.push('Sheet "'+row.sourceSheet+'" · baris '+r+': duplikasi tanggal, klinik, dan dokter.');continue}
-   seen.add(key);rows.push(row)
-   if(rows.length>MAX_DATA_ROWS)throw new Error('Workbook melebihi batas '+MAX_DATA_ROWS+' baris data.')
-  }
- }
- return {matched:true,rows,errors}
-}
 function payloadFor(row:PreparedRow,fileName:string,year:number){
   const formFields={'Tanggal pengamatan':row.date,'Klinik':row.clinic,'Dokter':row.doctor,'Waktu Tunggu Rawat Jalan (Menit)':row.waitingMinutes}
   const sourceImport={source_workbook:fileName,source_sheet:row.sourceSheet,source_excel_row:row.sourceRow,import_scope:'outpatient_provider_day_waiting_time',idempotency_basis:'date_clinic_doctor'}
@@ -158,6 +77,7 @@ function payloadFor(row:PreparedRow,fileName:string,year:number){
 }
 export default function OutpatientExcelImportDialog({open,roomId,year,authorized,layout,onClose,onImported}:Props){
  const [file,setFile]=useState<File|null>(null),[rows,setRows]=useState<PreparedRow[]>([]),[errors,setErrors]=useState<string[]>([]),[parsing,setParsing]=useState(false),[importing,setImporting]=useState(false),[result,setResult]=useState<{imported:number;skipped:number;received:number}|null>(null),[errorMessage,setErrorMessage]=useState(''),[fileKey,setFileKey]=useState(0)
+ const [allowValidRows,setAllowValidRows]=useState(false)
  const eligible=open&&authorized&&roomId===11&&year>=2026&&year<=2100
  const preview=useMemo(()=>rows.slice(0,100),[rows])
  const reset=useCallback(()=>{setFile(null);setRows([]);setErrors([]);setResult(null);setErrorMessage('');setFileKey(v=>v+1)},[])
@@ -165,7 +85,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
   const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
 
  const parseWorkbook=async(selected:File)=>{
-  setFile(selected);setRows([]);setErrors([]);setResult(null);setErrorMessage('')
+  setFile(selected);setRows([]);setErrors([]);setAllowValidRows(false);setResult(null);setErrorMessage('')
   if(!eligible){setErrorMessage('Pilih Instalasi Rawat Jalan dan tahun profil 2026–2100 sebelum mengimpor.');return}
   if(!/\.xlsx$/i.test(selected.name)){setErrorMessage('Hanya workbook .xlsx yang didukung.');return}
   if(selected.size<=0||selected.size>MAX_FILE_BYTES){setErrorMessage('Ukuran file harus lebih dari 0 dan maksimal 15 MB.');return}
@@ -189,7 +109,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
    for(const sheet of candidateSheets){
     const header=findHeaderRow(sheet)
     if(!header){
-     const matrix=parseMatrixSheet(sheet,year,groups,seen)
+     const matrix=parseOutpatientMatrixSheet(sheet,year,groups,seen)
      if(matrix.matched){
       matchedSheets++
       prepared.push(...matrix.rows)
@@ -236,7 +156,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
   finally{setParsing(false)}
  }
  const importRows=async()=>{
-  if(!eligible||!rows.length||errors.length||importing||result)return
+  if(!eligible||!rows.length||(errors.length>0&&!allowValidRows)||importing||result)return
   setImporting(true);setErrorMessage('')
   try{
    const {data:{user},error:userError}=await sb.auth.getUser()
@@ -270,13 +190,14 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
     {parsing&&<div className="oiBox">Membaca workbook dan memeriksa data…</div>}
     {errorMessage&&<div className="oiBox oiError" role="alert">{errorMessage}</div>}
     {rows.length>0&&<div className="oiStats"><div className="oiStat"><span>Baris valid</span><strong>{rows.length}</strong></div><div className="oiStat"><span>Baris bermasalah</span><strong>{errors.length}</strong></div><div className="oiStat"><span>Siap diimpor</span><strong>{rows.length-errors.length}</strong></div></div>}
-    {errors.length>0&&<div className="oiBox oiWarn"><b>Impor diblokir sampai baris bermasalah dikoreksi.</b>{'\n'+errors.slice(0,40).join('\n')}{errors.length>40?'\n… dan '+(errors.length-40)+' baris lainnya.':''}</div>}
+    {errors.length>0&&<div className="oiBox oiWarn"><b>Baris berikut perlu diperbaiki dari workbook.</b>{'\n'+errors.slice(0,40).join('\n')}{errors.length>40?'\n… dan '+(errors.length-40)+' baris lainnya.':''}</div>}
     {rows.length>0&&<div className="oiTable"><table><thead><tr><th>Sheet</th><th>Baris</th><th>Tanggal</th><th>Klinik</th><th>Dokter</th><th>Waktu tunggu</th></tr></thead><tbody>{preview.map(row=><tr key={row.sourceSheet+'-'+row.sourceRow}><td>{row.sourceSheet}</td><td>{row.sourceRow}</td><td>{row.date}</td><td>{row.clinic}</td><td>{row.doctor}</td><td>{row.waitingMinutes.toLocaleString('id-ID')} menit</td></tr>)}</tbody></table></div>}
     {rows.length>100&&<div className="oiMuted">Pratinjau menampilkan 100 dari {rows.length} baris.</div>}
     <div className="oiMuted">Kunci idempotensi mengikuti logbook manual AUREKA: room 11 + tanggal + nama klinik roster + nama dokter roster. Unggah ulang tidak membuat catatan duplikat. Catatan impor menjadi laporan final PIC dan tetap dapat diperbarui; pemeriksaan bulanan dilakukan oleh Validator.</div>
+    {!!errors.length&&!!rows.length&&!result&&<label><input type="checkbox" checked={allowValidRows} disabled={importing} onChange={event=>setAllowValidRows(event.target.checked)}/> Impor baris valid dan sisakan baris yang perlu koreksi.</label>}
     {result&&<div className="oiBox oiSuccess" role="status">Impor selesai: {result.imported} catatan baru tersimpan dan {result.skipped} dilewati karena catatan dokter/klinik/tanggal sudah ada (dari {result.received} baris valid).</div>}
    </div>
-   <div className="aqFoot"><span className="oiMuted">Periksa pratinjau sebelum memulai impor.</span><div style={{display:'flex',gap:8}}><button className="aqBtn" type="button" disabled={parsing||importing} onClick={close} >Batal</button><button className="aqBtn primary" type="button" disabled={!eligible||!authorized||!rows.length||errors.length>0||parsing||importing||!!result} onClick={()=>void importRows()}>{importing?'Mengimpor…':'Simpan '+rows.length+' catatan'}</button></div></div>
+   <div className="aqFoot"><span className="oiMuted">Periksa pratinjau sebelum memulai impor.</span><div style={{display:'flex',gap:8}}><button className="aqBtn" type="button" disabled={parsing||importing} onClick={close} >Batal</button><button className="aqBtn primary" type="button" disabled={!eligible||!authorized||!rows.length||(errors.length>0&&!allowValidRows)||parsing||importing||!!result} onClick={()=>void importRows()}>{importing?'Mengimpor…':'Simpan '+rows.length+' catatan'}</button></div></div>
   </section>
  </div></div>, document.body)
 }

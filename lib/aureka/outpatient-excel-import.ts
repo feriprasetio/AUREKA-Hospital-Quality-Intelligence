@@ -1,3 +1,6 @@
+import type { Worksheet } from 'exceljs-hardened'
+import { normalizeProviderName, type OutpatientProviderGroup } from './outpatient-logbook.ts'
+
 export function normalizeOutpatientImportDate(value: unknown): string | null {
   const valid = (year: number, month: number, day: number): string | null => {
     const date = new Date(Date.UTC(year, month - 1, day))
@@ -63,4 +66,89 @@ export function parseOutpatientWaitingMinutes(value: unknown): number | null {
 /** The same provider-day key used by manual logbook saves and the live DB import RPC. */
 export function makeOutpatientProviderDaySubjectKey(date: string, clinic: string, doctor: string): string {
   return '11:' + date + ':' + clinic.trim() + ':' + doctor.trim()
+}
+
+const MAX_DATA_ROWS = 5000
+export type OutpatientPreparedRow = { sourceRow:number; sourceSheet:string; date:string; clinic:string; doctor:string; waitingMinutes:number }
+
+export function readOutpatientCell(cell:any):unknown {
+  const value=cell?.value
+  if(value==null)return ''
+  if(value instanceof Date)return value
+  if(typeof value==='object'){
+    if('result' in value&&value.result!=null)return value.result
+    if(Array.isArray(value.richText))return value.richText.map((part:any)=>String(part?.text??'')).join('')
+    if(typeof value.text==='string')return value.text
+    if(typeof value.hyperlink==='string')return value.text??value.hyperlink
+    return ''
+  }
+  return value
+}
+export function outpatientCellText(cell:any):string {
+  const value=readOutpatientCell(cell)
+  return value instanceof Date?normalizeOutpatientImportDate(value)??'':String(value??'').trim()
+}
+
+export function parseOutpatientMatrixSheet(sheet:Worksheet,year:number,groups:OutpatientProviderGroup[],seen:Set<string>):{matched:boolean;rows:OutpatientPreparedRow[];errors:string[]}{
+ const rows:OutpatientPreparedRow[]=[],errors:string[]=[]
+ const firstLabel=outpatientCellText(sheet.getRow(1).getCell(1)).toLocaleLowerCase('id-ID')
+ const sheetName=String(sheet.name??'').toLocaleLowerCase('id-ID')
+ if(!/poliklinik|klinik/.test(firstLabel)&&!/(^|\s)logbook(\s|$)/.test(sheetName))return {matched:false,rows,errors}
+ let headerRow=0,firstDateColumn=0,dateColumns:Array<{column:number;date:string}>=[]
+ // Official PMKP logbook: first column contains clinic group labels and
+ // each following column is a calendar date. Date formulas may have no
+ // cached result in some Excel readers, so continue a sequential date series
+ // only when the cell is an Excel formula.
+ for(let r=1;r<=Math.min(15,sheet.rowCount);r++){
+  for(let c=1;c<=Math.min(Number(sheet.columnCount??500),500);c++){
+   const cell=sheet.getRow(r).getCell(c)
+   const value=readOutpatientCell(cell)
+   const date=normalizeOutpatientImportDate(value)
+   if(date&&Number(date.slice(0,4))===year){headerRow=r;firstDateColumn=c;break}
+  }
+  if(headerRow)break
+ }
+ if(!headerRow)return {matched:false,rows,errors}
+ let currentDate=normalizeOutpatientImportDate(readOutpatientCell(sheet.getRow(headerRow).getCell(firstDateColumn)))!
+ for(let c=firstDateColumn;c<=Math.min(Number(sheet.columnCount??500),500);c++){
+  const cell=sheet.getRow(headerRow).getCell(c)
+  const raw=readOutpatientCell(cell)
+  const parsed=normalizeOutpatientImportDate(raw)
+  if(parsed&&Number(parsed.slice(0,4))===year){currentDate=parsed;dateColumns.push({column:c,date:parsed});continue}
+  const formula=String(cell.formula??'').replace(/[=$\s]/g,'').toUpperCase()
+  const previous=c>firstDateColumn?sheet.getRow(headerRow).getCell(c - 1).address.toUpperCase():''
+  if(c>firstDateColumn&&formula===previous+'+1'){
+   const next=new Date(currentDate+'T00:00:00Z');next.setUTCDate(next.getUTCDate()+1);currentDate=next.toISOString().slice(0,10)
+   if(Number(currentDate.slice(0,4))===year)dateColumns.push({column:c,date:currentDate})
+   continue
+  }
+  if(c>firstDateColumn)break
+ }
+ if(!dateColumns.length)return {matched:false,rows,errors}
+ const clinicByKey=new Map(groups.map(group=>[normalizeProviderName(group.clinic),group]))
+ let activeClinic:OutpatientProviderGroup|null=null
+ for(let r=headerRow+1;r<=Math.min(sheet.rowCount,headerRow+5000);r++){
+  const source=sheet.getRow(r),label=outpatientCellText(source.getCell(1))
+  if(!label)continue
+  const clinic=clinicByKey.get(normalizeProviderName(label))
+  if(clinic){activeClinic=clinic;continue}
+  const doctor=activeClinic?.doctors.find(name=>normalizeProviderName(name)===normalizeProviderName(label))
+  if(!doctor){
+   const hasValues=dateColumns.some(({column})=>{const value=readOutpatientCell(source.getCell(column));return value!==''&&value!=null})
+   if(hasValues)errors.push('Sheet "'+String(sheet.name??'Logbook')+'" · baris '+r+': dokter "'+label+'" tidak ditemukan pada roster klinik '+(activeClinic?.clinic??'Rawat Jalan')+'.')
+   continue
+  }
+  for(const {column,date} of dateColumns){
+   const raw=readOutpatientCell(source.getCell(column))
+   if(raw===''||raw==null)continue
+   const waitingMinutes=parseOutpatientWaitingMinutes(raw)
+   if(waitingMinutes==null){ errors.push('Sheet "'+String(sheet.name??'Logbook')+'" · baris '+r+', kolom '+column+': waktu tunggu harus berupa angka 0–1.440 menit.'); continue }
+   const row:OutpatientPreparedRow={sourceRow:r,sourceSheet:String(sheet.name??'Logbook'),date,clinic:activeClinic!.clinic,doctor,waitingMinutes}
+   const key=makeOutpatientProviderDaySubjectKey(row.date,row.clinic,row.doctor)
+   if(seen.has(key)){errors.push('Sheet "'+row.sourceSheet+'" · baris '+r+': duplikasi tanggal, klinik, dan dokter.');continue}
+   seen.add(key);rows.push(row)
+   if(rows.length>MAX_DATA_ROWS)throw new Error('Workbook melebihi batas '+MAX_DATA_ROWS+' baris data.')
+  }
+ }
+ return {matched:true,rows,errors}
 }
