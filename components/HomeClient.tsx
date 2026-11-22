@@ -1026,7 +1026,7 @@ export default function HomeClient(){
       <ol className="authArcticSteps">
        <li><b>Verifikasi email</b><span>Buka email <i className="authStrong">{email.trim()}</i> dan klik tautan verifikasi (cek juga folder Spam).</span></li>
        <li><b>Aktivasi oleh Komite PMKP</b><span>Super Admin akan memeriksa unit dan mengaktifkan akun Anda.</span></li>
-       <li><b>Masuk ke workspace</b><span>Setelah aktif, login dengan username <i className="authStrong">{username||'-'}</i> (atau email) dan password Anda.</span></li>
+       <li><b>Masuk ke AUREKA</b><span>Setelah aktif, login dengan username <i className="authStrong">{username||'-'}</i> (atau email) dan password Anda.</span></li>
       </ol>
       <button type="button" className="authArcticWide" onClick={()=>{setSignupDone(false);setMessage('');setPassword('');setView('login')}}>Ke halaman login</button>
      </div>:<form className="authArcticForm" onSubmit={submit} noValidate>

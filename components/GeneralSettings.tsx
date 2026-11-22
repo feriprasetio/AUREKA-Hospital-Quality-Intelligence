@@ -1098,7 +1098,7 @@ function PreferenceExtras() {
   return (
     <section className="stPrefExtras" aria-label="Preferensi tampilan lanjutan">
       <div className="stAppearanceIntro">
-        <div><h5>Preferensi Sistem · Tampilan</h5><p>Semua perubahan langsung berlaku pada halaman AUREKA di perangkat ini. File, data klinis, dan hak akses tidak berubah.</p></div>
+        <div><h5>Pengaturan Tampilan</h5><p>Semua perubahan langsung berlaku pada halaman AUREKA di perangkat ini. File, data klinis, dan hak akses tidak berubah.</p></div>
         <button type="button" className="stAppearanceReset" onClick={() => setPreferences(resetAppearancePreferences())}>Kembalikan standar</button>
       </div>
       <div className="stAppearanceSettings">

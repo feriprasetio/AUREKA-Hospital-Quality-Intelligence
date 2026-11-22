@@ -164,7 +164,7 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
         </nav>
         <div className="aurekaPublicHeaderActions">
           <button type="button" className="aurekaPublicTheme" aria-label={mode==='gelap'?'Ganti tema terang':'Ganti tema gelap'} onClick={()=>setAurekaMode(mode==='gelap'?'terang':'gelap')}>{mode==='gelap'?'☀':'◐'}</button>
-          <button type="button" className="aurekaPublicPrimary" onClick={onLogin}>Masuk Workspace</button>
+          <button type="button" className="aurekaPublicPrimary" onClick={onLogin}>Masuk ke AUREKA</button>
         </div>
       </div>
     </header>
