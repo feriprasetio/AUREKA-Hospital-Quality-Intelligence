@@ -554,7 +554,7 @@ export default function FppeEvaluationWorkspace({
         <p className="fppeMuted">Dihitung dari {filtered.length} evaluasi FPPE pada unit dan pencarian saat ini. Distribusi status administratif; bukan kesimpulan kompetensi tenaga.</p>
       </section>
       <details className="workspaceSummary fppeHistorySummary" open={search.trim() ? true : undefined}>
-        <summary><b>Riwayat & ekspor evaluasi</b><span>{roster.length} tenaga pada roster unit · {loading ? 'Memuat riwayat…' : `${filtered.length} evaluasi FPPE`}</span></summary>
+        <summary><b>Riwayat & ekspor evaluasi</b><span>{roster.length} tenaga di unit ini · {loading ? 'Memuat riwayat…' : `${filtered.length} evaluasi FPPE`}</span></summary>
         <aside className="fppePanel fppeHistory">
           <div className="fppeHistoryHead"><div><div className="fppeEyebrow">Arsip FPPE</div><h4>Riwayat evaluasi</h4></div><span>{filtered.length}</span></div>
           <input className="fppeLocalSearch" aria-label="Cari arsip FPPE berdasarkan nama, kode, jabatan, atau trigger" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama, kode, jabatan, trigger…" />
@@ -566,8 +566,8 @@ export default function FppeEvaluationWorkspace({
                   <span className={'fppeBadge ' + (STATUS_CLASS[record.status] || 'fppeNeutral')}>{STATUS_LABEL[record.status] || record.status}</span>
                   <strong>{staff.name}</strong>
                   <small>{staff.code} · {staff.title}</small>
-                  <small>{record.evaluation_type === 'triggered' ? 'Triggered FPPE' : 'Initial FPPE'} · {record.period_start || 'Tanggal belum diisi'} – {record.period_end || 'Tanggal belum diisi'}</small>
-                  <small>Trigger: {record.trigger_reason || 'Belum ditentukan'}</small>
+                  <small>{record.evaluation_type === 'triggered' ? 'FPPE berdasarkan temuan' : 'FPPE awal'} · {record.period_start || 'Tanggal belum diisi'} – {record.period_end || 'Tanggal belum diisi'}</small>
+                  <small>Alasan: {record.trigger_reason || 'Belum ditentukan'}</small>
                 </button>
                 <div className="fppeHistoryExportActions">
                   <button type="button" onClick={() => exportFppePdf(record)} title={'Ekspor PDF FPPE ' + staff.name}>Ekspor PDF</button>
@@ -575,7 +575,7 @@ export default function FppeEvaluationWorkspace({
                 </div>
               </div>
             })}
-            {!filtered.length && <div className="fppeEmpty">{search ? 'Tidak ada rekaman yang cocok.' : 'Belum ada rekaman FPPE pada unit ini. Gunakan FPPE baru untuk memulai.'}</div>}
+            {!filtered.length && <div className="fppeEmpty">{search ? 'Tidak ada evaluasi yang cocok.' : 'Belum ada evaluasi FPPE pada unit ini. Pilih FPPE baru untuk memulai.'}</div>}
           </div>}
         </aside>
       </details>
