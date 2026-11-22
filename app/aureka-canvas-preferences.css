@@ -607,3 +607,33 @@ html[data-skin="arktik"][data-aureka-motion="off"] body .workspaceRoot.workspace
   flex-basis: 100%;
   margin: 4px 0;
 }
+
+
+/*
+ * Header search focus: the input and its container are one visible control.
+ * Prevent global focus-visible outlines and focus-within shadows from drawing
+ * a second, detached rectangle around the search bar.
+ */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch:focus-within {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border: 2px solid var(--aureka-color-information, #246b9f) !important;
+  padding-inline: 7px !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch > input[type="search"]:is(:focus, :focus-visible) {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch:focus-within {
+  border-color: #9ec7f3 !important;
+}
+@media (forced-colors: active) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch:focus-within {
+    border-color: Highlight !important;
+  }
+}
