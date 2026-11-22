@@ -375,7 +375,7 @@ export default function PatientEpisodeWorkbookDialog({
       {sourceNotes.length > 0 && <section className="episodeWorkbookMeta" role="status">
         {sourceNotes.map((note,index)=><p key={index}>{note}</p>)}
       </section>}
-      {autofillNotice && <p className="episodeWorkbookSuccess" role="status">{autofillNotice}</p>
+      {autofillNotice && <p className="episodeWorkbookSuccess" role="status">{autofillNotice}</p>}
       {!!busy && <p className="episodeWorkbookMeta" role="status">{busy}</p>}
       {error && <p className="episodeWorkbookError" role="alert">{error}</p>}
       {!!preview?.heldRows && <section className="episodeWorkbookError">
