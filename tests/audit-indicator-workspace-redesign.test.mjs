@@ -13,10 +13,10 @@ test('Audit Indikator Mutu keeps its operational engine and adds a scoped balanc
   assert.match(source, /const save=async\(\)=>/)
   assert.match(source, /openImportDialog\(/)
   assert.match(source, /archivePatient\(/)
-  assert.match(source, /reviewRecord\(/)
+  assert.match(source, /confirmMonthlyReview\(/)
   assert.ok(source.includes('grid-template-areas:"unit year month" "actions actions actions"'))
   assert.ok(source.includes('.aqAuditWorkspace .aqFilterActions{grid-column:1/-1;grid-row:2;display:flex'))
-  assert.match(source, /\.aqFilterActions>button\{flex:0 0 auto;width:auto;min-width:max-content/)
+  assert.match(source, /\.aqFilterActions>button\{flex:0 1 auto;width:auto;min-width:0/)
   assert.match(source, /table\.aqData\{width:100%;min-width:1050px;table-layout:auto/)
 })
 
@@ -45,7 +45,7 @@ test('Results tab retains the validated room-aware indicator engine and balanced
 test('Every indicator uses the professional compact assessment UI without evidence or draft labels', () => {
   const source = read('components/QualityIndicatorWorkspace.tsx')
   const editorStart = source.indexOf('const indicatorEditor=')
-  const editorEnd = source.indexOf('const reviewRecord=', editorStart)
+  const editorEnd = source.indexOf('const loadMonthlyReview=', editorStart)
   const editor = source.slice(editorStart, editorEnd)
   assert.ok(editorStart >= 0 && editorEnd > editorStart)
   assert.doesNotMatch(editor, /Bukti & catatan audit|Definisi operasional & rumus indikator|Pilih hasil sesuai Logbook|Nama master:/)
@@ -84,7 +84,7 @@ test('Logbook toolbar is consolidated into the unit/year/month filter row', () =
   assert.match(source, /aria-label="Statistik catatan logbook"/)
   assert.ok(source.includes('grid-template-areas:"unit year month" "actions actions actions"'))
   assert.ok(source.includes('.aqFilterActions{grid-column:1/-1;grid-row:2;display:flex'))
-  assert.match(source, /\.aqFilterActions>button\{flex:0 0 auto;width:auto;min-width:max-content/)
+  assert.match(source, /\.aqFilterActions>button\{flex:0 1 auto;width:auto;min-width:0/)
   assert.match(source, /white-space:normal;flex-wrap:wrap/)
 })
 

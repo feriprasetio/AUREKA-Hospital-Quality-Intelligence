@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type PicRow = {
@@ -30,15 +31,26 @@ const number = (value: number) => Number(value || 0).toLocaleString('id-ID')
 export default function PicPerformanceWorkspace() {
   const [days, setDays] = useState(30)
   const [data, setData] = useState<Dashboard | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [reading, setLoading] = useState(true)
+  const [loadedDays, setLoadedDays] = useState(0)
+  const loading = reading || loadedDays !== days
+  const beginLoad = useLatestWorkspaceRequest(String(days))
   const [error, setError] = useState('')
   const load = useCallback(async () => {
-    setLoading(true); setError('')
-    const { data: result, error: rpcError } = await aurekaSupabase.rpc('aureka_pic_performance_dashboard', { p_days: days })
-    if (rpcError) setError('Monitoring kinerja PIC belum dapat dimuat: ' + toUserFacingError(rpcError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
-    else setData(result as Dashboard)
-    setLoading(false)
-  }, [days])
+    const isCurrent = beginLoad()
+    if (!isCurrent) return
+    setLoading(true); setError(''); setData(null)
+    try {
+      const { data: result, error: rpcError } = await aurekaSupabase.rpc('aureka_pic_performance_dashboard', { p_days: days })
+      if (rpcError) throw rpcError
+      if (!Array.isArray((result as Dashboard | null)?.rows)) throw new Error('Data monitoring PIC belum tersedia untuk periode ini.')
+      if (isCurrent()) setData(result as Dashboard)
+    } catch (cause) {
+      if (isCurrent()) setError(toUserFacingError(cause, { fallback: 'Monitoring kinerja PIC belum dapat dimuat. Periksa koneksi dan hak akses.' }))
+    } finally {
+      if (isCurrent()) { setLoadedDays(days); setLoading(false) }
+    }
+  }, [beginLoad, days])
   useEffect(() => { void load() }, [load])
   const rows = data?.rows || []
   const totals = useMemo(() => rows.reduce((acc, row) => ({
@@ -83,7 +95,7 @@ export default function PicPerformanceWorkspace() {
 
     </div>
     {loading && <AsyncStatePanel state="loading" title="Memuat aktivitas PIC" description="Mengambil data penugasan dan logbook dari server." compact/>}
-    {error && <AsyncStatePanel state="error" title="Data monitoring belum tersedia" description={error} onRetry={()=>void load()} compact/>}
+    {!loading && error && <AsyncStatePanel state="error" title="Data monitoring belum tersedia" description={error} onRetry={()=>void load()} compact/>}
     {!loading && !error && <>
       <div className="ppKpis">
         <div className="ppKpi"><span>PIC dengan penugasan aktif</span><strong>{number(totals.pic)}</strong></div>

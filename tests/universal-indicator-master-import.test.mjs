@@ -13,7 +13,7 @@ test('indicator workspace exposes unit-scoped universal profile Excel import for
   assert.match(source, /importerKey="aureka-indicator-master"/)
   assert.match(source, /role="ADMIN"/)
   assert.match(source, /activeProfiles=\{profiles\.filter\(profile=>Number\(profile\.room_id\)===roomId\)/)
-  assert.match(source, /QIW_MEMORY_CACHE\.clear\(\)/)
+  assert.match(source, /setMasterWorkbookOpen\(false\);if\(await load\(\)\)/)
 })
 
 test('universal importer supports profile-only without patient data, and checks provenance before atomic RPC commit', () => {

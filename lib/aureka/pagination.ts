@@ -28,3 +28,27 @@ export async function readAllPages<T>(readPage: PageReader<T>, pageSize = 500): 
     if (batch.length < pageSize) return rows
   }
 }
+
+/** Read at most a fixed number of rows and distinguish an exact fit from a truncated result. */
+export async function readPagesWithLimit<T>(
+  readPage: PageReader<T>,
+  limit: number,
+  pageSize = 500,
+): Promise<{ rows: T[]; capped: boolean }> {
+  if (!Number.isSafeInteger(limit) || limit < 1 || !Number.isSafeInteger(pageSize) || pageSize < 1) {
+    throw new RangeError('Batas data dan ukuran halaman harus berupa bilangan bulat positif.')
+  }
+
+  const rows: T[] = []
+  for (let from = 0; from < limit; from += pageSize) {
+    const count = Math.min(pageSize, limit - from)
+    const { data, error } = await readPage(from, from + count - 1)
+    if (error) throw error
+    rows.push(...(data ?? []))
+    if ((data?.length ?? 0) < count) return { rows, capped: false }
+  }
+
+  const { data, error } = await readPage(limit, limit)
+  if (error) throw error
+  return { rows, capped: !!data?.length }
+}

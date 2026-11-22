@@ -112,3 +112,22 @@ test('missing configured unit header fails with a configuration-specific message
   )
   clearInteractiveExcelHeaderMappingScope()
 })
+
+
+test('a server rule marked for review does not override an exact workbook header', () => {
+  hydrateInteractiveExcelHeaderMappings(6, 2026, [{
+    importer_key: 'igd-logbook',
+    target_key: 'patient',
+    source_header: 'Kolom belum diperiksa',
+    mapping_status: 'needs_review',
+  }])
+  try {
+    const columns = new Map([['Nama Pasien', 2], ['Kolom belum diperiksa', 9]])
+    assert.equal(resolveInteractiveExcelHeaderColumn(columns, ['Nama Pasien'], {
+      importerKey: 'igd-logbook',
+      fieldKey: 'patient',
+    }), 2)
+  } finally {
+    clearInteractiveExcelHeaderMappingScope()
+  }
+})

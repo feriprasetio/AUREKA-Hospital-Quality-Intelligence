@@ -41,7 +41,7 @@ export function hydrateInteractiveExcelHeaderMappings(
   activeMappingScope = roomId == null ? '' : String(roomId) + ':' + String(year)
   const next: Record<string, Record<string, StoredMapping>> = {}
   for (const row of rows) {
-    if (!row || !row.importer_key || !row.target_key || !row.source_header) continue
+    if (!row || row.mapping_status === 'needs_review' || !row.importer_key || !row.target_key || !row.source_header) continue
     const importer = next[row.importer_key] ?? (next[row.importer_key] = {})
     importer[row.target_key] = {
       normalizedHeader: normalizeExactHeader(row.source_header),

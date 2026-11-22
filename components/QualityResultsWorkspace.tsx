@@ -4,6 +4,8 @@ import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewpor
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useEffect, useMemo, useState } from 'react'
+import { readAllPages, readPagesWithLimit } from '@/lib/aureka/pagination'
+import { toUserFacingError } from '@/lib/ui/error-feedback'
 import AurekaModal from '@/components/ui/AurekaModal'
 import SpcChart from '@/components/quality/SpcChart'
 import QualityCategoryIntelligence from '@/components/quality/QualityCategoryIntelligence'
@@ -210,20 +212,7 @@ function Distribution({ summary, minimum, maximum }: { summary: { n: number; dis
   })}</div>
 }
 
-async function readPaged<T>(build: (from: number, to: number) => any, maximum = 10000): Promise<{ rows: T[]; capped: boolean }> {
-  const rows: T[] = []
-  const pageSize = 500
-  for (let from = 0; from < maximum; from += pageSize) {
-    const { data, error } = await build(from, Math.min(from + pageSize - 1, maximum - 1))
-    if (error) throw error
-    const batch = (data ?? []) as T[]
-    rows.push(...batch)
-    if (batch.length < pageSize) return { rows, capped: false }
-  }
-  return { rows, capped: true }
-}
-
-const RESULTS_CACHE = new Map<string, { at: number; indicator?: IndicatorDataset; pathway?: PathwayDataset; clinical?: ClinicalDataset }>()
+const RECORD_LIMIT = 10000
 
 export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false, groupBy = 'unit', onAskNara }: Props) {
   const [categoryFilter, setCategoryFilter] = useState('')
@@ -246,8 +235,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   const [year, setYear] = useState(2026)
   const [clinicalTab, setClinicalTab] = useState<ClinicalTab>('clinical')
   const [rawIndicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
-  // Laporan PIC berstatus "ready" ikut dihitung (default), karena validasi dilakukan terpisah per bulan.
-  // Bisa dimatikan untuk melihat capaian yang hanya berasal dari data tervalidasi.
+  // Official INM export always uses the validated dataset. The checkbox adds ready reports to the on-screen view.
   const [includeReady, setIncludeReady] = useState(false)
   const rawReadyCount = useMemo(() => rawIndicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'ready').length, [rawIndicatorData])
   const rawValidatedCount = useMemo(() => rawIndicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'validated').length, [rawIndicatorData])
@@ -256,22 +244,28 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     : rawIndicatorData, [rawIndicatorData, includeReady])
   const [pathwayData, setPathwayData] = useState<PathwayDataset>([])
   const [clinicalData, setClinicalData] = useState<ClinicalDataset>([])
-  const [loading, setLoading] = useState(true)
+  const [reading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [capped, setCapped] = useState(false)
   const [reload, setReload] = useState(0)
+  const scope = JSON.stringify([mode, roomId, year, canViewAllRooms, reload])
+  const [finishedScope, setFinishedScope] = useState('')
+  const loading = reading || finishedScope !== scope
 
   useEffect(() => {
     let cancelled = false
-    // Tampilkan hasil terakhir (≤5 menit) seketika saat kembali ke unit/tahun yang sama; data tetap dimuat ulang di belakang.
-    const cacheKey = mode + '|' + String(roomId) + '|' + year
-    const cached = RESULTS_CACHE.get(cacheKey)
-    const fresh = cached && Date.now() - cached.at < 5 * 60 * 1000
-    setLoading(!fresh)
+    const controller = new AbortController()
+    setLoading(true)
     setError('')
-    setCapped(false)
-    if (fresh && cached) { if (cached.indicator) setIndicatorData(cached.indicator); if (cached.pathway) setPathwayData(cached.pathway); if (cached.clinical) setClinicalData(cached.clinical) }
-    else { setIndicatorData({ profiles: [], rows: [] }); setPathwayData([]); setClinicalData([]) }
+    setIndicatorData({ profiles: [], rows: [] })
+    setPathwayData([])
+    setClinicalData([])
+    setWhyFor(null)
+    setSpcFor(null)
+    setSourceFor(null)
+
+    const requireComplete = (capped: boolean) => {
+      if (capped) throw new Error('Cakupan ini memuat lebih dari ' + RECORD_LIMIT.toLocaleString('id-ID') + ' catatan. Pilih satu unit atau tahun lain untuk melihat hasil lengkap dan mengunduh laporan.')
+    }
 
     const load = async () => {
       const selectedRoom = normalizeRoom(roomId)
@@ -284,25 +278,25 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         // kolom tanggal di formulir. Semua sumber itu harus ikut terbaca untuk setiap unit; bila tidak,
         // catatan yang record_date-nya kosong gugur diam-diam saat satu unit dipilih.
         const indicatorRecordSelect = 'id,room_id,profile_year,record_date,status,created_at,updated_at,indicator_values:core_data->indicator_values,source_import:core_data->source_import,core_record_date:core_data->>record_date,form_fields:core_data->form_fields,form_data:core_data->form_data,admission_at:core_data->>admission_at,admit:core_data->>admit'
-        let profileQuery: any = q().from('indicator_profiles')
-          .select('id,room_id,code,title,indicator_type,unit_of_measure,target_text,target_operator,target_value,numerator_definition,denominator_definition,measurement_grain,schema_json,options_json')
-          .eq('profile_year', year)
-          .eq('status', 'published')
-          .eq('is_active', true)
-          .order('room_id')
-          .order('code')
-        if (selectedRoom != null) profileQuery = profileQuery.eq('room_id', selectedRoom)
-        const recordQuery = readPaged<ResultRecord>((from, to) => {
+        const profileQuery = readAllPages<IndicatorProfileForResults>((from, to) => {
+          let request = q().from('indicator_profiles')
+            .select('id,room_id,code,title,indicator_type,unit_of_measure,target_text,target_operator,target_value,numerator_definition,denominator_definition,measurement_grain,schema_json,options_json')
+            .eq('profile_year', year).eq('status', 'published').eq('is_active', true)
+            .order('room_id').order('code').order('id')
+          if (selectedRoom != null) request = request.eq('room_id', selectedRoom)
+          return request.range(from, to).abortSignal(controller.signal)
+        })
+        const recordQuery = readPagesWithLimit<ResultRecord>((from, to) => {
           let request: any = q().from('quality_records')
             .select(indicatorRecordSelect)
             .eq('profile_year', year)
             .neq('status', 'archived')
           if (selectedRoom != null) request = request.eq('room_id', selectedRoom)
-          return request.order('created_at', { ascending: false }).range(from, to)
-        })
-        const [profileResult, recordResult] = await Promise.all([profileQuery, recordQuery])
-        if (profileResult.error) throw profileResult.error
-        const activeProfiles = (profileResult.data ?? []) as IndicatorProfileForResults[]
+          return request.order('created_at', { ascending: false }).order('id').range(from, to).abortSignal(controller.signal)
+        }, RECORD_LIMIT)
+        const [activeProfiles, recordResult] = await Promise.all([profileQuery, recordQuery])
+        if (cancelled) return
+        requireComplete(recordResult.capped)
         if (recordResult.rows.length > 0) {
           recordResult.rows = recordResult.rows.map((row: any) => ({
             ...row,
@@ -320,26 +314,30 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         // Reconciliation decisions live in quality_record_responses, not inside
         // quality_records.core_data. Hydrate the per-indicator review status before
         // calculation so a ready logbook cannot bypass an outstanding mapping review.
-        let reviewResult: { rows: IndicatorResponseReview[]; capped: boolean } = { rows: [], capped: false }
-        const profileIds = activeProfiles.map((profile) => String(profile.id ?? '')).filter(Boolean)
-        if (profileIds.length > 0 && recordResult.rows.length > 0) {
-          reviewResult = await readPaged<IndicatorResponseReview>((from, to) => q().from('quality_record_responses')
-            .select('record_id,indicator_id,review_status,response_code,response_label,raw_value')
-            .in('indicator_id', profileIds)
-            .order('record_id')
-            .order('indicator_id')
-            .range(from, to), 50000)
-          if (reviewResult.capped) {
-            throw new Error('Pemuatan status rekonsiliasi melampaui 50.000 respons. Hasil indikator dihentikan agar respons yang belum ditelaah tidak terhitung tanpa status.')
+        const profileById = new Map(activeProfiles.map(profile => [String(profile.id ?? ''), profile]))
+        const reviewRows: IndicatorResponseReview[] = []
+        if (profileById.size) {
+          const recordIds = recordResult.rows.map(row => String(row.id))
+          const batches: string[][] = []
+          for (let from = 0; from < recordIds.length; from += 100) batches.push(recordIds.slice(from, from + 100))
+          for (let from = 0; from < batches.length; from += 6) {
+            if (cancelled) return
+            const results = await Promise.all(batches.slice(from, from + 6).map(ids =>
+              readAllPages<IndicatorResponseReview>((start, end) => q().from('quality_record_responses')
+                .select('record_id,indicator_id,review_status,response_code,response_label,raw_value')
+                .in('record_id', ids).order('record_id').order('indicator_id')
+                .range(start, end).abortSignal(controller.signal)),
+            ))
+            for (const rows of results) for (const row of rows) {
+              if (profileById.has(String(row.indicator_id))) reviewRows.push(row)
+            }
           }
         }
-        const profileById = new Map<string, IndicatorProfileForResults>()
-        activeProfiles.forEach((profile) => profileById.set(String(profile.id ?? ''), profile))
         const rowById = new Map<string, ResultRecord>()
         recordResult.rows.forEach((row) => rowById.set(String(row.id), row))
         const reviewByRecordProfile = new Map<string, string>()
         const normalizedResponseByKey = new Map<string, IndicatorResponseReview>()
-        for (const item of reviewResult.rows) {
+        for (const item of reviewRows) {
           const key = String(item.record_id) + '|' + String(item.indicator_id)
           const status = String(item.review_status ?? 'pending').trim().toLowerCase() || 'pending'
           const existing = reviewByRecordProfile.get(key)
@@ -373,35 +371,33 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         }
         if (cancelled) return
         const indicatorDataset = { profiles: activeProfiles, rows: recordResult.rows }
-        RESULTS_CACHE.set(cacheKey, { at: Date.now(), indicator: indicatorDataset })
         setIndicatorData(indicatorDataset)
-        setCapped(recordResult.capped || reviewResult.capped)
       } else if (mode === 'pathway') {
         const start = String(year) + '-01-01'
         const end = String(year + 1) + '-01-01'
-        const result = await readPaged<ClinicalPathwayRow>((from, to) => {
+        const result = await readPagesWithLimit<ClinicalPathwayRow>((from, to) => {
           let request: any = q().from('clinical_pathway_audits')
             .select('room_id,template_code,template_name,admission_date,created_at,updated_at,status,template_snapshot,selected_items_json,additional_phases_json,inclusion_json,answers_json,variations_json,calculation_json')
             .gte('admission_date', start)
             .lt('admission_date', end)
             .neq('status', 'archived')
           if (selectedRoom != null) request = request.eq('room_id', selectedRoom)
-          return request.order('admission_date', { ascending: false }).range(from, to)
-        })
+          return request.order('admission_date', { ascending: false }).order('id').range(from, to).abortSignal(controller.signal)
+        }, RECORD_LIMIT)
         if (cancelled) return
-        RESULTS_CACHE.set(cacheKey, { at: Date.now(), pathway: result.rows })
+        requireComplete(result.capped)
         setPathwayData(result.rows)
-        setCapped(result.capped)
       } else {
-        const result = await readPaged<ClinicalDeathAuditResultRow>((from, to) => {
+        const result = await readPagesWithLimit<ClinicalDeathAuditResultRow>((from, to) => {
           let request: any = q().from('clinical_death_audits')
             .select('room_id,audit_type,review_period,review_phases:review_json->phases,review_recommended_actions:review_json->>recommended_actions,review_learning_points:review_json->>learning_points,overall_care_score,care_issue_identified,contribution_to_outcome,avoidability_score,status,created_at,updated_at,validated_at')
             .eq('review_period', String(year))
             .neq('status', 'archived')
           if (selectedRoom != null) request = request.eq('room_id', selectedRoom)
-          return request.order('updated_at', { ascending: false }).range(from, to)
-        })
+          return request.order('updated_at', { ascending: false }).order('id').range(from, to).abortSignal(controller.signal)
+        }, RECORD_LIMIT)
         if (cancelled) return
+        requireComplete(result.capped)
         setClinicalData(result.rows.map((row) => ({
           ...row,
           review_json: {
@@ -410,18 +406,17 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             learning_points: row.review_learning_points ?? '',
           },
         })))
-        setCapped(result.capped)
       }
     }
 
     load().catch((loadError) => {
       if (cancelled) return
-      setError('Hasil audit tidak dapat dimuat: ' + (loadError instanceof Error ? loadError.message : 'Periksa koneksi dan hak akses unit.'))
+      setError(toUserFacingError(loadError, { fallback: 'Hasil audit belum dapat dimuat. Periksa koneksi dan hak akses unit.' }))
     }).finally(() => {
-      if (!cancelled) setLoading(false)
+      if (!cancelled) { setFinishedScope(scope); setLoading(false) }
     })
-    return () => { cancelled = true }
-  }, [mode, roomId, year, reload])
+    return () => { cancelled = true; controller.abort() }
+  }, [mode, roomId, year, canViewAllRooms, scope])
 
   const indicatorResults = useMemo(() => calculateIndicatorResultsForProfiles(
     indicatorData.profiles, indicatorData.rows, year,
@@ -438,6 +433,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   const hasInm = indicatorResults.some(isInm)
   const inmHasData = useMemo(() => buildInmRows(officialIndicatorResults, year, () => '').length > 0, [officialIndicatorResults, year])
   const exportInm = () => {
+    if (loading || error) return
     const rows = buildInmRows(officialIndicatorResults, year, roomNameOf)
     if (!rows.length) return
     const blob = new Blob([buildCsv(rows, INM_COLUMNS)], { type: 'text/csv;charset=utf-8;' })
@@ -763,11 +759,11 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           {YEARS.map((value) => <option key={value} value={value}>{value}</option>)}
         </select></label>
         <button type="button" className="qraBtn" disabled={loading} onClick={() => setReload((value) => value + 1)}>{loading ? 'Memuat…' : '↻ Muat ulang'}</button>
-        {mode === 'indicators' && hasInm && <button type="button" className="qraBtn" disabled={loading || !inmHasData} onClick={exportInm} title={inmHasData ? 'Unduh capaian bulanan Indikator Nasional Mutu untuk dilaporkan ke Kemenkes' : 'Belum ada data INM tervalidasi tahun ' + year}>Ekspor INM (CSV)</button>}
+        {mode === 'indicators' && hasInm && <button type="button" className="qraBtn" disabled={loading || !!error || !inmHasData} onClick={exportInm} title={inmHasData ? 'Unduh capaian bulanan Indikator Nasional Mutu untuk dilaporkan ke Kemenkes' : 'Belum ada data INM tervalidasi tahun ' + year}>Ekspor INM (CSV)</button>}
       </div>}
     />
 
-    {error && <div className="qraError" role="alert">{error}</div>}
+    {!loading && error && <div className="qraError" role="alert">{error}</div>}
     {loading
       ? <div className="qraPanel"><EmptyState title="Memuat data hasil audit…" detail="" /></div>
       : loadingError

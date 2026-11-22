@@ -1,5 +1,8 @@
 'use client'
 
+import AsyncStatePanel from '@/components/AsyncStatePanel'
+import { readAllPages } from '@/lib/aureka/pagination'
+import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import dynamic from 'next/dynamic'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -429,11 +432,16 @@ function UnitLiveProfileEditor({
   )
 }
 
+const EMPTY_MODELS: Model[] = []
+
 export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true, onTabChange, initialRoomId = null, lockRoomScope = false, role = null }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean; onTabChange?: (tab: MetadataTab) => void; initialRoomId?: number | null; lockRoomScope?: boolean; role?: string | null }) {
   const [year, setYear] = useState(2026)
   const [room, setRoom] = useState(lockRoomScope && initialRoomId != null ? String(initialRoomId) : '')
   useEffect(() => { if (lockRoomScope && initialRoomId != null) setRoom(String(initialRoomId)) }, [lockRoomScope, initialRoomId])
-  const [profiles, setProfiles] = useState<Model[]>([])
+  const scope = JSON.stringify([year, room, role])
+  const beginLoad = useLatestWorkspaceRequest(scope)
+  const [snapshot, setSnapshot] = useState<{ scope: string; profiles: Model[] } | null>(null)
+  const profiles = snapshot?.scope === scope ? snapshot.profiles : EMPTY_MODELS
   const [edit, setEdit] = useState<Model | null>(null)
   const [newOne, setNewOne] = useState<Model | null>(null)
   const [profileGrouping, setProfileGrouping] = useState<'all'|'category'|'unit'>('all')
@@ -453,7 +461,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     const type = /gagal|belum|tidak dapat|periksa|wajib|kesalahan/i.test(msg) ? 'error' : /berhasil|tersimpan|dikirim|dihapus|diperbarui/i.test(msg) ? 'success' : 'info'
     window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message: msg, type, module: 'Metadata' } }))
   }, [msg])
-  const [loading, setLoading] = useState(false)
+  const [reading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const loading = reading || (!loadError && snapshot?.scope !== scope)
   const [saving, setSaving] = useState(false)
   const [unitBatchOpen, setUnitBatchOpen] = useState(false)
   const [excelMappingOpen, setExcelMappingOpen] = useState(false)
@@ -471,25 +481,33 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   }, [editorOpen])
 
   const load = useCallback(async () => {
+    const isCurrent = beginLoad()
+    if (!isCurrent) return
     setLoading(true)
+    setLoadError('')
     try {
-      let query = q().from('indicator_profiles').select('*')
-        .eq('profile_year', year)
-        .order('indicator_type', { ascending: true })
-        .order('code', { ascending: true })
-      if (room) query = query.eq('room_id', Number(room))
-      const { data, error } = await query
-      if (error) throw error
-      setProfiles((data || []) as Model[])
-
+      const nextProfiles = await readAllPages<Model>((from, to) => {
+        let query = q().from('indicator_profiles').select('*')
+          .eq('profile_year', year)
+          .order('indicator_type').order('code').order('id')
+        if (room) query = query.eq('room_id', Number(room))
+        return query.range(from, to)
+      })
+      if (isCurrent()) setSnapshot({ scope, profiles: nextProfiles })
     } catch (error) {
-      setMsg('Gagal memuat profil indikator: ' + toUserFacingError(error, { fallback: 'Profil indikator belum dapat dimuat.' }))
+      if (!isCurrent()) return
+      setSnapshot(null)
+      setLoadError(toUserFacingError(error, { fallback: 'Profil indikator belum dapat dimuat.' }))
     } finally {
-      setLoading(false)
+      if (isCurrent()) setLoading(false)
     }
-  }, [year, room])
+  }, [beginLoad, scope, year, room])
 
   useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    setEdit(null); setNewOne(null); setUnitBatchOpen(false); setPendingDelete(null)
+    setImportPreview(null); setReplaceConfirmed(false); setExcelMappingOpen(false)
+  }, [scope])
 
   useEffect(() => { setTab(initialTab); setProfileWorkspaceOpen(false) }, [initialTab])
   useEffect(() => { if (tab !== 'profiles') { setProfileWorkspaceOpen(false); setExcelMappingOpen(false) } }, [tab])
@@ -915,7 +933,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 9, marginTop: 10 }}>
         <label className="field" style={fieldStyle}><span>Tahun</span><select value={model.profile_year} onChange={(e) => setModel({ ...model, profile_year: Number(e.target.value) })}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Kode indikator</span><input required value={model.code || ''} onChange={(e) => setModel({ ...model, code: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Unit pemilik</span><select required value={model.room_id ?? ''} disabled={lockRoomScope} onChange={(e) => { const selected = rooms.find((item) => String(item.id) === e.target.value); setModel({ ...model, room_id: e.target.value ? Number(e.target.value) : '', unit_name: selected?.name || '' }) }}><option value="">Pilih unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        <label className="field" style={fieldStyle}><span>Unit pemilik</span><select required value={model.room_id ?? ''} disabled={lockRoomScope || saving} onChange={(e) => { const selected = rooms.find((item) => String(item.id) === e.target.value); setModel({ ...model, room_id: e.target.value ? Number(e.target.value) : '', unit_name: selected?.name || '' }) }}><option value="">Pilih unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
         <label className="field" style={fieldStyle}><span>Nama indikator</span><input required value={model.title || ''} onChange={(e) => setModel({ ...model, title: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Program kerja / jenis indikator</span><input value={model.indicator_type || ''} placeholder="Mis. INM, IMP-RS, IMP-Unit" onChange={(e) => setModel({ ...model, indicator_type: e.target.value })} /></label>
         <label className="field" style={fieldStyle}><span>Kategori</span><input value={model.category || ''} placeholder="Mis. Proses, Outcome, Struktur" onChange={(e) => setModel({ ...model, category: e.target.value })} /></label>
@@ -945,6 +963,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
 
   return (
     <div className="qualitySettingsWorkspace" style={{ display: 'grid', gap: 14 }}>
+      {loadError && <AsyncStatePanel state="error" title="Profil indikator belum dapat dimuat" description={loadError} onRetry={() => void load()} compact />}
       <LiquidGlass className="qualitySettingsSurface" style={{ padding: 14 }}>
         <WorkspaceModuleHeader
           title={tab === 'programs' ? 'Program Kerja' : 'Profil Indikator'}
@@ -972,9 +991,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
         {msg && <div className="msg visible" role={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'alert' : 'status'} aria-live={/gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? 'assertive' : 'polite'} style={{ color: /gagal|belum|tidak ditemukan|wajib|sudah aktif/i.test(msg) ? '#9c3f32' : '#0f7656', marginTop: 12 }}>{msg}</div>}
 
         <div className="metadataScopeFilters" style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 12, color: 'var(--muted)' }}><span>Tahun</span><select value={year} onChange={(e) => { setYear(Number(e.target.value)); setProgramFilter(''); setSearch('') }}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 12, color: 'var(--muted)' }}><span>Unit pemilik</span><select value={room} disabled={lockRoomScope} onChange={(e) => { setRoom(e.target.value); setProgramFilter('') }}>{!lockRoomScope && <option value="">Semua unit</option>}{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)' }}>{loading ? 'Memuat profil indikator…' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
+          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 12, color: 'var(--muted)' }}><span>Tahun</span><select value={year} disabled={saving} onChange={(e) => { setYear(Number(e.target.value)); setProgramFilter(''); setSearch('') }}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+          <label className="field" style={{ display: 'grid', gap: 4, fontSize: 12, color: 'var(--muted)' }}><span>Unit pemilik</span><select value={room} disabled={lockRoomScope || saving} onChange={(e) => { setRoom(e.target.value); setProgramFilter('') }}>{!lockRoomScope && <option value="">Semua unit</option>}{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)' }}>{loading ? 'Memuat profil indikator…' : loadError ? 'Profil belum tersedia' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
         </div>
 
         {!lockRoomScope && room === '' && <div style={{ marginTop: 12 }}><IndicatorCoveragePanel rooms={rooms} year={year} onCopied={() => void load()} onStarterTemplate={() => void downloadStarterTemplate()} onImport={() => { if (importFileRef.current) importFileRef.current.click(); else { setTab('profiles'); onTabChange?.('profiles'); window.setTimeout(() => importFileRef.current?.click(), 60) } }} /></div>}
@@ -1053,10 +1072,10 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               </select>
               <select aria-label="Filter program kerja" value={programFilter} onChange={(e) => setProgramFilter(e.target.value)}><option value="">Semua program kerja</option>{programs.map((program) => <option key={program} value={program}>{program}</option>)}</select>
               <button type="button" className="textButton" onClick={() => { setSearch(''); setProgramFilter(''); setProfileViewFilter('active'); setProfileGrouping('all') }}>Reset filter</button>
-              {(role === 'ADMIN' || role === 'PMKP') && <LiquidGlassButton onClick={()=>setExcelMappingOpen(true)} disabled={saving || loading}>Pilih Kolom dari Excel</LiquidGlassButton>}
-              {canManageCatalog && <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading}>Import XLSX Profil</LiquidGlassButton>}
-              <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || activeProfileCount === 0}>Export XLSX</LiquidGlassButton>
-              {canManageCatalog && room !== '' && <LiquidGlassButton onClick={() => { setProgramFilter(''); setSearch(''); setProfileViewFilter('active'); setUnitBatchOpen(true) }} disabled={saving || loading || activeProfileCount === 0}>Edit seluruh profil unit</LiquidGlassButton>}
+              {(role === 'ADMIN' || role === 'PMKP') && <LiquidGlassButton onClick={()=>setExcelMappingOpen(true)} disabled={saving || loading || !!loadError}>Pilih Kolom dari Excel</LiquidGlassButton>}
+              {canManageCatalog && <LiquidGlassButton onClick={() => importFileRef.current?.click()} disabled={saving || loading || !!loadError}>Import XLSX Profil</LiquidGlassButton>}
+              <LiquidGlassButton onClick={exportProfileSet} disabled={saving || loading || !!loadError || activeProfileCount === 0}>Export XLSX</LiquidGlassButton>
+              {canManageCatalog && room !== '' && <LiquidGlassButton onClick={() => { setProgramFilter(''); setSearch(''); setProfileViewFilter('active'); setUnitBatchOpen(true) }} disabled={saving || loading || !!loadError || activeProfileCount === 0}>Edit seluruh profil unit</LiquidGlassButton>}
               {canManageCatalog && <LiquidGlassButton onClick={() => openNew(programFilter)} disabled={saving}>+ Tambah indikator</LiquidGlassButton>}
             </div>
             <input

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readAllPages } from '../lib/aureka/pagination.ts'
+import { readAllPages, readPagesWithLimit } from '../lib/aureka/pagination.ts'
 
 test('reads every page beyond the former 20,000-row cap', async () => {
   const total = 20321
@@ -47,4 +47,17 @@ test('validates page size before querying', async () => {
     RangeError,
   )
   assert.equal(called, false)
+})
+
+
+test('bounded reads identify exact fits and block results truncated beyond the limit', async () => {
+  for (const length of [3, 5, 6]) {
+    const rows = Array.from({ length }, (_, index) => index)
+    const result = await readPagesWithLimit(async (from, to) => ({
+      data: rows.slice(from, to + 1), error: null,
+    }), 5, 2)
+
+    assert.deepEqual(result.rows, rows.slice(0, 5))
+    assert.equal(result.capped, length > 5)
+  }
 })

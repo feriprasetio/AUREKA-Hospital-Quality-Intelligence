@@ -25,7 +25,7 @@ export type SpmMonthlyResult = {
   denominator: number | null
   value: number | null
   target_met: boolean | null
-  status: 'no_data' | 'invalid' | 'met' | 'not_met'
+  status: 'no_data' | 'invalid' | 'unassessed' | 'met' | 'not_met'
   source: 'manual' | 'quality'
   input: Record<string, unknown>
 }
@@ -60,7 +60,7 @@ function result(
 ): SpmMonthlyResult {
   const targetMet = compareSpmTarget(value, indicator.target_operator, indicator.target_value)
   const status: SpmMonthlyResult['status'] =
-    invalid ? 'invalid' : value == null ? 'no_data' : targetMet ? 'met' : 'not_met'
+    invalid ? 'invalid' : value == null ? 'no_data' : targetMet == null ? 'unassessed' : targetMet ? 'met' : 'not_met'
   return { month, numerator, denominator, value, target_met: targetMet, status, source, input }
 }
 
@@ -78,10 +78,12 @@ export function calculateSpmMonthly(
 
   if (indicator.source_mode === 'quality_linked') {
     const source = sourceSummary?.visite?.find(item => Number(item.month) === month)
-    const denominator = finite(source?.denominator) ?? 0
-    const numerator = finite(source?.numerator) ?? 0
-    const value = denominator > 0 ? numerator / denominator * multiplier : null
-    return result(indicator, month, values, numerator, denominator, value, 'quality')
+    const denominator = finite(source?.denominator)
+    const numerator = finite(source?.numerator)
+    if (numerator == null || denominator == null) return result(indicator, month, values, numerator, denominator, null, 'quality')
+    const invalid = numerator < 0 || denominator < 0 || numerator > denominator
+    const value = !invalid && denominator > 0 ? numerator / denominator * multiplier : null
+    return result(indicator, month, values, numerator, denominator, value, 'quality', invalid)
   }
 
   if (indicator.source_mode === 'quality_denominator_linked') {
@@ -137,7 +139,10 @@ export function aggregateSpmMonths(
   monthly: SpmMonthlyResult[],
 ): Omit<SpmMonthlyResult, 'month' | 'input' | 'source'> {
   const valid = monthly.filter(item => item.value != null && item.status !== 'invalid')
-  if (!valid.length) return { numerator: null, denominator: null, value: null, target_met: null, status: 'no_data' }
+  if (!valid.length) return {
+    numerator: null, denominator: null, value: null, target_met: null,
+    status: monthly.some(item => item.status === 'invalid') ? 'invalid' : 'no_data',
+  }
 
   const config = indicator.calculation_config ?? {}
   const method = indicator.source_mode === 'quality_denominator_linked' ? 'no_event_rate' : config.method ?? 'ratio'
@@ -167,6 +172,6 @@ export function aggregateSpmMonths(
     denominator,
     value,
     target_met: targetMet,
-    status: value == null ? 'no_data' : targetMet ? 'met' : 'not_met',
+    status: value == null ? 'no_data' : targetMet == null ? 'unassessed' : targetMet ? 'met' : 'not_met',
   }
 }

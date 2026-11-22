@@ -126,7 +126,7 @@ test('logbook table cannot collapse to a viewport subtraction or hide its retry 
   assert.match(results, /Rekap capaian indikator Farmasi/)
   assert.match(results, /Rekap waktu tunggu Rawat Jalan per klinik/)
   assert.match(quality, /className="aqRegisterSummary"/)
-  assert.match(quality, /if\(e\.target!==e\.currentTarget\)return/)
+  assert.match(quality, /<button type="button" className="aqBtn" disabled=\{busy\} onClick=\{event=>\{event\.stopPropagation\(\);void openPatient\(p\)\}\}>Detail<\/button>/)
   for (const contract of ['save_quality_logbook', 'archive_quality_logbook', 'responseComplete', 'monthlyReview', 'loadedImportDialogs']) {
     assert.ok(quality.includes(contract), contract)
   }
@@ -262,7 +262,7 @@ test('logbook filters and workbook actions use separate grid rows with wrapping 
   const desk = read('app/workspace-desk.css')
   assert.match(quality, /grid-template-areas:"unit year month" "actions actions actions"/)
   assert.match(quality, /\.aqFilterActions\{grid-column:1\/-1;grid-row:2/)
-  assert.match(quality, /\.aqFilterActions>button\{flex:0 0 auto;width:auto;min-width:max-content/)
+  assert.match(quality, /\.aqFilterActions>button\{flex:0 1 auto;width:auto;min-width:0/)
   assert.match(quality, /grid-template-areas:"unit unit" "year month" "actions actions"/)
   assert.match(desk, /grid-template-areas: "unit year month" "actions actions actions" !important/)
   assert.match(desk, /\.aqFilterActions>button \{[^}]*min-width: 0 !important;[^}]*white-space: normal !important;/)
