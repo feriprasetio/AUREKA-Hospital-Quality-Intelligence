@@ -646,7 +646,7 @@ export default function QualityExcelMappingWorkspace({
               </select>
             </label>}
           </div>
-          <p className="qemMuted"><strong>Langkah 1:</strong> Unggah workbook → pilih sheet dan baris header. <strong>Langkah 2:</strong> Pada tabel di bawah, klik dropdown tiap indikator dan pilih kolom seperti N atau O. <strong>Langkah 3:</strong> Konfirmasi baris header lalu simpan aturan. Kolom tidak perlu diketik. Workbook asli tetap di browser; hanya aturan pemetaan yang disimpan.</p>
+          <p className="qemMuted"><strong>Langkah 1:</strong> Unggah workbook → pilih sheet dan baris header. <strong>Langkah 2:</strong> Pada tabel di bawah, klik dropdown tiap indikator dan pilih kolom seperti N atau O. <strong>Langkah 3:</strong> Konfirmasi baris header lalu simpan aturan. Kolom tidak perlu diketik. Workbook asli tetap di browser; hanya aturan pemetaan yang disimpan. Untuk unit tanpa importer khusus, alur unggah perlu dihubungkan ke importer sebelum digunakan otomatis.</p>
           {detectedColumns.length > 0 && <div className="qemActions"><span className="qemBadge">{numberLabel(detectedColumns.length)} kolom terdeteksi</span><span className="qemMuted">{workbookName} · sheet {selectedSheet} · baris header {headerRow}</span></div>}
           {detectedColumns.length > 0 && <div className="qemMuted">
             Sumber siap dipetakan: <strong>{provisionalRows.length > 0 && !activeProfiles.length ? provisionalRows.length + ' calon indikator' : activeProfiles.length + ' indikator aktif'}</strong>.
