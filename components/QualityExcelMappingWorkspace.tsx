@@ -36,6 +36,7 @@ type Mapping = {
   target_label: string
   source_header: string
   occurrence: number
+  transform_json?: { source_sheet?: string; header_row?: number } | null
   mapping_status: string
   ai_confidence?: number | null
   ai_rationale?: string | null
@@ -157,11 +158,17 @@ export default function QualityExcelMappingWorkspace({
     }
     return map
   }, [mappings, selectedImporter?.key, importerKey])
-  const sourceColumnFor = (key: string, mapping?: Mapping) => resolveExcelSourceColumn(
-    detectedColumns,
-    draftHeaders[key] ?? mapping?.source_header ?? '',
-    draftOccurrences[key] ?? mapping?.occurrence ?? 1,
-  )
+  const sourceColumnFor = (key: string, mapping?: Mapping) => {
+    // Do not silently accept a rule saved for another worksheet.
+    const savedSheet = String(mapping?.transform_json?.source_sheet ?? '').trim()
+    const manuallyChosen = Object.hasOwn(draftHeaders, key)
+    if (!manuallyChosen && savedSheet && normalize(savedSheet) !== normalize(selectedSheet)) return null
+    return resolveExcelSourceColumn(
+      detectedColumns,
+      draftHeaders[key] ?? mapping?.source_header ?? '',
+      draftOccurrences[key] ?? mapping?.occurrence ?? 1,
+    )
+  }
 
   useEffect(() => setRoomId(initialRoomId), [initialRoomId])
   useEffect(() => setProfileYear(year), [year])
@@ -360,6 +367,7 @@ export default function QualityExcelMappingWorkspace({
         indicator_code: profile.code,
         source_header: column.header,
         occurrence: column.occurrence,
+        transform_json: { source_sheet: selectedSheet, header_row: headerRow },
         ai_confidence: ai?.confidence ?? null,
         ai_rationale: ai?.rationale ?? null,
       }]
@@ -568,7 +576,7 @@ export default function QualityExcelMappingWorkspace({
                           <option key={column.index} value={String(column.index)}>{describeExcelSourceColumn(column)}</option>)}
                       </select>
                       {wanted && !selected && detectedColumns.length > 0 &&
-                        <span className="qemMissing">Header sebelumnya ({wanted}) tidak ditemukan pada sheet ini. Pilih kolom aktual.</span>}
+                        <span className="qemMissing">Sumber sebelumnya ({wanted}{mapping?.transform_json?.source_sheet ? ' · sheet ' + mapping.transform_json.source_sheet : ''}) tidak cocok dengan sheet ini. Pilih kolom aktual melalui dropdown.</span>}
                       {selected && <span className="qemMuted">Kolom {selected.letter} · kemunculan header {selected.occurrence}</span>}
                     </>
                   })()}</td>
