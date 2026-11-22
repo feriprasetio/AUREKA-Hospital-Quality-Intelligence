@@ -160,7 +160,8 @@ export function compareContinuousObservation(
   if (rawThreshold == null || String(rawThreshold).trim() === '') return null
   const value = Number(String(rawThreshold).trim().replace(',', '.'))
   if (!Number.isFinite(value)) return null
-  const operator = String(schema.observation_target_operator ?? defaultOperator).trim()
+  const operator = String(schema.observation_target_operator ?? '').trim()
+  if (!operator) return null
   if (!['=', '<', '<=', '>', '>=', '≤', '≥'].includes(operator)) return null
   return compareToTarget({
     ...profile, target_value: value,
