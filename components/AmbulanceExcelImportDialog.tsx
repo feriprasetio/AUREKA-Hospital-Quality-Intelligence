@@ -462,7 +462,7 @@ export default function AmbulanceExcelImportDialog({
           </div>
           <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="ambulance" year={year} />
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="ambulance" year={year} /><div className="qiuMain">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Ambulance dan tahun 2026 sebelum membuka alur impor ini.</div>}
           <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header baris 2 dan data mulai baris 3. Hasil rumus Excel tidak dipakai untuk menghitung waktu respons; perhitungan dilakukan ulang dari jam sumber. Baris tanpa tanggal yang valid dikecualikan tanpa menebak tanggal.</div></details>
@@ -515,6 +515,7 @@ export default function AmbulanceExcelImportDialog({
           <div className="ciPrivacy">Setiap baris menggunakan kunci sumber stabil berdasarkan nomor baris Excel. Mengunggah ulang tidak menggandakan data yang telah tercatat. Baris tanpa tanggal atau tanpa klasifikasi indikator perlu perbaikan manual pada workbook.</div>
           {result && <div className="ciMessage ciSuccess" role="status">Impor selesai. {result.imported_count ?? 0} catatan baru tersimpan; {result.skipped_existing_count ?? 0} baris yang sudah ada dilewati. Data dimuat ulang dari server.</div>}
         </div>
+</div>
         <div className="aqFoot">
           <span style={{fontSize:12,color:'var(--muted)'}}>Tidak ada data yang dianggap tervalidasi otomatis.</span>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
