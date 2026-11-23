@@ -464,7 +464,7 @@ export default function AmbulanceExcelImportDialog({
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Ambulance dan tahun 2026 sebelum membuka alur impor ini.</div>}
-          <div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header baris 2 dan data mulai baris 3. Hasil rumus Excel tidak dipakai untuk menghitung waktu respons; perhitungan dilakukan ulang dari jam sumber. Baris tanpa tanggal yang valid dikecualikan tanpa menebak tanggal.</div>
+          <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header baris 2 dan data mulai baris 3. Hasil rumus Excel tidak dipakai untuk menghitung waktu respons; perhitungan dilakukan ulang dari jam sumber. Baris tanpa tanggal yang valid dikecualikan tanpa menebak tanggal.</div></details>
           <div className="ciUpload">
             <label className="aqField"><span>Workbook Excel (.xlsx), maksimal 15 MB</span>
               <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || parsing || importing} onChange={event => {
@@ -509,7 +509,7 @@ export default function AmbulanceExcelImportDialog({
               ))}</tbody>
             </table>
           </div>}
-          {rows.length > 120 && <div className="ciPrivacy">Pratinjau menampilkan 120 dari {rows.length} baris bertanggal yang akan diimpor.</div>}
+          
           {rows.some(row => row.warnings.length > 0) && <div className="ciMessage ciWarning"><strong>Perhatian data sumber.</strong> Temuan tidak ditutupi atau diubah diam-diam. Catatan yang dapat diimpor akan disimpan sebagai Ready for Review; lakukan pemeriksaan sebelum validasi.</div>}
           <div className="ciPrivacy">Setiap baris menggunakan kunci sumber stabil berdasarkan nomor baris Excel. Mengunggah ulang tidak menggandakan data yang telah tercatat. Baris tanpa tanggal atau tanpa klasifikasi indikator perlu perbaikan manual pada workbook.</div>
           {result && <div className="ciMessage ciSuccess" role="status">Impor selesai. {result.imported_count ?? 0} catatan baru tersimpan; {result.skipped_existing_count ?? 0} baris yang sudah ada dilewati. Data dimuat ulang dari server.</div>}

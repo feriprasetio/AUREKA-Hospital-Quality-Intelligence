@@ -630,7 +630,7 @@ export default function LaboratoryExcelImportDialog({
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke Instalasi Laboratorium.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Instalasi Laboratorium dan tahun 2026 sebelum membuka alur impor ini.</div>}
-          <div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header pada baris 2 (kolom sumber A:N), dan data mulai baris 3. Nomor urut yang terisi otomatis sampai baris 5.002 tidak dianggap sebagai baris operasional tanpa data sumber B:N. Kolom formula/turunan AE:AH, dashboard, profil, dan tab rekap tidak diimpor.</div>
+          <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header pada baris 2 (kolom sumber A:N), dan data mulai baris 3. Nomor urut yang terisi otomatis sampai baris 5.002 tidak dianggap sebagai baris operasional tanpa data sumber B:N. Kolom formula/turunan AE:AH, dashboard, profil, dan tab rekap tidak diimpor.</div></details>
           <div className="ciUpload">
             <label className="aqField"><span>Workbook Excel (.xlsx), maksimal 15 MB</span>
               <input key={fileInputKey} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || parsing || importing} onChange={event => {
@@ -680,7 +680,7 @@ export default function LaboratoryExcelImportDialog({
               ))}</tbody>
             </table>
           </div>}
-          {rows.length > 100 && <div className="ciPrivacy">Preview menampilkan 100 dari {rows.length} event yang siap diimpor.</div>}
+          
           {partial && importing && <div className="ciMessage">Progres: {progress}% · {partial.completedBatches} batch selesai · {partial.imported} event baru · {partial.skipped} sudah ada dan dilewati.</div>}
           {partial && !importing && !result && partial.completedBatches > 0 && <div className="ciMessage ciWarning">Sebagian proses selesai sebelum terjadi kegagalan: {partial.received} baris diproses, {partial.imported} event baru tersimpan, {partial.skipped} sudah ada. Unggah ulang aman karena kunci setiap baris idempoten; periksa pesan galat sebelum mengulang.</div>}
           {result && <div className="ciMessage ciSuccess" role="status">Impor selesai untuk {result.received} event valid. {result.imported} event baru tersimpan; {result.skipped} baris yang sudah ada dilewati. {result.completedBatches} batch selesai; daftar dimuat ulang dari server. Record tetap Ready for Review.</div>}

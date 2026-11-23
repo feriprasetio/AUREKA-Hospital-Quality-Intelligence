@@ -450,7 +450,7 @@ export default function ComplaintExcelImportDialog({
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Informasi dan Pengaduan serta tahun 2026 sebelum membuka jalur impor ini.</div>}
-          <div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong> dengan header di baris 2 dan data mulai baris 3. Nilai <strong>Unit Pelayanan</strong> diterima sebagai teks bebas (tetap wajib diisi), bukan dibatasi daftar pilihan. Baris ditinjau sebelum disimpan ke Supabase melalui sesi login AUREKA; workbook tidak dikirim ke repositori.</div>
+          <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong> dengan header di baris 2 dan data mulai baris 3. Nilai <strong>Unit Pelayanan</strong> diterima sebagai teks bebas (tetap wajib diisi), bukan dibatasi daftar pilihan. Baris ditinjau sebelum disimpan ke Supabase melalui sesi login AUREKA; workbook tidak dikirim ke repositori.</div></details>
           <div className="ciUpload">
             <label className="aqField"><span>Workbook Excel (.xlsx), maksimal 15 MB</span>
               <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || parsing || importing} onChange={event => {

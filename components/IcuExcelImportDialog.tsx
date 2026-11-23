@@ -682,7 +682,7 @@ export default function IcuExcelImportDialog({
         </div>}
 
         {rows.length > 0 && <div className="iiBox">
-          <strong>Preview tersamarkan · 100 dari {rows.length} episode pertama</strong>
+          <strong>Pratinjau tersamarkan · {preview.length} dari {previewConfig.filteredCount} episode</strong>
           <div className="iiTable" style={{ marginTop: 8 }}>
             <QualityWorkbookPreviewControls config={previewConfig} />
           <table>

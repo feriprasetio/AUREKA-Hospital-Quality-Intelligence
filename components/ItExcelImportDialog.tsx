@@ -411,7 +411,7 @@ export default function ItExcelImportDialog({
                   </tbody>
                 </table>
               </div>
-              {rows.length > 20 && <div className="itPrivacy">Menampilkan 20 dari {rows.length} laporan pada pratinjau. Seluruh baris yang lolos validasi akan diimpor.</div>}
+              
             </>
           )}
 
