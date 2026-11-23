@@ -851,8 +851,8 @@ export default function IgdExcelImportDialog({
                 <div className="ciStat"><span>Dikecualikan</span><strong>{mainExcluded.length}</strong></div>
                 <div className="ciStat"><span>RM unik</span><strong>{new Set(mainRows.map(row => row.medicalRecordNo).filter(Boolean)).size}</strong></div>
               </div>}
-              {mainExcluded.length > 0 && <details className="ciReviewDetails"><summary>{mainExcluded.length} baris dikecualikan · lihat alasan</summary><div>Waktu Masuk kosong, tidak valid, atau di luar 2026. Tanggal tidak dibuat otomatis.</div></details>
-              {mainRows.some(row => row.warnings.length > 0) && <details className="ciReviewDetails"><summary>{mainRows.filter(row => row.warnings.length > 0).length} episode perlu diperiksa · lihat catatan</summary><div>Periksa identitas, waktu, formula sumber, dan jawaban indikator yang tidak cocok. Catatan tiap baris tersedia pada tabel.</div></details>
+              {mainExcluded.length > 0 && <details className="ciReviewDetails"><summary>{mainExcluded.length} baris dikecualikan · lihat alasan</summary><div>Waktu Masuk kosong, tidak valid, atau di luar 2026. Tanggal tidak dibuat otomatis.</div></details>}
+              {mainRows.some(row => row.warnings.length > 0) && <details className="ciReviewDetails"><summary>{mainRows.filter(row => row.warnings.length > 0).length} episode perlu diperiksa · lihat catatan</summary><div>Periksa identitas, waktu, formula sumber, dan jawaban indikator yang tidak cocok. Catatan tiap baris tersedia pada tabel.</div></details>}
               {mainRows.length > 0 && <div className="ciTable"><QualityWorkbookPreviewControls config={mainPreview} title="Pratinjau Logbook" />
                 <table><thead><tr><th>Baris</th><th>Waktu masuk</th><th>Nama</th><th>RM</th><th>Indikator tidak cocok</th><th>Catatan</th></tr></thead><tbody>
                 {mainPreview.preview.map(row => {
@@ -864,7 +864,7 @@ export default function IgdExcelImportDialog({
               {mainImporting && <div className="ciMessage" role="status">Impor logbook: {mainProgress}% selesai.</div>}
               {mainResult && <div className="ciMessage ciSuccess">Logbook selesai diproses: {mainResult.imported} episode baru, {mainResult.skipped} sudah ada, {mainResult.received} total. Relasi konsultasi dapat dilanjutkan.</div>}
             </div></div>
-          </section>
+          </section>}
 
           {activeImportTab === 'consultation' && <section id="ci-igd-consultation-panel" role="tabpanel" aria-labelledby="ci-igd-consultation-tab" tabIndex={0} className="ciPanel ciIgdPanel glass">
             <div className="ciIgdPanelHeading"><strong>Audit konsultasi DPJP</strong><span>Beberapa file · relasi episode berdasarkan kecocokan unik</span></div>
@@ -895,7 +895,7 @@ export default function IgdExcelImportDialog({
               {consultImporting && <div className="ciMessage" role="status">Impor konsultasi: {consultProgress}% selesai.</div>}
               {consultResult && <div className="ciMessage ciSuccess">Audit konsultasi selesai: {consultResult.imported} baru, {consultResult.skipped} sudah ada, {consultResult.received} total. Jawaban belum otomatis menjadi klasifikasi resmi.</div>}
             </div></div>
-          </section>
+          </section>}
           {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
           <details className="ciReviewDetails ciIgdIntegrity"><summary>Ketentuan pemeriksaan sumber</summary><div>RM berulang tidak digabung; jawaban kosong tetap kosong; pilihan tidak dikenal dipertahankan; sampel ambigu tidak ditautkan ke episode secara paksa.</div></details>
         </div>
