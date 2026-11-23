@@ -3,73 +3,83 @@
 DO $reconcile$
 DECLARE
   visit_id uuid;
+  visit_code text;
+  visit_room bigint;
+  visit_source text;
   matched_options integer;
   room_sequence regclass;
   sequence_value bigint;
   max_room_id bigint;
 BEGIN
-  SELECT id INTO STRICT visit_id
+  FOR visit_id,visit_room,visit_code IN SELECT id,room_id,code
   FROM aureka_quality.indicator_profiles
-  WHERE profile_year=2026 AND room_id=14 AND code='14.4' AND status='published' AND is_active
-  FOR UPDATE;
+  WHERE profile_year=2026 AND code IN ('14.4','18.4','19.8','20.8','22.7','23.5','24.8','25.12','26.7','27.9','37.6') AND title='Kepatuhan Jam Visite Dokter Spesialis' AND status='published' AND is_active
+  FOR UPDATE LOOP
+    visit_source := CASE WHEN visit_room=14 THEN 'PMKP ICU 2026 / Profil row 3' ELSE 'PMKP unit 2026 / Profil, ' || visit_code END;
 
-  SELECT count(*) INTO matched_options
-  FROM aureka_quality.indicator_profiles p, jsonb_array_elements(p.options_json) item
-  WHERE p.id=visit_id AND item->>'label' IN (
-    'Visite Hari Kerja (06.00-14.00)', 'Visite Hari Kerja (Diatas 14.00)',
-    'Tidak Visite', 'Visite Hari Libur', 'Divisitekan Spesialis Lain');
-  IF matched_options <> 5 THEN
-    RAISE EXCEPTION 'Sumber opsi 14.4 berbeda. Rekonsiliasi dibatalkan.';
-  END IF;
+    SELECT count(*) INTO matched_options
+    FROM aureka_quality.indicator_profiles p, jsonb_array_elements(p.options_json) item
+    WHERE p.id=visit_id AND item->>'label' IN (
+      'Visite Hari Kerja (06.00-14.00)', 'Visite Hari Kerja (Diatas 14.00)',
+      'Tidak Visite', 'Visite Hari Libur', 'Divisitekan Spesialis Lain');
+    IF matched_options <> 5 THEN
+      RAISE EXCEPTION 'Sumber opsi % berbeda. Rekonsiliasi dibatalkan.',visit_code;
+    END IF;
 
-  UPDATE aureka_quality.indicator_profiles p SET
-    options_json=(SELECT jsonb_agg(
-      CASE
-        WHEN item->>'label'='Visite Hari Kerja (06.00-14.00)' THEN
-          item || '{"code":1,"numerator":true,"denominator":true,"review_required":false}'::jsonb
-        WHEN item->>'label' IN ('Visite Hari Kerja (Diatas 14.00)','Tidak Visite') THEN
-          item || '{"code":3,"numerator":false,"denominator":true,"review_required":false}'::jsonb
-        WHEN item->>'label' IN ('Visite Hari Libur','Divisitekan Spesialis Lain') THEN
-          item || '{"code":null,"numerator":null,"review_required":true}'::jsonb
-        ELSE item
-      END ORDER BY ord)
-      FROM jsonb_array_elements(p.options_json) WITH ORDINALITY AS x(item,ord)),
-    schema_json=p.schema_json || '{"response_capture_mode":"categorical","indicator_direction":"positive","source_option_correction":"PMKP ICU 2026 / Profil row 3"}'::jsonb,
-    updated_at=now()
-  WHERE id=visit_id AND NOT (p.schema_json ? 'source_option_correction');
-
-  WITH candidates AS (
-    SELECT rr.id, rr.record_id, rr.response_label AS label, rr.raw_value,
-      CASE WHEN rr.review_status='pending' THEN 3 END AS corrected_code
-    FROM aureka_quality.quality_record_responses rr
-    JOIN aureka_quality.quality_records qr ON qr.id=rr.record_id
-    WHERE rr.indicator_id=visit_id AND qr.room_id=14 AND qr.profile_year=2026 AND qr.status<>'archived'
-      AND (
-        (rr.review_status='pending' AND rr.response_label IN ('Visite Hari Kerja (Diatas 14.00)','Tidak Visite')
-          AND rr.raw_value->>'source_code'='3' AND rr.raw_value->>'mapping_status'='source_master_conflict')
-        OR (rr.review_status='not_required' AND rr.response_label IN ('Visite Hari Libur','Divisitekan Spesialis Lain')
-          AND rr.raw_value->>'source_code' IS NULL)
-      )
-  ), corrected AS (
-    UPDATE aureka_quality.quality_record_responses rr SET
-      response_code=c.corrected_code,
-      review_status=CASE WHEN c.corrected_code IS NULL THEN 'pending' ELSE 'not_required' END,
-      raw_value=coalesce(c.raw_value,'{}'::jsonb) || jsonb_build_object(
-        'answer',c.label,'code',c.corrected_code,'review_required',c.corrected_code IS NULL,
-        'source_option',c.corrected_code IS NULL,
-        'review_status',CASE WHEN c.corrected_code IS NULL THEN 'pending' ELSE 'not_required' END,
-        'mapping_status',CASE WHEN c.corrected_code IS NULL THEN 'master_pending' ELSE 'mapped' END,
-        'prior_mapping_status',c.raw_value->>'mapping_status',
-        'correction_source','PMKP ICU 2026 / Profil row 3'),
+    UPDATE aureka_quality.indicator_profiles p SET
+      options_json=(SELECT jsonb_agg(
+        CASE
+          WHEN item->>'label'='Visite Hari Kerja (06.00-14.00)' THEN
+            item || '{"code":1,"numerator":true,"denominator":true,"review_required":false}'::jsonb
+          WHEN item->>'label' IN ('Visite Hari Kerja (Diatas 14.00)','Tidak Visite') THEN
+            item || '{"code":3,"numerator":false,"denominator":true,"review_required":false}'::jsonb
+          WHEN item->>'label' IN ('Visite Hari Libur','Divisitekan Spesialis Lain') THEN
+            item || '{"code":null,"numerator":null,"review_required":true}'::jsonb
+          ELSE item
+        END ORDER BY ord)
+        FROM jsonb_array_elements(p.options_json) WITH ORDINALITY AS x(item,ord))
+        || CASE WHEN visit_code='37.6' AND NOT EXISTS (
+             SELECT 1 FROM jsonb_array_elements(p.options_json) op WHERE op->>'label'='Pasien Masih di PONEK/IGD'
+           ) THEN '[{"code":null,"label":"Pasien Masih di PONEK/IGD","numerator":null,"review_required":true}]'::jsonb
+           ELSE '[]'::jsonb END,
+      schema_json=p.schema_json || '{"response_capture_mode":"categorical","indicator_direction":"positive"}'::jsonb || jsonb_build_object('source_option_correction',visit_source),
       updated_at=now()
-    FROM candidates c WHERE rr.id=c.id
-    RETURNING rr.record_id,rr.raw_value
-  )
-  UPDATE aureka_quality.quality_records qr SET
-    core_data=jsonb_set(qr.core_data,'{indicator_values}',coalesce(qr.core_data->'indicator_values','{}'::jsonb) ||
-      jsonb_build_object('14.4',c.raw_value),true),
-    updated_at=now()
-  FROM corrected c WHERE qr.id=c.record_id;
+    WHERE id=visit_id AND NOT (p.schema_json ? 'source_option_correction');
+
+    WITH candidates AS (
+      SELECT rr.id, rr.record_id, rr.response_label AS label, rr.raw_value,
+        CASE WHEN rr.review_status='pending' THEN 3 END AS corrected_code
+      FROM aureka_quality.quality_record_responses rr
+      JOIN aureka_quality.quality_records qr ON qr.id=rr.record_id
+      WHERE rr.indicator_id=visit_id AND qr.room_id=visit_room AND qr.profile_year=2026 AND qr.status<>'archived'
+        AND (
+          (rr.review_status='pending' AND rr.response_label IN ('Visite Hari Kerja (Diatas 14.00)','Tidak Visite')
+            AND rr.raw_value->>'source_code'='3' AND rr.raw_value->>'mapping_status'='source_master_conflict')
+          OR (rr.review_status='not_required' AND rr.response_label IN ('Visite Hari Libur','Divisitekan Spesialis Lain')
+            AND rr.raw_value->>'source_code' IS NULL)
+        )
+    ), corrected AS (
+      UPDATE aureka_quality.quality_record_responses rr SET
+        response_code=c.corrected_code,
+        review_status=CASE WHEN c.corrected_code IS NULL THEN 'pending' ELSE 'not_required' END,
+        raw_value=coalesce(c.raw_value,'{}'::jsonb) || jsonb_build_object(
+          'answer',c.label,'code',c.corrected_code,'review_required',c.corrected_code IS NULL,
+          'source_option',c.corrected_code IS NULL,
+          'review_status',CASE WHEN c.corrected_code IS NULL THEN 'pending' ELSE 'not_required' END,
+          'mapping_status',CASE WHEN c.corrected_code IS NULL THEN 'master_pending' ELSE 'mapped' END,
+          'prior_mapping_status',c.raw_value->>'mapping_status',
+          'correction_source',visit_source),
+        updated_at=now()
+      FROM candidates c WHERE rr.id=c.id
+      RETURNING rr.record_id,rr.raw_value
+    )
+    UPDATE aureka_quality.quality_records qr SET
+      core_data=jsonb_set(qr.core_data,'{indicator_values}',coalesce(qr.core_data->'indicator_values','{}'::jsonb) ||
+        jsonb_build_object(visit_code,c.raw_value),true),
+      updated_at=now()
+    FROM corrected c WHERE qr.id=c.record_id;
+
+  END LOOP;
 
   UPDATE aureka_quality.indicator_profiles
   SET unit_of_measure='Persentase (%)', updated_at=now()

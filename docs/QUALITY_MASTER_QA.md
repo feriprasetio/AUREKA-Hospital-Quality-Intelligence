@@ -30,4 +30,4 @@ Rekap Dashboard Bedah Sentral dan PONEK memiliki rujukan ke kolom petugas yang t
 
 ## Rekonsiliasi produksi 23 November 2026
 
-`scripts/reconcile-pmkp-2026.sql` menelusuri perubahan data master dan respons tanpa mengganti ID profil. ICU 14.4 memakai Code 1 untuk visite sesuai waktu dan Code 3 untuk terlambat atau tidak visite. Opsi hari libur dan visite oleh spesialis lain tidak mempunyai kode pada sheet Profil ICU dan meminta telaah. Profil 38.1 memakai pemilik, N/D, dan target 100% dari baris 190 master tahunan. Unit baru tidak otomatis memberi penugasan akses pengguna.
+`scripts/reconcile-pmkp-2026.sql` menelusuri perubahan data master dan respons tanpa mengganti ID profil. Sebelas profil visite dengan instrumen sumber yang sama memakai Code 1 untuk visite sesuai waktu dan Code 3 untuk terlambat atau tidak visite. Opsi hari libur dan visite oleh spesialis lain tidak mempunyai kode pada sheet Profil ICU dan meminta telaah. Profil 38.1 memakai pemilik, N/D, dan target 100% dari baris 190 master tahunan. Unit baru tidak otomatis memberi penugasan akses pengguna.
