@@ -1,5 +1,6 @@
 'use client'
 import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
@@ -44,6 +45,17 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   dpjp: ['DPJP'],
   unmappedSource: ['Kekosongan BHP/Linen'],
 }
+
+const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
+  ...Object.entries(REQUIRED_HEADERS).filter(([key]) => true).map(([fieldKey,aliases])=>({
+    fieldKey,label:aliases[0]??fieldKey,aliases,required:false,
+  })),
+  ...NICU_SOURCE_INDICATORS.map(item=>({
+    fieldKey:'indicator:' + item.code,label:item.code + ' · ' + item.header,
+    aliases:[item.sourceHeader],required:false,
+  })),
+]
+
 
 type PreparedRow = {
   sourceRow: number
@@ -163,12 +175,15 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     if (score === 0) {
       const indexes: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
-        const column = exact(columns, aliases)
+        const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+          importerKey:'nicu',fieldKey:key,fieldLabel:aliases[0],
+          required:!['dischargeDate','diagnosis','patientCategory','dischargeStatus','sourceLos','unmappedSource'].includes(key),
+        })
         if (column != null) indexes[key] = column
       }
       for (const item of NICU_SOURCE_INDICATORS) {
         const column = resolveInteractiveExcelHeaderColumn(columns, [item.sourceHeader], {
-          importerKey: 'nicu', fieldKey: 'indicator:' + item.code, fieldLabel: item.header, required: true,
+          importerKey:'nicu',fieldKey:'indicator:' + item.code,fieldLabel:item.header,required:true,
         })
         if (column != null) indexes['indicator:' + item.code] = column
       }
@@ -672,7 +687,10 @@ export default function NicuExcelImportDialog({
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="nicu" year={year} /><div className="qiuMain">
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="nicu" year={year}
+  mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="nicu" fields={INLINE_MAPPING_FIELDS}
+    disabled={parsing||importing} onApply={()=>file ? parseWorkbook(file) : undefined}/>}
+ /><div className="qiuMain">
         <div className="piBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
