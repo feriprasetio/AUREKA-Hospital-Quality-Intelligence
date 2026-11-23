@@ -36,3 +36,43 @@
 .qwiPreviewScroll :is(th,td){padding:9px 10px;border-bottom:1px solid var(--line,#e2e8e3);text-align:left}
 .qwiPreviewScroll th{position:sticky;top:0;background:var(--surface-raised,#f6faf8);z-index:2;color:var(--muted,#677b70);font-size:11px}
 .qwiPreviewScroll td{color:var(--ink,#2b4438);font-variant-numeric:tabular-nums}
+
+
+/* Keep import instructions discoverable without competing with preview tables. */
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] .ciImportGuide {
+  padding: 8px 11px;
+  border: 1px solid var(--line, #e0e8e3);
+  background: var(--surface-raised, #f8fbf9);
+  border-radius: 9px;
+  font-size: 11px;
+  color: var(--muted, #6c7d73);
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] .ciImportGuide summary {
+  cursor: pointer;
+  font-weight: 750;
+  font-size: 11px;
+  color: var(--ink, #263b31);
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] .ciImportGuide .ciIntro {
+  padding-top: 9px;
+  margin: 0;
+  line-height: 1.5;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] :is(.ciMessage.ciWarning, .ciMessage.ciError) {
+  max-height: 145px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+/* All preview containers expand to a comfortably reviewable viewport. */
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] :is(.itTable,.riTable,.oiTable,.iiTable,.piTable,.niTable,.suTable,.imTable):has(.qwpToolbar) {
+  min-height: 250px;
+  max-height: min(57dvh, 590px);
+  overflow: auto;
+  border: 1px solid var(--line, #e0e8e3);
+  border-radius: 10px;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] :is(.itTable,.riTable,.oiTable,.iiTable,.piTable,.niTable,.suTable,.imTable):has(.qwpToolbar) th {
+  position: sticky;
+  top: 49px;
+  z-index: 2;
+}
