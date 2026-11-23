@@ -34,7 +34,7 @@ const rules: Array<{ phrase: string; roomId: number; unit: string; kind?: Qualit
   { phrase: 'instalasi rawat jalan', roomId: 11, unit: 'Instalasi Rawat Jalan', kind: 'outpatient_matrix' },
   { phrase: 'instalasi rehab medik', roomId: 12, unit: 'Instalasi Rehab Medik' },
   { phrase: 'instalasi rekam medis', roomId: 13, unit: 'Instalasi Rekam Medis' },
-  { phrase: 'timkordik', roomId: 15, unit: 'Timkordik' },
+  { phrase: 'timkordik', roomId: 30, unit: 'Tim Koordinasi Pendidikan' },
   { phrase: 'neonatal intensive care unit', roomId: 18, unit: 'Neonatal Intensive Care Unit' },
   { phrase: 'intensive care unit', roomId: 14, unit: 'Intensive Care Unit' },
   { phrase: 'nifas', roomId: 19, unit: 'Nifas Obstetrics & Gynecology' },

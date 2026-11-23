@@ -13,7 +13,7 @@ const files = [
   ['PMKP - Informatika dan Teknologi - 2026 (1).xlsx', 2],
   ['PMKP - Instalasi Radiologi 2026.xlsx', 10],
   ['PMKP - Instalasi Rekam Medis - 2026.xlsx', 13],
-  ['PMKP - Timkordik - 2026.xlsx', 15],
+  ['PMKP - Timkordik - 2026.xlsx', 30],
   ['PMKP - Instalasi Bedah Sentral - 2026.xlsx', 4],
   ['PMKP - Instalasi Farmasi - 2026 (SEPTEMBER).xlsx', 5],
   ['PMKP - Instalasi Gawat Darurat - 2026.xlsx', 6],
