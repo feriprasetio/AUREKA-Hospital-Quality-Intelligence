@@ -7,9 +7,15 @@ export type WorkbookPreviewMode = 'all' | 'warnings' | 'history'
 function hasWarning(item: unknown): boolean {
   if (!item || typeof item !== 'object') return false
   const value = item as Record<string, unknown>
+  const payload = value.row_payload
+  const record = payload && typeof payload === 'object' && !Array.isArray(payload)
+    ? (payload as Record<string, unknown>).record_payload : null
+  const staged = record && typeof record === 'object' && !Array.isArray(record)
+    ? record as Record<string, unknown> : null
   return (Array.isArray(value.warnings) && value.warnings.length > 0)
     || (Array.isArray(value.issues) && value.issues.length > 0)
     || value.needsReview === true
+    || staged?.review_required === true || staged?.status === 'draft'
 }
 
 export function useQualityWorkbookPreview<T>(rows: readonly T[], options?: { historical?: (row: T) => boolean }) {

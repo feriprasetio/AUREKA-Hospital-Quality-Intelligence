@@ -26,3 +26,13 @@
 .spmImportDialog .qwpToolbar{margin:0 0 8px}.spmImportDialog .spmImportTableScroll:has(.qwpToolbar){min-height:245px;max-height:min(54dvh,550px);overflow:auto}.spmImportDialog :is(.spmImportInstructions,.spmImportWarnings)>summary{cursor:pointer;font-weight:750}
 @media(max-width:800px){.aq.aqPortal.aqAuditWorkspace .aqIgdImport>.aqBody{overflow-y:auto!important}.aqIgdImport .ciIgdPanel{flex:0 0 auto!important;overflow:visible!important}.aq.aqPortal.aqAuditWorkspace .aqIgdImport .ciIgdWorkspace{display:flex!important;flex-direction:column!important;flex:0 0 auto!important;overflow:visible!important}.aqIgdImport .ciIgdSettings{overflow:visible;border-right:0;border-bottom:1px solid var(--line,#dfe7e2)}.aqIgdImport .ciIgdResults{flex:0 0 auto;overflow:visible}.aq.aqPortal.aqAuditWorkspace .aqIgdImport .ciIgdResults .ciTable{height:45dvh!important;min-height:230px!important;flex:0 0 auto!important}}
 @media(max-width:520px){.qwpToolbar{min-width:0;align-items:stretch}.qwpToolbarFilters{width:100%}.qwpToolbarFilters label{flex:1 1 135px;min-width:0}.qwpToolbarFilters select{width:100%;min-width:0}}
+
+
+/* Generic unit workbook importer: preview only metadata, never patient identifiers. */
+.qwiPreview{display:grid;gap:0;min-width:0;overflow:hidden;border:1px solid var(--line,#e0e8e3);border-radius:12px;background:var(--surface,#fff)}
+.qwiPreview>.qwpToolbar{position:relative;top:auto;left:auto;box-shadow:none;border:0;border-bottom:1px solid var(--line,#e2e8e3);margin:0;border-radius:0}
+.qwiPreviewScroll{overflow:auto;max-height:min(48dvh,480px);min-height:180px;scrollbar-gutter:stable}
+.qwiPreviewScroll table{width:100%;min-width:680px;border-collapse:separate;border-spacing:0;font-size:12px}
+.qwiPreviewScroll :is(th,td){padding:9px 10px;border-bottom:1px solid var(--line,#e2e8e3);text-align:left}
+.qwiPreviewScroll th{position:sticky;top:0;background:var(--surface-raised,#f6faf8);z-index:2;color:var(--muted,#677b70);font-size:11px}
+.qwiPreviewScroll td{color:var(--ink,#2b4438);font-variant-numeric:tabular-nums}
