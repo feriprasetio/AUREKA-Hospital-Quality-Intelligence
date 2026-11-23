@@ -1,0 +1,31 @@
+name: Aureka Branch Cleanup
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Ketik HAPUS-BRANCH-AUREKA untuk mengonfirmasi"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.event.inputs.confirmation == 'HAPUS-BRANCH-AUREKA'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Konfigurasi Git
+        run: |
+          git config user.name "Aureka Maintenance"
+          git config user.email "maintenance@users.noreply.github.com"
+
+      - name: Jalankan Branch Cleanup
+        run: bash scripts/bersihkan-branch-aureka.shS
