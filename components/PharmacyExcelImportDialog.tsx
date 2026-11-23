@@ -492,7 +492,7 @@ export default function PharmacyExcelImportDialog({
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih Instalasi Farmasi dan tahun 2026 sebelum membuka alur impor ini.</div>}
-          <div className="ciIntro">Sistem membaca delapan sheet harian: Copy Resep, High Alert, Fornas, dan Formularium Rumah Sakit untuk Rawat Jalan dan Rawat Inap. Header berada pada baris 10, data mulai baris 11. Sheet Dashboard dan rekap gabungan bulanan tidak diimpor agar tidak terjadi penghitungan ganda.</div>
+          <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca delapan sheet harian: Copy Resep, High Alert, Fornas, dan Formularium Rumah Sakit untuk Rawat Jalan dan Rawat Inap. Header berada pada baris 10, data mulai baris 11. Sheet Dashboard dan rekap gabungan bulanan tidak diimpor agar tidak terjadi penghitungan ganda.</div></details>
           <div className="ciUpload">
             <label className="aqField"><span>Workbook Excel (.xlsx), maksimal 15 MB</span>
               <input key={fileInputKey} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || parsing || importing} onChange={event => {
@@ -533,7 +533,7 @@ export default function PharmacyExcelImportDialog({
               ))}</tbody>
             </table>
           </div>}
-          {rows.length > 100 && <div className="ciPrivacy">Pratinjau menampilkan 100 dari {rows.length} catatan siap diimpor.</div>}
+          
           <div className="ciMessage ciWarning">Target Copy Resep pada workbook ≤ 5% berbeda dari target master aktif AUREKA ≤ 20%; target master tetap dipakai. Indikator High Alert di workbook belum mencakup LASA, sehingga perluasan cakupan 5.3 tetap memerlukan pencatatan sampel LASA.</div>
           {partial && importing && <div className="ciMessage">Progres: {progress}% · {partial.completedBatches} batch selesai · {partial.imported} catatan baru · {partial.skipped} dilewati karena sudah ada.</div>}
           {partial && !importing && !result && partial.completedBatches > 0 && <div className="ciMessage ciWarning">Sebagian proses selesai sebelum kegagalan: {partial.received} baris diproses, {partial.imported} baru tersimpan, {partial.skipped} sudah ada. Unggah ulang aman karena kunci tanggal/alur layanan idempoten; periksa pesan galat sebelum mengulang.</div>}
