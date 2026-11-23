@@ -352,7 +352,7 @@ export default function ItExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="it" year={year} />
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="it" year={year} /><div className="qiuMain">
           <div className="itIntro">
             Pilih file .xlsx yang berisi sheet <strong>Logbook</strong>. Baris header dibaca dari baris 2. Setiap laporan gangguan menjadi satu catatan aktivitas dan satu respons indikator Tindak Lanjut.
           </div>
@@ -422,6 +422,7 @@ export default function ItExcelImportDialog({
             </div>
           )}
         </div>
+</div>
         <div className="aqFoot">
           <span className="itPrivacy">Status setelah impor: Siap Ditinjau. Validasi tetap dilakukan oleh pejabat yang berwenang.</span>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
