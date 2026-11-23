@@ -445,7 +445,7 @@ export default function IbsExcelImportDialog({
 
         if (error) {
           if (/function .*import_ibs_logbook_batch.*not found|schema cache/i.test(error.message)) {
-            throw new Error('Fungsi impor IBS belum tersedia di Supabase. Pastikan migrasi secure_ibs_logbook_excel_import telah diterapkan.')
+            throw new Error('Impor IBS belum tersedia saat ini. Hubungi pengelola Aureka untuk pemeriksaan layanan.')
           }
           const smaller = nextBatchSizeAfterTimeout(error, batchSize, MIN_BATCH_SIZE)
           if (smaller != null) {
@@ -454,7 +454,7 @@ export default function IbsExcelImportDialog({
             setErrorMessage('Koneksi perlu penyesuaian. Impor sedang dicoba kembali secara aman…')
             continue
           }
-          throw new Error('Batch ' + batchNumber + ' (' + batch.length + ' baris) gagal: ' + error.message + (isStatementTimeout(error) ? ' Server masih timeout pada ukuran minimum; periksa beban basis data dan ulangi impor.' : ''))
+          throw new Error('Impor terhenti ketika menyimpan sebagian catatan. ' + (isStatementTimeout(error) ? 'Koneksi belum dapat menyelesaikan proses. ' : '') + 'Periksa status data yang sudah tersimpan sebelum mencoba kembali. Detail: ' + error.message)
         }
 
         setErrorMessage('')
@@ -463,7 +463,7 @@ export default function IbsExcelImportDialog({
         const imported = Number(summary.imported_count ?? 0)
         const skipped = Number(summary.skipped_existing_count ?? 0)
         if (received !== batch.length || imported + skipped !== received) {
-          throw new Error('Ringkasan hasil server pada batch ' + batchNumber + ' tidak konsisten. Periksa log sebelum mengulangi impor.')
+          throw new Error('Jumlah catatan yang dilaporkan tidak sesuai. Periksa hasil impor sebelum mencoba kembali.')
         }
 
         counts.received += received
@@ -476,7 +476,7 @@ export default function IbsExcelImportDialog({
       }
 
       if (counts.received !== allItems.length || counts.imported + counts.skipped !== counts.received) {
-        throw new Error('Ringkasan akhir impor tidak konsisten. Periksa daftar logbook sebelum mengulangi impor.')
+        throw new Error('Jumlah catatan akhir tidak sesuai. Periksa hasil impor sebelum mencoba kembali.')
       }
       setResult({ ...counts })
       await onImported({ imported: counts.imported, skipped: counts.skipped, received: counts.received })
