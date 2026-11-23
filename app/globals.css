@@ -2382,3 +2382,73 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
   outline: 2px solid var(--accent, #177a54);
   outline-offset: 2px;
 }
+
+
+/* Unified workbook preview toolbar and table viewport across quality unit imports. */
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] :is(.ciTable,.iiTable,.suTable,.itTable,.piTable,.niTable,.oiTable,.paTable,.imTable,.poTable,.riTable,.rmTable,.tkTable) {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: 240px;
+  max-height: min(51dvh, 560px);
+  overflow: auto;
+  border: 1px solid var(--line,#e0e8e3);
+  border-radius: 12px;
+  background: var(--surface,#fff);
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] :is(.ciTable,.iiTable,.suTable,.itTable,.piTable,.niTable,.oiTable,.paTable,.imTable,.poTable,.riTable,.rmTable,.tkTable) > table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] :is(.ciTable,.iiTable,.suTable,.itTable,.piTable,.niTable,.oiTable,.paTable,.imTable,.poTable,.riTable,.rmTable,.tkTable) th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-raised,#f7faf8);
+}
+.aq.aqPortal.aqAuditWorkspace .qwpToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 13px;
+  background: var(--surface-raised,#f8faf9);
+  border-bottom: 1px solid var(--line,#e1e8e4);
+  color: var(--ink,#294039);
+}
+.aq.aqPortal.aqAuditWorkspace .qwpToolbarTitle {display:flex;flex-direction:column;gap:3px;min-width:0}
+.aq.aqPortal.aqAuditWorkspace .qwpToolbarTitle strong {font-size:12px;font-weight:850;line-height:1.35}
+.aq.aqPortal.aqAuditWorkspace .qwpToolbarTitle span {font-size:11px;color:var(--muted,#728178);font-variant-numeric:tabular-nums}
+.aq.aqPortal.aqAuditWorkspace .qwpToolbarFilters {display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.aq.aqPortal.aqAuditWorkspace .qwpToolbarFilters label {display:grid;gap:4px;font-size:11px;font-weight:700;color:var(--muted,#6e8074)}
+.aq.aqPortal.aqAuditWorkspace .qwpToolbarFilters select {
+  min-height:34px;
+  min-width:120px;
+  padding:6px 10px;
+  border:1px solid var(--line,#d8e4dd);
+  border-radius:8px;
+  font-size:12px;
+  background:var(--surface,#fff);
+  color:var(--ink,#294039);
+}
+.aq.aqPortal.aqAuditWorkspace .aqIgdImport .ciIgdDetails {
+  border:1px solid var(--line,#e1e8e3);
+  border-radius:11px;
+  padding:10px 12px;
+  background:var(--surface,#fff);
+  font-size:12px;
+  color:var(--muted,#6d7f75);
+}
+.aq.aqPortal.aqAuditWorkspace .aqIgdImport .ciIgdDetails summary {font-weight:750;color:var(--ink,#294039);cursor:pointer}
+@media(max-width:720px){
+  .aq.aqPortal.aqAuditWorkspace .qwpToolbar {align-items:flex-start;flex-direction:column}
+  .aq.aqPortal.aqAuditWorkspace .qwpToolbarFilters {width:100%}
+  .aq.aqPortal.aqAuditWorkspace .qwpToolbarFilters label {flex:1 1 120px}
+  .aq.aqPortal.aqAuditWorkspace .qwpToolbarFilters select {width:100%;min-width:0}
+}

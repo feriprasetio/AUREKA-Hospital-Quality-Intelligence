@@ -11,17 +11,22 @@ test('IBS import is preview-first with controls and an accessible visible table'
   assert.match(visible, /className="ciImportGrid"/)
   assert.match(visible, /className="ciSidePanel"/)
   assert.match(visible, /className="ciMainPanel"/)
-  assert.match(visible, /className="ciPreviewControls"/)
+  assert.match(visible, /<QualityWorkbookPreviewControls config=\{ibsPreview\}/)
   assert.match(visible, /className="ciTable" role="region" tabIndex=\{0\}/)
   assert.match(visible, /shownPreviewRows\.map\(row =>/)
   assert.match(visible, /maskIbsPatientName\(row.patientName\)/)
   assert.match(visible, /maskIbsMedicalRecord\(row.medicalRecordNo\)/)
-  assert.match(visible, /onChange=\{event => setPreviewMode/)
-  assert.match(visible, /onChange=\{event => setPreviewSize/)
-  assert.match(visible, /<option value="warnings">Perlu ditinjau/)
-  assert.match(visible, /<option value="history">Lintas tahun/)
-  assert.match(visible, /<option value=\{120\}>120 baris/)
+
+
+
+
+
   assert.match(visible, /role="progressbar" aria-valuenow=\{progress\}/)
+  const shared = read('components/quality/QualityWorkbookPreviewControls.tsx')
+  assert.match(shared, /<option value="history">Lintas tahun/)
+  assert.match(shared, /<option value=\{120\}>120 baris/)
+  assert.match(shared, /config\.setPreviewMode/)
+  assert.match(shared, /config\.setPreviewSize/)
   assert.match(visible, /disabled=\{!eligible \|\| !authorized \|\| !rows\.length \|\| errors\.length > 0 \|\| parsing \|\| importing \|\| !!result\}/)
 })
 test('IBS import keeps warnings and excluded rows accessible without top-heavy system instructions', () => {
