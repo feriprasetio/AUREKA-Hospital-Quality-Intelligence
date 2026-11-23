@@ -22,7 +22,7 @@ export type IndicatorDropdownProfile = IndicatorProfile & {
   options_json?: IndicatorDropdownMasterOption[] | null
 }
 
-function normalizeChoice(value: unknown): string {
+export function normalizeIndicatorOptionLabel(value: unknown): string {
   return String(value ?? '')
     .normalize('NFKC')
     .replace(/\s+/g, ' ')
@@ -35,6 +35,18 @@ function splitSourceCode(value: string): { label: string; code: number | null } 
   return {
     label: match ? value.slice(0, match.index).trim() : value.trim(),
     code: match ? Number(match[1]) : null,
+  }
+}
+
+export function matchIndicatorSourceOption<T extends { label?: unknown; code?: unknown }>(source: string, master: readonly T[]) {
+  const parts = splitSourceCode(source)
+  const labelMatches = master.filter(option => normalizeIndicatorOptionLabel(option.label) === normalizeIndicatorOptionLabel(parts.label))
+  const matches = parts.code == null ? labelMatches : labelMatches.filter(option => option.code != null && Number(option.code) === parts.code)
+  return {
+    ...parts,
+    option: matches.length === 1 ? matches[0] : null,
+    conflict: parts.code != null && labelMatches.length > 0 && matches.length === 0,
+    ambiguous: matches.length > 1,
   }
 }
 
@@ -69,16 +81,11 @@ export function buildIndicatorDropdownOptions(
   for (const [index, rawLabel] of sourceLabels.entries()) {
     const sourceLabel = String(rawLabel ?? '').trim()
     if (!sourceLabel) continue
-    const parts = splitSourceCode(sourceLabel)
-    const sourceKey = normalizeChoice(sourceLabel)
+    const sourceKey = normalizeIndicatorOptionLabel(sourceLabel)
     if (sourceKeys.has(sourceKey)) continue
     sourceKeys.add(sourceKey)
 
-    const matches = master.filter(option =>
-      normalizeChoice(option.label) === normalizeChoice(parts.label) &&
-      (parts.code == null || (option.code != null && Number(option.code) === parts.code))
-    )
-    const matched = matches.length === 1 ? matches[0] : null
+    const { option: matched } = matchIndicatorSourceOption(sourceLabel, master)
     output.push({
       key: 'excel-' + index,
       label: sourceLabel,
@@ -132,7 +139,7 @@ export function findIndicatorDropdownSelection(
 
   if (sourceValue) {
     const sourceMatch = options.findIndex(option =>
-      normalizeChoice(option.source_label) === normalizeChoice(sourceValue)
+      normalizeIndicatorOptionLabel(option.source_label) === normalizeIndicatorOptionLabel(sourceValue)
     )
     if (sourceMatch >= 0) return sourceMatch
   }

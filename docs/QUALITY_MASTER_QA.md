@@ -37,3 +37,30 @@ Rekap Dashboard Bedah Sentral dan PONEK memiliki rujukan ke kolom petugas yang t
 `scripts/reconcile-pmkp-2026-technical-profiles.sql` mencatat koreksi arah, tipe pengukuran, definisi, dan pemetaan opsi 64 profil aktif. Profil dengan pilihan berkode menghitung proporsi per observasi dan tetap menerima catatan agregat historis yang hanya berisi N/D. Farmasi, Rawat Jalan, dan Pertemuan Wajib memakai angka sesuai instrumen masing-masing.
 
 Untuk IGD 6.4 serta Rekam Medis 13.1 dan 13.2, Code 2 dan Code 3 masuk pembilang sesuai rumus rekap unit. Pada Laboratorium 9.1, pembilang mengikuti definisi kantong yang dibatalkan/terbuang. Standar numerik 1% ditafsirkan sebagai batas atas sesuai arah kejadian. Pada IGD 6.1, DOA dikeluarkan dari pengukuran kematian setelah tiba. Target yang kosong dan target positif 0% yang tidak bermakna tetap tampil untuk peninjauan tanpa menilai kepatuhan.
+
+## Opsi Rehab Medik dan target operasional 2026
+
+Empat opsi berkode dari sheet Profil Rehab Medik ditambahkan ke master 12.1 dan 12.2. Impor dan dropdown memakai aturan pencocokan label yang sama. “Tersedia Namun Tidak Memadai” pada 12.6 masih disimpan untuk telaah karena kode tidak tersedia dan dampak terhadap sesi terapi belum diketahui.
+
+Angka berikut adalah target operasional RS dengan definisi N/D yang sudah berlaku pada setiap profil. Rujukan nasional dan internasional digunakan jika definisinya sebanding. Persentase lokal dicatat bersama alasan pemilihannya pada profil.
+
+| Profil | Target |
+|---|---:|
+| 6.7 Waktu tanggap dokter IGD ≤5 menit | ≥95% |
+| 7.1 Asesmen PAGT hari pertama | ≥90% |
+| 12.1 Efektivitas tindakan rehab | ≥80% |
+| 12.2 Drop out program rehab | ≤50% |
+| 12.3 Jatuh saat program rehab | ≤1% |
+| 12.4 Salah tindakan rehab | 0% |
+| 12.5 Kepatuhan durasi pelayanan rehab | ≥90% |
+| 12.6 Gangguan sesi karena media terapi tidak tersedia | 0% |
+| 26.5 Kekosongan obat Rawat Inap Saraf | 0% |
+| 27.11 Pasien berisiko yang tidak diamputasi | ≥90% |
+| 30.1 Kelengkapan administrasi mahasiswa | 100% |
+| 30.2 Ketepatan atribut mahasiswa | 100% |
+| 30.3 Ketepatan waktu hadir mahasiswa | ≥95% |
+| 32.1 Bebas komplikasi penggunaan kontrasepsi | ≥98% |
+| 36.1 Visitasi pasien high risk dan high cost | 100% |
+| 37.1 Kembali tak terencana ke PONEK ≤24 jam | ≤2% |
+
+Acuan [SPM RS Indonesia](https://rsudams.kaltimprov.go.id/documents/PMK-No-129-tahun-2008-tengan-SPM-RS-lengkap.pdf) menggunakan ambang waktu IGD 5 menit. Angka 95% menetapkan proporsi kasus yang harus mencapai ambang itu di AUREKA. Target drop out memakai batas pada SPM sebagai acuan historis, dengan populasi sesuai definisi profil lokal. Ukuran asesmen risiko gizi [CMS](https://data.cms.gov/provider-data/topics/hospitals/measures-and-current-data-collection-periods) dan prinsip keselamatan [AHRQ](https://psnet.ahrq.gov/primer/never-events) membantu memilih sasaran lokal. Sumber tersebut memakai definisi yang berbeda untuk sebagian populasi dan kejadian.

@@ -56,3 +56,28 @@ test('keeps each source Excel row distinct when two visits share patient/date/pr
   assert.equal(makeRehabMedikSubjectKey(2026, 17), '12:2026:source-row:17')
   assert.notEqual(makeRehabMedikSubjectKey(2026, 17), makeRehabMedikSubjectKey(2026, 18))
 })
+
+test('the dropdown and Rehab import share canonical matching, including a unique label without a code suffix', async () => {
+  const { buildIndicatorDropdownOptions } = await import('../lib/aureka/indicator-dropdown.ts')
+  const source = ' Waktu   Pelayanan Sesuai Standar '
+  const dropdown = buildIndicatorDropdownOptions({ options_json: options }, [source])[0]
+  assert.equal(dropdown.source_only, false)
+  assert.equal(dropdown.code, parseRehabSourceAnswer(source, options).code)
+  assert.throws(() => parseRehabSourceAnswer(source, [...options, { ...options[0], code: 3 }]), /beberapa opsi/)
+})
+
+test('the published Rehab catalog includes workbook dropdown choices that previously blocked valid rows', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const catalog = JSON.parse(await readFile(new URL('../data/quality-profile-2026/chunk-03.json', import.meta.url), 'utf8'))
+    .concat(JSON.parse(await readFile(new URL('../data/quality-profile-2026/chunk-04.json', import.meta.url), 'utf8')))
+  const profile = catalog.find(row => row.code === '12.2')
+  for (const [label, code] of [
+    ['Drop Out Tanpa Alasan', 3],
+    ['Drop Out (Perubahan Program Terapi Atas Permintaan Dokter)', 2],
+    ['Drop Out (Pasien merasa perbaikan namun tidak sesuai program)', 3],
+  ]) {
+    const answer = parseRehabSourceAnswer(label + ' (Code ' + code + ')', profile.options_json)
+    assert.equal(answer.code, code)
+    assert.equal(answer.reviewRequired, false)
+  }
+})

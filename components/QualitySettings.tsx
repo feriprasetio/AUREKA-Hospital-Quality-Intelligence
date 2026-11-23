@@ -1265,6 +1265,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
                       Arah capaian: {profile.schema_json?.indicator_direction === 'positive' ? 'Positif' : profile.schema_json?.indicator_direction === 'negative' ? 'Negatif' : 'Belum ditetapkan'}
                     </div>
+                    {profile.schema_json?.target_status === 'operational_hospital' && profile.schema_json?.target_basis && <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
+                      {String(profile.schema_json.target_basis)}
+                    </div>}
                     {profile.schema_json?.excel_mapping && <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.7, overflowWrap: 'anywhere' }}>
                       Sumber Excel: {profile.schema_json.excel_mapping.worksheet || 'Worksheet belum ditetapkan'} · {profile.schema_json.excel_mapping.indicator_header || 'Header indikator belum dipetakan'}
                     </div>}

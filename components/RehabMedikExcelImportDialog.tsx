@@ -187,7 +187,8 @@ function formatCounts(rows:PreparedRow[]) {
   const treatments=new Set(rows.map(row=>row.treatment).filter(Boolean))
   const dates=rows.map(row=>row.serviceDate).sort()
   const byIndicator=Object.fromEntries(INDICATORS.map(item=>[item.code,rows.filter(row=>!!row.indicators[item.code]).length]))
-  return {therapists:therapists.size,treatments:treatments.size,firstDate:dates[0]??null,lastDate:dates.at(-1)??null,byIndicator}
+  const pendingResponses=rows.reduce((total,row)=>total+Object.values(row.indicators).filter(answer=>answer.reviewRequired).length,0)
+  return {pendingResponses,therapists:therapists.size,treatments:treatments.size,firstDate:dates[0]??null,lastDate:dates.at(-1)??null,byIndicator}
 }
 function makePayload(row:PreparedRow,fileName:string,year:number,userId:string,profiles:RehabIndicatorProfile[]) {
   const indicatorValues:Record<string,Record<string,unknown>>={}
@@ -414,6 +415,7 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
     {errorMessage&&<div className="riBox riError" role="alert">{errorMessage}</div>}
     {rows.length>0&&<div className="riStats"><div className="riStat"><span>Baris valid</span><strong>{rows.length.toLocaleString('id-ID')}</strong></div><div className="riStat"><span>Baris bermasalah</span><strong>{errors.length.toLocaleString('id-ID')}</strong></div><div className="riStat"><span>Jumlah terapis</span><strong>{stats.therapists}</strong></div></div>}
     {rows.length>0&&<div className="riBox">Periode data: {stats.firstDate} s.d. {stats.lastDate} · {stats.treatments} jenis tindakan yang terisi · pratinjau menampilkan maksimal 100 baris tanpa identitas pasien.</div>}
+    {stats.pendingResponses>0&&<div className="riMuted" role="status">{stats.pendingResponses.toLocaleString('id-ID')} respons akan disimpan untuk ditinjau karena kode atau aturan penilaiannya belum tersedia.</div>}
     {errors.length>0&&<div className="riBox riWarn"><b>Impor diblokir sampai semua baris bermasalah dikoreksi.</b>{'\n'+errors.slice(0,40).join('\n')}{errors.length>40?'\n… dan '+(errors.length-40)+' baris lainnya.':''}</div>}
     {rows.length>0&&<div className="riTable"><QualityWorkbookPreviewControls config={previewConfig} />
             <table><thead><tr><th>Baris Excel</th><th>Tanggal</th><th>Nama Terapis</th><th>Jenis Tindakan</th><th>Indikator terisi</th></tr></thead><tbody>{preview.map(row=><tr key={row.sourceRow}><td>{row.sourceRow}</td><td>{row.serviceDate}</td><td>{row.therapist}</td><td>{row.treatment||'-'}</td><td>{Object.keys(row.indicators).length}/6</td></tr>)}</tbody></table></div>}

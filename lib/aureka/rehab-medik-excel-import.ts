@@ -1,3 +1,5 @@
+import { matchIndicatorSourceOption, normalizeIndicatorOptionLabel } from './indicator-dropdown.ts'
+
 export type RehabIndicatorOption = {
   code: number | null
   label: string
@@ -53,25 +55,16 @@ export function normalizeRehabDate(value: unknown): string | null {
   return null
 }
 
-export function normalizeRehabOptionLabel(value:string):string {
-  return value.trim().normalize('NFKC').replace(/\s+/g,' ').toLocaleLowerCase('id-ID')
-}
+export const normalizeRehabOptionLabel = normalizeIndicatorOptionLabel
 
 export function parseRehabSourceAnswer(value:unknown, options:RehabIndicatorOption[]):RehabSourceAnswer|null {
   const sourceLabel = String(value ?? '').trim()
   if (!sourceLabel) return null
-  const match = sourceLabel.match(/\s*\(Code\s*([1-3])\)\s*$/i)
-  const sourceCode = match ? Number(match[1]) : null
-  const label = sourceLabel.replace(/\s*\(Code\s*[1-3]\)\s*$/i,'').trim()
-  const option = options.find(item => normalizeRehabOptionLabel(String(item.label ?? '')) === normalizeRehabOptionLabel(label))
+  const { label, code: sourceCode, option, conflict, ambiguous } = matchIndicatorSourceOption(sourceLabel, options)
+  if (conflict) throw new Error('Kode sumber Code ' + sourceCode + ' berbeda dengan kode master untuk "' + label + '".')
+  if (ambiguous) throw new Error('Pilihan "' + label + '" cocok dengan beberapa opsi master.')
   if (!option) throw new Error('Pilihan "' + label + '" belum tersedia pada master indikator aktif.')
   const code = option.code == null ? null : Number(option.code)
-  if (sourceCode != null && code !== sourceCode) {
-    throw new Error('Kode sumber Code ' + sourceCode + ' berbeda dengan kode master untuk "' + label + '".')
-  }
-  if (sourceCode == null && code != null) {
-    throw new Error('Label "' + label + '" tidak memiliki kode Code 1/2/3 pada workbook, tetapi master mengharuskan kode.')
-  }
   const reviewRequired = option.review_required === true || code == null || typeof option.numerator !== 'boolean'
   return { label: String(option.label), code, sourceLabel, sourceCode, reviewRequired }
 }
