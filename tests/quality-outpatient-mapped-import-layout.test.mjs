@@ -7,7 +7,8 @@ const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8'
 test('Rawat Jalan keeps preview and audit notices in independent normal-flow main column', () => {
   const source = read('components/OutpatientExcelImportDialog.tsx')
   assert.match(source, /className="aqBody qiuBody oiImportBody"/)
-  assert.match(source, /unitKey="outpatient" year=\{year\} mapping=\{/)\n  assert.match(source, /className="oiMain"/)
+  assert.match(source, /unitKey="outpatient" year=\{year\} mapping=\{/)
+  assert.match(source, /className="oiMain"/)
   assert.match(source, /className="oiTable" aria-label="Pratinjau data Rawat Jalan"/)
   assert.match(source, /className="oiPreviewScroll" role="region" tabIndex=\{0\}/)
   assert.match(source, /<\/tbody><\/table><\/div><\/section>\}/)
