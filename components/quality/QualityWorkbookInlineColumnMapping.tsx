@@ -60,13 +60,14 @@ function autoSelection(columns: HeaderColumn[], field: InlineWorkbookField): str
 }
 
 export default function QualityWorkbookInlineColumnMapping({
-  file, importerKey, fields, sheetHint = 'Logbook', disabled = false, onApply,
+  file, importerKey, fields, sheetHint = 'Logbook', disabled = false, allowSharedColumns = false, onApply,
 }: {
   file: File | null
   importerKey: string
   fields: readonly InlineWorkbookField[]
   sheetHint?: string
   disabled?: boolean
+  allowSharedColumns?: boolean
   onApply: () => void | Promise<void>
 }) {
   const [sheets, setSheets] = useState<SheetSample[]>([])
@@ -130,22 +131,6 @@ export default function QualityWorkbookInlineColumnMapping({
     } finally { setReading(false) }
   }
 
-  const changeSheet = (value: string) => {
-    const next = sheets.find(item => item.name === value)
-    if (!next) return
-    const best = next.headers.reduce<HeaderSample | null>((current, candidate) => !current || candidate.columns.length > current.columns.length ? candidate : current, null)
-    setSheetName(value);setHeaderRow(best?.rowNumber ?? 1)
-    hydrateSelections(best?.columns ?? [])
-    setNotice('');setError('')
-  }
-
-  const changeHeader = (row: number) => {
-    const next = activeSheet?.headers.find(item => item.rowNumber === row)
-    setHeaderRow(row)
-    hydrateSelections(next?.columns ?? [])
-    setNotice('');setError('')
-  }
-
   const apply = async () => {
     if (disabled || reading || !columns.length) return
     setError('');setNotice('')
@@ -154,7 +139,7 @@ export default function QualityWorkbookInlineColumnMapping({
       const absent = picks.filter(({field, chosen}) => field.required !== false && !chosen)
       if (absent.length) throw new Error('Lengkapi tautan kolom: ' + absent.map(item => item.field.label).join(', '))
       const used = picks.filter(item => !!item.chosen).map(item => item.chosen!.index)
-      if (new Set(used).size !== used.length) throw new Error('Satu kolom Excel tidak boleh ditautkan ke lebih dari satu field.')
+      if (!allowSharedColumns && new Set(used).size !== used.length) throw new Error('Satu kolom Excel tidak boleh ditautkan ke lebih dari satu field.')
       for (const {field,chosen} of picks) if (chosen && !locked.has(field.fieldKey)) {
         saveInteractiveExcelHeaderMapping(importerKey, field.fieldKey, chosen.header, chosen.occurrence)
       }
@@ -168,14 +153,7 @@ export default function QualityWorkbookInlineColumnMapping({
     {!file ? <p className="qiuMappingNotice">Unggah workbook dahulu melalui panel kanan.</p> : <>
       {!sheets.length && <div className="qiuMappingActions"><button type="button" disabled={disabled || reading} onClick={() => void inspect()}>{reading ? 'Membaca header…' : 'Baca header & tautkan'}</button></div>}
       {sheets.length > 0 && <>
-        <label className="qiuField">Worksheet
-          <select disabled={disabled} value={sheetName} onChange={event => changeSheet(event.target.value)}>{sheets.map(item => <option key={item.name} value={item.name}>{item.name}</option>)}</select>
-        </label>
-        <label className="qiuField">Baris header
-          <select disabled={disabled} value={headerRow} onChange={event => changeHeader(Number(event.target.value))}>
-            {activeSheet?.headers.map(item => <option key={item.rowNumber} value={item.rowNumber}>Baris {item.rowNumber}</option>)}
-          </select>
-        </label>
+        <p className="qiuMappingNotice">Worksheet: <strong>{sheetName}</strong> · header terdeteksi pada baris <strong>{headerRow}</strong>. Parser unit menentukan worksheet dan baris header; kontrol berikut mengubah kolom yang dipetakan.</p>
         <div className="qiuMappingFields">
           {fields.map(field => <label key={field.fieldKey} className="qiuField">{field.label}{field.required !== false ? ' *' : ' (opsional)'}
             <select
