@@ -1,5 +1,6 @@
 'use client'
 import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useMemo, useState } from 'react'
@@ -31,6 +32,13 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   claim: ['Klaim'],
   klpcm: ['KLPCM'],
 }
+
+const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
+  ...Object.entries(REQUIRED_HEADERS).map(([key,aliases]) => ({
+    fieldKey: key, label:aliases[0] ?? key, aliases, required:false,
+  })),
+]
+
 
 type ProfileInput = Partial<RekamMedisIndicatorProfile> & {
   room_id?: number
@@ -345,7 +353,11 @@ export default function RekamMedisExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="rekam-medis" year={year} /><div className="qiuMain">
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="rekam-medis" year={year}
+    mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="rekam-medis"
+      fields={INLINE_MAPPING_FIELDS} disabled={parsing||importing}
+      onApply={()=>file ? parseWorkbook(file) : undefined}/>}
+  /><div className="qiuMain">
           <div className="rmIntro">
             Pilih workbook .xlsx yang berisi sheet <strong>Logbook</strong>. Baris header dibaca dari baris 2. Setiap baris pasien menjadi satu catatan event dengan dua respons indikator. Data hanya dipetakan ke master indikator aktif; nilai yang tidak dikenal dipertahankan dan diberi penanda perlu ditinjau.
           </div>
