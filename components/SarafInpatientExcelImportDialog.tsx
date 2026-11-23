@@ -752,7 +752,7 @@ export default function SarafInpatientExcelImportDialog({
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
 
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="saraf-inpatient" year={year} />
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="saraf-inpatient" year={year} /><div className="qiuMain">
         <div className="suBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -842,6 +842,7 @@ export default function SarafInpatientExcelImportDialog({
           </div>
         </div>
       </div>
+</div>
     </section>
   </div></div>, document.body)
 }

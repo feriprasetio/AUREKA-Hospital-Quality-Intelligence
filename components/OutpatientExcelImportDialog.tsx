@@ -1,5 +1,6 @@
 'use client'
 import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
@@ -38,6 +39,9 @@ const ALIASES:Record<string,string[]> = {
  doctor:['Dokter','Nama Dokter','DPJP','Dokter Pemeriksa','Dokter Pelaksana'],
  minutes:['Waktu Tunggu Rawat Jalan (Menit)','Waktu Tunggu (Menit)','Waktu Tunggu','Waktu Tunggu Rawat Jalan','Rata-Rata Waktu Tunggu Rawat Jalan','Rata-rata Waktu Tunggu','Rata-rata Waktu Tunggu Rawat Jalan (Menit)','Waiting Time (Minutes)','Waiting Time (Min)'],
 }
+const OUTPATIENT_MAPPING_FIELDS: readonly InlineWorkbookField[] = Object.entries(ALIASES).map(([fieldKey,aliases])=>({
+ fieldKey,label:({date:'Tanggal pengamatan',clinic:'Klinik',doctor:'Dokter',minutes:'Waktu tunggu (menit)'} as Record<string,string>)[fieldKey]??aliases[0],aliases,required:true,
+}))
 function findHeader(columns:Map<string,number[]>,aliases:string[]):number|null{
   const matches=[...new Set(aliases.flatMap(alias=>columns.get(normalizeExactHeader(alias))??[]))]
   return matches.length===1?matches[0]:null
@@ -51,7 +55,14 @@ function findHeaderRow(sheet:any):{rowNumber:number;columns:Map<string,number[]>
     const score=Object.values(ALIASES).reduce((total,aliases)=>total+(findHeader(columns,aliases)==null?1:0),0)
     if(score===0){
       const indexes:Record<string,number>={}
-      for(const [name,aliases] of Object.entries(ALIASES))indexes[name]=findHeader(columns,aliases)!
+      for(const [name,aliases] of Object.entries(ALIASES)){
+        const selected=resolveInteractiveExcelHeaderColumn(columns,aliases,{
+          importerKey:'outpatient',fieldKey:name,fieldLabel:aliases[0],required:true,
+        })
+        if(selected==null)throw new Error('Kolom "'+aliases[0]+'" belum dipetakan.')
+        indexes[name]=selected
+      }
+      if(new Set(Object.values(indexes)).size!==Object.keys(ALIASES).length)throw new Error('Tiap field wajib menggunakan kolom fisik yang berbeda.')
       return {rowNumber,columns,indexes}
     }
     if(score<bestScore){bestScore=score;bestRowNumber=rowNumber;bestColumns=columns}
@@ -83,14 +94,15 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
  const [file,setFile]=useState<File|null>(null),[rows,setRows]=useState<PreparedRow[]>([]),[errors,setErrors]=useState<string[]>([]),[parsing,setParsing]=useState(false),[importing,setImporting]=useState(false),[result,setResult]=useState<{imported:number;skipped:number;received:number}|null>(null),[errorMessage,setErrorMessage]=useState(''),[fileKey,setFileKey]=useState(0)
   const previewConfig = useQualityWorkbookPreview(rows)
  const [allowValidRows,setAllowValidRows]=useState(false)
+ const [matrixMode,setMatrixMode]=useState(false)
  const eligible=open&&authorized&&roomId===11&&year>=2026&&year<=2100
  const preview = previewConfig.preview
- const reset=useCallback(()=>{setFile(null);setRows([]);setErrors([]);setResult(null);setErrorMessage('');setFileKey(v=>v+1)},[])
+ const reset=useCallback(()=>{setMatrixMode(false);setFile(null);setRows([]);setErrors([]);setResult(null);setErrorMessage('');setFileKey(v=>v+1)},[])
  const close=()=>{if(parsing||importing)return;reset();onClose()}
   const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
 
  const parseWorkbook=async(selected:File)=>{
-  setFile(selected);setRows([]);setErrors([]);setAllowValidRows(false);setResult(null);setErrorMessage('')
+  setMatrixMode(false);setFile(selected);setRows([]);setErrors([]);setAllowValidRows(false);setResult(null);setErrorMessage('')
   if(!eligible){setErrorMessage('Pilih Instalasi Rawat Jalan dan tahun profil 2026–2100 sebelum mengimpor.');return}
   if(!/\.xlsx$/i.test(selected.name)){setErrorMessage('Hanya workbook .xlsx yang didukung.');return}
   if(selected.size<=0||selected.size>MAX_FILE_BYTES){setErrorMessage('Ukuran file harus lebih dari 0 dan maksimal 15 MB.');return}
@@ -107,6 +119,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
    const groups=layout?.providerGroups??[]
    const matrix=parseOutpatientMatrixWorkbook(workbook,year,groups)
    if(matrix.matched){
+    setMatrixMode(true)
     if(!matrix.rows.length&&!matrix.errors.length)throw new Error('Tidak ditemukan pengukuran waktu tunggu pada matriks untuk tahun profil ini.')
     setRows(matrix.rows);setErrors(matrix.errors)
     if(!matrix.rows.length)setErrorMessage(matrix.errors.slice(0,40).join('\n'))
@@ -184,7 +197,12 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
   <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqOutpatientImport" role="dialog" aria-modal="true" aria-labelledby="aqOutpatientTitle">
    <style>{'.aqOutpatientImport .aqBody{display:grid;gap:12px}.aqOutpatientImport .oiBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:12px;line-height:1.5}.aqOutpatientImport .oiError{background:#fff1f0;color:#8b2822}.aqOutpatientImport .oiWarn{background:#fff8e8;color:#795c26}.aqOutpatientImport .oiSuccess{background:#ebf8ef;color:#1e6544}.aqOutpatientImport .oiTable{max-height:300px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqOutpatientImport table{width:100%;border-collapse:collapse;font-size:12px}.aqOutpatientImport th,.aqOutpatientImport td{padding:8px;border-bottom:1px solid #e2e8e4;text-align:left}.aqOutpatientImport th{position:sticky;top:0;background:#f5f8f6}.aqOutpatientImport .oiStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.aqOutpatientImport .oiStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px}.aqOutpatientImport .oiStat span{display:block;color:#65736b;font-size:12px}.aqOutpatientImport .oiStat strong{display:block;font-size:17px;margin-top:4px}.aqOutpatientImport .oiMuted{font-size:12px;color:#65736b;line-height:1.5}@media(max-width:560px){.aqOutpatientImport .oiStats{grid-template-columns:1fr 1fr}}'}</style><style>{OUTPATIENT_IMPORT_LAYOUT}</style>
    <div className="aqDHead"><div><div className="eyebrow">Audit Indikator Mutu · Instalasi Rawat Jalan</div><h4 id="aqOutpatientTitle">Unggah workbook Rawat Jalan</h4><p>Impor data harian dokter–klinik untuk penghitungan waktu tunggu.</p></div><button type="button" className="aqClose" disabled={parsing||importing} onClick={close}>×</button></div>
-   <div className="aqBody qiuBody oiImportBody"><QualityWorkbookImportSidebar unitKey="outpatient" year={year} /><div className="oiMain">
+   <div className="aqBody qiuBody oiImportBody"><QualityWorkbookImportSidebar unitKey="outpatient" year={year} mapping={
+    matrixMode ? <p className="qiuMappingNotice">Workbook matriks tanggal menggunakan pemetaan klinik–dokter khusus. Pengaturan kolom di bawah berlaku untuk workbook berbentuk tabel observasi, bukan matriks tanggal.</p> :
+    <QualityWorkbookInlineColumnMapping file={file} importerKey="outpatient"
+      fields={OUTPATIENT_MAPPING_FIELDS} disabled={parsing||importing}
+      onApply={()=>file ? parseWorkbook(file) : undefined}/>
+   }/><div className="oiMain">
     {!authorized&&<div className="oiBox oiError">Impor workbook hanya tersedia bagi Admin/Komite PMKP.</div>}
     {!eligible&&<div className="oiBox oiError">Pilih Instalasi Rawat Jalan dan tahun profil yang sesuai.</div>}
     <div className="oiBox">Workbook mendukung dua bentuk: (1) logbook matriks PMKP: tanggal pada kolom mendatar, klinik sebagai kelompok baris, dan dokter pada baris di bawahnya; atau (2) tabel dengan kolom Tanggal pengamatan, Klinik, Dokter, dan Waktu Tunggu Rawat Jalan (Menit). Sistem mengabaikan rumus rekap klinik, memetakan dokter ke roster, lalu menampilkan pratinjau sebelum impor. File diproses di browser; hanya pengukuran valid yang dikirim ke Supabase.</div>

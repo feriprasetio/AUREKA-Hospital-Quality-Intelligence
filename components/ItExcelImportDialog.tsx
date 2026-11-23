@@ -1,5 +1,6 @@
 'use client'
 import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -56,6 +57,13 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   difficulty: ['Tingkat Kesulitan'],
   followup: ['Tindak Lanjut'],
 }
+
+const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
+  ...Object.entries(REQUIRED_HEADERS).map(([key,aliases]) => ({
+    fieldKey: aliases[0] ?? key, label:aliases[0] ?? key, aliases, required:false,
+  })),
+]
+
 
 function cellValue(cell: any): unknown {
   const value = cell?.value
@@ -352,7 +360,11 @@ export default function ItExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="it" year={year} />
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="it" year={year}
+    mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="it"
+      fields={INLINE_MAPPING_FIELDS} disabled={parsing||importing}
+      onApply={()=>file ? parseWorkbook(file) : undefined}/>}
+  /><div className="qiuMain">
           <div className="itIntro">
             Pilih file .xlsx yang berisi sheet <strong>Logbook</strong>. Baris header dibaca dari baris 2. Setiap laporan gangguan menjadi satu catatan aktivitas dan satu respons indikator Tindak Lanjut.
           </div>
@@ -422,6 +434,7 @@ export default function ItExcelImportDialog({
             </div>
           )}
         </div>
+</div>
         <div className="aqFoot">
           <span className="itPrivacy">Status setelah impor: Siap Ditinjau. Validasi tetap dilakukan oleh pejabat yang berwenang.</span>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

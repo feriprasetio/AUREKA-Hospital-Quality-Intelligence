@@ -315,7 +315,7 @@ export default function PatientEpisodeWorkbookDialog({
       <button type="button" disabled={!file?.parsed.hasLogbook || !!busy} onClick={() => void buildPreview()}>Pratinjau Logbook</button>
       <button type="button" className="episodeWorkbookPrimary" disabled={!!busy || !preview?.rows.length || !!preview?.issues.length || (Boolean(preview?.heldRows) && !confirmedHeldRows)} onClick={() => void runImport()}>{labelImport}</button>
     </div>}>
-    <div className="episodeWorkbook qiuBody"><QualityWorkbookImportSidebar unitKey="generic" year={year} unitName={roomName} />
+    <div className="episodeWorkbook qiuBody"><QualityWorkbookImportSidebar unitKey="generic" year={year} unitName={roomName} /><div className="qiuMain">
       <fieldset disabled={!!busy}>
         <div className="episodeWorkbookFile">
           <label>Workbook .xlsx<input type="file" accept=".xlsx" onChange={event => {
@@ -391,5 +391,6 @@ export default function PatientEpisodeWorkbookDialog({
         {preview.rows.length.toLocaleString('id-ID')} episode siap disimpan · {preview.rows.filter(row=>row.row_payload.record_payload.status==='draft').length.toLocaleString('id-ID')} draf memerlukan rekonsiliasi respons
       </p>)}
     </div>
+</div>
   </AurekaModal>
 }

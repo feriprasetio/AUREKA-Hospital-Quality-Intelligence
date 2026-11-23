@@ -765,7 +765,7 @@ export default function IsolasiInpatientExcelImportDialog({
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
 
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="isolasi-inpatient" year={year} />
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="isolasi-inpatient" year={year} /><div className="qiuMain">
         <div className="suBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -849,6 +849,7 @@ export default function IsolasiInpatientExcelImportDialog({
           </div>
         </div>
       </div>
+</div>
     </section>
   </div></div>, document.body)
 }

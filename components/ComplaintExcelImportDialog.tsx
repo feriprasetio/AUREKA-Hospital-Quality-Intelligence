@@ -1,5 +1,6 @@
 'use client'
 import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
@@ -63,6 +64,13 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   response11: ['Respon Komplain'],
   response12: ['Mengerti Informasi'],
 }
+
+const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
+  ...Object.entries(REQUIRED_HEADERS).map(([key,aliases]) => ({
+    fieldKey: aliases[0] ?? key, label:aliases[0] ?? key, aliases, required:false,
+  })),
+]
+
 const LEVELS = ['Ringan', 'Sedang', 'Berat']
 const SOURCES = ['Website Rumah Sakit', 'Sumber Lainnya', 'Aduan Langsung Tatap Muka']
 const STATUSES = [
@@ -448,7 +456,11 @@ export default function ComplaintExcelImportDialog({
           </div>
           <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="complaint" year={year} />
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="complaint" year={year}
+    mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="complaint"
+      fields={INLINE_MAPPING_FIELDS} disabled={parsing||importing}
+      onApply={()=>file ? parseWorkbook(file) : undefined}/>}
+  /><div className="qiuMain">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Informasi dan Pengaduan serta tahun 2026 sebelum membuka jalur impor ini.</div>}
           <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong> dengan header di baris 2 dan data mulai baris 3. Nilai <strong>Unit Pelayanan</strong> diterima sebagai teks bebas (tetap wajib diisi), bukan dibatasi daftar pilihan. Baris ditinjau sebelum disimpan ke Supabase melalui sesi login AUREKA; workbook tidak dikirim ke repositori.</div></details>
@@ -493,6 +505,7 @@ export default function ComplaintExcelImportDialog({
           {rows.some(row => row.warnings.length > 0) && <div className="ciMessage ciError" role="alert"><strong>Perhatian sumber:</strong> beberapa baris memiliki nilai yang harus diverifikasi manual. Nilai asli tetap dipertahankan; impor akan menyimpan catatan dalam status siap ditinjau.</div>}
           {result && <div className="ciMessage ciSuccess" role="status">Impor selesai. {result.imported_count ?? 0} catatan baru disimpan; {result.skipped_existing_count ?? 0} baris yang sebelumnya ada dilewati. Data telah dimuat ulang dari server.</div>}
         </div>
+</div>
         <div className="aqFoot">
           <span style={{fontSize:12,color:'var(--muted)'}}>Data pasien tidak disertakan dalam commit kode.</span>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>

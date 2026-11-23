@@ -820,7 +820,7 @@ export default function PediatricInpatientExcelImportDialog({
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
 
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="pediatric-inpatient" year={year} />
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="pediatric-inpatient" year={year} /><div className="qiuMain">
         <div className="paBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -905,6 +905,7 @@ export default function PediatricInpatientExcelImportDialog({
           </div>
         </div>
       </div>
+</div>
     </section>
   </div></div>, document.body)
 }

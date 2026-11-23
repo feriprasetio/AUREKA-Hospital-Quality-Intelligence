@@ -216,6 +216,35 @@ export function resolveInteractiveExcelHeaderColumn(
   throw new Error('Pilihan kolom untuk "' + fieldLabel + '" tidak valid. Gunakan huruf atau nomor kolom yang ditampilkan.')
 }
 
+/**
+ * Read the effective per-field selection for an embedded workbook mapping panel.
+ * Unit/year-specific server mappings always take precedence over browser mappings.
+ */
+export function readInteractiveExcelHeaderMapping(importerKey: string, fieldKey: string):
+  { normalizedHeader: string; occurrence: number; locked: boolean } | null {
+  const configured = activeMappingScope ? serverMappings[importerKey]?.[fieldKey] : undefined
+  if (configured) return { ...configured, locked: true }
+  const saved = readMappings(importerKey)[fieldKey]
+  return saved ? { ...saved, locked: false } : null
+}
+
+/** Persist an explicit user's column choice; never override server-governed mappings. */
+export function saveInteractiveExcelHeaderMapping(
+  importerKey: string,
+  fieldKey: string,
+  header: string,
+  occurrence: number,
+): void {
+  if (activeMappingScope && serverMappings[importerKey]?.[fieldKey]) {
+    throw new Error('Tautan kolom ini dikelola Pusat Pemetaan Excel dan tidak dapat ditimpa dari popup.')
+  }
+  const normalizedHeader = normalizeExactHeader(header)
+  if (!normalizedHeader || !Number.isInteger(occurrence) || occurrence < 1) {
+    throw new Error('Pilih kolom header yang valid.')
+  }
+  writeMapping(importerKey, fieldKey, { normalizedHeader, occurrence })
+}
+
 /** Remove saved manual mappings for one importer; useful when the source template changes. */
 export function clearInteractiveExcelHeaderMappings(importerKey: string): void {
   if (typeof window === 'undefined') return
