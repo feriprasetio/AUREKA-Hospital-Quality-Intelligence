@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 
@@ -404,6 +405,7 @@ export default function PediatricInpatientExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -415,7 +417,7 @@ export default function PediatricInpatientExcelImportDialog({
   const [findings, setFindings] = useState<WorkbookFindings | null>(null)
 
   const eligible = open && authorized && roomId === 22 && year === 2026
-  const preview = useMemo(() => rows.slice(0, 100), [rows])
+  const preview = previewConfig.preview
   const mappedResponses = useMemo(
     () => rows.reduce((sum, row) => sum + Object.keys(row.indicators).length, 0),
     [rows],
@@ -853,6 +855,7 @@ export default function PediatricInpatientExcelImportDialog({
         {rows.length > 0 && <div className="paBox">
           <strong>Preview tersamarkan · {preview.length} dari {rows.length} episode pertama</strong>
           <div className="paTable" style={{ marginTop: 8 }}>
+            <QualityWorkbookPreviewControls config={previewConfig} />
             <table>
               <thead><tr><th>Baris Excel</th><th>No. RM</th><th>Nama</th><th>Tanggal Masuk</th><th>Tanggal Keluar</th><th>LOS</th><th>Respons</th><th>Warning</th></tr></thead>
               <tbody>

@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
@@ -345,6 +346,7 @@ export default function NicuExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -356,7 +358,7 @@ export default function NicuExcelImportDialog({
   const [findings, setFindings] = useState<WorkbookFindings | null>(null)
 
   const eligible = open && authorized && roomId === 18 && year === 2026
-  const preview = useMemo(() => rows.slice(0, 100), [rows])
+  const preview = previewConfig.preview
   const matchedResponses = useMemo(() => rows.reduce((sum, row) => sum + Object.values(row.indicators).length, 0), [rows])
   const pendingResponses = matchedResponses
   const rowsWithWarnings = useMemo(() => rows.filter(row => row.warnings.length > 0).length, [rows])
@@ -700,6 +702,7 @@ export default function NicuExcelImportDialog({
         {rows.length > 0 && <div className="piBox">
           <strong>Preview tersamarkan · {preview.length} dari {rows.length} episode pertama</strong>
           <div className="piTable" style={{ marginTop: 8 }}>
+            <QualityWorkbookPreviewControls config={previewConfig} />
             <table>
               <thead><tr><th>Baris Excel</th><th>No. RM</th><th>Nama</th><th>Tanggal masuk–keluar</th><th>Tanggal catat 2026</th><th>LOS</th><th>Respons</th><th>Warning</th></tr></thead>
               <tbody>

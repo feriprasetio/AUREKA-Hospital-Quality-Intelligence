@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
@@ -263,6 +264,7 @@ export default function LaboratoryExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [excludedRows, setExcludedRows] = useState<ExcludedRow[]>([])
   const [duplicateStats, setDuplicateStats] = useState<DuplicateStats | null>(null)
   const [sourceRowCount, setSourceRowCount] = useState(0)
@@ -664,8 +666,9 @@ export default function LaboratoryExcelImportDialog({
           {blankCount > 0 && <div className="ciMessage ciWarning"><strong>{blankCount} respons indikator kosong.</strong> Kolom yang kosong tetap kosong; sistem tidak menganggapnya sebagai kode 1 atau sebagai nilai yang tidak terjadi.</div>}
           {warningRows.length > 0 && <div className="ciMessage ciWarning"><strong>{warningRows.length} event memiliki catatan pemeriksaan sumber.</strong> Periksa metadata dan waktu selesai pada workbook sebelum validasi.</div>}
           {rows.length > 0 && <div className="ciTable">
+            <QualityWorkbookPreviewControls config={previewConfig} />
             <table><thead><tr><th>Baris Excel</th><th>Waktu permintaan</th><th>Nama (masking)</th><th>No. RM (masking)</th><th>9.1 · Darah</th><th>9.2 · Unordered</th><th>9.3 · Delay</th><th>9.4 · Tes kritis</th><th>9.5 · Histopatologi</th><th>Catatan QA</th></tr></thead>
-              <tbody>{rows.slice(0, 100).map(row => (
+              <tbody>{previewConfig.preview.map(row => (
                 <tr key={row.sourceRow}>
                   <td>{row.sourceRow}</td>
                   <td>{row.requestedAt.replace('T', ' ')}</td>

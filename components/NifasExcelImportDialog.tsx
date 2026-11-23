@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 
@@ -340,6 +341,7 @@ export default function NifasExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -351,7 +353,7 @@ export default function NifasExcelImportDialog({
   const [findings, setFindings] = useState<WorkbookFindings | null>(null)
 
   const eligible = open && authorized && roomId === 19 && year === 2026
-  const preview = useMemo(() => rows.slice(0, 100), [rows])
+  const preview = previewConfig.preview
   const matchedResponses = useMemo(
     () => rows.reduce((sum, row) => sum + Object.keys(row.indicators).length, 0),
     [rows],
@@ -786,6 +788,7 @@ export default function NifasExcelImportDialog({
         {rows.length > 0 && <div className="niBox">
           <strong>Preview tersamarkan · {preview.length} dari {rows.length} episode pertama</strong>
           <div className="niTable" style={{ marginTop: 8 }}>
+            <QualityWorkbookPreviewControls config={previewConfig} />
             <table>
               <thead><tr><th>Baris Excel</th><th>No. RM</th><th>Nama</th><th>Tanggal masuk–keluar</th><th>Tanggal catat 2026</th><th>LOS</th><th>Respons</th><th>Warning</th></tr></thead>
               <tbody>

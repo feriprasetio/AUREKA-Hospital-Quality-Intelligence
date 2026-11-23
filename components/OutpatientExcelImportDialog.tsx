@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 
@@ -77,9 +78,10 @@ function payloadFor(row:PreparedRow,fileName:string,year:number){
 }
 export default function OutpatientExcelImportDialog({open,roomId,year,authorized,layout,onClose,onImported}:Props){
  const [file,setFile]=useState<File|null>(null),[rows,setRows]=useState<PreparedRow[]>([]),[errors,setErrors]=useState<string[]>([]),[parsing,setParsing]=useState(false),[importing,setImporting]=useState(false),[result,setResult]=useState<{imported:number;skipped:number;received:number}|null>(null),[errorMessage,setErrorMessage]=useState(''),[fileKey,setFileKey]=useState(0)
+  const previewConfig = useQualityWorkbookPreview(rows)
  const [allowValidRows,setAllowValidRows]=useState(false)
  const eligible=open&&authorized&&roomId===11&&year>=2026&&year<=2100
- const preview=useMemo(()=>rows.slice(0,100),[rows])
+ const preview = previewConfig.preview
  const reset=useCallback(()=>{setFile(null);setRows([]);setErrors([]);setResult(null);setErrorMessage('');setFileKey(v=>v+1)},[])
  const close=()=>{if(parsing||importing)return;reset();onClose()}
   const importDialogRef=useAccessibleDialog<HTMLElement>({open,onClose:close,lockScroll:true})
@@ -191,7 +193,8 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
     {errorMessage&&<div className="oiBox oiError" role="alert">{errorMessage}</div>}
     {rows.length>0&&<div className="oiStats"><div className="oiStat"><span>Baris valid</span><strong>{rows.length}</strong></div><div className="oiStat"><span>Baris bermasalah</span><strong>{errors.length}</strong></div><div className="oiStat"><span>Siap diimpor</span><strong>{rows.length-errors.length}</strong></div></div>}
     {errors.length>0&&<div className="oiBox oiWarn"><b>Baris berikut perlu diperbaiki dari workbook.</b>{'\n'+errors.slice(0,40).join('\n')}{errors.length>40?'\n… dan '+(errors.length-40)+' baris lainnya.':''}</div>}
-    {rows.length>0&&<div className="oiTable"><table><thead><tr><th>Sheet</th><th>Baris</th><th>Tanggal</th><th>Klinik</th><th>Dokter</th><th>Waktu tunggu</th></tr></thead><tbody>{preview.map(row=><tr key={row.sourceSheet+'-'+row.sourceRow}><td>{row.sourceSheet}</td><td>{row.sourceRow}</td><td>{row.date}</td><td>{row.clinic}</td><td>{row.doctor}</td><td>{row.waitingMinutes.toLocaleString('id-ID')} menit</td></tr>)}</tbody></table></div>}
+    {rows.length>0&&<div className="oiTable"><QualityWorkbookPreviewControls config={previewConfig} />
+            <table><thead><tr><th>Sheet</th><th>Baris</th><th>Tanggal</th><th>Klinik</th><th>Dokter</th><th>Waktu tunggu</th></tr></thead><tbody>{preview.map(row=><tr key={row.sourceSheet+'-'+row.sourceRow}><td>{row.sourceSheet}</td><td>{row.sourceRow}</td><td>{row.date}</td><td>{row.clinic}</td><td>{row.doctor}</td><td>{row.waitingMinutes.toLocaleString('id-ID')} menit</td></tr>)}</tbody></table></div>}
     {rows.length>100&&<div className="oiMuted">Pratinjau menampilkan 100 dari {rows.length} baris.</div>}
     <div className="oiMuted">Kunci idempotensi mengikuti logbook manual AUREKA: room 11 + tanggal + nama klinik roster + nama dokter roster. Unggah ulang tidak membuat catatan duplikat. Catatan impor menjadi laporan final PIC dan tetap dapat diperbarui; pemeriksaan bulanan dilakukan oleh Validator.</div>
     {!!errors.length&&!!rows.length&&!result&&<label><input type="checkbox" checked={allowValidRows} disabled={importing} onChange={event=>setAllowValidRows(event.target.checked)}/> Impor baris valid dan sisakan baris yang perlu koreksi.</label>}
