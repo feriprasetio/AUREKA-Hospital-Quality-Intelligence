@@ -269,7 +269,8 @@ html:where([data-skin="arktik"])[data-theme] .workspaceRoot[data-aureka-theme] .
 :where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .aqInlineEditorRow td { background: #eef2f6 !important; }
 :where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .aqInlineEditor { border: 1px solid #cad3db !important; box-shadow: 0 2px 8px rgba(22, 32, 41,.06) !important; }
 :where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .aqInlineEditor .aqFoot { background: #f7f9fa !important; }
-:where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .aqBtn { border: 1px solid #d1d7dd !important; color: #22384c !important; }
+:where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .aqBtn { border: 1px solid #d1d7dd !important; }
+:where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .aqBtn:not(.primary):not(.danger) { color: #22384c !important; }
 :where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .aqBtn.primary,
 :where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .aqBtn.primary:hover { background: #0b467a !important; border-color: #0b467a !important; }
 :where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .rmButton,:where(html[data-skin="arktik"]) .workspaceRoot .moduleEnter .psBtn{ border: 1px solid #d1d7dd !important; color: #22384c !important; }
@@ -870,7 +871,7 @@ html[data-skin="arktik"] .prTable th { background: #f8f9fa; }
 html[data-skin="arktik"] .prStrong { color: #233647; }
 
 /* from components/PatientSafetyWorkspace.tsx */
-html[data-skin="arktik"] .psBtn { color: #253543; }
+html[data-skin="arktik"] .psBtn:not(.primary):not(.danger) { color: #253543; }
 html[data-skin="arktik"] .psTab { color: #515b63; }
 html[data-skin="arktik"] .psAlert { color: #445361; }
 html[data-skin="arktik"] .psTable th { background: rgba(248, 250, 251,.96); }
@@ -896,7 +897,7 @@ html[data-skin="arktik"] .psToast { background: rgba(13, 27, 40,.93); }
 html[data-skin="arktik"] .aqInlineEditor { box-shadow: 0 8px 28px rgba(18, 35, 49,.08); }
 html[data-skin="arktik"] .aqInlineEditor .aqFoot { background: rgba(248, 250, 251,.96); }
 html[data-skin="arktik"] .aq .glass { box-shadow: 0 1px 3px rgba(18, 35, 49,.045); }
-html[data-skin="arktik"] .aqBtn { color: #253543; }
+html[data-skin="arktik"] .aqBtn:not(.primary):not(.danger) { color: #253543; }
 html[data-skin="arktik"] .aqTab { color: #515b63; }
 html[data-skin="arktik"] .aqField input,
 html[data-skin="arktik"] .aqField select,
