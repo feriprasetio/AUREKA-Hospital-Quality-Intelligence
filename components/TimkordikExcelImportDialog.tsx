@@ -65,7 +65,7 @@ const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
     fieldKey: key, label:aliases[0] ?? key, aliases, required:false,
   })),
   ...TIMKORDIK_INDICATORS.map(item => ({
-    fieldKey:'indicator:' + item.code, label:item.code + ' · ' + item.title,
+    fieldKey:'indicator:' + item.code, label:item.code + ' · ' + item.profileTitle,
     aliases:[item.header], required:false,
   })),
 ]
