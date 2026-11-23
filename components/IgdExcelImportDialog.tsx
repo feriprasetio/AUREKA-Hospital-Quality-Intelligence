@@ -873,7 +873,7 @@ export default function IgdExcelImportDialog({
           </div>
           <button className="aqClose" type="button" disabled={busy} onClick={close} aria-label="Tutup">×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="igd" year={year} />
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="igd" year={year} /><div className="qiuMain">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke IGD.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih Instalasi Gawat Darurat dan tahun profil 2026 sebelum membuka impor.</div>}
           <div className="ciFlowHint">Pilih alur, unggah workbook, lalu periksa pratinjau sebelum impor.</div>
@@ -1030,6 +1030,7 @@ export default function IgdExcelImportDialog({
           {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
           <details className="ciReviewDetails ciIgdIntegrity"><summary>Ketentuan pemeriksaan sumber</summary><div>RM berulang tidak digabung; jawaban kosong tetap kosong; pilihan tidak dikenal dipertahankan; sampel ambigu tidak ditautkan ke episode secara paksa.</div></details>
         </div>
+</div>
         <div className="aqFoot">
           <span aria-live="polite" style={{ fontSize: 12, color: errorMessage ? '#8b2822' : 'var(--muted)', lineHeight: 1.45 }}>
             {errorMessage
