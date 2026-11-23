@@ -82,7 +82,7 @@ test('Rehab/ICU/NICU/Outpatient fast source-header paths respect persisted user 
     const compactStart=src.indexOf('if(score===0)')
     const start=fastStart>=0?fastStart:compactStart
     assert.ok(start>=0,name + ' missing exact-header branch')
-    const end=src.indexOf('return { rowNumber',start)
+    const end=src.indexOf('return {',start)
     assert.ok(end>start,name + ' branch missing return')
     assert.ok(src.slice(start,end).includes('resolveInteractiveExcelHeaderColumn'),name + ' skips saved mapping on exact header')
   }
