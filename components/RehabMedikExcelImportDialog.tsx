@@ -1,5 +1,6 @@
 'use client'
 import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
@@ -64,6 +65,19 @@ const REQUIRED_HEADERS:Record<string,string[]> = {
   treatment:['Jenis Tindakan','Jenis Terapi','Tindakan'],
 }
 const INDICATOR_HEADERS = Object.fromEntries(INDICATORS.map(item=>[item.code,[item.header]])) as Record<string,string[]>
+const REHAB_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
+  ...Object.entries(REQUIRED_HEADERS).map(([fieldKey, aliases]) => ({
+    fieldKey, label: ({
+      sourceNo: 'Nomor sumber', patientName: 'Nama pasien', medicalRecordNo: 'No. Rekam Medis',
+      serviceDate: 'Tanggal dilayani', therapist: 'Nama terapis', treatment: 'Jenis tindakan',
+    } as Record<string,string>)[fieldKey] ?? fieldKey, aliases, required: fieldKey !== 'treatment',
+  })),
+  ...INDICATORS.map(item => ({
+    fieldKey: 'indicator:' + item.code, label: item.code + ' · ' + item.title,
+    aliases: [item.header], required: true,
+  })),
+]
+
 
 function readCell(cell:any):unknown {
   const value=cell?.value
@@ -134,8 +148,21 @@ function findHeaderRow(sheet:any):{rowNumber:number;indexes:Record<string,number
     for(const [code,aliases] of Object.entries(INDICATOR_HEADERS)) if(exact(columns,aliases)==null)score+=1
     if(score===0){
       const indexes:Record<string,number>={}
-      for(const [key,aliases] of Object.entries(REQUIRED_HEADERS)){const column=exact(columns,aliases);if(column!=null)indexes[key]=column}
-      for(const [code,aliases] of Object.entries(INDICATOR_HEADERS)){const column=exact(columns,aliases);if(column!=null)indexes['indicator:'+code]=column}
+      // Use the same saved physical column choices exposed in the in-dialog mapper,
+      // even when all standard headers already match. Previously exact matches
+      // bypassed saved mappings, making the visible selects ineffective.
+      for(const [key,aliases] of Object.entries(REQUIRED_HEADERS)){
+        const column=resolveInteractiveExcelHeaderColumn(columns,aliases,{
+          importerKey:'rehab-medik',fieldKey:key,fieldLabel:aliases[0],required:key!=='treatment',
+        })
+        if(column!=null)indexes[key]=column
+      }
+      for(const [code,aliases] of Object.entries(INDICATOR_HEADERS)){
+        const column=resolveInteractiveExcelHeaderColumn(columns,aliases,{
+          importerKey:'rehab-medik',fieldKey:'indicator:'+code,fieldLabel:aliases[0],required:true,
+        })
+        if(column!=null)indexes['indicator:'+code]=column
+      }
       return {rowNumber,indexes}
     }
     if(score<bestScore){bestScore=score;bestRowNumber=rowNumber;bestColumns=columns}
@@ -371,7 +398,11 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
   <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqRehabImport" role="dialog" aria-modal="true" aria-labelledby="aqRehabImportTitle">
    <style>{'.aqRehabImport .aqBody{display:grid;align-content:start;gap:12px}.aqRehabImport .riBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:12px;line-height:1.55}.aqRehabImport .riError{background:#fff1f0;color:#8b2822}.aqRehabImport .riWarn{background:#fff8e8;color:#795c26}.aqRehabImport .riSuccess{background:#ebf8ef;color:#1e6544}.aqRehabImport .riTable{max-height:320px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqRehabImport table{width:100%;border-collapse:collapse;font-size:12px}.aqRehabImport th,.aqRehabImport td{padding:8px 9px;border-bottom:1px solid #e2e8e4;text-align:left;white-space:nowrap}.aqRehabImport th{position:sticky;top:0;background:#f5f8f6}.aqRehabImport .riStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.aqRehabImport .riStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px;background:#fff}.aqRehabImport .riStat span{display:block;color:#65736b;font-size:12px}.aqRehabImport .riStat strong{display:block;font-size:17px;margin-top:4px}.aqRehabImport .riMuted{font-size:12px;color:#65736b;line-height:1.5}@media(max-width:560px){.aqRehabImport .riStats{grid-template-columns:1fr 1fr}}'}</style>
    <div className="aqDHead"><div><div className="eyebrow">Audit Indikator Mutu · Instalasi Rehab Medik</div><h4 id="aqRehabImportTitle">Unggah workbook Rehab Medik (.xlsx)</h4><p>Impor baris pelayanan pasien dan respons indikator 12.1–12.6.</p></div><button type="button" className="aqClose" disabled={parsing||importing} onClick={close} aria-label="Batal">×</button></div>
-   <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="rehab" year={year} /><div className="qiuMain">
+   <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="rehab" year={year} mapping={
+      <QualityWorkbookInlineColumnMapping file={file} importerKey="rehab-medik"
+        fields={REHAB_MAPPING_FIELDS} disabled={parsing||importing}
+        onApply={()=>file ? parseWorkbook(file) : undefined}/>
+    }/><div className="qiuMain">
     {!authorized&&<div className="riBox riError">Impor workbook hanya tersedia bagi Admin/Komite PMKP.</div>}
     {!eligible&&<div className="riBox riError">Pilih Instalasi Rehab Medik dan tahun profil yang sesuai.</div>}
     <div className="riBox">Sistem hanya mengimpor sheet <b>Logbook</b> (baris header ditemukan otomatis). Sheet Profil, Dashboard, dan sheet rekap 1–20 tidak diimpor karena berisi master atau hasil formula. Enam pilihan indikator dicocokkan dengan master AUREKA; sel kosong dibiarkan kosong. Pratinjau tidak menampilkan nama pasien atau nomor rekam medis.</div>
@@ -388,7 +419,7 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
     {partial&&importing&&<div className="riBox">Progres {progress}% · {partial.completedBatches} batch selesai · {partial.imported.toLocaleString('id-ID')} catatan baru · {partial.skipped.toLocaleString('id-ID')} sudah ada.</div>}
     {partial&&!importing&&!result&&partial.completedBatches>0&&<div className="riBox riWarn">Sebagian proses selesai sebelum kegagalan. {partial.imported} catatan baru tersimpan dan {partial.skipped} dilewati. Unggah ulang aman: kunci sumber menggunakan nomor baris Logbook.</div>}
     {result&&<div className="riBox riSuccess" role="status">Impor selesai: {result.received.toLocaleString('id-ID')} baris diproses, {result.imported.toLocaleString('id-ID')} catatan baru disimpan, dan {result.skipped.toLocaleString('id-ID')} sudah ada sehingga dilewati. Semua catatan impor menjadi laporan final PIC.</div>}
-    <div className="riMuted">Kunci idempotensi mengikuti nomor baris sumber: Instalasi Rehab Medik + tahun + nomor baris Excel. Workbook yang sama aman diunggah ulang dan tidak menggandakan catatan. Dua kunjungan pada pasien/tanggal/terapis/tindakan yang sama tetap dipisahkan jika berasal dari baris Excel berbeda.</div>
+    <details className="riBox riPrivacy"><summary style={{cursor:"pointer",fontWeight:750}}>Aturan duplikasi dan kunci sumber</summary><p style={{margin:"8px 0 0",lineHeight:1.55}}>Kunci idempotensi mengikuti nomor baris sumber: Instalasi Rehab Medik + tahun + nomor baris Excel. Workbook yang sama aman diunggah ulang dan tidak menggandakan catatan. Dua kunjungan pada pasien/tanggal/terapis/tindakan yang sama tetap dipisahkan jika berasal dari baris Excel berbeda.</p></details>
    </div>
 </div>
    <div className="aqFoot"><span className="riMuted">Pastikan pratinjau sesuai sumber sebelum melaporkan.</span><div style={{display:'flex',gap:8}}><button type="button" className="aqBtn" disabled={parsing||importing} onClick={close}>Batal</button><button type="button" className="aqBtn primary" disabled={!eligible||!authorized||!rows.length||errors.length>0||parsing||importing||!!result} onClick={()=>void importRows()}>{importing?'Mengimpor…':'Laporkan '+rows.length.toLocaleString('id-ID')+' catatan'}</button></div></div>
