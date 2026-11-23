@@ -690,8 +690,7 @@ export default function PonekExcelImportDialog({
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
 
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="ponek" year={year} />
-        <div className="qiuMain">
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="ponek" year={year} /><div className="qiuMain">
         <div className="poBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -767,12 +766,12 @@ export default function PonekExcelImportDialog({
         </div>
       </div>
       <div className="aqFoot poFooter">
-        <span className="aqMetaText">{errors.length ? 'Lengkapi Tanggal Masuk pada seluruh baris bermasalah sebelum impor; tidak ada partial import.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses PONEK, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
-          <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode PONEK'}</button>
+          <span className="aqMetaText">{errors.length ? 'Lengkapi Tanggal Masuk pada seluruh baris bermasalah sebelum impor; tidak ada partial import.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses PONEK, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
+            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode PONEK'}</button>
+          </div>
         </div>
-      </div>
     </section>
   </div></div>, document.body)
 }

@@ -1,5 +1,6 @@
 'use client'
 import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
@@ -54,6 +55,17 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   dpjp: ['DPJP'],
   unassignedBhpLinen: ['ekosongan BHP/Linen', 'Kekosongan BHP/Linen', 'Kekosongan Linen'],
 }
+
+const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
+  ...Object.entries(REQUIRED_HEADERS).filter(([key]) => key !== 'unassignedBhpLinen').map(([fieldKey,aliases])=>({
+    fieldKey,label:aliases[0]??fieldKey,aliases,required:false,
+  })),
+  ...INDICATORS.map(item=>({
+    fieldKey:'indicator:' + item.code,label:item.code + ' · ' + item.header,
+    aliases:[...item.aliases],required:false,
+  })),
+]
+
 
 type PreparedRow = {
   sourceRow: number
@@ -157,13 +169,22 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     for (const item of INDICATORS) if (indicatorColumn(columns, item) == null) score += 1
     if (score === 0) {
       const indexes: Record<string, number> = {}
+      // Apply persisted per-field mapping even for perfect source headers.
+      // The previous exact-match branch silently ignored user configuration.
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
         if (key === 'unassignedBhpLinen') continue
-        const column = exact(columns, aliases)
+        const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+          importerKey:'icu',fieldKey:key,fieldLabel:aliases[0],
+          required:key!=='patientCategory' && key!=='los',
+        })
         if (column != null) indexes[key] = column
       }
       for (const item of INDICATORS) {
-        const column = indicatorColumn(columns, item)
+        const derived = item.code === '14.1' ? findIcuBhpLinenHeaderCandidates(columns) : []
+        const aliases = derived.length ? derived : [...item.aliases]
+        const column = resolveInteractiveExcelHeaderColumn(columns, aliases, {
+          importerKey:'icu',fieldKey:'indicator:' + item.code,fieldLabel:item.header,required:true,
+        })
         if (column != null) indexes['indicator:' + item.code] = column
       }
       if (indexes['indicator:14.1'] != null) indexes.unassignedBhpLinen = indexes['indicator:14.1']
@@ -656,8 +677,10 @@ export default function IcuExcelImportDialog({
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="icu" year={year} />
-        <div className="qiuMain">
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="icu" year={year}
+  mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="icu" fields={INLINE_MAPPING_FIELDS}
+    disabled={parsing||importing} onApply={()=>file ? parseWorkbook(file) : undefined}/>}
+ /><div className="qiuMain">
         <div className="iiBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -732,12 +755,12 @@ export default function IcuExcelImportDialog({
         </div>
       </div>
       <div className="aqFoot iiFooter">
-        <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh kesalahan baris sebelum impor.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses ICU, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
-          <button type="button" className="aqBtn primary" disabled={!eligible || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode ICU'}</button>
+          <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh kesalahan baris sebelum impor.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses ICU, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
+            <button type="button" className="aqBtn primary" disabled={!eligible || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode ICU'}</button>
+          </div>
         </div>
-      </div>
     </section>
   </div></div>, document.body)
 }

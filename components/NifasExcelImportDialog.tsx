@@ -755,8 +755,7 @@ export default function NifasExcelImportDialog({
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
 
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="nifas" year={year} />
-        <div className="qiuMain">
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="nifas" year={year} /><div className="qiuMain">
         <div className="niBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -834,12 +833,12 @@ export default function NifasExcelImportDialog({
         </div>
       </div>
       <div className="aqFoot niFooter">
-        <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh kesalahan baris sebelum impor.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Nifas, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
-          <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Nifas'}</button>
+          <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh kesalahan baris sebelum impor.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Nifas, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
+            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Nifas'}</button>
+          </div>
         </div>
-      </div>
     </section>
   </div></div>, document.body)
 }

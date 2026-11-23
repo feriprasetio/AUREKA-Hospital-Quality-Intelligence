@@ -765,8 +765,7 @@ export default function IsolasiInpatientExcelImportDialog({
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
 
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="isolasi-inpatient" year={year} />
-        <div className="qiuMain">
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="isolasi-inpatient" year={year} /><div className="qiuMain">
         <div className="suBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -845,12 +844,12 @@ export default function IsolasiInpatientExcelImportDialog({
         </div>
       </div>
       <div className="aqFoot suFooter">
-        <span className="aqMetaText">{errors.length ? errors.length + ' baris dikecualikan; ' + rows.length + ' episode valid siap diimpor setelah ditinjau.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Isolasi, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
-          <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Rawat Inap Isolasi'}</button>
+          <span className="aqMetaText">{errors.length ? errors.length + ' baris dikecualikan; ' + rows.length + ' episode valid siap diimpor setelah ditinjau.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Isolasi, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
+            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Rawat Inap Isolasi'}</button>
+          </div>
         </div>
-      </div>
     </section>
   </div></div>, document.body)
 }
