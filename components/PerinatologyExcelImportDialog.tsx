@@ -637,15 +637,15 @@ export default function PerinatologyExcelImportDialog({
           <div className="aqSub">Semua episode tetap Ready for Review; respons indikator menunggu klasifikasi numerator/denominator.</div>
         </div>}
 
-        <div className="piFooter">
+        </div>
+      </div>
+      <div className="aqFoot piFooter">
           <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh kesalahan baris sebelum impor.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Perinatologi, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Perinatologi'}</button>
           </div>
         </div>
-      </div>
-</div>
     </section>
   </div></div>, document.body)
 }

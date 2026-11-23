@@ -25,7 +25,9 @@ test('all 21 specialized unit importers share the IBS-style audited settings pan
     assert.ok(content.includes(unitKey === 'outpatient' ? 'className="aqBody qiuBody oiImportBody"' : 'className="aqBody qiuBody"'), name)
     assert.ok(sidebar.includes('"' + unitKey + '":'), 'Missing source format for ' + unitKey)
     assert.ok(content.includes('<QualityWorkbookPreviewControls'), 'Missing preview settings in ' + name)
+    assert.match(content, /<\/div>\s*<\/div>\s*<div className="aqFoot(?: [a-z]+Footer)?"/, name)
   }
+  assert.match(sidebar, /<summary>Panduan dan aturan impor<\/summary>/)
   const ibs = read('components/IbsExcelImportDialog.tsx')
   assert.ok(ibs.includes('className="ciImportGrid"'))
   assert.ok(ibs.includes('className="ciSettingsList"'))

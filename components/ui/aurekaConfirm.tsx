@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import AurekaModal from '@/components/ui/AurekaModal'
+
+let confirmationOpen = false
 
 /**
  * Pengganti window.confirm() bawaan browser: pop-up konfirmasi bergaya AUREKA.
@@ -12,33 +13,38 @@ export function aurekaConfirm(
   message: string,
   opts: { title?: string; confirmLabel?: string; cancelLabel?: string; danger?: boolean } = {},
 ): Promise<boolean> {
-  if (typeof document === 'undefined') return Promise.resolve(false)
+  if (typeof document === 'undefined' || confirmationOpen) return Promise.resolve(false)
+  confirmationOpen = true
   return new Promise((resolve) => {
     const host = document.createElement('div')
     document.body.appendChild(host)
     const root = createRoot(host)
+    let settled = false
     const finish = (value: boolean) => {
-      resolve(value)
-      window.setTimeout(() => { root.unmount(); host.remove() }, 0)
+      if (settled) return
+      settled = true
+      window.setTimeout(() => {
+        root.unmount()
+        host.remove()
+        confirmationOpen = false
+        resolve(value)
+      }, 0)
     }
-    function ConfirmDialog() {
-      const [open, setOpen] = useState(true)
-      const done = (v: boolean) => { setOpen(false); finish(v) }
-      return (
-        <AurekaModal
-          open={open}
-          size="md"
-          title={opts.title || (opts.danger ? 'Konfirmasi tindakan' : 'Konfirmasi')}
-          onClose={() => done(false)}
-          footer={<>
-            <button type="button" className="akBtn akBtnGhost" data-dialog-autofocus={opts.danger ? '' : undefined} onClick={() => done(false)}>{opts.cancelLabel || 'Batal'}</button>
-            <button type="button" className={opts.danger ? 'akBtn akBtnDanger' : 'akBtn akBtnPrimary'} data-dialog-autofocus={!opts.danger ? '' : undefined} onClick={() => done(true)}>{opts.confirmLabel || (opts.danger ? 'Ya, lanjutkan' : 'Ya')}</button>
-          </>}
-        >
-          <p className="akConfirmText">{message}</p>
-        </AurekaModal>
-      )
-    }
-    root.render(<ConfirmDialog />)
+    root.render(
+      <AurekaModal
+        open
+        role="alertdialog"
+        size="md"
+        title={opts.title || (opts.danger ? 'Konfirmasi tindakan' : 'Konfirmasi')}
+        subtitle={message}
+        onClose={() => finish(false)}
+        footer={<>
+          <button type="button" className="akBtn akBtnGhost" data-dialog-autofocus onClick={() => finish(false)}>{opts.cancelLabel || 'Batal'}</button>
+          <button type="button" className={opts.danger ? 'akBtn akBtnDanger' : 'akBtn akBtnPrimary'} onClick={() => finish(true)}>{opts.confirmLabel || (opts.danger ? 'Ya, lanjutkan' : 'Ya')}</button>
+        </>}
+      >
+        {null}
+      </AurekaModal>,
+    )
   })
 }

@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { createPortal } from 'react-dom'
 
 type CountItem = { label: string; count: number }
@@ -46,7 +47,7 @@ export default function PresentationMode({ open, onClose, summary, year, scope, 
   reported: { done: number; total: number; missing: string[] } | null
 }) {
   const [i, setI] = useState(0)
-  const root = useRef<HTMLDivElement | null>(null)
+  const root = useAccessibleDialog<HTMLDivElement>({ open, onClose })
   const isThisYear = year === new Date().getFullYear()
   const upTo = isThisYear ? new Date().getMonth() + 1 : 12
   const monthName = new Intl.DateTimeFormat('id-ID', { month: 'long' }).format(new Date())
@@ -75,7 +76,11 @@ export default function PresentationMode({ open, onClose, summary, year, scope, 
       <div className="pmStats"><Stat label="Rekomendasi" value={f(s.program.recommendations)} /><Stat label="RTL" value={f(s.program.actions)} /><Stat label="Selesai" value={f(s.program.completed_actions)} tone="ok" /><Stat label="Lewat tenggat" value={f(s.program.overdue_actions)} tone={n(s.program.overdue_actions) ? 'danger' : undefined} /></div>
       {n(s.program.actions) > 0 && <div className="pmProgress" aria-label="Penyelesaian RTL"><i style={{ width: (n(s.program.completed_actions) / n(s.program.actions)) * 100 + '%' }} /><span>{Math.round((n(s.program.completed_actions) / n(s.program.actions)) * 100)}% RTL selesai</span></div>}
     </> },
-    { key: 'diskusi', title: 'Poin diskusi & keputusan', body: <div className="pmNotes" contentEditable suppressContentEditableWarning>Klik untuk mengetik poin diskusi rapat…</div> },
+    { key: 'diskusi', title: 'Poin diskusi & keputusan', body: <div className="pmNotes" contentEditable suppressContentEditableWarning onKeyDown={event => {
+      if (event.key !== 'Escape' || event.nativeEvent.isComposing) return
+      event.preventDefault()
+      event.currentTarget.blur()
+    }}>Klik untuk mengetik poin diskusi rapat…</div> },
   ]
   const last = slides.length - 1
   const go = useCallback((d: number) => setI((v) => Math.min(last, Math.max(0, v + d))), [last])
@@ -84,27 +89,27 @@ export default function PresentationMode({ open, onClose, summary, year, scope, 
     if (!open) return
     setI(0)
     const el = root.current
-    try { void el?.requestFullscreen?.() } catch { /* layar penuh opsional */ }
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev; try { if (document.fullscreenElement) void document.exitFullscreen() } catch { /* abaikan */ } }
-  }, [open])
+    void el?.requestFullscreen?.().catch(() => {})
+    return () => {
+      if (el && document.fullscreenElement === el) void document.exitFullscreen().catch(() => {})
+    }
+  }, [open, root])
 
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.isContentEditable) { if (e.key === 'Escape') (e.target as HTMLElement).blur(); return }
+      if (e.defaultPrevented || !(e.target instanceof HTMLElement) || !root.current?.contains(e.target)) return
+      if (e.target.isContentEditable || e.target.matches('input, select, textarea') || (e.key === ' ' && e.target.closest('button, a[href]'))) return
       if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(1) }
       else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1) }
-      else if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => { window.removeEventListener('keydown', onKey)}
-  }, [open, go, onClose])
+  }, [open, go, root])
 
   if (!open || typeof document === 'undefined') return null
   const slide = slides[i]
-  return createPortal(<div ref={root} className="pmRoot" role="dialog" aria-modal="true" aria-label="Mode presentasi rapat">
+  return createPortal(<div ref={root} tabIndex={-1} className="pmRoot" role="dialog" aria-modal="true" aria-label="Mode presentasi rapat">
     <div className="pmTop"><span>AUREKA · {scope} · {year}</span><button type="button" onClick={onClose} aria-label="Keluar dari presentasi">Keluar (Esc)</button></div>
     <section key={slide.key} className="pmSlide" aria-live="polite">
       {slide.title && <h2>{slide.title}</h2>}

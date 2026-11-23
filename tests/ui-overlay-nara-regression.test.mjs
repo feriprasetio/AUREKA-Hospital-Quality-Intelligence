@@ -28,12 +28,11 @@ test('shared dialog stays above NARA, mobile navigation and presentation overlay
 test('destructive confirmation initially focuses Cancel and modal controls are touch-sized', () => {
   const confirmation = read('components/ui/aurekaConfirm.tsx')
   const modal = read('app/modal.css')
-  assert.match(confirmation, /data-dialog-autofocus=\{opts\.danger \? '' : undefined\}/)
-  assert.match(confirmation, /data-dialog-autofocus=\{!opts\.danger \? '' : undefined\}/)
+  assert.match(confirmation, /className=\"akBtn akBtnGhost\" data-dialog-autofocus onClick=\{\(\) => finish\(false\)\}/)
   assert.doesNotMatch(confirmation, /autoFocus\s/)
   assert.match(modal, /\.akModalClose\s*\{[^}]*width:\s*44px;\s*height:\s*44px/)
   assert.match(modal, /\.akBtn\s*\{\s*min-height:\s*44px/)
-  assert.match(modal, /\.akModalFoot\s*\{\s*flex-wrap:\s*wrap;/)
+  assert.match(modal, /\.akModalFoot\s*\{[^}]*flex-wrap:\s*wrap;/)
 })
 
 test('NARA mobile history remains scrollable and actions remain accessible', () => {

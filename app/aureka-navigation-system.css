@@ -584,7 +584,7 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme] .w
     outline-offset: 2px;
   }
   html[data-skin="arktik"] body > .workspaceNativeNavigation[data-drawer-open="true"],
-  html[data-skin="arktik"] body:has(:is(.akModalRoot, .rmModalBackdrop, .psModalBackdrop,
+  html[data-skin="arktik"] body:has(:is(.akModalRoot, [aria-modal="true"], .rmModalBackdrop, .psModalBackdrop,
     .oppeModalBackdrop, .sdEditBackdrop, .secModalBackdrop, .spmOverlay,
     .cpBuilderOverlay, .idleWarnBackdrop, .pmRoot, .aqEditorDialog, .aqBack,
     .certificateEditorBackdrop, .acdDrawerBack, .ihtBackdrop, .rfmeaBackdrop,

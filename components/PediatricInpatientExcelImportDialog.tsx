@@ -897,15 +897,15 @@ export default function PediatricInpatientExcelImportDialog({
           <div className="aqSub">Episode yang belum pulang tetap tercatat sebagai pasien rawat inap; respons indikator menunggu klasifikasi numerator/denominator.</div>
         </div>}
 
-        <div className="paFooter">
+        </div>
+      </div>
+      <div className="aqFoot paFooter">
           <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh kesalahan identitas/tanggal sebelum impor.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Anak, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Rawat Inap Anak'}</button>
           </div>
         </div>
-      </div>
-</div>
     </section>
   </div></div>, document.body)
 }

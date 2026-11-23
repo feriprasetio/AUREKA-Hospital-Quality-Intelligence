@@ -73,7 +73,7 @@ body:has([aria-modal="true"], .rmModalBackdrop, .psModalBackdrop, .oppeModalBack
 body:has(.akModalRoot) .tanyaFab { visibility: hidden; pointer-events: none; }
 /* All blocking surfaces suspend the floating assistant, including when it was
  * already open. Several legacy workspaces still mount non-portal dialogs. */
-body:has(:is(.akModalRoot, .rmModalBackdrop, .psModalBackdrop, .oppeModalBackdrop,
+body:has(:is([aria-modal="true"], .akModalRoot, .rmModalBackdrop, .psModalBackdrop, .oppeModalBackdrop,
   .sdEditBackdrop, .overviewOverlay, .aqEditorDialog, .secModalBackdrop,
   .spmOverlay, .cpBuilderOverlay, .aqBack, .aqDeleteConfirmBack))
   > :is(.tanyaFab, .tanyaPanel:not(.tanyaPanelEmbedded)) {

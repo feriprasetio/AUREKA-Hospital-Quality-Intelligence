@@ -68,7 +68,7 @@ test('reconciliation is available only to Admin/PMKP inside the Indikator Mutu m
 })
 
 test('warning review and bulk resolution require a confirmation, decision reason, and audit history', () => {
-  assert.match(workspace, /window\.confirm/)
+  assert.match(workspace, /await aurekaConfirm\(/)
   assert.match(workspace, /draft\?\.reason/)
   assert.match(workspace, /reason\.length < 10/)
   assert.match(workspace, /Riwayat rekonsiliasi/)

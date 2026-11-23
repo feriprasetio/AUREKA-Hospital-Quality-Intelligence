@@ -1,5 +1,6 @@
 'use client'
 
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
@@ -203,9 +204,10 @@ export default function QualityReconciliationWorkspace({
     }
 
     const actionText = action === 'auto_exact' ? 'memetakan otomatis' : 'menerapkan pemetaan manual'
-    const confirmed = window.confirm(
+    const confirmed = await aurekaConfirm(
       'AUREKA akan ' + actionText + ' ' + count(item.affected_count) + ' respons pada ' +
-      item.indicator_code + ' · ' + item.room_name + '. Nilai sumber tetap disimpan dan seluruh perubahan diaudit. Lanjutkan?'
+      item.indicator_code + ' · ' + item.room_name + '. Nilai sumber tetap disimpan dan seluruh perubahan diaudit.',
+      { title: 'Terapkan rekonsiliasi?', confirmLabel: 'Terapkan pemetaan' },
     )
     if (!confirmed) return
 
@@ -247,9 +249,10 @@ export default function QualityReconciliationWorkspace({
       : action === 'accept_verified_existing_data'
         ? 'Mengonfirmasi data BHP/Linen telah dipulihkan dan diverifikasi'
         : 'Menandai warning perlu koreksi dari workbook sumber'
-    const confirmed = window.confirm(
+    const confirmed = await aurekaConfirm(
       title + ' untuk ' + count(item.affected_count) + ' episode di ' + item.room_name +
-      '? Catatan sumber tidak akan dihapus atau diubah.'
+      '? Catatan sumber tetap tersimpan.',
+      { title: 'Simpan hasil telaah?', confirmLabel: 'Simpan telaah' },
     )
     if (!confirmed) return
 

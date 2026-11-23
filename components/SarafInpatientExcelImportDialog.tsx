@@ -834,15 +834,15 @@ export default function SarafInpatientExcelImportDialog({
           <div className="aqSub">Seluruh respons indikator berada dalam status pending untuk review sebelum digunakan pada analisis mutu.</div>
         </div>}
 
-        <div className="suFooter">
+        </div>
+      </div>
+      <div className="aqFoot suFooter">
           <span className="aqMetaText">{errors.length ? errors.length + ' baris dikecualikan; ' + rows.length + ' episode valid siap diimpor setelah ditinjau.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Saraf, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Rawat Inap Saraf'}</button>
           </div>
         </div>
-      </div>
-</div>
     </section>
   </div></div>, document.body)
 }

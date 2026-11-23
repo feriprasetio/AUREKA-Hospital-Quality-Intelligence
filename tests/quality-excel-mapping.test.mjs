@@ -82,7 +82,7 @@ test('NARA receives only header labels and indicator metadata, returns validated
 })
 
 test('mapping profile and bulk changes require explicit confirmation and a reason', () => {
-  assert.match(mappingUi, /window\.confirm/)
+  assert.match(mappingUi, /await aurekaConfirm\(/)
   assert.match(mappingUi, /Alasan perubahan \/ catatan audit/)
   assert.match(migration, /length\(v_note\) < 10/)
   assert.match(migration, /quality_excel_mapping_audit/)

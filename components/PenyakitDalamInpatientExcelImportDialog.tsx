@@ -830,15 +830,15 @@ export default function PenyakitDalamInpatientExcelImportDialog({
           <div className="aqSub">Data pasien tersimpan sebagai Ready for Review; respons indikator tetap pending review dan belum menjadi hasil tervalidasi.</div>
         </div>}
 
-        <div className="imFooter">
+        </div>
+      </div>
+      <div className="aqFoot imFooter">
           <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh anomali tanggal/pilihan master sebelum impor; tidak ada partial import.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Penyakit Dalam, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
             <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Penyakit Dalam'}</button>
           </div>
         </div>
-      </div>
-</div>
     </section>
   </div></div>, document.body)
 }

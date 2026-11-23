@@ -221,7 +221,139 @@ export const UNIT_IMPORT_FORMATS = {
   }
 } as const
 export type QualityWorkbookImportUnit = keyof typeof UNIT_IMPORT_FORMATS
-const IMPORT_LAYOUT_CSS = "\n.aq.aqPortal.aqAuditWorkspace .aqDrawer:has(.qiuBody){width:min(1460px,calc(100vw - 32px))!important;max-width:1460px!important}\n.aq.aqPortal.aqAuditWorkspace .qiuBody{display:grid!important;grid-template-columns:minmax(235px,270px) minmax(0,1fr)!important;gap:12px 16px!important;align-content:start!important;align-items:start!important;min-width:0!important;overflow-x:clip}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar{grid-column:1!important;grid-row:1!important;align-self:start!important;position:sticky;top:0;z-index:2;min-width:0;display:grid;gap:12px}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>:not(.qiuSidebar){grid-column:2!important;min-width:0!important;max-width:100%}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuCard{padding:15px;border:1px solid #dbe5e0;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(20,44,57,.035)}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuCard h5{font-size:13px;line-height:1.4;font-weight:750;letter-spacing:-.01em;color:#294459;margin:0 0 12px}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuSettings{display:grid;grid-template-columns:minmax(0,91px) minmax(0,1fr);gap:8px 9px;margin:0;font-size:12px;line-height:1.45}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuSettings dt{color:#6a7b86}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuSettings dd{margin:0;font-weight:650;color:#243c4d;overflow-wrap:anywhere}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuStep{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid #edf1ee;font-size:12px;line-height:1.45;color:#40576a}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuStep:first-of-type{border-top:0;padding-top:0}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuNumber{display:inline-grid;place-items:center;flex:0 0 22px;height:22px;border-radius:7px;background:#eaf2f8;color:#245477;font-size:11px;font-weight:800}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuNote{font-size:12px;line-height:1.65;color:#617481;margin:0}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciTable,.oiTable,.iiTable,.niTable,.piTable,.giTable,.liTable,.paTable,.iqTable,.phTable,.rmTable,[class$=\"Table\"]){max-width:100%;min-width:0;overflow-x:auto;scrollbar-gutter:stable}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStats,.oiStats,.iiStats,.niStats,.piStats,.paStats,[class$=\"Stats\"]){max-width:100%;min-width:0}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStat,.oiStat,.iiStat,.niStat,.piStat,.paStat,[class$=\"Stat\"]){min-width:0}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStat,.oiStat,.iiStat,.niStat,.piStat,.paStat,[class$=\"Stat\"]) strong{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}\n.aq.aqPortal.aqAuditWorkspace .qiuBody table{width:100%;border-collapse:separate;border-spacing:0}\n.aq.aqPortal.aqAuditWorkspace .qiuBody table :is(th,td){vertical-align:top}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(input[type=\"file\"],select){max-width:100%}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.qwpToolbar,.ciMessage,.ciPrivacy,.ciUpload,.ciFlowHint){max-width:100%;min-width:0}\n@media(max-width:940px){\n.aq.aqPortal.aqAuditWorkspace .qiuBody{grid-template-columns:minmax(0,1fr)!important;overflow-x:visible}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar{grid-column:1!important;grid-row:auto!important;position:static;grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>:not(.qiuSidebar){grid-column:1!important}\n}\n@media(max-width:540px){\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar{grid-template-columns:minmax(0,1fr)}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuCard{padding:12px}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStats,.oiStats,.iiStats,.niStats,.piStats,.paStats,[class$=\"Stats\"]){grid-template-columns:repeat(2,minmax(0,1fr))}\n}\n.episodeWorkbook.qiuBody{display:grid!important;grid-template-columns:minmax(235px,270px) minmax(0,1fr)!important;gap:12px 16px!important;min-width:0!important;align-items:start}\n.episodeWorkbook.qiuBody>.qiuSidebar{grid-column:1!important;grid-row:1!important;align-self:start;position:sticky;top:0;z-index:2;min-width:0;display:grid;gap:12px}\n.episodeWorkbook.qiuBody>:not(.qiuSidebar){grid-column:2!important;min-width:0!important;max-width:100%}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuCard{padding:15px;border:1px solid #dbe5e0;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(20,44,57,.035)}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuCard h5{font-size:13px;line-height:1.4;font-weight:750;letter-spacing:-.01em;color:#294459;margin:0 0 12px}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuSettings{display:grid;grid-template-columns:minmax(0,91px) minmax(0,1fr);gap:8px 9px;margin:0;font-size:12px;line-height:1.45}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuSettings dt{color:#6a7b86}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuSettings dd{margin:0;font-weight:650;color:#243c4d;overflow-wrap:anywhere}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuStep{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid #edf1ee;font-size:12px;line-height:1.45;color:#40576a}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuStep:first-of-type{border-top:0;padding-top:0}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuNumber{display:inline-grid;place-items:center;flex:0 0 22px;height:22px;border-radius:7px;background:#eaf2f8;color:#245477;font-size:11px;font-weight:800}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuNote{font-size:12px;line-height:1.65;color:#617481;margin:0}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuCard{padding:12px}\n@media(max-width:940px){\n.episodeWorkbook.qiuBody{grid-template-columns:minmax(0,1fr)!important}\n.episodeWorkbook.qiuBody>.qiuSidebar{grid-column:1!important;grid-row:auto!important;position:static;grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}\n.episodeWorkbook.qiuBody>:not(.qiuSidebar){grid-column:1!important}\n}\n@media(max-width:540px){.episodeWorkbook.qiuBody>.qiuSidebar{grid-template-columns:minmax(0,1fr)}}\n\n\n/* Prevent the historic one-grid-row-per-child overlaps. All non-sidebar content\n   is now a single normal-flow content column for EVERY specialized importer. */\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuMain,\n.episodeWorkbook.qiuBody>.qiuMain{\n  grid-column:2!important;grid-row:1!important;display:flex!important;\n  flex-direction:column!important;align-items:stretch!important;\n  align-self:start!important;gap:12px!important;min-width:0!important;\n  max-width:100%!important;min-height:0!important;position:relative!important;\n}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuMain>*,\n.episodeWorkbook.qiuBody>.qiuMain>*{\n  flex:0 0 auto;min-width:0!important;max-width:100%;box-sizing:border-box;\n}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuMain>:is([class$=\"Muted\"],[class$=\"Note\"],[class$=\"Privacy\"],[class$=\"Hint\"]),\n.episodeWorkbook.qiuBody>.qiuMain>:is([class$=\"Muted\"],[class$=\"Note\"],[class$=\"Privacy\"],[class$=\"Hint\"]){\n  position:relative!important;z-index:auto!important;clear:both!important;\n  line-height:1.55;overflow-wrap:anywhere;white-space:normal;\n}\n.aq.aqPortal.aqAuditWorkspace .qiuMain>:is(.ciTable,.riTable,.iiTable,.niTable,.piTable,.giTable,.liTable,.paTable,.iqTable,.phTable,.rmTable,[class$=\"Table\"]),\n.aq.aqPortal.aqAuditWorkspace .qiuMain :is(.qwiPreviewScroll,.qwpPreviewScroll){\n  display:block;position:relative!important;isolation:isolate;\n  flex:0 0 auto!important;min-height:0!important;max-height:min(48dvh,440px)!important;\n  overflow:auto!important;overscroll-behavior:contain;\n  width:100%;max-width:100%;scrollbar-gutter:stable;\n}\n.aq.aqPortal.aqAuditWorkspace .qiuMain>:is(.ciTable,.riTable,.iiTable,.niTable,.piTable,.giTable,.liTable,.paTable,.iqTable,.phTable,.rmTable,[class$=\"Table\"]):has(.qwpToolbar){\n  max-height:min(48dvh,440px)!important;overflow:auto!important;min-height:0!important;\n}\n.aq.aqPortal.aqAuditWorkspace .qiuMain>:is(.ciTable,.riTable,.iiTable,.niTable,.piTable,.giTable,.liTable,.paTable,.iqTable,.phTable,.rmTable,[class$=\"Table\"]):has(.qwpToolbar)>table{\n  display:table;min-width:100%;width:max-content;max-height:none;overflow:visible;\n}\n.aq.aqPortal.aqAuditWorkspace .qiuMain :is(th,td){box-sizing:border-box}\n.aq.aqPortal.aqAuditWorkspace .qiuMain :is(.ciStats,.riStats,.iiStats,.niStats,.piStats,.giStats,.liStats,.paStats,[class$=\"Stats\"]){\n  min-width:0;max-width:100%;align-self:stretch;grid-auto-rows:minmax(0,auto);\n}\n.aq.aqPortal.aqAuditWorkspace .qiuMain :is(.ciError,.riError,.iiError,.niError,.piError,.oiError,.ciWarning,.riWarn,.iiWarn,.niWarn,.piWarn){\n  max-width:100%;overflow-wrap:anywhere;white-space:pre-line;max-height:min(25dvh,220px);overflow-y:auto;\n}\n.aq.aqPortal.aqAuditWorkspace .qiuMain .qwpToolbar{position:relative;z-index:1}\n.aq.aqPortal.aqAuditWorkspace .qiuMain>label{max-width:100%;min-width:0;overflow-wrap:anywhere}\n.aq.aqPortal.aqAuditWorkspace .qiuMain .qiuInlineMapping{width:100%;min-width:0}\n.qiuSidebar .qiuCard{min-width:0}\n.qiuSidebar .qiuField{display:grid;gap:5px;min-width:0;font-size:11px;font-weight:700;color:#4e6579}\n.qiuSidebar .qiuField select{width:100%;min-width:0;min-height:36px;padding:7px 8px;border:1px solid #cfdeea;border-radius:9px;background:#f8fbfe;color:#183a55;font:inherit;font-size:12px;text-overflow:ellipsis}\n.qiuSidebar .qiuField select:focus-visible{outline:2px solid #16639b;outline-offset:1px}\n.qiuSidebar .qiuMappingFields{display:grid;gap:10px;min-width:0}\n.qiuSidebar .qiuMappingActions{display:flex;gap:8px;flex-wrap:wrap}\n.qiuSidebar .qiuMappingActions button{min-height:35px;min-width:0;flex:1 1 100px;background:#0b467a;color:#fff;border:1px solid #0b467a;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:750;cursor:pointer}\n.qiuSidebar .qiuMappingActions button:disabled{opacity:.65;cursor:not-allowed}\n.qiuSidebar .qiuMappingNotice{margin:0;font-size:11px;line-height:1.55;color:#5d7381;overflow-wrap:anywhere}\n.qiuSidebar .qiuMappingError{margin:0;padding:8px;background:#fff1ef;border-radius:7px;font-size:11px;line-height:1.5;color:#8b2b25}\n.qiuSidebar .qiuSettings{grid-template-columns:minmax(0,85px) minmax(0,1fr)}\n@media(max-width:940px){\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuMain,\n.episodeWorkbook.qiuBody>.qiuMain{grid-column:1!important;grid-row:auto!important}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar,\n.episodeWorkbook.qiuBody>.qiuSidebar{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}\n}\n@media(max-width:540px){\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar,\n.episodeWorkbook.qiuBody>.qiuSidebar{grid-template-columns:minmax(0,1fr)}\n.aq.aqPortal.aqAuditWorkspace .qiuMain>:is(.ciTable,.riTable,.iiTable,.niTable,.piTable,[class$=\"Table\"]){max-height:min(42dvh,340px)!important}\n}\n\n/* Keep tall in-dialog mapping forms usable without pushing the preview below\n   an extremely long sidebar; mobile switches to ordinary document flow. */\n@media(min-width:941px){\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar,\n.episodeWorkbook.qiuBody>.qiuSidebar{\n max-height:calc(100dvh - 185px);overflow-y:auto;overscroll-behavior:contain;\n scrollbar-width:thin;padding:0 3px 3px 0;\n}\n}\n@media(max-width:940px){\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar,\n.episodeWorkbook.qiuBody>.qiuSidebar{\n max-height:none!important;overflow:visible!important;position:relative!important;\n}\n}\n"
+const IMPORT_LAYOUT_CSS = `
+.aq.aqPortal.aqAuditWorkspace .qiuBody{display:grid!important;grid-template-columns:minmax(235px,270px) minmax(0,1fr)!important;gap:12px 16px!important;align-content:start!important;align-items:start!important;min-width:0!important;overflow-x:clip}
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar{grid-column:1!important;grid-row:1!important;align-self:start!important;position:sticky;top:0;z-index:2;min-width:0;display:grid;gap:12px}
+.aq.aqPortal.aqAuditWorkspace .qiuBody>:not(.qiuSidebar){grid-column:2!important;min-width:0!important;max-width:100%}
+.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuCard{padding:15px;border:1px solid var(--aureka-dialog-edge);background:var(--aureka-dialog-muted);border-radius:12px;box-shadow:0 1px 3px rgba(20,44,57,.035)}
+.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuCard h5{font-size:13px;line-height:1.4;font-weight:750;letter-spacing:-.01em;color:var(--aureka-color-foreground);margin:0 0 12px}
+.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuSettings{display:grid;grid-template-columns:minmax(0,91px) minmax(0,1fr);gap:8px 9px;margin:0;font-size:12px;line-height:1.45}
+.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuSettings dt{color:var(--aureka-color-foreground-secondary)}
+.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuSettings dd{margin:0;font-weight:650;color:var(--aureka-color-foreground);overflow-wrap:anywhere}
+.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuNote{font-size:12px;line-height:1.65;color:var(--aureka-color-foreground-secondary);margin:0}
+.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciTable,.oiTable,.iiTable,.niTable,.piTable,.giTable,.liTable,.paTable,.iqTable,.phTable,.rmTable,[class$="Table"]){max-width:100%;min-width:0;overflow-x:auto;scrollbar-gutter:stable}
+.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStats,.oiStats,.iiStats,.niStats,.piStats,.paStats,[class$="Stats"]){max-width:100%;min-width:0}
+.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStat,.oiStat,.iiStat,.niStat,.piStat,.paStat,[class$="Stat"]){min-width:0}
+.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStat,.oiStat,.iiStat,.niStat,.piStat,.paStat,[class$="Stat"]) strong{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.aq.aqPortal.aqAuditWorkspace .qiuBody table{width:100%;border-collapse:separate;border-spacing:0}
+.aq.aqPortal.aqAuditWorkspace .qiuBody table :is(th,td){vertical-align:top}
+.aq.aqPortal.aqAuditWorkspace .qiuBody :is(input[type="file"],select){max-width:100%}
+.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.qwpToolbar,.ciMessage,.ciPrivacy,.ciUpload,.ciFlowHint){max-width:100%;min-width:0}
+@media(max-width:940px){
+.aq.aqPortal.aqAuditWorkspace .qiuBody{grid-template-columns:minmax(0,1fr)!important;overflow-x:visible}
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar{grid-column:1!important;grid-row:auto!important;position:static;grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}
+.aq.aqPortal.aqAuditWorkspace .qiuBody>:not(.qiuSidebar){grid-column:1!important}
+}
+@media(max-width:540px){
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar{grid-template-columns:minmax(0,1fr)}
+.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuCard{padding:12px}
+.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStats,.oiStats,.iiStats,.niStats,.piStats,.paStats,[class$="Stats"]){grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.episodeWorkbook.qiuBody{display:grid!important;grid-template-columns:minmax(235px,270px) minmax(0,1fr)!important;gap:12px 16px!important;min-width:0!important;align-items:start}
+.episodeWorkbook.qiuBody>.qiuSidebar{grid-column:1!important;grid-row:1!important;align-self:start;position:sticky;top:0;z-index:2;min-width:0;display:grid;gap:12px}
+.episodeWorkbook.qiuBody>:not(.qiuSidebar){grid-column:2!important;min-width:0!important;max-width:100%}
+.episodeWorkbook.qiuBody .qiuSidebar .qiuCard{padding:15px;border:1px solid var(--aureka-dialog-edge);background:var(--aureka-dialog-muted);border-radius:12px;box-shadow:0 1px 3px rgba(20,44,57,.035)}
+.episodeWorkbook.qiuBody .qiuSidebar .qiuCard h5{font-size:13px;line-height:1.4;font-weight:750;letter-spacing:-.01em;color:var(--aureka-color-foreground);margin:0 0 12px}
+.episodeWorkbook.qiuBody .qiuSidebar .qiuSettings{display:grid;grid-template-columns:minmax(0,91px) minmax(0,1fr);gap:8px 9px;margin:0;font-size:12px;line-height:1.45}
+.episodeWorkbook.qiuBody .qiuSidebar .qiuSettings dt{color:var(--aureka-color-foreground-secondary)}
+.episodeWorkbook.qiuBody .qiuSidebar .qiuSettings dd{margin:0;font-weight:650;color:var(--aureka-color-foreground);overflow-wrap:anywhere}
+.episodeWorkbook.qiuBody .qiuSidebar .qiuNote{font-size:12px;line-height:1.65;color:var(--aureka-color-foreground-secondary);margin:0}
+.episodeWorkbook.qiuBody .qiuSidebar .qiuCard{padding:12px}
+@media(max-width:940px){
+.episodeWorkbook.qiuBody{grid-template-columns:minmax(0,1fr)!important}
+.episodeWorkbook.qiuBody>.qiuSidebar{grid-column:1!important;grid-row:auto!important;position:static;grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}
+.episodeWorkbook.qiuBody>:not(.qiuSidebar){grid-column:1!important}
+}
+@media(max-width:540px){.episodeWorkbook.qiuBody>.qiuSidebar{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Prevent the historic one-grid-row-per-child overlaps. All non-sidebar content
+   is now a single normal-flow content column for EVERY specialized importer. */
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuMain,
+.episodeWorkbook.qiuBody>.qiuMain{
+  grid-column:2!important;grid-row:1!important;display:flex!important;
+  flex-direction:column!important;align-items:stretch!important;
+  align-self:start!important;gap:12px!important;min-width:0!important;
+  max-width:100%!important;min-height:0!important;position:relative!important;
+}
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuMain>*,
+.episodeWorkbook.qiuBody>.qiuMain>*{
+  flex:0 0 auto;min-width:0!important;max-width:100%;box-sizing:border-box;
+}
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuMain>:is([class$="Muted"],[class$="Note"],[class$="Privacy"],[class$="Hint"]),
+.episodeWorkbook.qiuBody>.qiuMain>:is([class$="Muted"],[class$="Note"],[class$="Privacy"],[class$="Hint"]){
+  position:relative!important;z-index:auto!important;clear:both!important;
+  line-height:1.55;overflow-wrap:anywhere;white-space:normal;
+}
+.aq.aqPortal.aqAuditWorkspace .qiuMain>:is(.ciTable,.riTable,.iiTable,.niTable,.piTable,.giTable,.liTable,.paTable,.iqTable,.phTable,.rmTable,[class$="Table"]),
+.aq.aqPortal.aqAuditWorkspace .qiuMain :is(.qwiPreviewScroll,.qwpPreviewScroll){
+  display:block;position:relative!important;isolation:isolate;
+  flex:0 0 auto!important;min-height:0!important;max-height:min(48dvh,440px)!important;
+  overflow:auto!important;overscroll-behavior:contain;
+  width:100%;max-width:100%;scrollbar-gutter:stable;
+}
+.aq.aqPortal.aqAuditWorkspace .qiuMain>:is(.ciTable,.riTable,.iiTable,.niTable,.piTable,.giTable,.liTable,.paTable,.iqTable,.phTable,.rmTable,[class$="Table"]):has(.qwpToolbar){
+  max-height:min(48dvh,440px)!important;overflow:auto!important;min-height:0!important;
+}
+.aq.aqPortal.aqAuditWorkspace .qiuMain>:is(.ciTable,.riTable,.iiTable,.niTable,.piTable,.giTable,.liTable,.paTable,.iqTable,.phTable,.rmTable,[class$="Table"]):has(.qwpToolbar)>table{
+  display:table;min-width:100%;width:max-content;max-height:none;overflow:visible;
+}
+.aq.aqPortal.aqAuditWorkspace .qiuMain :is(th,td){box-sizing:border-box}
+.aq.aqPortal.aqAuditWorkspace .qiuMain :is(.ciStats,.riStats,.iiStats,.niStats,.piStats,.giStats,.liStats,.paStats,[class$="Stats"]){
+  min-width:0;max-width:100%;align-self:stretch;grid-auto-rows:minmax(0,auto);
+}
+.aq.aqPortal.aqAuditWorkspace .qiuMain :is(.ciError,.riError,.iiError,.niError,.piError,.oiError,.ciWarning,.riWarn,.iiWarn,.niWarn,.piWarn){
+  max-width:100%;overflow-wrap:anywhere;white-space:pre-line;max-height:min(25dvh,220px);overflow-y:auto;
+}
+.aq.aqPortal.aqAuditWorkspace .qiuMain .qwpToolbar{position:relative;z-index:1}
+.aq.aqPortal.aqAuditWorkspace .qiuMain>label{max-width:100%;min-width:0;overflow-wrap:anywhere}
+.aq.aqPortal.aqAuditWorkspace .qiuMain .qiuInlineMapping{width:100%;min-width:0}
+.qiuSidebar .qiuCard{min-width:0}
+.qiuSidebar .qiuField{display:grid;gap:5px;min-width:0;font-size:11px;font-weight:700;color:var(--aureka-color-foreground-secondary)}
+.qiuBody > .qiuSidebar .qiuMappingFields .qiuField > select{width:100%;min-width:0;min-height:44px!important;padding:7px 8px;border:1px solid var(--aureka-dialog-edge);border-radius:9px;background:var(--aureka-dialog-surface);color:var(--aureka-color-foreground);font:inherit;font-size:12px;text-overflow:ellipsis}
+.qiuSidebar .qiuField select:focus-visible{outline:2px solid #16639b;outline-offset:1px}
+.qiuSidebar .qiuMappingFields{display:grid;gap:10px;min-width:0}
+.qiuSidebar .qiuMappingActions{display:flex;gap:8px;flex-wrap:wrap}
+.qiuSidebar .qiuMappingActions button{min-height:44px;min-width:0;flex:1 1 100px;background:#0b467a;color:#fff;border:1px solid #0b467a;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:750;cursor:pointer}
+.qiuSidebar .qiuMappingActions button:disabled{opacity:.65;cursor:not-allowed}
+.qiuSidebar .qiuMappingNotice{margin:0;font-size:11px;line-height:1.55;color:var(--aureka-color-foreground-secondary);overflow-wrap:anywhere}
+.qiuSidebar .qiuMappingError{margin:0;padding:8px;background:var(--aureka-color-danger-soft);border-radius:7px;font-size:11px;line-height:1.5;color:var(--aureka-color-danger)}
+.qiuSidebar .qiuSettings{grid-template-columns:minmax(0,85px) minmax(0,1fr)}
+@media(max-width:940px){
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuMain,
+.episodeWorkbook.qiuBody>.qiuMain{grid-column:1!important;grid-row:auto!important}
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar,
+.episodeWorkbook.qiuBody>.qiuSidebar{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+}
+@media(max-width:540px){
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar,
+.episodeWorkbook.qiuBody>.qiuSidebar{grid-template-columns:minmax(0,1fr)}
+.aq.aqPortal.aqAuditWorkspace .qiuMain>:is(.ciTable,.riTable,.iiTable,.niTable,.piTable,[class$="Table"]){max-height:min(42dvh,340px)!important}
+}
+
+/* Keep tall in-dialog mapping forms usable without pushing the preview below
+   an extremely long sidebar; mobile switches to ordinary document flow. */
+@media(min-width:941px){
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar,
+.episodeWorkbook.qiuBody>.qiuSidebar{
+ max-height:calc(100dvh - 185px);overflow-y:auto;overscroll-behavior:contain;
+ scrollbar-width:thin;padding:0 3px 3px 0;
+}
+}
+@media(max-width:940px){
+.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar,
+.episodeWorkbook.qiuBody>.qiuSidebar{
+ max-height:none!important;overflow:visible!important;position:relative!important;
+}
+}
+.qiuSidebar details.qiuCard { padding-block: 0; }
+.qiuSidebar details.qiuCard[open] { padding-bottom: 12px; }
+.qiuSidebar details.qiuCard > summary { min-height: 44px; align-content: center; cursor: pointer; font-size: 12px; font-weight: 750; }
+.qiuSidebar details.qiuCard .qiuNote + .qiuNote { margin-top: 8px; }
+@media (max-width: 640px) {
+  .qiuBody > .qiuSidebar .qiuMappingFields .qiuField > select { font-size: 16px !important; }
+}
+`
 
 export default function QualityWorkbookImportSidebar({unitKey,year,unitName,mapping}:{unitKey:QualityWorkbookImportUnit;year:number|string;unitName?:string;mapping?:ReactNode}) {
   const format = UNIT_IMPORT_FORMATS[unitKey]
@@ -229,7 +361,7 @@ export default function QualityWorkbookImportSidebar({unitKey,year,unitName,mapp
   return <aside className="qiuSidebar" aria-label={'Pengaturan impor '+displayUnit}>
     <style>{IMPORT_LAYOUT_CSS}</style>
     <section className="qiuCard" aria-label="Pengaturan sumber workbook">
-      <h5>1. Pengaturan sumber</h5>
+      <h5>Sumber workbook</h5>
       <dl className="qiuSettings">
         <dt>Unit</dt><dd>{displayUnit}</dd>
         <dt>Tahun aktif</dt><dd>{year}</dd>
@@ -240,13 +372,13 @@ export default function QualityWorkbookImportSidebar({unitKey,year,unitName,mapp
       </dl>
     </section>
     <section className="qiuCard" aria-label={mapping ? 'Konfigurasi tautan kolom' : 'Ketentuan pemetaan sumber'}>
-      <h5>2. {mapping ? 'Tautkan kolom Excel' : 'Pemetaan sumber'}</h5>
-      {mapping ?? <p className="qiuNote">Format kolom mengikuti parser unit. Jika judul kolom berbeda, gunakan Pusat Pemetaan Excel untuk menetapkan kolom sebelum mengimpor. Tidak ada perubahan kolom otomatis dari panel ini.</p>}
+      <h5>{mapping ? 'Tautkan kolom Excel' : 'Pemetaan sumber'}</h5>
+      {mapping ?? <p className="qiuNote">Format kolom mengikuti parser unit. Gunakan Pusat Pemetaan Excel jika judul kolom berbeda.</p>}
     </section>
     <details className="qiuCard" aria-label="Ketentuan dan keamanan impor">
-      <summary style={{cursor:'pointer',fontWeight:750,fontSize:12,color:'#294459'}}>Ketentuan dan keamanan data</summary>
-      <p className="qiuNote" style={{marginTop:10}}>{format.source}</p>
-      <p className="qiuNote" style={{marginTop:8}}>{format.review}</p>
+      <summary>Panduan dan aturan impor</summary>
+      <p className="qiuNote">{format.source}</p>
+      <p className="qiuNote">{format.review}</p>
     </details>
   </aside>
 }

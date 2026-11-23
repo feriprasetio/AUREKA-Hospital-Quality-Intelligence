@@ -272,11 +272,6 @@ function GradeBox({ data }: { data: Record<string, string> }) {
 
 function PsFormModal({ label, children, onClose }: { label: string; children: React.ReactNode; onClose: () => void }) {
   const dialogRef = useAccessibleDialog<HTMLElement>({ open: true, onClose })
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [])
   // Dirender ke <body> agar latar menutup seluruh layar termasuk sidebar.
   return createPortal(
     <div className="psModalBackdrop" role="presentation">

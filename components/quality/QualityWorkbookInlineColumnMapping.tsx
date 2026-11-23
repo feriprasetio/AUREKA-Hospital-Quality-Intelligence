@@ -150,7 +150,7 @@ export default function QualityWorkbookInlineColumnMapping({
 
   return <div className="qiuInlineMapping qiuMappingFields">
     <p className="qiuMappingNotice">Atur kolom berdasarkan header workbook yang diunggah. Pemetaan manual digunakan ketika pratinjau dihitung ulang; pengaturan server tetap dikunci.</p>
-    {!file ? <p className="qiuMappingNotice">Unggah workbook dahulu melalui panel kanan.</p> : <>
+    {!file ? <p className="qiuMappingNotice">Unggah workbook untuk mulai menautkan kolom.</p> : <>
       {!sheets.length && <div className="qiuMappingActions"><button type="button" disabled={disabled || reading} onClick={() => void inspect()}>{reading ? 'Membaca header…' : 'Baca header & tautkan'}</button></div>}
       {sheets.length > 0 && <>
         <p className="qiuMappingNotice">Worksheet: <strong>{sheetName}</strong> · header terdeteksi pada baris <strong>{headerRow}</strong>. Parser unit menentukan worksheet dan baris header; kontrol berikut mengubah kolom yang dipetakan.</p>

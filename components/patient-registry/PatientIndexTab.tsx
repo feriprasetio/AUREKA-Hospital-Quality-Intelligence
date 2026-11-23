@@ -1,6 +1,7 @@
 'use client'
 import { WorkspaceIntelligenceMetrics } from '@/components/workspace/WorkspaceIntelligence'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
@@ -241,7 +242,7 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
   type LinkedHistory = { episodes: Array<{ id:string; record_date:string; profile_year:number; unit:string|null; status:string; review_required:boolean; validated_at:string|null; validation_note:string|null; indicators:Array<{ code:string; title:string; category:string|null; answer:string|null; review_required:boolean }> }>; incidents: Array<{ id:string; incident_code:string; incident_date:string; unit_name:string; incident_type:string; status:string; summary:string }>; incidents_visible:boolean }
   const [linkedHistory, setLinkedHistory] = useState<LinkedHistory | null>(null)
   const [linkedHistoryError, setLinkedHistoryError] = useState('')
-  const closeRef = useRef<HTMLButtonElement>(null)
+  const drawerRef = useAccessibleDialog<HTMLElement>({ open: true, onClose })
 
   useEffect(() => {
     let cancelled = false
@@ -277,19 +278,11 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
     return () => { cancelled = true }
   }, [patient])
 
-  useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null
-    closeRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => { window.removeEventListener('keydown', onKey); previous?.focus?.() }
-  }, [onClose])
-
   const units = useMemo(() => new Set((episodes ?? []).map((e) => e.unit).filter(Boolean)).size, [episodes])
 
   if (typeof document === 'undefined') return null
   return createPortal(<div className="ptBackdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}>
-    <aside className="ptDrawer" role="dialog" aria-modal="true" aria-labelledby="pt-title">
+    <aside ref={drawerRef} tabIndex={-1} className="ptDrawer" role="dialog" aria-modal="true" aria-labelledby="pt-title">
       <header className="ptHead">
         <div>
           <span className="ptEyebrow">Riwayat pasien</span>
@@ -298,7 +291,7 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
         </div>
         <div className="ptHeadActions">
           <button type="button" className="ptGhost" onClick={onToggleIdentity}>{showIdentity ? 'Samarkan' : 'Tampilkan nama'}</button>
-          <button ref={closeRef} type="button" className="ptClose" onClick={onClose} aria-label="Tutup riwayat pasien">×</button>
+          <button data-dialog-autofocus type="button" className="ptClose" onClick={onClose} aria-label="Tutup riwayat pasien">×</button>
         </div>
       </header>
       <div className="ptBody">

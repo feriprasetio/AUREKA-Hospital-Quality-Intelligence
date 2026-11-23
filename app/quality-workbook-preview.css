@@ -9,7 +9,7 @@
 .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] .ciTable:has(.qwpToolbar) th{position:sticky;top:49px;z-index:2}
 .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqBody:has(.qwpToolbar){min-width:0!important;min-height:0!important;overflow-y:auto!important}
 /* The main IGD view preserves its two distinct import streams. */
-.aq.aqPortal.aqAuditWorkspace .aqIgdImport>.aqBody{display:flex!important;flex-direction:column!important;gap:8px!important;padding:12px 16px!important;min-width:0!important;min-height:0!important;overflow:hidden!important}
+.aq.aqPortal.aqAuditWorkspace .aqIgdImport>.aqBody{padding:12px 16px!important;min-width:0!important;min-height:0!important;overflow-y:auto!important}
 .aqIgdImport .ciFlowHint{flex:0 0 auto;margin:0;color:var(--muted,#718077);font-size:11px;line-height:1.4}
 .aqIgdImport .ciTabs{flex:0 0 auto;padding:4px}
 .aqIgdImport .ciIgdPanel{display:flex!important;flex-direction:column!important;flex:1 1 auto;gap:8px;min-height:0!important;min-width:0!important;padding:10px!important;overflow:hidden;box-shadow:none!important;border-color:var(--line,#e2e8e3)}
@@ -154,4 +154,36 @@
 @media(max-width:860px) {
   .aqIgdImport .ciIgdAuditStats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .aqIgdImport .ciIgdSourceAudit>summary{align-items:flex-start}
+}
+
+/* These importers render their own notices and statistics inside a shared dialog. */
+html[data-skin="arktik"][data-mode="gelap"] .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] {
+  --surface: var(--aureka-dialog-surface);
+  --surface-raised: var(--aureka-dialog-muted);
+  --line: var(--aureka-dialog-edge);
+  --ink: var(--aureka-color-foreground);
+  --muted: var(--aureka-color-foreground-secondary);
+}
+html[data-skin="arktik"][data-mode="gelap"] .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"]
+:is([class$="Box"], [class$="Message"], [class$="Stat"], .ciIgdPanel, .ciPrivacy) {
+  background: var(--aureka-dialog-muted) !important;
+  border-color: var(--aureka-dialog-edge) !important;
+  color: var(--aureka-color-foreground) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"]
+:is([class$="Muted"], [class$="Stat"] > span, [class$="MetaText"], [class$="Intro"], .ciIgdPanelHeading > span) {
+  color: var(--aureka-color-foreground-secondary) !important;
+}
+html[data-skin="arktik"][data-mode="gelap"] .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"]
+:is([class$="Error"], [role="alert"]:not(button)) { color: var(--aureka-color-danger) !important; }
+html[data-skin="arktik"][data-mode="gelap"] .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"]
+:is([class$="Warn"], [class$="Warning"]) { color: var(--aureka-color-warning) !important; }
+html[data-skin="arktik"][data-mode="gelap"] .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"]
+[class$="Success"] { color: var(--aureka-color-success) !important; }
+html[data-skin="arktik"][data-mode="gelap"] .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"]
+:is(.aqFoot .aqBtn:not(.primary, .danger), input[type="file"]) {
+  background: var(--aureka-dialog-muted) !important;
+  border-color: var(--aureka-dialog-edge) !important;
+  color: var(--aureka-color-foreground) !important;
+  -webkit-text-fill-color: currentColor;
 }

@@ -684,7 +684,6 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  // Form logbook tampil sebagai jendela pop-up (bukan di bawah baris tabel). Saat ditutup sebelum disimpan, ditanya dulu agar isian tidak hilang.
  const [confirmCloseEditor,setConfirmCloseEditor]=useState(false)
  const editorSnapshot=useRef<{id:string,json:string}|null>(null)
- useEffect(()=>{if(!patientOpen||typeof document==='undefined')return;const prev=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=prev}},[patientOpen])
  const [episodeWorkbookOpen,setEpisodeWorkbookOpen]=useState(false)
  const [genericWorkbookOpen,setGenericWorkbookOpen]=useState(false)
  const [mappedWorkbookOpen,setMappedWorkbookOpen]=useState(false)
@@ -1406,7 +1405,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    if(!patientOpen&&editorSnapshot.current)editorSnapshot.current=null
    const editorDirty=()=>!isValidator&&!!selected&&(String(selected.id).startsWith('LOCAL-')||editorSnapshot.current?.json!==editorJson(selected))
    const requestCloseEditor=()=>{if(busy)return;if(editorDirty())setConfirmCloseEditor(true);else setPatientOpen(false)}
-   const editorDialogRef=useAccessibleDialog<HTMLDivElement>({open:patientOpen&&!confirmCloseEditor,onClose:requestCloseEditor})
+   const editorDialogRef=useAccessibleDialog<HTMLDivElement>({open:patientOpen&&Boolean(selected),onClose:requestCloseEditor})
    const closeConfirmDialogRef=useAccessibleDialog<HTMLElement>({open:confirmCloseEditor,onClose:()=>setConfirmCloseEditor(false)})
    const archiveConfirmDialogRef=useAccessibleDialog<HTMLElement>({open:Boolean(pendingArchive),onClose:()=>{if(!busy)setPendingArchive(null)}})
    const unitPickerDialogRef=useAccessibleDialog<HTMLElement>({open:unitPickerOpen,onClose:()=>setUnitPickerOpen(false)})

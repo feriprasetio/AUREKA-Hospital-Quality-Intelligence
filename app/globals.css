@@ -2086,24 +2086,27 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
 .aq.aqPortal.aqAuditWorkspace .aqBack:has(> .aqDrawer[class*="Import"]) {
   justify-content: center !important;
   align-items: center !important;
-  padding: clamp(8px, 2vw, 24px) !important;
+  --aq-import-gutter: clamp(8px, 2vw, 24px);
+  padding: max(var(--aq-import-gutter), env(safe-area-inset-top)) max(var(--aq-import-gutter), env(safe-area-inset-right))
+    max(var(--aq-import-gutter), env(safe-area-inset-bottom)) max(var(--aq-import-gutter), env(safe-area-inset-left)) !important;
   overflow: auto !important;
   background: rgba(13, 26, 35, .48) !important;
 }
 .aq.aqPortal.aqAuditWorkspace .aqBack > .aqDrawer[class*="Import"] {
   flex: 0 1 auto !important;
   box-sizing: border-box !important;
-  width: min(1320px, calc(100vw - 32px)) !important;
-  height: min(900px, calc(100dvh - 32px)) !important;
-  max-height: calc(100dvh - 16px) !important;
+  width: min(1460px, 100%) !important;
+  max-width: 100%;
+  height: min(900px, 100%) !important;
+  max-height: 100% !important;
   min-width: 0 !important;
   min-height: 0 !important;
   margin: auto !important;
   overflow: hidden !important;
-  border: 1px solid var(--line, #dce6e1) !important;
+  border: 1px solid var(--aureka-dialog-edge) !important;
   border-radius: 20px !important;
-  background: var(--surface, #fff) !important;
-  color: var(--ink, #263c32) !important;
+  background: var(--aureka-dialog-surface) !important;
+  color: var(--aureka-color-foreground) !important;
   box-shadow: 0 28px 92px rgba(10, 26, 34, .26) !important;
   display: flex !important;
   flex-direction: column !important;
@@ -2112,7 +2115,16 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
   flex: 0 0 auto !important;
   padding: 15px 21px !important;
   gap: 12px !important;
-  background: var(--surface, #fff) !important;
+  background: var(--aureka-dialog-muted) !important;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqDHead > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqDHead .aqClose {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
 }
 .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqDHead h4 {
   font-size: clamp(18px, 1.7vw, 23px) !important;
@@ -2150,10 +2162,29 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
 }
 .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqFoot {
   flex: 0 0 auto !important;
-  min-height: 64px !important;
-  padding: 11px 20px calc(11px + env(safe-area-inset-bottom, 0px)) !important;
-  border-top: 1px solid var(--line, #e3e9e5) !important;
-  background: var(--surface, #fff) !important;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-height: 0;
+  padding: 10px clamp(12px, 2vw, 20px) !important;
+  border-top: 1px solid var(--aureka-dialog-edge) !important;
+  background: var(--aureka-dialog-muted) !important;
+}
+
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqFoot > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-inline-start: auto;
+  min-width: 0;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqFoot .aqBtn {
+  min-height: 44px !important;
+  white-space: normal;
+}
+@media (max-height: 480px) {
+  .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > :is(.aqDHead, .aqFoot) { padding-block: 8px !important; }
 }
 
 /* IBS: actual data-preview workspace, with its settings in a separate column. */
@@ -2326,11 +2357,8 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
   .aqIbsImport .ciStats {grid-template-columns: repeat(3, minmax(0, 1fr));}
 }
 @media (max-width: 720px) {
-  .aq.aqPortal.aqAuditWorkspace .aqBack:has(> .aqDrawer[class*="Import"]) {padding: 7px !important;}
+  .aq.aqPortal.aqAuditWorkspace .aqBack:has(> .aqDrawer[class*="Import"]) {--aq-import-gutter: 7px;}
   .aq.aqPortal.aqAuditWorkspace .aqBack > .aqDrawer[class*="Import"] {
-    width: calc(100vw - 14px) !important;
-    height: calc(100dvh - 14px) !important;
-    max-height: calc(100dvh - 14px) !important;
     border-radius: 12px !important;
   }
   .aqIbsImport .ciImportGrid {display: flex; flex-direction: column; overflow: auto; height: 100%;}

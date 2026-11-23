@@ -124,11 +124,6 @@ const escapeCsv = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '"
 // Sengaja tidak menutup saat klik di luar / tombol Esc supaya isian tidak hilang tanpa sengaja.
 function RmModal({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   const modalRef = useAccessibleDialog<HTMLElement>({ open: true, closeOnEscape: false })
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [])
   const content = (
     <div className="rmModalBackdrop" role="presentation">
       <section ref={modalRef} className="rmModalSheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>

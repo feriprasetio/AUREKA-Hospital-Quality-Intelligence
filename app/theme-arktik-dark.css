@@ -1027,8 +1027,6 @@ html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.w
 :where(html[data-skin="arktik"][data-mode="gelap"]) body:has(.workspaceDesk) .aqPortal .aqInd { border-color: rgba(255, 255, 255, 0.02) !important; }
 :where(html[data-skin="arktik"][data-mode="gelap"]) body:has(.workspaceDesk) .aqPortal .aqIHead { background: rgba(255, 255, 255, 0.005) !important; }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .aqBack:has(> .aqDrawer[class*="Import"]) { background: rgba(73, 147, 212, 0.4) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] { border: 1px solid rgba(255, 255, 255, 0.02) !important; background: rgba(255, 255, 255, 0.005) !important; box-shadow: 0 24px 85px rgba(0, 0, 0, 0.5) !important; }
-html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqDHead { border-bottom: 1px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.005); }
 html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .aqDrawer[class*="Import"] .aqFoot { border-top: 1px solid rgba(255, 255, 255, 0.02); }
 @media (max-width: 720px) {
   html:where([data-skin="arktik"][data-mode="gelap"])[data-theme] .workspaceRoot.workspaceDesk .sidebar,
