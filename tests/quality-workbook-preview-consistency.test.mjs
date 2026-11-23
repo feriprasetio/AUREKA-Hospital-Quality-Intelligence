@@ -26,7 +26,10 @@ test('shared preview controls contain actual functional filters and page size st
 })
 test('IGD keeps separate preview controls for its two linked import streams', () => {
   const src = read('components/IgdExcelImportDialog.tsx')
-  assert.match(src, /useQualityWorkbookPreview\(mainRows\)/)
+  assert.match(src, /useQualityWorkbookPreview\(effectiveMainRows\)/)
+  assert.match(src, /approvedIgdSourceChoice/)
+  assert.match(src, /effectiveMainRows\.map\(row => makeMainPayload/)
+  assert.match(src, /source_match_method: sourceMatchMethod/)
   assert.match(src, /useQualityWorkbookPreview\(consultRows\)/)
   assert.match(src, /<QualityWorkbookPreviewControls config=\{mainPreview\}/)
   assert.match(src, /<QualityWorkbookPreviewControls config=\{consultPreview\}/)
