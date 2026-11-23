@@ -1,7 +1,7 @@
 'use client'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -21,6 +21,10 @@ import {
   type IgdIndicatorOption,
 } from '@/lib/aureka/igd-logbook'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import {
+  igdSourceReviewKey, approvedIgdSourceChoice, summarizeIgdUnmatchedOptions,
+  type IgdManualSourceChoice,
+} from '@/lib/aureka/igd-source-review'
 
 const sb = aurekaSupabase
 const quality = () => sb.schema('aureka_quality')
@@ -260,7 +264,9 @@ function makeMainPayload(row: MainRow, fileName: string, fileHash: string, userI
     const code = option?.code == null ? null : Number(option.code)
     const matchStatus = !raw ? 'missing' : !option ? 'unmatched' :
       code == null || option.review_required ? 'needs_review' : 'matched'
-    const value = { answer: option?.label ?? '', code, source_value: raw, match_status: matchStatus }
+    const sourceMatchMethod = !option ? 'unmapped' :
+      matchIgdSourceOption(raw, profile.options_json ?? []) ? 'exact_source_option' : 'reviewer_selected_source_mapping'
+    const value = { answer: option?.label ?? '', code, source_value: raw, match_status: matchStatus, source_match_method: sourceMatchMethod }
     indicatorValues[indicator.code] = value
     responses.push({
       indicator_id: profile.id,
@@ -334,7 +340,53 @@ export default function IgdExcelImportDialog({
 }: Props) {
   const [mainFile, setMainFile] = useState<File | null>(null)
   const [mainRows, setMainRows] = useState<MainRow[]>([])
-  const mainPreview = useQualityWorkbookPreview(mainRows)
+  const [sourceChoices, setSourceChoices] = useState<Record<string, IgdManualSourceChoice>>({})
+  const [sourceReviewFilter, setSourceReviewFilter] = useState('all')
+  const sourceIssues = useMemo(() => summarizeIgdUnmatchedOptions(mainRows), [mainRows])
+  const activeProfileByCode = useMemo(() => {
+    const found = new Map<string, IndicatorProfile>()
+    for (const profile of profiles) {
+      if (Number(profile.room_id) === 6 && Number(profile.profile_year) === 2026 &&
+          profile.is_active && profile.status === 'published' && profile.code) {
+        found.set(profile.code, profile)
+      }
+    }
+    return found
+  }, [profiles])
+  const effectiveMainRows = useMemo(() => mainRows.map(row => {
+    let matched = row.matchedIndicators
+    let warnings = row.warnings
+    for (const indicator of IGD_INDICATORS) {
+      if (matched[indicator.code]) continue
+      const raw = row.rawIndicators[indicator.code] ?? ''
+      if (!raw) continue
+      const profile = activeProfileByCode.get(indicator.code)
+      if (!profile?.id) continue
+      const key = igdSourceReviewKey(indicator.code, raw)
+      const approved = approvedIgdSourceChoice(
+        indicator.code, raw, profile.id, profile.options_json ?? [], sourceChoices[key],
+      )
+      if (!approved) continue
+      if (matched === row.matchedIndicators) matched = { ...matched }
+      matched[indicator.code] = approved
+      const message = 'Respons "' + indicator.header + '" tidak cocok persis dengan opsi profil; nilai asli dipertahankan dan menunggu klasifikasi.'
+      warnings = warnings.filter(warning => warning !== message)
+    }
+    return matched === row.matchedIndicators ? row : { ...row, matchedIndicators: matched, warnings }
+  }), [mainRows, activeProfileByCode, sourceChoices])
+  const sourceCellCount = sourceIssues.reduce((total, issue) => total + issue.count, 0)
+  const placeholderCellCount = sourceIssues.reduce((total, issue) => total + (issue.placeholder ? issue.count : 0), 0)
+  const manuallyMappedCellCount = sourceIssues.reduce((total, issue) => {
+    const profile = activeProfileByCode.get(issue.code)
+    return total + (profile?.id && approvedIgdSourceChoice(
+      issue.code, issue.sourceValue, profile.id, profile.options_json ?? [], sourceChoices[issue.key],
+    ) ? issue.count : 0)
+  }, 0)
+  const stillUnmatchedCells = sourceCellCount - manuallyMappedCellCount
+  const reviewEpisodeCount = effectiveMainRows.filter(row => row.warnings.length > 0).length
+  const unmatchedEpisodeCount = effectiveMainRows.filter(row =>
+    IGD_INDICATORS.some(indicator => !!row.rawIndicators[indicator.code] && !row.matchedIndicators[indicator.code])).length
+  const mainPreview = useQualityWorkbookPreview(effectiveMainRows)
   const [mainExcluded, setMainExcluded] = useState<ExcludedRow[]>([])
   const [mainFileHash, setMainFileHash] = useState('')
   const [mainReady, setMainReady] = useState(false)
@@ -362,6 +414,8 @@ export default function IgdExcelImportDialog({
     if (parsing || importing) return
     setMainFile(null)
     setMainRows([])
+    setSourceChoices({})
+    setSourceReviewFilter('all')
     setMainExcluded([])
     setMainFileHash('')
     setMainReady(false)
@@ -384,6 +438,8 @@ export default function IgdExcelImportDialog({
     setActiveImportTab('logbook')
     setMainFile(selectedFile)
     setMainRows([])
+    setSourceChoices({})
+    setSourceReviewFilter('all')
     setMainExcluded([])
     setMainFileHash('')
     setMainReady(false)
@@ -524,7 +580,7 @@ export default function IgdExcelImportDialog({
       const userId = auth.data.user?.id
       if (!userId) throw new Error('Sesi login tidak ditemukan. Masuk ke AUREKA lalu ulangi impor.')
 
-      const allItems = mainRows.map(row => makeMainPayload(row, mainFile.name, mainFileHash, userId, byCode))
+      const allItems = effectiveMainRows.map(row => makeMainPayload(row, mainFile.name, mainFileHash, userId, byCode))
       const counts: ImportCounts = { received: 0, imported: 0, skipped: 0, batches: 0 }
       const ids: Record<string, string> = {}
       let start = 0
@@ -852,7 +908,7 @@ export default function IgdExcelImportDialog({
                 <div className="ciStat"><span>RM unik</span><strong>{new Set(mainRows.map(row => row.medicalRecordNo).filter(Boolean)).size}</strong></div>
               </div>}
               {mainExcluded.length > 0 && <details className="ciReviewDetails"><summary>{mainExcluded.length} baris dikecualikan · lihat alasan</summary><div>Waktu Masuk kosong, tidak valid, atau di luar 2026. Tanggal tidak dibuat otomatis.</div></details>}
-              {mainRows.some(row => row.warnings.length > 0) && <details className="ciReviewDetails"><summary>{mainRows.filter(row => row.warnings.length > 0).length} episode perlu diperiksa · lihat catatan</summary><div>Periksa identitas, waktu, formula sumber, dan jawaban indikator yang tidak cocok. Catatan tiap baris tersedia pada tabel.</div></details>}
+              {reviewEpisodeCount > 0 && <details className="ciReviewDetails"><summary>{reviewEpisodeCount.toLocaleString('id-ID')} episode memiliki catatan pemeriksaan</summary><div>{unmatchedEpisodeCount.toLocaleString('id-ID')} episode memiliki jawaban indikator yang belum dikenali. Catatan lain dapat terkait identitas, waktu, atau formula sumber. Satu episode dapat mempunyai lebih dari satu jenis temuan.</div></details>
               {mainRows.length > 0 && <div className="ciTable"><QualityWorkbookPreviewControls config={mainPreview} title="Pratinjau Logbook" />
                 <table><thead><tr><th>Baris</th><th>Waktu masuk</th><th>Nama</th><th>RM</th><th>Indikator tidak cocok</th><th>Catatan</th></tr></thead><tbody>
                 {mainPreview.preview.map(row => {
