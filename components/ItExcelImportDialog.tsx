@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -351,7 +352,7 @@ export default function ItExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody">
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="it" year={year} />
           <div className="itIntro">
             Pilih file .xlsx yang berisi sheet <strong>Logbook</strong>. Baris header dibaca dari baris 2. Setiap laporan gangguan menjadi satu catatan aktivitas dan satu respons indikator Tindak Lanjut.
           </div>
