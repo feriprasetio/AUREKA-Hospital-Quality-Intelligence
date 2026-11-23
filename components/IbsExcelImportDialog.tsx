@@ -1,5 +1,6 @@
 'use client'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
 
@@ -232,14 +233,10 @@ export default function IbsExcelImportDialog({
   const eligible = useMemo(() => open && authorized && roomId === 4 && year >= 2026, [open, authorized, roomId, year])
   const warningRows = useMemo(() => rows.filter(row => row.warnings.length > 0), [rows])
   const historicalRows = useMemo(() => rows.filter(row => row.date.slice(0, 4) !== '2026').length, [rows])
-  const [previewMode, setPreviewMode] = useState<'all' | 'warnings' | 'history'>('all')
-  const [previewSize, setPreviewSize] = useState(50)
-  const filteredPreviewRows = useMemo(() => {
-    if (previewMode === 'warnings') return rows.filter(row => row.warnings.length > 0)
-    if (previewMode === 'history') return rows.filter(row => row.date.slice(0, 4) !== '2026')
-    return rows
-  }, [rows, previewMode])
-  const shownPreviewRows = useMemo(() => filteredPreviewRows.slice(0, previewSize), [filteredPreviewRows, previewSize])
+  const ibsPreview = useQualityWorkbookPreview(rows, {
+    historical: (row: PreparedRow) => row.date.slice(0, 4) !== '2026',
+  })
+  const shownPreviewRows = ibsPreview.preview
 
 
   const reset = useCallback(() => {
@@ -253,8 +250,8 @@ export default function IbsExcelImportDialog({
     setPartial(null)
     setProgress(0)
     setErrorMessage('')
-    setPreviewMode('all')
-    setPreviewSize(50)
+    ibsPreview.setPreviewMode('all')
+    ibsPreview.setPreviewSize(50)
   }, [])
 
   const close = () => {
@@ -575,32 +572,9 @@ export default function IbsExcelImportDialog({
                 </div>}
 
                 <div className="ciPreviewHead">
-                  <div>
-                    <h5>2. Pratinjau data</h5>
-                    <span className="ciMiniNote" style={{margin:0}}>
-                      {rows.length ? shownPreviewRows.length.toLocaleString('id-ID') + ' dari ' + filteredPreviewRows.length.toLocaleString('id-ID') + ' baris ditampilkan' : 'Data akan muncul setelah berkas diperiksa'}
-                    </span>
-                  </div>
-                  <div className="ciPreviewControls">
-                    <label>Filter data
-                      <select value={previewMode} disabled={!rows.length || parsing || importing}
-                        onChange={event => setPreviewMode(event.target.value as 'all' | 'warnings' | 'history')}>
-                        <option value="all">Semua baris</option>
-                        <option value="warnings">Perlu ditinjau ({warningRows.length})</option>
-                        <option value="history">Lintas tahun ({historicalRows})</option>
-                      </select>
-                    </label>
-                    <label>Jumlah pratinjau
-                      <select value={previewSize} disabled={!rows.length || parsing || importing}
-                        onChange={event => setPreviewSize(Number(event.target.value))}>
-                        <option value={20}>20 baris</option>
-                        <option value={50}>50 baris</option>
-                        <option value={100}>100 baris</option>
-                        <option value={120}>120 baris</option>
-                      </select>
-                    </label>
-                  </div>
+                  <h5>2. Pratinjau data</h5>
                 </div>
+                <QualityWorkbookPreviewControls config={ibsPreview} title="Pratinjau logbook IBS" />
 
                 {rows.length > 0 ? (
                   <div className="ciTable" role="region" tabIndex={0} aria-label="Tabel pratinjau data Excel IBS">

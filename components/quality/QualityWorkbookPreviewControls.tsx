@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-export type WorkbookPreviewMode = 'all' | 'warnings'
+export type WorkbookPreviewMode = 'all' | 'warnings' | 'history'
 
 function hasWarning(item: unknown): boolean {
   if (!item || typeof item !== 'object') return false
@@ -12,13 +12,15 @@ function hasWarning(item: unknown): boolean {
     || value.needsReview === true
 }
 
-export function useQualityWorkbookPreview<T>(rows: readonly T[]) {
+export function useQualityWorkbookPreview<T>(rows: readonly T[], options?: { historical?: (row: T) => boolean }) {
   const [previewMode, setPreviewMode] = useState<WorkbookPreviewMode>('all')
   const [previewSize, setPreviewSize] = useState(50)
   const warningCount = useMemo(() => rows.reduce((sum, row) => sum + (hasWarning(row) ? 1 : 0), 0), [rows])
+  const historical = options?.historical
+  const historicalCount = useMemo(() => historical ? rows.filter(historical).length : 0, [rows, historical])
   const filtered = useMemo(() => previewMode === 'warnings'
     ? rows.filter(hasWarning)
-    : rows, [rows, previewMode])
+    : previewMode === 'history' && historical ? rows.filter(historical) : rows, [rows, previewMode, historical])
   const preview = useMemo(() => filtered.slice(0, previewSize), [filtered, previewSize])
 
   return {
@@ -26,6 +28,7 @@ export function useQualityWorkbookPreview<T>(rows: readonly T[]) {
     total: rows.length,
     filteredCount: filtered.length,
     warningCount,
+    historicalCount,
     previewMode,
     setPreviewMode,
     previewSize,
@@ -51,13 +54,14 @@ export default function QualityWorkbookPreviewControls({
         <span>{config.preview.length.toLocaleString('id-ID')} dari {config.filteredCount.toLocaleString('id-ID')} baris ditampilkan</span>
       </div>
       <div className="qwpToolbarFilters">
-        {config.warningCount > 0 && (
+        {(config.warningCount > 0 || config.historicalCount > 0) && (
           <label>
             <span>Filter</span>
             <select aria-label="Filter pratinjau workbook" value={config.previewMode}
               onChange={event => config.setPreviewMode(event.target.value as WorkbookPreviewMode)}>
               <option value="all">Semua baris</option>
-              <option value="warnings">Perlu ditinjau ({config.warningCount.toLocaleString('id-ID')})</option>
+              {config.warningCount > 0 && <option value="warnings">Perlu ditinjau ({config.warningCount.toLocaleString('id-ID')})</option>}
+              {config.historicalCount > 0 && <option value="history">Lintas tahun ({config.historicalCount.toLocaleString('id-ID')})</option>}
             </select>
           </label>
         )}
