@@ -10,6 +10,10 @@ const files = [
   ['Indikator Mutu Tahunan 2026(1).xlsx', null],
   ['PMKP - Ambulance - 2026.xlsx', 3],
   ['PMKP - Informasi dan Pengaduan - 2026.xlsx', 1],
+  ['PMKP - Informatika dan Teknologi - 2026 (1).xlsx', 2],
+  ['PMKP - Instalasi Radiologi 2026.xlsx', 10],
+  ['PMKP - Instalasi Rekam Medis - 2026.xlsx', 13],
+  ['PMKP - Timkordik - 2026.xlsx', 15],
   ['PMKP - Instalasi Bedah Sentral - 2026.xlsx', 4],
   ['PMKP - Instalasi Farmasi - 2026 (SEPTEMBER).xlsx', 5],
   ['PMKP - Instalasi Gawat Darurat - 2026.xlsx', 6],
@@ -38,9 +42,9 @@ const files = [
   ['PMKP FEB-MEI Hemodialisa - 2026.xlsx', 8],
 ]
 
-test('all 29 audited workbook names resolve to a canonical unit, with 27 unique units',()=>{
-  assert.equal(files.length,29)
-  assert.equal(new Set(files.map(([,room])=>room).filter(room=>room!==null)).size,27)
+test('all audited workbook names resolve to their canonical unit or master',()=>{
+  assert.equal(files.length,33)
+  assert.equal(new Set(files.map(([,room])=>room).filter(room=>room!==null)).size,31)
   for(const [name,room] of files){
     assert.equal(classifyQualityWorkbookName(name)?.roomId,room,name)
     if(room!==null && ![5,11].includes(room)){

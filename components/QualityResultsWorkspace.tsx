@@ -15,7 +15,7 @@ import { buildCsv } from '@/lib/aureka/csv-export'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { compareToTarget } from '@/lib/aureka/indicator-engine'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
-import { summarizeOutpatientClinics, summarizeOutpatientIndicator, type OutpatientProviderGroup } from '@/lib/aureka/outpatient-logbook'
+import { summarizeOutpatientClinics, outpatientWaitingThreshold, type OutpatientProviderGroup } from '@/lib/aureka/outpatient-logbook'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
   aggregateClinicalDeathAudits,
@@ -564,10 +564,6 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       String(row.status ?? '').toLowerCase() === 'validated' &&
       row.core_data?.source_import?.exclude_from_profile_year_metrics !== true
     )
-    const readyRecords = yearRows.filter((row) =>
-      String(row.status ?? '').toLowerCase() === 'ready' &&
-      row.core_data?.source_import?.exclude_from_profile_year_metrics !== true
-    ).length
     const outpatientRows = validatedRows.map((row) => {
       const date = operationalRecordDate(row)
       return {
@@ -584,16 +580,11 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       'Waktu Tunggu Rawat Jalan (Menit)',
     )
     const profile = indicatorData.profiles.find((candidate) => Number(candidate.room_id) === 11 && String(candidate.code) === '11.1')
-    const masterThreshold = Number(profile?.schema_json?.threshold_minutes)
-    const thresholdMinutes = Number.isFinite(masterThreshold) && masterThreshold >= 0 ? masterThreshold : 60
-    const indicator = summarizeOutpatientIndicator(metrics, OUTPATIENT_PROVIDER_GROUPS, thresholdMinutes)
+    const thresholdMinutes = outpatientWaitingThreshold(profile?.schema_json?.threshold_minutes)
     return {
       metrics,
-      ...indicator,
-      averageWaitingMinutes: indicator.averageClinicMinutes,
-      totalRecords: metrics.reduce((total, item) => total + item.recordCount, 0),
+      thresholdMinutes,
       recordsWithMinutes: metrics.reduce((total, item) => total + item.measurementCount, 0),
-      readyRecords,
       validatedRecords: validatedRows.length,
       periodLabel: String(year),
     }
@@ -941,16 +932,15 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               {outpatientClinicSummary && <section className="qraPanel" aria-label="Rekap capaian waktu tunggu Rawat Jalan">
                 <div className="qraPanelHead">
                   <div><h3>Rekap waktu tunggu Rawat Jalan per klinik</h3></div>
-                  <span className="qraPill">{outpatientClinicSummary.periodLabel} · {outpatientClinicSummary.validatedRecords} tervalidasi</span>
+                  <span className="qraPill">{outpatientClinicSummary.periodLabel} · {outpatientClinicSummary.validatedRecords} {includeReady ? 'catatan dalam rekap' : 'tervalidasi'}</span>
                 </div>
                 <div className="qraKpis qraKpisThree">
-                  <Kpi label="Rata-rata waktu tunggu antar-klinik" value={outpatientClinicSummary.averageWaitingMinutes == null ? '-' : outpatientClinicSummary.averageWaitingMinutes.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' menit'} detail={outpatientClinicSummary.clinicsWithData + ' klinik dengan data tervalidasi'} />
-                  <Kpi label="Klinik memenuhi target" value={formatCount(outpatientClinicSummary.clinicsBelowThreshold) + ' / ' + formatCount(outpatientClinicSummary.operationalClinicCount)} detail={outpatientClinicSummary.compliancePercent == null ? 'Roster klinik belum tersedia' : formatPct(outpatientClinicSummary.compliancePercent) + ' dari seluruh klinik operasional'} />
-                  <Kpi label="Klinik dengan data" value={formatCount(outpatientClinicSummary.clinicsWithData) + ' / ' + formatCount(outpatientClinicSummary.operationalClinicCount)} detail={formatCount(outpatientClinicSummary.clinicsWithoutData) + ' klinik belum memiliki pengukuran tervalidasi'} />
+                  <Kpi label="Pengukuran berangka" value={formatCount(outpatientClinicSummary.recordsWithMinutes)} detail={outpatientClinicSummary.periodLabel} />
+                  <Kpi label="Klinik dengan pengukuran" value={formatCount(outpatientClinicSummary.metrics.filter(item => item.measurementCount > 0).length)} detail="Data operasional per klinik" />
                 </div>
                 <div className="qraTableWrap">
                   <table className="qraTable">
-                    <thead><tr><th>Klinik</th><th>Dokter dengan data</th><th>Catatan dokter-hari</th><th>Hari tercatat</th><th>Rata-rata waktu tunggu</th><th>Status target (&lt;{outpatientClinicSummary.thresholdMinutes} menit)</th><th>Terakhir dicatat</th><th>Rincian dokter</th></tr></thead>
+                    <thead><tr><th>Klinik</th><th>Dokter dengan data</th><th>Catatan dokter-hari</th><th>Hari tercatat</th><th>Rata-rata waktu tunggu</th><th>Rerata di bawah {outpatientClinicSummary.thresholdMinutes} menit</th><th>Terakhir dicatat</th><th>Rincian dokter</th></tr></thead>
                     <tbody>{outpatientClinicSummary.metrics.map((item) => <tr key={item.clinic}>
                       <td><strong>{item.clinic}</strong><small>{formatCount(item.rosterDoctorCount)} dokter pada roster klinik</small></td>
                       <td>{formatCount(item.doctorsWithData)} / {formatCount(item.rosterDoctorCount)}</td>

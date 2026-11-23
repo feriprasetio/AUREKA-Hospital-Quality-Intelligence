@@ -102,23 +102,47 @@ function recordDate(record: OutpatientRecord): string | null {
   return null
 }
 
-function readMinutes(record: OutpatientRecord, valueField: string): number | null {
-  const fields = record.formData ?? {}
-  const candidates = [
-    fields[valueField],
-    fields['Waktu Tunggu (Menit)'],
-    fields['Rata-Rata Waktu Tunggu Rawat Jalan'],
-    fields['waiting_minutes'],
-  ]
-  for (const candidate of candidates) {
-    if (candidate == null || candidate === '') continue
-    if (typeof candidate === 'number') {
-      return Number.isFinite(candidate) && candidate >= 0 ? candidate : null
-    }
-    const match = String(candidate).trim().match(/^-?\d+(?:[.,]\d+)?/)
-    if (!match) continue
-    const value = Number(match[0].replace(',', '.'))
-    if (Number.isFinite(value) && value >= 0) return value
+export function parseOutpatientWaitingMinutes(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value >= 0 && value <= 1440 ? value : null
+  }
+  let raw = String(value ?? '').trim().toLocaleLowerCase('id-ID')
+  if (!raw) return null
+  raw = raw.replace(/\s*menit(?:s)?\s*$/i, '').replace(/\s/g, '')
+  if (!/^[+]?[0-9][0-9.,]*$/.test(raw)) return null
+
+  let normalized = raw.replace(/^\+/, '')
+  const comma = normalized.lastIndexOf(',')
+  const dot = normalized.lastIndexOf('.')
+  if (comma >= 0 && dot >= 0) {
+    // The last punctuation mark is the decimal separator.
+    normalized = comma > dot
+      ? normalized.replace(/\./g, '').replace(',', '.')
+      : normalized.replace(/,/g, '')
+  } else if (comma >= 0) {
+    normalized = normalized.replace(',', '.')
+  }
+
+  const parsed = Number(normalized)
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 1440 ? parsed : null
+}
+
+export const OUTPATIENT_WAITING_MINUTES_FIELD = 'Waktu Tunggu Rawat Jalan (Menit)'
+
+export function isOutpatientWaitingIndicator(roomId: unknown, code: unknown): boolean {
+  return Number(roomId) === 11 && String(code) === '11.1'
+}
+
+export function outpatientWaitingThreshold(configured: unknown): number {
+  const value = parseOutpatientWaitingMinutes(configured)
+  return value ?? 60
+}
+
+export function outpatientWaitingMinutes(fields: Record<string, unknown>, valueField = OUTPATIENT_WAITING_MINUTES_FIELD): number | null {
+  if (!normalizeProviderName(fields['Klinik']) || !normalizeProviderName(fields['Dokter'])) return null
+  for (const field of [valueField, 'Waktu Tunggu (Menit)', 'Rata-Rata Waktu Tunggu Rawat Jalan', 'waiting_minutes']) {
+    const value = fields[field]
+    if (value != null && String(value).trim() !== '') return parseOutpatientWaitingMinutes(value)
   }
   return null
 }
@@ -173,7 +197,7 @@ export function summarizeOutpatientClinics(
         normalizeProviderName(record.formData?.['Dokter']) === doctorKey
       )
       const values = doctorRows
-        .map(({ record }) => readMinutes(record, valueField))
+        .map(({ record }) => outpatientWaitingMinutes(record.formData ?? {}, valueField))
         .filter((value): value is number => value !== null)
       const observedDates = doctorRows.map(row => row.date).sort()
       return {
@@ -208,59 +232,4 @@ export function summarizeOutpatientClinics(
     if (left >= 0 && right >= 0) return left - right
     return a.clinic.localeCompare(b.clinic, 'id')
   })
-}
-
-
-export type OutpatientIndicatorSummary = {
-  thresholdMinutes: number
-  operationalClinicCount: number
-  clinicsWithData: number
-  clinicsWithoutData: number
-  clinicsBelowThreshold: number
-  compliancePercent: number | null
-  averageClinicMinutes: number | null
-  meetsTarget: boolean | null
-}
-
-/**
- * Calculates indicator 11.1 against the operational clinic roster.
- * The denominator is the complete configured roster, not only clinics
- * that submitted data. A clinic without a valid observation cannot count
- * as compliant. The target is strictly below 60 minutes.
- */
-export function summarizeOutpatientIndicator(
-  metrics: readonly OutpatientClinicSummary[],
-  groups: readonly OutpatientProviderGroup[],
-  thresholdMinutes = 60,
-): OutpatientIndicatorSummary {
-  const roster = new Map<string, string>()
-  groups.forEach(group => {
-    const key = normalizeProviderName(group.clinic)
-    if (key && !roster.has(key)) roster.set(key, group.clinic)
-  })
-
-  const metricsByClinic = new Map<string, OutpatientClinicSummary>()
-  metrics.forEach(metric => {
-    const key = normalizeProviderName(metric.clinic)
-    if (key && roster.has(key)) metricsByClinic.set(key, metric)
-  })
-
-  const clinicAverages = [...roster.keys()].map(key => metricsByClinic.get(key)?.averageMinutes ?? null)
-  const measured = clinicAverages.filter((value): value is number => value !== null && Number.isFinite(value))
-  const clinicsBelowThreshold = measured.filter(value => value < thresholdMinutes).length
-  const operationalClinicCount = roster.size
-  const compliancePercent = operationalClinicCount > 0
-    ? clinicsBelowThreshold / operationalClinicCount * 100
-    : null
-
-  return {
-    thresholdMinutes,
-    operationalClinicCount,
-    clinicsWithData: measured.length,
-    clinicsWithoutData: operationalClinicCount - measured.length,
-    clinicsBelowThreshold,
-    compliancePercent,
-    averageClinicMinutes: mean(measured),
-    meetsTarget: compliancePercent === null ? null : clinicsBelowThreshold === operationalClinicCount,
-  }
 }

@@ -27,7 +27,7 @@ import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { compareToTarget, isWithinVisitWindow, resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
 import { buildIndicatorDropdownOptions, findIndicatorDropdownSelection, shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
 import { isCategoricalResponseRecorded, isIndicatorApplicableToDiagnosis } from '@/lib/aureka/quality-logbook-coverage'
-import { getOutpatientDoctorsForClinic } from '@/lib/aureka/outpatient-logbook'
+import { getOutpatientDoctorsForClinic, isOutpatientWaitingIndicator, outpatientWaitingMinutes, OUTPATIENT_WAITING_MINUTES_FIELD } from '@/lib/aureka/outpatient-logbook'
 import { calculateInclusiveDurationDays, matchLogbookOption } from '@/lib/aureka/complaint-logbook'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {toUserFacingError} from '@/lib/ui/error-feedback'
@@ -961,7 +961,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  },0),[yearPatients,profiles])
  const unmatchedIndicatorHeaders=useMemo(()=>scopeReady?unmatchedHeaders(profiles,activeLayout):[],[scopeReady,profiles,activeLayout])
  const selectedUnmatchedHeaders=useMemo(()=>unmatchedHeaders(profiles,selectedLayout),[profiles,selectedLayout])
- const applicable=useMemo(()=>selected?layoutProfiles(profiles,selectedLayout).filter(p=>Number(p.room_id)===Number(selected.roomId)&&isIndicatorApplicableToDiagnosis(p.indicator_type,selected.diagnosis)&&!(Number(selected.roomId)===11&&/waktu tunggu rawat jalan/i.test(displayTitle(p)))).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,profiles,selectedLayout])
+ const applicable=useMemo(()=>selected?layoutProfiles(profiles,selectedLayout).filter(p=>Number(p.room_id)===Number(selected.roomId)&&isIndicatorApplicableToDiagnosis(p.indicator_type,selected.diagnosis)&&!isOutpatientWaitingIndicator(p.room_id,p.code)).sort((a,b)=>(hit(a,selected.diagnosis)?0:1)-(hit(b,selected.diagnosis)?0:1)||String(a.code).localeCompare(String(b.code),undefined,{numeric:true})):[],[selected,profiles,selectedLayout])
+ const outpatientEditor=Number(selected?.roomId)===11
+ const outpatientEditorCount=Number(outpatientEditor&&outpatientWaitingMinutes(selected?.formData??{})!=null)
  const filledN=useMemo(()=>applicable.filter(p=>responseComplete(p,draft[p.id??p.code])).length,[applicable,draft])
 
  const openPatient=async(p:Patient)=>{
@@ -1120,16 +1122,12 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    applicable.forEach(p=>{const r=draft[p.id??p.code];if(r)values[p.code]=r})
    const grain=String(selected.measurementGrain??dominantGrain(profiles,layout))
    const outpatientProviderDay=Number(selected.roomId)===11&&grain==='provider_day'
-   const outpatientMeasurementComplete=outpatientProviderDay
-     &&!!recordDate
-     &&!!String(formData['Klinik']??'').trim()
-     &&!!String(formData['Dokter']??'').trim()
-     &&formData['Waktu Tunggu Rawat Jalan (Menit)']!=null
-     &&String(formData['Waktu Tunggu Rawat Jalan (Menit)']).trim()!==''
-     &&Number.isFinite(Number(formData['Waktu Tunggu Rawat Jalan (Menit)']))
-     &&Number(formData['Waktu Tunggu Rawat Jalan (Menit)'])>=0
-     &&Number(formData['Waktu Tunggu Rawat Jalan (Menit)'])<=1440
-   const complete=outpatientProviderDay?outpatientMeasurementComplete:(applicable.length>0&&applicable.every(p=>responseComplete(p,draft[p.id??p.code])))
+   if(outpatientProviderDay){
+     const waitingMinutes=outpatientWaitingMinutes(formData)
+     if(!recordDate||waitingMinutes==null){setMessage('Isi tanggal pengamatan, klinik, dokter, dan waktu tunggu 0–1.440 menit.');return}
+     formData[OUTPATIENT_WAITING_MINUTES_FIELD]=waitingMinutes
+   }
+   const complete=(outpatientProviderDay||applicable.length>0)&&applicable.every(p=>responseComplete(p,draft[p.id??p.code]))
    const stayLayout=!!layout?.fields.some(f=>normHeader(f)==='tanggal masuk')&&!!layout?.fields.some(f=>normHeader(f)==='tanggal keluar')
    if(!complete){setMessage('Indikator atau pengukuran belum lengkap. Lengkapi seluruh isian wajib sebelum menyimpan laporan final.');return}
    const finalStatus='Final'
@@ -1138,10 +1136,6 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const serviceStream=String(formData['Alur layanan']??'').trim()
    if(Number(selected.roomId)===5&&grain==='daily_metric'&&!['Rawat Jalan','Rawat Inap'].includes(serviceStream)){setMessage('Pilih alur layanan Rawat Jalan atau Rawat Inap sebelum melaporkan catatan harian Farmasi.');return}
    if(grain==='provider_day'&&(!String(formData['Klinik']??'').trim()||!String(formData['Dokter']??'').trim())){setMessage('Klinik dan dokter wajib diisi sebelum melaporkan catatan dokter-hari.');return}
-   if(Number(selected.roomId)===11&&grain==='provider_day'){
-     const waitingMinutes=formData['Waktu Tunggu Rawat Jalan (Menit)']
-     if(waitingMinutes==null||String(waitingMinutes).trim()===''||!Number.isFinite(Number(waitingMinutes))||Number(waitingMinutes)<0||Number(waitingMinutes)>1440){setMessage('Isi waktu tunggu rawat jalan 0–1.440 menit sebelum melaporkan.');return}
-   }
    if(grain==='provider_day'&&!recordDate){setMessage('Tanggal pengamatan wajib diisi sebelum melaporkan.');return}
    const core={...selected.originalCore,record_date:recordDate||null,patient_name:normalizedName,medical_record_no:normalizedRm,sex:String(formData['Jenis Kelamin']??selected.sex??''),age:formData['Umur']??formData['Usia']??selected.age,admission_at:formData['Tanggal Masuk']??recordDate,discharge_at:discharge,diagnosis:normalizedDiagnosis,dpjp:normalizedDpjp,unit_name:selected.unit,room_id:selected.roomId,status:finalStatus,workflow_status:finalStatus,form_fields:formData,calculated_fields:calc,indicator_values:values,measurement_grain:grain,los_days:calc['Lenght of Stay']??calc['Length of Stay']??(stayLayout?los(String(formData['Tanggal Masuk']??''),discharge):null)}
    setBusy(true)
@@ -1385,8 +1379,8 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    const renderPatientEditor=()=>selected&&patientOpen?<section className="glass aqInlineEditor" role="region" aria-label={`Logbook ${recordTitle(selected)}`}><div className="aqDHead"><div><h4>{recordTitle(selected)}</h4><p>{selected.rm? `No. RM ${selected.rm} · `:''}{selected.admit?fmt(selected.admit):'Tanggal pencatatan belum diisi'}{selected.diagnosis? ` · ${selected.diagnosis}`:''}</p></div><button className="aqClose" type="button" data-dialog-autofocus aria-label="Tutup formulir" title="Tutup" onClick={requestCloseEditor}>×</button></div><div className="aqBody">
       {message&&<div className="workspaceFeedback" role={/gagal|belum|tidak dapat|wajib|lengkapi|kolom|tanggal|pilih/i.test(message)?'alert':'status'}><span>{message}</span></div>}
       <div className="aqEpisode">{(selectedLayout?.fields??['Nama Pasien','No. Rekam Medis','Tanggal Masuk','Tanggal Keluar','Length of Stay','Diagnosa Tegak','DPJP']).map(renderLogbookField)}</div>
-      <div className="aqDerived"><div><span>Metode pencatatan</span><strong>{grainLabel(String(selected.measurementGrain??dominantGrain(profiles,selectedLayout)))}</strong></div><div><span>Tanggal pencatatan</span><strong>{recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??''))?fmt(String(recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??'')) )):'-'}</strong></div><div><span>Indikator terisi</span><strong>{filledN}/{applicable.length} terisi</strong></div></div>
-      <section className="aqIndicatorSection" aria-label="Daftar indikator mutu">
+      <div className="aqDerived"><div><span>Metode pencatatan</span><strong>{grainLabel(String(selected.measurementGrain??dominantGrain(profiles,selectedLayout)))}</strong></div><div><span>Tanggal pencatatan</span><strong>{recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??''))?fmt(String(recordDateFrom(selected.formData??{},selectedLayout,String(selected.admit??'')) )):'-'}</strong></div><div><span>{outpatientEditor?'Pengukuran terisi':'Indikator terisi'}</span><strong>{outpatientEditor?outpatientEditorCount:filledN}/{outpatientEditor?1:applicable.length} terisi</strong></div></div>
+      {(!outpatientEditor||applicable.length>0)&&<section className="aqIndicatorSection" aria-label="Daftar indikator mutu">
         <div className="aqSection"><h5>Penilaian Indikator Mutu</h5><span>{filledN} dari {applicable.length} terisi</span></div>
         {selectedLayout&&!selectedLayout.indicators.length&&<div className="aqNotice">Belum ada indikator yang dikonfigurasikan untuk unit ini.</div>}
         <div className="aqIndicatorList">
@@ -1394,7 +1388,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
           {selectedUnmatchedHeaders.length>0&&<div className="aqNotice" role="alert">Profil master belum cocok untuk indikator: {selectedUnmatchedHeaders.join(', ')}. Kartu kosong disembunyikan agar formulir tidak memberi kesan bahwa indikator siap diisi. Periksa profil indikator aktif pada unit dan tahun laporan ini.</div>}
           {!applicable.length&&!selectedUnmatchedHeaders.length&&<div className="aqEmpty">Belum ada indikator aktif yang dapat ditampilkan untuk unit ini. Periksa master profil indikator.</div>}
         </div>
-      </section>
+      </section>}
     </div><div className="aqFoot"><span style={{fontSize:12,color:'var(--muted)'}}>{isValidator?'Mode baca saja. Gunakan pemeriksaan laporan bulanan untuk mencatat seluruh pemeriksaan.':`${source} · Laporan disimpan sebagai final dan tetap dapat diedit PIC sampai diarsipkan.`}</span><div style={{display:'flex',gap:8,flexWrap:'wrap'}}><button type="button" className="aqBtn" disabled={busy} onClick={requestCloseEditor}>{isValidator?'Tutup':'Batal'}</button>{!isValidator&&<><button type="button" className="aqBtn" title="Simpan lalu buka formulir baru (DPJP terbawa)" onClick={()=>void saveAndNew()} disabled={busy}>Simpan &amp; isi berikutnya</button><button type="button" className="aqBtn primary" title="Ctrl+S" onClick={()=>void save()} disabled={busy}>{busy?'Menyimpan…':'Simpan Laporan'}</button></>}</div></div></section>:null
 
   if(isAdmin&&initialRoomId==null&&roomId==null&&container==='Audit Indikator Mutu'){
@@ -1450,8 +1444,9 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
 
 <div className="aqRegisterSummary"><div><span>{activeGrain==='patient_episode'?'Total episode':activeGrain==='provider_day'?'Catatan dokter/hari':activeGrain==='daily_metric'?'Catatan harian':activeGrain==='event'?'Kejadian':activeGrain==='activity'?'Aktivitas':'Total catatan'}</span><strong>{yearPatients.length}</strong></div>
 <div><span>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Masih dirawat':activeGrain==='provider_day'?'Ada nama dokter':activeGrain==='event'?'Belum dikirim / ditutup':'Dengan data'}</span><strong>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?yearPatients.filter(p=>!p.discharge).length:activeGrain==='provider_day'?yearPatients.filter(p=>String(p.formData?.['Dokter']??'').trim()).length:activeGrain==='daily_metric'?yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)||(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length:activeGrain==='event'?yearPatients.filter(p=>!/(selesai|ditutup|closed|ready for review|validated)/i.test(String(p.status??''))).length:yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)).length}</strong></div>
-<div><span>Indikator tersedia</span><strong>{patientProfiles.length}</strong></div><div><span>Identitas pasien</span><button type="button" className="aqBtn" style={{marginTop:4}} aria-pressed={showIdentity} onClick={()=>setShowIdentity(v=>!v)}>{showIdentity?'Samarkan':'Tampilkan'}</button></div>
+{Number(roomId)===11?<div><span>Pengukuran terisi</span><strong>{yearPatients.filter(p=>outpatientWaitingMinutes(p.formData??{})!=null).length}</strong></div>:<><div><span>Indikator tersedia</span><strong>{patientProfiles.length}</strong></div><div><span>Identitas pasien</span><button type="button" className="aqBtn" style={{marginTop:4}} aria-pressed={showIdentity} onClick={()=>setShowIdentity(v=>!v)}>{showIdentity?'Samarkan':'Tampilkan'}</button></div>
 <div><span>Respons indikator terisi</span><strong>{filledObservations}</strong></div>
+</>}
 <div><span>Ditampilkan</span><strong>{filtered.length}</strong></div></div>
 </div>}
       {unmatchedIndicatorHeaders.length>0&&<div className="aqNotice" role="alert">Sebagian indikator pada template belum memiliki profil master yang cocok: {unmatchedIndicatorHeaders.join(", ")}. Capaian ditampilkan terhadap seluruh indikator yang diharapkan agar kelengkapan tidak tampak lebih tinggi dari keadaan sebenarnya.</div>}
@@ -1471,12 +1466,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
        const rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(profile=>
         Number(profile.room_id)===Number(p.roomId)&&isIndicatorApplicableToDiagnosis(profile.indicator_type,p.diagnosis),
        )
-       const waitingTime=p.formData?.['Waktu Tunggu Rawat Jalan (Menit)']
-       const minutes=Number(waitingTime)
-       const hasOutpatientMeasurement=String(p.formData?.['Klinik']??'').trim()&&
-        String(p.formData?.['Dokter']??'').trim()&&String(waitingTime??'').trim()&&
-        Number.isFinite(minutes)&&minutes>=0&&minutes<=1440
-       const count=isOutpatient?Number(!!hasOutpatientMeasurement):rowProfiles.filter(profile=>responseComplete(profile,p.indicatorValues?.[profile.code])).length
+       const count=isOutpatient?Number(outpatientWaitingMinutes(p.formData??{})!=null):rowProfiles.filter(profile=>responseComplete(profile,p.indicatorValues?.[profile.code])).length
        const canArchive=!isValidator&&p.recordId&&p.source==='database'&&
         (isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&
         !['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase())

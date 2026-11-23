@@ -10,7 +10,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 import { normalizeProviderName, type OutpatientProviderGroup } from '@/lib/aureka/outpatient-logbook'
-import { makeOutpatientProviderDaySubjectKey, normalizeOutpatientImportDate, parseOutpatientWaitingMinutes, parseOutpatientMatrixSheet, readOutpatientCell as readCell, outpatientCellText as cellText, type OutpatientPreparedRow as PreparedRow } from '@/lib/aureka/outpatient-excel-import'
+import { makeOutpatientProviderDaySubjectKey, normalizeOutpatientImportDate, parseOutpatientWaitingMinutes, parseOutpatientMatrixWorkbook, readOutpatientCell as readCell, outpatientCellText as cellText, type OutpatientPreparedRow as PreparedRow } from '@/lib/aureka/outpatient-excel-import'
 
 const sb = aurekaSupabase
 const quality = () => sb.schema('aureka_quality')
@@ -55,7 +55,7 @@ function findHeaderRow(sheet:any):{rowNumber:number;columns:Map<string,number[]>
     }
     if(score<bestScore){bestScore=score;bestRowNumber=rowNumber;bestColumns=columns}
   }
-  if(bestColumns&&bestRowNumber){
+  if(bestColumns&&bestRowNumber&&bestScore<=2){
     const indexes:Record<string,number>={}
     for(const [name,aliases] of Object.entries(ALIASES)){
       const index=resolveInteractiveExcelHeaderColumn(bestColumns,aliases,{
@@ -67,13 +67,14 @@ function findHeaderRow(sheet:any):{rowNumber:number;columns:Map<string,number[]>
       if(index==null)throw new Error('Header wajib "'+aliases[0]+'" belum dipetakan.')
       indexes[name]=index
     }
+    if(new Set(Object.values(indexes)).size!==Object.keys(ALIASES).length)throw new Error('Setiap isian wajib menggunakan kolom Excel yang berbeda.')
     return {rowNumber:bestRowNumber,columns:bestColumns,indexes}
   }
   return null
 }
 function payloadFor(row:PreparedRow,fileName:string,year:number){
   const formFields={'Tanggal pengamatan':row.date,'Klinik':row.clinic,'Dokter':row.doctor,'Waktu Tunggu Rawat Jalan (Menit)':row.waitingMinutes}
-  const sourceImport={source_workbook:fileName,source_sheet:row.sourceSheet,source_excel_row:row.sourceRow,import_scope:'outpatient_provider_day_waiting_time',idempotency_basis:'date_clinic_doctor'}
+  const sourceImport={source_workbook:fileName,source_sheet:row.sourceSheet,source_excel_row:row.sourceRow,source_excel_column:row.sourceColumn,import_scope:'outpatient_provider_day_waiting_time',idempotency_basis:'date_clinic_doctor'}
   const core={patient_name:row.doctor+' · '+row.clinic,admission_at:row.date,unit_name:'Instalasi Rawat Jalan',room_id:11,status:'Ready for Review',workflow_status:'Ready for Review',form_fields:formFields,calculated_fields:{'Waktu Tunggu Rawat Jalan (Menit)':row.waitingMinutes},measurement_grain:'provider_day',source_import:sourceImport}
   return {room_id:11,profile_year:year,measurement_grain:'provider_day',record_date:row.date,subject_key:makeOutpatientProviderDaySubjectKey(row.date,row.clinic,row.doctor),subject_json:core,core_data:core,status:'ready',review_required:false,entered_by:null}
 }
@@ -103,6 +104,13 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
    await workbook.xlsx.load(await selected.arrayBuffer())
    if(!workbook.worksheets?.length||workbook.worksheets.length>50)throw new Error('Workbook kosong atau memiliki jumlah sheet tidak wajar.')
    const groups=layout?.providerGroups??[]
+   const matrix=parseOutpatientMatrixWorkbook(workbook,year,groups)
+   if(matrix.matched){
+    if(!matrix.rows.length&&!matrix.errors.length)throw new Error('Tidak ditemukan pengukuran waktu tunggu pada matriks untuk tahun profil ini.')
+    setRows(matrix.rows);setErrors(matrix.errors)
+    if(!matrix.rows.length)setErrorMessage(matrix.errors.slice(0,40).join('\n'))
+    return
+   }
    const candidateSheets=[...workbook.worksheets].sort((a:any,b:any)=>{
     const rank=(name:string)=>/^(logbook|rawat jalan|outpatient|data rawat jalan)$/i.test(name.trim())?0:1
     return rank(String(a.name??''))-rank(String(b.name??''))
@@ -111,16 +119,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
    let matchedSheets=0
    for(const sheet of candidateSheets){
     const header=findHeaderRow(sheet)
-    if(!header){
-     const matrix=parseOutpatientMatrixSheet(sheet,year,groups,seen)
-     if(matrix.matched){
-      matchedSheets++
-      prepared.push(...matrix.rows)
-      rowErrors.push(...matrix.errors)
-      continue
-     }
-     continue
-    }
+    if(!header)continue
     matchedSheets++
     if(sheet.rowCount>MAX_DATA_ROWS+15)throw new Error('Sheet "'+sheet.name+'" melebihi batas '+MAX_DATA_ROWS+' baris data.')
     for(let excelRow=header.rowNumber+1;excelRow<=sheet.rowCount;excelRow++){
@@ -142,7 +141,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
       if(groups.length&&!group)throw new Error('Klinik tidak ditemukan pada roster operasional: '+clinicText+'.')
       const rosterDoctor=group?.doctors.find(name=>normalizeProviderName(name)===normalizeProviderName(doctorText))
       if(group?.doctors?.length&&!rosterDoctor)throw new Error('Dokter tidak terdaftar pada '+group.clinic+': '+doctorText+'.')
-      const row:PreparedRow={sourceRow:excelRow,sourceSheet:String(sheet.name??'Sheet'),date,clinic:group?.clinic??clinicText,doctor:rosterDoctor??doctorText,waitingMinutes}
+      const row:PreparedRow={sourceRow:excelRow,sourceSheet:String(sheet.name??'Sheet'),sourceColumn:source.getCell(header.indexes.minutes).address.replace(/\d+$/,''),date,clinic:group?.clinic??clinicText,doctor:rosterDoctor??doctorText,waitingMinutes}
       const key=makeOutpatientProviderDaySubjectKey(row.date,row.clinic,row.doctor)
       if(seen.has(key))throw new Error('Duplikasi catatan tanggal, klinik, dan dokter dalam workbook (termasuk antar-sheet).')
       seen.add(key);prepared.push(row)
@@ -195,7 +194,7 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
     {rows.length>0&&<div className="oiStats"><div className="oiStat"><span>Baris valid</span><strong>{rows.length}</strong></div><div className="oiStat"><span>Baris bermasalah</span><strong>{errors.length}</strong></div><div className="oiStat"><span>Siap diimpor</span><strong>{rows.length-errors.length}</strong></div></div>}
     {errors.length>0&&<div className="oiBox oiWarn"><b>Baris berikut perlu diperbaiki dari workbook.</b>{'\n'+errors.slice(0,40).join('\n')}{errors.length>40?'\n… dan '+(errors.length-40)+' baris lainnya.':''}</div>}
     {rows.length>0&&<div className="oiTable"><QualityWorkbookPreviewControls config={previewConfig} />
-            <table><thead><tr><th>Sheet</th><th>Baris</th><th>Tanggal</th><th>Klinik</th><th>Dokter</th><th>Waktu tunggu</th></tr></thead><tbody>{preview.map(row=><tr key={row.sourceSheet+'-'+row.sourceRow}><td>{row.sourceSheet}</td><td>{row.sourceRow}</td><td>{row.date}</td><td>{row.clinic}</td><td>{row.doctor}</td><td>{row.waitingMinutes.toLocaleString('id-ID')} menit</td></tr>)}</tbody></table></div>}
+            <table><thead><tr><th>Sheet</th><th>Baris</th><th>Tanggal</th><th>Klinik</th><th>Dokter</th><th>Waktu tunggu</th></tr></thead><tbody>{preview.map(row=><tr key={row.sourceSheet+'-'+row.sourceRow+'-'+row.sourceColumn}><td>{row.sourceSheet}</td><td>{row.sourceRow}</td><td>{row.date}</td><td>{row.clinic}</td><td>{row.doctor}</td><td>{row.waitingMinutes.toLocaleString('id-ID')} menit</td></tr>)}</tbody></table></div>}
     
     <div className="oiMuted">Kunci idempotensi mengikuti logbook manual AUREKA: room 11 + tanggal + nama klinik roster + nama dokter roster. Unggah ulang tidak membuat catatan duplikat. Catatan impor menjadi laporan final PIC dan tetap dapat diperbarui; pemeriksaan bulanan dilakukan oleh Validator.</div>
     {!!errors.length&&!!rows.length&&!result&&<label><input type="checkbox" checked={allowValidRows} disabled={importing} onChange={event=>setAllowValidRows(event.target.checked)}/> Impor baris valid dan sisakan baris yang perlu koreksi.</label>}

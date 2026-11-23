@@ -1,5 +1,6 @@
-import type { Worksheet } from 'exceljs-hardened'
-import { normalizeProviderName, type OutpatientProviderGroup } from './outpatient-logbook.ts'
+import type { Workbook, Worksheet } from 'exceljs-hardened'
+export { parseOutpatientWaitingMinutes } from './outpatient-logbook.ts'
+import { parseOutpatientWaitingMinutes, normalizeProviderName, type OutpatientProviderGroup } from './outpatient-logbook.ts'
 
 export function normalizeOutpatientImportDate(value: unknown): string | null {
   const valid = (year: number, month: number, day: number): string | null => {
@@ -34,42 +35,13 @@ export function normalizeOutpatientImportDate(value: unknown): string | null {
   return null
 }
 
-export function parseOutpatientWaitingMinutes(value: unknown): number | null {
-  if (typeof value === 'number') {
-    return Number.isFinite(value) && value >= 0 && value <= 1440 ? value : null
-  }
-  let raw = String(value ?? '').trim().toLocaleLowerCase('id-ID')
-  if (!raw) return null
-  raw = raw.replace(/\s*menit(?:s)?\s*$/i, '').replace(/\s/g, '')
-  if (!/^[+]?[0-9][0-9.,]*$/.test(raw)) return null
-
-  let normalized = raw.replace(/^\+/, '')
-  const comma = normalized.lastIndexOf(',')
-  const dot = normalized.lastIndexOf('.')
-  if (comma >= 0 && dot >= 0) {
-    // The last punctuation mark is the decimal separator.
-    normalized = comma > dot
-      ? normalized.replace(/\./g, '').replace(',', '.')
-      : normalized.replace(/,/g, '')
-  } else if (comma >= 0) {
-    normalized = /^\d{1,3}(,\d{3})+$/.test(normalized)
-      ? normalized.replace(/,/g, '')
-      : normalized.replace(',', '.')
-  } else if (dot >= 0 && /^\d{1,3}(\.\d{3})+$/.test(normalized)) {
-    normalized = normalized.replace(/\./g, '')
-  }
-
-  const parsed = Number(normalized)
-  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 1440 ? parsed : null
-}
-
 /** The same provider-day key used by manual logbook saves and the live DB import RPC. */
 export function makeOutpatientProviderDaySubjectKey(date: string, clinic: string, doctor: string): string {
   return '11:' + date + ':' + clinic.trim() + ':' + doctor.trim()
 }
 
 const MAX_DATA_ROWS = 5000
-export type OutpatientPreparedRow = { sourceRow:number; sourceSheet:string; date:string; clinic:string; doctor:string; waitingMinutes:number }
+export type OutpatientPreparedRow = { sourceRow:number; sourceSheet:string; sourceColumn:string; date:string; clinic:string; doctor:string; waitingMinutes:number }
 
 export function readOutpatientCell(cell:any):unknown {
   const value=cell?.value
@@ -130,6 +102,12 @@ export function parseOutpatientMatrixSheet(sheet:Worksheet,year:number,groups:Ou
  for(let r=headerRow+1;r<=Math.min(sheet.rowCount,headerRow+5000);r++){
   const source=sheet.getRow(r),label=outpatientCellText(source.getCell(1))
   if(!label)continue
+  // Excel may return the merged calendar heading in column A on row 2.
+  // Match the helper formulas before interpreting a label as a provider.
+  const firstFormula=String(source.getCell(firstDateColumn).formula??'').replace(/[=$\s]/g,'').toUpperCase()
+  const labelKey=normalizeProviderName(label)
+  if(r===headerRow+1&&/^CONCATENATE\(TEXT\(/.test(firstFormula))continue
+  if(['month','bulan'].includes(labelKey)&&/^MONTH\([A-Z]+\d+\)$/.test(firstFormula)){activeClinic=null;continue}
   const clinic=clinicByKey.get(normalizeProviderName(label))
   if(clinic){activeClinic=clinic;continue}
   const doctor=activeClinic?.doctors.find(name=>normalizeProviderName(name)===normalizeProviderName(label))
@@ -139,11 +117,12 @@ export function parseOutpatientMatrixSheet(sheet:Worksheet,year:number,groups:Ou
    continue
   }
   for(const {column,date} of dateColumns){
-   const raw=readOutpatientCell(source.getCell(column))
+   const cell=source.getCell(column)
+   const raw=readOutpatientCell(cell)
    if(raw===''||raw==null)continue
    const waitingMinutes=parseOutpatientWaitingMinutes(raw)
    if(waitingMinutes==null){ errors.push('Sheet "'+String(sheet.name??'Logbook')+'" · baris '+r+', kolom '+column+': waktu tunggu harus berupa angka 0–1.440 menit.'); continue }
-   const row:OutpatientPreparedRow={sourceRow:r,sourceSheet:String(sheet.name??'Logbook'),date,clinic:activeClinic!.clinic,doctor,waitingMinutes}
+   const row:OutpatientPreparedRow={sourceRow:r,sourceSheet:String(sheet.name??'Logbook'),sourceColumn:cell.address.replace(/\d+$/,''),date,clinic:activeClinic!.clinic,doctor,waitingMinutes}
    const key=makeOutpatientProviderDaySubjectKey(row.date,row.clinic,row.doctor)
    if(seen.has(key)){errors.push('Sheet "'+row.sourceSheet+'" · baris '+r+': duplikasi tanggal, klinik, dan dokter.');continue}
    seen.add(key);rows.push(row)
@@ -151,4 +130,20 @@ export function parseOutpatientMatrixSheet(sheet:Worksheet,year:number,groups:Ou
   }
  }
  return {matched:true,rows,errors}
+}
+
+
+export function parseOutpatientMatrixWorkbook(workbook: Workbook, year: number, groups: OutpatientProviderGroup[]) {
+ const seen = new Set<string>()
+ const rows: OutpatientPreparedRow[] = []
+ const errors: string[] = []
+ let matched = false
+ for (const sheet of workbook.worksheets) {
+  const result = parseOutpatientMatrixSheet(sheet, year, groups, seen)
+  matched ||= result.matched
+  rows.push(...result.rows)
+  errors.push(...result.errors)
+  if (rows.length > MAX_DATA_ROWS) throw new Error('Workbook melebihi batas ' + MAX_DATA_ROWS + ' baris data.')
+ }
+ return { matched, rows, errors }
 }

@@ -5,7 +5,7 @@ import { readWorkbookSourceColumns, getWorkbookRuleColumn } from '../lib/aureka/
 import { lastPharmacyDailyColumn } from '../lib/aureka/pharmacy-excel-import.ts'
 import { inspectEpisodeWorkbook } from '../lib/aureka/patient-episode-workbook.ts'
 import { prepareAnnualQualityCatalog } from '../lib/aureka/annual-quality-workbook.ts'
-import { parseOutpatientMatrixSheet } from '../lib/aureka/outpatient-excel-import.ts'
+import { parseOutpatientMatrixWorkbook } from '../lib/aureka/outpatient-excel-import.ts'
 
 test('retains physical duplicate headers and checks source provenance', () => {
   const workbook = new ExcelJS.Workbook()
@@ -54,12 +54,17 @@ test('annual master retains reviewed codes and reports unknown owners', () => {
 
 test('provider-day matrix walks only consecutive date formulas and imports measured zero', () => {
   const workbook = new ExcelJS.Workbook()
+  workbook.addWorksheet('Profil').getRow(2).values = ['Klinik', 'Judul Indikator']
   const sheet = workbook.addWorksheet('Logbook')
   sheet.getRow(1).values = ['Poliklinik', new Date('2026-01-01T00:00:00Z'), {formula:'B1+1'}, {formula:'C1+1'}]
-  sheet.getRow(2).values = ['Klinik Uji']
-  sheet.getRow(3).values = ['Dokter Uji', 10, 0, 20]
-  const result = parseOutpatientMatrixSheet(sheet,2026,[{clinic:'Klinik Uji',doctors:['Dokter Uji']}],new Set())
+  sheet.mergeCells('A1:A2')
+  sheet.getCell('B2').value = {formula:'CONCATENATE(TEXT(B1,"mmm"),", ",TEXT(B1,"dddd"))',result:'Jan, Kamis'}
+  sheet.getRow(3).values = ['Klinik Uji']
+  sheet.getRow(4).values = ['Dokter Uji', 10, 0, 20]
+  sheet.getRow(5).values = ['Month', {formula:'MONTH(B1)',result:1}]
+  const result = parseOutpatientMatrixWorkbook(workbook,2026,[{clinic:'Klinik Uji',doctors:['Dokter Uji']}])
   assert.deepEqual(result.errors,[])
+  assert.deepEqual(result.rows.map(row=>row.sourceColumn),['B','C','D'])
   assert.deepEqual(result.rows.map(row=>[row.date,row.waitingMinutes]),[['2026-01-01',10],['2026-01-02',0],['2026-01-03',20]])
 })
 

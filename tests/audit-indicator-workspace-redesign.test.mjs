@@ -95,7 +95,7 @@ test('Operational pharmacy and outpatient calculations live in Hasil Capaian, no
   assert.match(results, /aggregatePharmacyMetric/)
   assert.match(results, /combinePharmacyMetric/)
   assert.match(results, /summarizeOutpatientClinics/)
-  assert.match(results, /summarizeOutpatientIndicator/)
+  assert.match(results, /outpatientWaitingThreshold/)
   assert.match(results, /Rekap capaian indikator Farmasi/)
   assert.match(results, /Rekap waktu tunggu Rawat Jalan per klinik/)
   assert.match(results, /form_fields:core_data->form_fields/)

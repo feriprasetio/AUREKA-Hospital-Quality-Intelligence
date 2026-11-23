@@ -22,6 +22,7 @@ const normalize = (name: string) => name.normalize('NFKC')
 
 const rules: Array<{ phrase: string; roomId: number; unit: string; kind?: QualityWorkbookKind; headerRow?: number; duplicateFamily?: string }> = [
   { phrase: 'informasi dan pengaduan', roomId: 1, unit: 'Informasi dan Pengaduan' },
+  { phrase: 'informatika dan teknologi', roomId: 2, unit: 'Informatika dan Teknologi' },
   { phrase: 'ambulance', roomId: 3, unit: 'Instalasi Ambulance' },
   { phrase: 'instalasi bedah sentral', roomId: 4, unit: 'Instalasi Bedah Sentral' },
   { phrase: 'instalasi farmasi', roomId: 5, unit: 'Instalasi Farmasi', kind: 'pharmacy_multisheet' },
@@ -29,8 +30,11 @@ const rules: Array<{ phrase: string; roomId: number; unit: string; kind?: Qualit
   { phrase: 'instalasi gizi', roomId: 7, unit: 'Instalasi Gizi' },
   { phrase: 'hemodial', roomId: 8, unit: 'Instalasi Hemodialisis' },
   { phrase: 'instalasi laboratorium', roomId: 9, unit: 'Instalasi Laboratorium' },
+  { phrase: 'instalasi radiologi', roomId: 10, unit: 'Instalasi Radiologi' },
   { phrase: 'instalasi rawat jalan', roomId: 11, unit: 'Instalasi Rawat Jalan', kind: 'outpatient_matrix' },
   { phrase: 'instalasi rehab medik', roomId: 12, unit: 'Instalasi Rehab Medik' },
+  { phrase: 'instalasi rekam medis', roomId: 13, unit: 'Instalasi Rekam Medis' },
+  { phrase: 'timkordik', roomId: 15, unit: 'Timkordik' },
   { phrase: 'neonatal intensive care unit', roomId: 18, unit: 'Neonatal Intensive Care Unit' },
   { phrase: 'intensive care unit', roomId: 14, unit: 'Intensive Care Unit' },
   { phrase: 'nifas', roomId: 19, unit: 'Nifas Obstetrics & Gynecology' },

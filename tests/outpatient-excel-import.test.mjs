@@ -16,6 +16,7 @@ test('normalizes ISO, DMY, native Date, and Excel serial dates', () => {
 
 test('parses decimal comma, decimal dot, and thousands separators safely', () => {
   assert.equal(parseOutpatientWaitingMinutes('45,5'), 45.5)
+  assert.equal(parseOutpatientWaitingMinutes('59.999'), 59.999)
   assert.equal(parseOutpatientWaitingMinutes('45.5 menit'), 45.5)
   assert.equal(parseOutpatientWaitingMinutes('1.234,5'), 1234.5)
   assert.equal(parseOutpatientWaitingMinutes('1,234.5'), 1234.5)

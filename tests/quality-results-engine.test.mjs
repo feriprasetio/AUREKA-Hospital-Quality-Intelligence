@@ -5,6 +5,7 @@ import {
   aggregateClinicalPathwayRows,
   aggregatePathwayByMonth,
   calculateIndicatorResult,
+  diagnoseIndicator,
   calculateIndicatorResultsForProfiles,
   calculatePathwayAuditMetrics,
 } from '../lib/aureka/quality-results-engine.ts'
@@ -870,4 +871,32 @@ test('clock-only response minutes correctly roll over at midnight for a direct-m
   }],2026)
   assert.equal(result.annualMean,20)
   assert.equal(result.targetMet,true)
+})
+
+
+test('Rawat Jalan reads validated numeric provider-day observations for shared results and diagnostics', () => {
+  const profile = { room_id: 11, code: '11.1', target_operator: '=', target_value: 100 }
+  const row = (date, minutes, status = 'validated', exclude = false) => ({
+    room_id: 11, record_date: date, status,
+    core_data: {
+      form_fields: { Klinik: 'Klinik Uji', Dokter: 'Dokter Uji', 'Waktu Tunggu Rawat Jalan (Menit)': minutes },
+      source_import: { exclude_from_profile_year_metrics: exclude },
+      indicator_values: { '11.1': { numerator: 999, denominator: 999 } },
+    },
+  })
+  const rows = [
+    row('2026-01-01', 0), row('2026-01-02', 60),
+    row('2026-02-01', '59,5 menit'), row('2026-02-02', 40, 'ready'),
+    row('2026-02-03', '50 rusak'), row('2026-02-04', 50, 'validated', true),
+    row('2025-01-01', 10), { ...row('2026-01-03', 10), room_id: 12 },
+  ]
+  const [result] = calculateIndicatorResultsForProfiles([profile], rows, 2026)
+  assert.equal(result.continuous, false)
+  assert.deepEqual([result.annualNumerator, result.annualDenominator, result.annualRate], [2, 3, 66.67])
+  assert.equal(result.monthly[0].rate, 50)
+  assert.equal(result.monthly[1].rate, 100)
+  assert.equal(result.monthly[1].readyRecords, 1)
+  assert.equal(result.monthly[2].rate, null)
+  assert.equal(result.targetMet, false)
+  assert.equal(diagnoseIndicator(profile, rows, 2026).counted, 4)
 })

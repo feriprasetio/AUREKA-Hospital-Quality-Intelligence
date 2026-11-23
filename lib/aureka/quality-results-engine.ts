@@ -1,3 +1,4 @@
+import { isOutpatientWaitingIndicator, outpatientWaitingMinutes, outpatientWaitingThreshold } from './outpatient-logbook.ts'
 import {
   compareToTarget,
   compareContinuousObservation,
@@ -73,8 +74,8 @@ type MeasurementObservation = {
 }
 
 function finiteNumber(value: unknown): number | null {
-  if (value == null || value === '') return null
-  const parsed = typeof value === 'number' ? value : Number(String(value).trim().replace(',', '.'))
+  if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) return null
+  const parsed = typeof value === 'number' ? value : Number(value.trim().replace(',', '.'))
   return Number.isFinite(parsed) ? parsed : null
 }
 
@@ -85,8 +86,14 @@ function round2(value: number | null): number | null {
 function safeDate(value: unknown): string | null {
   if (typeof value !== 'string') return null
   const text = value.trim()
-  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
-  if (/^\d{4}-\d{2}-\d{2}T/.test(text)) return text.slice(0, 10)
+  if (!text) return null
+  const iso = /^(\d{4}-\d{2}-\d{2})(?:$|[T ])/.exec(text)
+  const local = /^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})(?:$| )/.exec(text)
+  const calendar = iso?.[1] ?? (local ? local[3] + '-' + local[2].padStart(2, '0') + '-' + local[1].padStart(2, '0') : null)
+  if (calendar) {
+    const date = new Date(calendar + 'T00:00:00Z')
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === calendar ? calendar : null
+  }
   const parsed = new Date(text)
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10)
 }
@@ -271,6 +278,16 @@ function extractObservation(
   month: number,
 ): MeasurementObservation | null {
   const core = row.core_data ?? {}
+  if (isOutpatientWaitingIndicator(profile.room_id, profile.code)) {
+    if (core.source_import?.exclude_from_profile_year_metrics === true) return null
+    const value = outpatientWaitingMinutes({ ...core.form_data, ...core.form_fields })
+    if (value == null) return null
+    const meetsThreshold = value < outpatientWaitingThreshold(profile.schema_json?.threshold_minutes)
+    return {
+      month, numerator: meetsThreshold ? 1 : 0, denominator: 1,
+      value, targetMet: null, inputAt: row.created_at ?? row.updated_at ?? null,
+    }
+  }
   const values = core.indicator_values ?? {}
   const response = values[String(profile.code ?? '')] ?? values[String(profile.id ?? '')]
   if (!response || typeof response !== 'object') return null
@@ -375,7 +392,7 @@ export function calculateIndicatorResult(
   rows: ResultRecord[],
   year: number,
 ): IndicatorResult {
-  const kind = resolveMeasurementKind(profile)
+  const kind = isOutpatientWaitingIndicator(profile.room_id, profile.code) ? 'ratio' : resolveMeasurementKind(profile)
   const continuous = !usesCategoricalResponseCapture(profile) && (kind === 'door' || kind === 'minutes' || kind === 'numeric')
   const accumulators = Array.from({ length: 12 }, (_, index) => ({
     month: index + 1,
@@ -400,6 +417,7 @@ export function calculateIndicatorResult(
     const observation = extractObservation(profile, row, Number(date.slice(5, 7)))
     if (!observation) continue
     const bucket = accumulators[observation.month - 1]
+    if (!bucket) continue
     bucket.observations += 1
     if (status === 'validated') {
       bucket.validatedRecords += 1
@@ -831,6 +849,11 @@ export function diagnoseIndicator(profile: IndicatorProfileForResults, rows: Res
     const date = recordDate(row)
     if (!date) { d.noDate++; continue }
     if (Number(date.slice(0, 4)) !== year) { d.otherYear++; continue }
+    if (isOutpatientWaitingIndicator(profile.room_id, profile.code)) {
+      if (extractObservation(profile, row, Number(date.slice(5, 7)))) d.counted++
+      else d.noValue++
+      continue
+    }
     const values = (row.core_data ?? {}).indicator_values ?? {}
     const response = values[String(profile.code ?? '')] ?? values[String(profile.id ?? '')]
     if (!response || typeof response !== 'object') { d.noValue++; continue }
