@@ -15,7 +15,7 @@ import { buildCsv } from '@/lib/aureka/csv-export'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { compareToTarget } from '@/lib/aureka/indicator-engine'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
-import { summarizeOutpatientClinics, outpatientWaitingThreshold, type OutpatientProviderGroup } from '@/lib/aureka/outpatient-logbook'
+import { isOutpatientWaitingIndicator, OUTPATIENT_WAITING_MINUTES_FIELD, outpatientWaitingMinutes, summarizeOutpatientClinics, outpatientWaitingThreshold, type OutpatientProviderGroup } from '@/lib/aureka/outpatient-logbook'
 import qualityAuditLayout2026 from '@/data/quality-audit-layout-2026.json'
 import {
   aggregateClinicalDeathAudits,
@@ -461,6 +461,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   const sourceProvenance = useMemo(() => {
     if (!sourceFor) return null
     const code = String(sourceFor.code ?? '')
+    const outpatientSource = isOutpatientWaitingIndicator(sourceFor.room_id, code)
     const mapping = sourceFor.schema_json?.excel_mapping && typeof sourceFor.schema_json.excel_mapping === 'object'
       ? sourceFor.schema_json.excel_mapping as Record<string, unknown>
       : {}
@@ -473,17 +474,18 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       .map((row) => {
         const source = row.core_data?.source_import ?? {}
         const form = row.core_data?.form_fields ?? {}
-        const rawValue = source.source_indicator_values?.[code]
+        const rawValue = (outpatientSource ? outpatientWaitingMinutes(form) : undefined)
+          ?? source.source_indicator_values?.[code]
           ?? (code === '14.1' ? source.source_bhp_linen?.source_value : undefined)
           ?? (code === '14.1' ? form['Kekosongan BHP/Linen'] ?? form['Kekosongan BHP/Linen (sumber belum dipetakan)'] : undefined)
           ?? ''
         const header = source.source_indicator_columns?.[code]
           ?? (code === '14.1' ? source.source_bhp_linen?.source_header : undefined)
-          ?? mapping.indicator_header
+          ?? (outpatientSource ? OUTPATIENT_WAITING_MINUTES_FIELD : mapping.indicator_header)
           ?? ''
         const columnRef = source.source_indicator_column_refs?.[code] ?? {}
         const excelRow = source.source_excel_row == null ? '' : String(source.source_excel_row)
-        const columnLetter = String(columnRef.column_letter ?? mapping.column_letter ?? '')
+        const columnLetter = String((outpatientSource ? source.source_excel_column : columnRef.column_letter ?? mapping.column_letter) ?? '')
         return {
           workbook: String(source.source_workbook ?? ''),
           storagePath: String(source.source_storage_path ?? ''),
@@ -510,7 +512,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       columnLetters: unique(entries.map((entry) => entry.columnLetter)),
       totalRows: entries.length,
       rowsWithValues: withValues.length,
-      rows: withValues.slice(0, 25),
+      rows: withValues,
     }
   }, [sourceFor, sourceMonth, indicatorData.rows])
   const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => resolveQualityCategory(result.profile).id === categoryFilter) : indicatorResults
@@ -852,10 +854,10 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     <div>Header kolom: <b>{sourceProvenance.mappingHeader || sourceProvenance.headers.join(', ') || 'Header aktual belum direkam pada impor ini'}</b></div>
                     <div>Kolom Excel: <b>{sourceProvenance.columnLetters.join(', ') || 'Koordinat kolom belum direkam pada impor lama'}</b></div>
                     <div>Workbook: <b>{sourceProvenance.workbooks.join(', ') || 'Belum ada provenance workbook'}</b></div>
-                    <div>Data bernilai: <b>{formatCount(sourceProvenance.rowsWithValues)}</b> dari <b>{formatCount(sourceProvenance.totalRows)}</b> episode sumber</div>
+                    <div>Data bernilai: <b>{formatCount(sourceProvenance.rowsWithValues)}</b> dari <b>{formatCount(sourceProvenance.totalRows)}</b> catatan sumber</div>
                     <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
                       <button type="button" className="qraBtn" disabled={sourceProvenance.rows.length===0} onClick={() => {
-                        const columns=['Baris Excel','Referensi sel','Tanggal episode','Header','Nilai','Status']
+                        const columns=['Baris Excel','Referensi sel','Tanggal pengamatan','Header','Nilai','Status']
                         const cleanCsv=(value:unknown) => {
                           const raw=String(value??'')
                           const safe=/^[=+@\-\t\r]/.test(raw)?'\''+raw:raw
@@ -871,7 +873,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                         document.body.appendChild(anchor);anchor.click();anchor.remove()
                         window.setTimeout(()=>URL.revokeObjectURL(url),60000)
                       }}>Ekspor jejak data sumber (CSV)</button>
-                      <small>File Excel asli tidak tersedia untuk diunduh ulang. CSV ini hanya memuat baris sumber yang telah tercatat di database AUREKA.</small>
+                      <small>File Excel asli tidak tersedia untuk diunduh ulang. Pratinjau menampilkan hingga 25 catatan. CSV memuat seluruh catatan bernilai pada periode ini.</small>
                     </div>
                   </div>
                   {sourceFor.code === '14.1' && sourceProvenance.rowsWithValues === 0 && <div className="qraNotice">
@@ -879,8 +881,8 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   </div>}
                   {sourceProvenance.rows.length > 0 ? <div className="qraTableWrap">
                     <table className="qraTable" style={{ minWidth: 650 }}>
-                      <thead><tr><th>Baris Excel</th><th>Referensi sel</th><th>Tanggal episode</th><th>Header sumber</th><th>Nilai sumber</th><th>Status laporan</th></tr></thead>
-                      <tbody>{sourceProvenance.rows.map((row, index) => <tr key={row.excelRow + '-' + index}>
+                      <thead><tr><th>Baris Excel</th><th>Referensi sel</th><th>Tanggal pengamatan</th><th>Header sumber</th><th>Nilai sumber</th><th>Status laporan</th></tr></thead>
+                      <tbody>{sourceProvenance.rows.slice(0, 25).map((row, index) => <tr key={row.excelRow + '-' + index}>
                         <td>{row.excelRow || '-'}</td>
                         <td><strong>{row.cellRef || (row.excelRow ? (row.sheet || 'Logbook') + ' · baris ' + row.excelRow : '-')}</strong></td>
                         <td>{row.recordDate || '-'}</td>
