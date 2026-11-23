@@ -1,5 +1,6 @@
 'use client'
 import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useMemo, useState } from 'react'
@@ -58,6 +59,17 @@ const REQUIRED_HEADERS: Record<RequiredField, string[]> = {
   endDate: ['Tanggal Selesai Praktek', 'Tanggal Selesai Praktik'],
   ci: ['CI/Penanggung Jawab', 'CI / Penanggung Jawab'],
 }
+
+const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
+  ...Object.entries(REQUIRED_HEADERS).map(([key,aliases]) => ({
+    fieldKey: key, label:aliases[0] ?? key, aliases, required:false,
+  })),
+  ...TIMKORDIK_INDICATORS.map(item => ({
+    fieldKey:'indicator:' + item.code, label:item.code + ' · ' + item.title,
+    aliases:[item.header], required:false,
+  })),
+]
+
 
 function readCellValue(cell: any): unknown {
   const value = cell?.value
@@ -405,7 +417,11 @@ export default function TimkordikExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="timkordik" year={year} /><div className="qiuMain">
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="timkordik" year={year}
+    mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="timkordik"
+      fields={INLINE_MAPPING_FIELDS} disabled={parsing||importing}
+      onApply={()=>file ? parseWorkbook(file) : undefined}/>}
+  /><div className="qiuMain">
           <div className="tkIntro">
             Pilih workbook .xlsx yang berisi sheet <strong>Profil</strong> dan <strong>Logbook</strong>. Setiap baris mahasiswa menjadi satu catatan aktivitas dengan lima respons indikator. Pilihan kode dipastikan cocok terhadap profil sumber; pratinjau menyamarkan identitas mahasiswa.
           </div>
