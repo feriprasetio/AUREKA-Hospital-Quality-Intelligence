@@ -23,6 +23,7 @@ test('Rawat Jalan keeps preview and audit notices in independent normal-flow mai
 test('Rawat Jalan never subtracts already rejected rows from validated rows twice', () => {
   const source = read('components/OutpatientExcelImportDialog.tsx')
   assert.doesNotMatch(source, /rows\.length-errors\.length/)
+  assert.match(source, /<span>Pengukuran diperiksa<\/span><strong>\{rows\.length\+errors\.length\}<\/strong>/)
   assert.match(source, /<span>Baris bermasalah<\/span><strong>\{errors\.length\}<\/strong>/)
   assert.match(source, /<span>Baris lolos validasi<\/span><strong>\{rows\.length\}<\/strong>/)
   assert.match(source, /errors\.length>0&&!allowValidRows/)
