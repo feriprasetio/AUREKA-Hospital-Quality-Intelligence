@@ -2340,3 +2340,45 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
   .aq.aqPortal.aqAuditWorkspace .aqIbsImport .ciTable {flex: 0 0 auto !important; height: 42dvh; min-height: 230px !important;}
   .aqIbsImport .ciPreviewHead {align-items: flex-start;}
 }
+
+/* IBS review states are concise; detailed source warnings stay accessible. */
+.aqIbsImport .ciMessage {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  border: 1px solid var(--line, #e2e9e4);
+  border-radius: 10px;
+  background: var(--surface-raised, #f8fbfa);
+  color: var(--ink, #2a3f34);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.aqIbsImport .ciMessage.ciError {
+  border-color: #efc8c4;
+  background: #fff3f1;
+  color: #8d322e;
+}
+.aqIbsImport .ciMessage.ciWarning {
+  border-color: #edd5a7;
+  background: #fff9ed;
+  color: #825e22;
+}
+.aqIbsImport .ciMessage.ciSuccess {
+  border-color: #c7e6d5;
+  background: #effaf3;
+  color: #226745;
+}
+.aqIbsImport .ciCode {
+  display: inline-block;
+  padding: 3px 6px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  border-radius: 7px;
+  border: 1px solid var(--line, #dce6df);
+  background: var(--surface-raised, #f7faf8);
+}
+.aqIbsImport .ciTable:focus-visible {
+  outline: 2px solid var(--accent, #177a54);
+  outline-offset: 2px;
+}
