@@ -13,7 +13,7 @@ test('Rawat Jalan keeps preview and audit notices in independent normal-flow mai
   assert.match(source, /<\/tbody><\/table><\/div><\/section>\}/)
   assert.match(source, /className="oiAfterPreview"/)
   assert.match(source, /<\/div><\/div><\/div>\s*<div className="aqFoot">/)
-  assert.match(source, /className="oiImportBody">/)
+  assert.match(source, /className="aqBody qiuBody oiImportBody">/)
   assert.match(source, /\.oiImportBody>\.oiMain\{grid-column:2!important;grid-row:1!important;display:flex!important/)
   assert.match(source, /\.oiMain \.oiPreviewScroll\{display:block;position:relative;min-height:0;max-height:min\(48dvh,420px\)/)
   assert.match(source, /\.oiMain>\.oiTable\{display:block!important;position:relative;isolation:isolate;/)
