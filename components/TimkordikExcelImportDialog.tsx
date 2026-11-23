@@ -406,6 +406,7 @@ export default function TimkordikExcelImportDialog({
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
         <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="timkordik" year={year} />
+          <div className="qiuMain">
           <div className="tkIntro">
             Pilih workbook .xlsx yang berisi sheet <strong>Profil</strong> dan <strong>Logbook</strong>. Setiap baris mahasiswa menjadi satu catatan aktivitas dengan lima respons indikator. Pilihan kode dipastikan cocok terhadap profil sumber; pratinjau menyamarkan identitas mahasiswa.
           </div>
@@ -463,6 +464,7 @@ export default function TimkordikExcelImportDialog({
             <strong>Impor selesai.</strong> Diterima: {result.received_count ?? 0}; catatan baru: {result.imported_count ?? 0}; sudah ada dan dilewati: {result.skipped_existing_count ?? 0}.
           </div>}
         </div>
+         </div>
         <div className="aqFoot">
           <span className="tkPrivacy">Status setelah impor: Siap Ditinjau. Validasi tetap dilakukan oleh validator yang berwenang.</span>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

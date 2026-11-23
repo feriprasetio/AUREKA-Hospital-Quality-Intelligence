@@ -449,6 +449,7 @@ export default function ComplaintExcelImportDialog({
           <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
         </div>
         <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="complaint" year={year} />
+          <div className="qiuMain">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Informasi dan Pengaduan serta tahun 2026 sebelum membuka jalur impor ini.</div>}
           <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong> dengan header di baris 2 dan data mulai baris 3. Nilai <strong>Unit Pelayanan</strong> diterima sebagai teks bebas (tetap wajib diisi), bukan dibatasi daftar pilihan. Baris ditinjau sebelum disimpan ke Supabase melalui sesi login AUREKA; workbook tidak dikirim ke repositori.</div></details>
@@ -493,6 +494,7 @@ export default function ComplaintExcelImportDialog({
           {rows.some(row => row.warnings.length > 0) && <div className="ciMessage ciError" role="alert"><strong>Perhatian sumber:</strong> beberapa baris memiliki nilai yang harus diverifikasi manual. Nilai asli tetap dipertahankan; impor akan menyimpan catatan dalam status siap ditinjau.</div>}
           {result && <div className="ciMessage ciSuccess" role="status">Impor selesai. {result.imported_count ?? 0} catatan baru disimpan; {result.skipped_existing_count ?? 0} baris yang sebelumnya ada dilewati. Data telah dimuat ulang dari server.</div>}
         </div>
+         </div>
         <div className="aqFoot">
           <span style={{fontSize:12,color:'var(--muted)'}}>Data pasien tidak disertakan dalam commit kode.</span>
           <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>

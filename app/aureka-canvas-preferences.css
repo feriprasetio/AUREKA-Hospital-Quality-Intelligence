@@ -5,6 +5,9 @@
  * The workspace presents informational sections directly against the Arktik canvas.
  */
 html[data-skin="arktik"] {
+  --aureka-dialog-surface: #fbfdff;
+  --aureka-dialog-muted: #edf3f9;
+  --aureka-dialog-edge: #b5c8da;
   --aureka-canvas-surface: transparent;
   --aureka-header-surface: rgba(236, 246, 253, .91);
   --aureka-header-control: #f7fcff;
@@ -25,6 +28,9 @@ html[data-skin="arktik"] {
   --aureka-canvas-header-min: 50px;
 }
 html[data-skin="arktik"][data-mode="gelap"] {
+  --aureka-dialog-surface: #121e2e;
+  --aureka-dialog-muted: #1b2b3e;
+  --aureka-dialog-edge: #647f99;
   --aureka-header-surface: rgba(12, 24, 39, .92);
   --aureka-header-control: #15263a;
   --aureka-header-hover: rgba(164, 213, 251, .16);
@@ -636,4 +642,15 @@ html[data-skin="arktik"][data-mode="gelap"] body:not(#_) .workspaceRoot.workspac
   html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .workspaceHeaderBar .workspaceGlobalSearch:focus-within {
     border-color: Highlight !important;
   }
+}
+
+/* Blocking dialogs need opaque surfaces even in the cardless workspace. */
+html[data-skin="arktik"][data-mode="gelap"] body [aria-modal="true"]:not(.akModal, .pmRoot, .idleWarn) {
+  background: var(--aureka-dialog-surface) !important;
+  border-color: var(--aureka-dialog-edge) !important;
+  color-scheme: dark;
+}
+html[data-skin="arktik"][data-mode="gelap"] body [aria-modal="true"] > :is(.aqDHead, .aqFoot) {
+  background: var(--aureka-dialog-muted) !important;
+  border-color: var(--aureka-dialog-edge) !important;
 }

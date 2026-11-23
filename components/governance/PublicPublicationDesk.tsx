@@ -1,5 +1,6 @@
 'use client'
 
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useCallback, useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { NATIONAL_INDICATORS } from '@/lib/aureka/national-indicators'
@@ -128,7 +129,10 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
   }
   const decide=async(item:Snapshot,action:'approve'|'withdraw')=>{
     if(!canApprove||busy)return
-    if(!window.confirm(action==='approve'?'Setujui dan publikasikan snapshot ini? Snapshot lama pada domain yang sama akan digantikan.':'Tarik publikasi ini dari portal?'))return
+    if (!(await aurekaConfirm(
+      action === 'approve' ? 'Snapshot lama pada domain yang sama akan digantikan.' : 'Snapshot ini akan ditarik dari portal.',
+      { title: action === 'approve' ? 'Setujui publikasi?' : 'Tarik publikasi?', confirmLabel: action === 'approve' ? 'Publikasikan' : 'Tarik publikasi', danger: action === 'withdraw' },
+    ))) return
     setNotice('');setError('');setBusy(true)
     try{
       const name=action==='approve'?'aureka_approve_public_portal_snapshot':'aureka_withdraw_public_portal_snapshot'

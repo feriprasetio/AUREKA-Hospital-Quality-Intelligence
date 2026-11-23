@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
@@ -19,6 +19,8 @@ export default function AurekaModal({
   footer,
   size = 'lg',
   closeDisabled = false,
+  closeOnBackdrop = true,
+  role = 'dialog',
 }: {
   open: boolean
   title: ReactNode
@@ -28,8 +30,11 @@ export default function AurekaModal({
   footer?: ReactNode
   size?: 'md' | 'lg' | 'xl'
   closeDisabled?: boolean
+  closeOnBackdrop?: boolean
+  role?: 'dialog' | 'alertdialog'
 }) {
   const [mounted, setMounted] = useState(false)
+  const backdropPressed = useRef(false)
   const titleId = useId()
   const descriptionId = useId()
   const panelRef = useAccessibleDialog<HTMLDivElement>({
@@ -42,9 +47,15 @@ export default function AurekaModal({
 
   if (!mounted || !open) return null
   return createPortal(
-    <div className="akModalRoot" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget && !closeDisabled) onClose() }}>
-      <div ref={panelRef} className={`akModal akModal-${size}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={subtitle ? descriptionId : undefined} tabIndex={-1}>
-        <span className="akModalGrip" aria-hidden="true" />
+    <div className="akModalRoot" role="presentation"
+      onPointerDown={event => { backdropPressed.current = event.isPrimary && event.button === 0 && event.target === event.currentTarget }}
+      onPointerCancel={() => { backdropPressed.current = false }}
+      onClick={event => {
+        const dismiss = backdropPressed.current && event.target === event.currentTarget
+        backdropPressed.current = false
+        if (dismiss && closeOnBackdrop && !closeDisabled) onClose()
+      }}>
+      <div ref={panelRef} className={`akModal akModal-${size}`} role={role} aria-modal="true" aria-labelledby={titleId} aria-describedby={subtitle ? descriptionId : undefined} tabIndex={-1}>
         <header className="akModalHead">
           <div>
             <h3 id={titleId}>{title}</h3>
@@ -54,7 +65,7 @@ export default function AurekaModal({
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
           </button>
         </header>
-        <div className="akModalBody">{children}</div>
+        {children != null && <div className="akModalBody">{children}</div>}
         {footer && <footer className="akModalFoot">{footer}</footer>}
       </div>
     </div>,

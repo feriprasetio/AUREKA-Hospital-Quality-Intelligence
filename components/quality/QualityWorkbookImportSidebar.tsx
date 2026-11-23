@@ -220,35 +220,85 @@ export const UNIT_IMPORT_FORMATS = {
   }
 } as const
 export type QualityWorkbookImportUnit = keyof typeof UNIT_IMPORT_FORMATS
-const IMPORT_LAYOUT_CSS = "\n.aq.aqPortal.aqAuditWorkspace .aqDrawer:has(.qiuBody){width:min(1460px,calc(100vw - 32px))!important;max-width:1460px!important}\n.aq.aqPortal.aqAuditWorkspace .qiuBody{display:grid!important;grid-template-columns:minmax(235px,270px) minmax(0,1fr)!important;gap:12px 16px!important;align-content:start!important;align-items:start!important;min-width:0!important;overflow-x:clip}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar{grid-column:1!important;grid-row:1!important;align-self:start!important;position:sticky;top:0;z-index:2;min-width:0;display:grid;gap:12px}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>:not(.qiuSidebar){grid-column:2!important;min-width:0!important;max-width:100%}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuCard{padding:15px;border:1px solid #dbe5e0;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(20,44,57,.035)}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuCard h5{font-size:13px;line-height:1.4;font-weight:750;letter-spacing:-.01em;color:#294459;margin:0 0 12px}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuSettings{display:grid;grid-template-columns:minmax(0,91px) minmax(0,1fr);gap:8px 9px;margin:0;font-size:12px;line-height:1.45}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuSettings dt{color:#6a7b86}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuSettings dd{margin:0;font-weight:650;color:#243c4d;overflow-wrap:anywhere}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuStep{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid #edf1ee;font-size:12px;line-height:1.45;color:#40576a}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuStep:first-of-type{border-top:0;padding-top:0}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuNumber{display:inline-grid;place-items:center;flex:0 0 22px;height:22px;border-radius:7px;background:#eaf2f8;color:#245477;font-size:11px;font-weight:800}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuNote{font-size:12px;line-height:1.65;color:#617481;margin:0}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciTable,.oiTable,.iiTable,.niTable,.piTable,.giTable,.liTable,.paTable,.iqTable,.phTable,.rmTable,[class$=\"Table\"]){max-width:100%;min-width:0;overflow-x:auto;scrollbar-gutter:stable}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStats,.oiStats,.iiStats,.niStats,.piStats,.paStats,[class$=\"Stats\"]){max-width:100%;min-width:0}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStat,.oiStat,.iiStat,.niStat,.piStat,.paStat,[class$=\"Stat\"]){min-width:0}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStat,.oiStat,.iiStat,.niStat,.piStat,.paStat,[class$=\"Stat\"]) strong{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}\n.aq.aqPortal.aqAuditWorkspace .qiuBody table{width:100%;border-collapse:separate;border-spacing:0}\n.aq.aqPortal.aqAuditWorkspace .qiuBody table :is(th,td){vertical-align:top}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(input[type=\"file\"],select){max-width:100%}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.qwpToolbar,.ciMessage,.ciPrivacy,.ciUpload,.ciFlowHint){max-width:100%;min-width:0}\n@media(max-width:940px){\n.aq.aqPortal.aqAuditWorkspace .qiuBody{grid-template-columns:minmax(0,1fr)!important;overflow-x:visible}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar{grid-column:1!important;grid-row:auto!important;position:static;grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}\n.aq.aqPortal.aqAuditWorkspace .qiuBody>:not(.qiuSidebar){grid-column:1!important}\n}\n@media(max-width:540px){\n.aq.aqPortal.aqAuditWorkspace .qiuBody>.qiuSidebar{grid-template-columns:minmax(0,1fr)}\n.aq.aqPortal.aqAuditWorkspace .qiuSidebar .qiuCard{padding:12px}\n.aq.aqPortal.aqAuditWorkspace .qiuBody :is(.ciStats,.oiStats,.iiStats,.niStats,.piStats,.paStats,[class$=\"Stats\"]){grid-template-columns:repeat(2,minmax(0,1fr))}\n}\n.episodeWorkbook.qiuBody{display:grid!important;grid-template-columns:minmax(235px,270px) minmax(0,1fr)!important;gap:12px 16px!important;min-width:0!important;align-items:start}\n.episodeWorkbook.qiuBody>.qiuSidebar{grid-column:1!important;grid-row:1!important;align-self:start;position:sticky;top:0;z-index:2;min-width:0;display:grid;gap:12px}\n.episodeWorkbook.qiuBody>:not(.qiuSidebar){grid-column:2!important;min-width:0!important;max-width:100%}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuCard{padding:15px;border:1px solid #dbe5e0;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(20,44,57,.035)}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuCard h5{font-size:13px;line-height:1.4;font-weight:750;letter-spacing:-.01em;color:#294459;margin:0 0 12px}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuSettings{display:grid;grid-template-columns:minmax(0,91px) minmax(0,1fr);gap:8px 9px;margin:0;font-size:12px;line-height:1.45}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuSettings dt{color:#6a7b86}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuSettings dd{margin:0;font-weight:650;color:#243c4d;overflow-wrap:anywhere}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuStep{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid #edf1ee;font-size:12px;line-height:1.45;color:#40576a}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuStep:first-of-type{border-top:0;padding-top:0}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuNumber{display:inline-grid;place-items:center;flex:0 0 22px;height:22px;border-radius:7px;background:#eaf2f8;color:#245477;font-size:11px;font-weight:800}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuNote{font-size:12px;line-height:1.65;color:#617481;margin:0}\n.episodeWorkbook.qiuBody .qiuSidebar .qiuCard{padding:12px}\n@media(max-width:940px){\n.episodeWorkbook.qiuBody{grid-template-columns:minmax(0,1fr)!important}\n.episodeWorkbook.qiuBody>.qiuSidebar{grid-column:1!important;grid-row:auto!important;position:static;grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}\n.episodeWorkbook.qiuBody>:not(.qiuSidebar){grid-column:1!important}\n}\n@media(max-width:540px){.episodeWorkbook.qiuBody>.qiuSidebar{grid-template-columns:minmax(0,1fr)}}\n"
+const IMPORT_LAYOUT_CSS = `
+:is(.aq.aqPortal.aqAuditWorkspace .qiuBody, .episodeWorkbook.qiuBody) {
+  display: grid !important;
+  grid-template-columns: minmax(235px, 270px) minmax(0, 1fr) !important;
+  align-items: start;
+  align-content: start;
+  min-width: 0;
+  gap: 12px 16px;
+}
+.qiuBody > .qiuSidebar {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+.qiuBody > :not(.qiuSidebar) { min-width: 0; max-width: 100%; }
+.qiuMain {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.qiuMain > * { min-width: 0; }
+.qiuBody :is(.qiuSettings, .qiuDetails) {
+  padding: 12px;
+  border: 1px solid var(--aureka-dialog-edge);
+  border-radius: 12px;
+  background: var(--aureka-dialog-muted);
+}
+.qiuBody .qiuSettings {
+  display: grid;
+  grid-template-columns: minmax(0, 84px) minmax(0, 1fr);
+  gap: 7px 9px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.qiuSettings dt, .qiuDetails p { color: var(--aureka-color-foreground-secondary); }
+.qiuSettings dd { margin: 0; font-weight: 650; overflow-wrap: anywhere; }
+.qiuDetails { font-size: 12px; line-height: 1.55; }
+.qiuDetails summary { min-height: 44px; align-content: center; cursor: pointer; font-weight: 750; }
+.qiuDetails :is(p, ol) { margin: 8px 0 0; }
+.qiuDetails ol { padding-inline-start: 20px; }
+.qiuBody :is(input[type="file"], select) { max-width: 100%; }
+.qiuMain [class$="Table"] { max-width: 100%; overflow-x: auto; scrollbar-gutter: stable; }
+.qiuMain [class$="Stat"] { min-width: 0; }
+.qiuMain [class$="Stat"] strong { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+@media(max-width:940px) {
+  :is(.aq.aqPortal.aqAuditWorkspace .qiuBody, .episodeWorkbook.qiuBody) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+@media(max-width:540px) {
+  .qiuMain [class$="Stats"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+`
+
 
 export default function QualityWorkbookImportSidebar({unitKey,year,unitName}:{unitKey:QualityWorkbookImportUnit;year:number|string;unitName?:string}) {
   const format = UNIT_IMPORT_FORMATS[unitKey]
   const displayUnit = unitName?.trim() || format.unit
   return <aside className="qiuSidebar" aria-label={'Pengaturan impor '+displayUnit}>
     <style>{IMPORT_LAYOUT_CSS}</style>
-    <section className="qiuCard" aria-label="Pengaturan sumber workbook">
-      <h5>1. Pengaturan sumber</h5>
-      <dl className="qiuSettings">
-        <dt>Unit</dt><dd>{displayUnit}</dd>
-        <dt>Tahun aktif</dt><dd>{year}</dd>
-        <dt>Worksheet</dt><dd>{format.sheet}</dd>
-        <dt>Baris header</dt><dd>{format.header}</dd>
-        <dt>Mulai data</dt><dd>{format.firstData}</dd>
-        <dt>Berkas</dt><dd>.xlsx · maks. {format.limitMb} MB</dd>
-      </dl>
-    </section>
-    <section className="qiuCard" aria-label="Langkah pemeriksaan dan impor">
-      <h5>2. Alur pemeriksaan</h5>
-      <div className="qiuStep"><span className="qiuNumber">01</span><span>Pilih berkas pada panel data.</span></div>
-      <div className="qiuStep"><span className="qiuNumber">02</span><span>Periksa statistik, filter, baris sumber, dan catatan QA.</span></div>
-      <div className="qiuStep"><span className="qiuNumber">03</span><span>Impor setelah struktur dan pratinjau sesuai.</span></div>
-    </section>
-    <section className="qiuCard" aria-label="Aturan keselamatan sumber">
-      <h5>3. Aturan dan tindak lanjut</h5>
-      <p className="qiuNote">{format.source}</p>
-      <p className="qiuNote" style={{marginTop:9}}><strong>Status:</strong> {format.review}</p>
-      <p className="qiuNote" style={{marginTop:9}}>Data sumber dan temuan QA perlu diverifikasi. Pengaturan tampilan ini tidak menetapkan numerator atau denominator secara otomatis.</p>
-    </section>
+    <dl className="qiuSettings" aria-label="Sumber workbook">
+      <dt>Unit</dt><dd>{displayUnit}</dd>
+      <dt>Tahun</dt><dd>{year}</dd>
+      <dt>Worksheet</dt><dd>{format.sheet}</dd>
+      <dt>Baris header</dt><dd>{format.header}</dd>
+      <dt>Mulai data</dt><dd>{format.firstData}</dd>
+      <dt>Berkas</dt><dd>.xlsx · maks. {format.limitMb} MB</dd>
+    </dl>
+    <details className="qiuDetails">
+      <summary>Panduan dan aturan impor</summary>
+      <ol>
+        <li>Pilih berkas workbook.</li>
+        <li>Periksa pratinjau dan pesan validasi.</li>
+        <li>Impor setelah pratinjau sesuai.</li>
+      </ol>
+      <p>{format.source}</p>
+      <p><strong>Status</strong> {format.review}</p>
+    </details>
   </aside>
 }

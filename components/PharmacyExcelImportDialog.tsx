@@ -491,6 +491,7 @@ export default function PharmacyExcelImportDialog({
           <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
         </div>
         <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="pharmacy" year={year} />
+          <div className="qiuMain">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih Instalasi Farmasi dan tahun 2026 sebelum membuka alur impor ini.</div>}
           <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca delapan sheet harian: Copy Resep, High Alert, Fornas, dan Formularium Rumah Sakit untuk Rawat Jalan dan Rawat Inap. Header berada pada baris 10, data mulai baris 11. Sheet Dashboard dan rekap gabungan bulanan tidak diimpor agar tidak terjadi penghitungan ganda.</div></details>
@@ -540,6 +541,7 @@ export default function PharmacyExcelImportDialog({
           {partial && !importing && !result && partial.completedBatches > 0 && <div className="ciMessage ciWarning">Sebagian proses selesai sebelum kegagalan: {partial.received} baris diproses, {partial.imported} baru tersimpan, {partial.skipped} sudah ada. Unggah ulang aman karena kunci tanggal/alur layanan idempoten; periksa pesan galat sebelum mengulang.</div>}
           {result && <div className="ciMessage ciSuccess" role="status">Impor selesai untuk {result.received} catatan valid. {result.imported} catatan baru tersimpan; {result.skipped} sudah ada dan dilewati. {result.completedBatches} batch selesai; daftar dimuat ulang dari server.</div>}
         </div>
+         </div>
         <div className="aqFoot">
           <span style={{ fontSize: 12, color: 'var(--muted)' }}>Periksa kembali data sumber dan setiap tanggal yang dikecualikan sebelum validasi.</span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

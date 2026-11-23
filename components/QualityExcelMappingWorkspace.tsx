@@ -1,5 +1,6 @@
 'use client'
 
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
@@ -490,7 +491,7 @@ export default function QualityExcelMappingWorkspace({
       setError('Ada judul header berulang lebih dari 20 kali. Perbaiki workbook sumber.')
       return
     }
-    if (!window.confirm('Simpan ' + numberLabel(rules.length) + ' aturan pemetaan untuk ' + activeRoom?.name + ' · ' + selectedImporter.label + '? Aturan hanya berlaku untuk unit, tahun, dan jenis workbook ini.')) return
+    if (!await aurekaConfirm('Simpan ' + numberLabel(rules.length) + ' aturan pemetaan untuk ' + activeRoom?.name + ' · ' + selectedImporter.label + '? Aturan hanya berlaku untuk unit, tahun, dan jenis workbook ini.', { title: 'Simpan aturan pemetaan?', confirmLabel: 'Simpan aturan' })) return
 
     setSaving(true); setError(''); setNotice('')
     try {
@@ -528,7 +529,7 @@ export default function QualityExcelMappingWorkspace({
       setError(cause instanceof Error ? cause.message : 'JSON profil tidak valid.')
       return
     }
-    if (!window.confirm('Simpan perubahan profil indikator ' + selectedProfile.code + ' pada ' + activeRoom?.name + '? Perubahan akan diaudit dan memengaruhi impor berikutnya.')) return
+    if (!await aurekaConfirm('Simpan perubahan profil indikator ' + selectedProfile.code + ' pada ' + activeRoom?.name + '? Perubahan akan diaudit dan memengaruhi impor berikutnya.', { title: 'Simpan profil indikator?', confirmLabel: 'Simpan profil' })) return
     setSaving(true); setError(''); setNotice('')
     try {
       const { data, error: rpcError } = await q().rpc('quality_excel_indicator_profile_update', {
@@ -582,9 +583,9 @@ export default function QualityExcelMappingWorkspace({
       .qemPanel h4{margin:0;font-size:14px}
       .qemMuted{font-size:11px;color:#748797;line-height:1.5}
       .qemGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-      .qemGrid label{display:grid;gap:5px;color:#6b7e8d;font-size:11px;font-weight:750}
-      .qemGrid input,.qemGrid textarea,.qemGrid select{width:100%;min-width:0;min-height:37px;padding:8px 9px;border:1px solid #d8e3eb;border-radius:8px;background:#fff;color:#223b50;font:inherit;font-size:12px;font-weight:450}
-      .qemGrid textarea{min-height:96px;resize:vertical;font-family:inherit;font-size:12px}
+      .qemGrid > label{display:grid;gap:5px;color:#6b7e8d;font-size:11px;font-weight:750}
+      .qemGrid > label > :is(input, textarea, select){width:100%;min-width:0;min-height:37px;padding:8px 9px;border:1px solid #d8e3eb;border-radius:8px;background:#fff;color:#223b50;font:inherit;font-size:12px;font-weight:450}
+      .qemGrid > label > textarea{min-height:96px;resize:vertical;font-family:inherit;font-size:12px}
       .qemTableWrap{overflow:auto;border:1px solid #e3eaf0;border-radius:11px;background:#fff}
       .qemTable{width:100%;min-width:860px;border-collapse:collapse;font-size:12px}
       .qemTable th,.qemTable td{padding:9px 10px;border-bottom:1px solid #edf1f4;text-align:left;vertical-align:top}

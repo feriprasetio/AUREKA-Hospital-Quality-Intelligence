@@ -5,6 +5,7 @@ import BackupPanel from '@/components/governance/BackupPanel'
 import { isTrainingMode, setTrainingMode } from '@/lib/aureka/training-mode'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useEffect, useMemo, useState } from 'react'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -122,7 +123,7 @@ export default function GeneralSettings({
   const [msg, setMsg] = useState('')
   const [rowNote, setRowNote] = useState<{ id: string; ok: boolean; text: string } | null>(null)
   const [detailId, setDetailId] = useState<string | null>(null)
-  useEffect(() => { if (!detailId || typeof document === 'undefined') return; const prev = document.body.style.overflow; document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = prev } }, [detailId])
+  const accountDialogRef = useAccessibleDialog<HTMLElement>({ open: detailId !== null, onClose: () => setDetailId(null) })
   const [detailName, setDetailName] = useState('')
   const [detailIdent, setDetailIdent] = useState({ username: '', email: '', verify: true })
   const [myAccount, setMyAccount] = useState<{ username: string; email: string; supported: boolean }>({ username: '', email: '', supported: true })
@@ -929,9 +930,9 @@ export default function GeneralSettings({
                   </div>
                   {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`} role={rowNote.ok ? 'status' : 'alert'} aria-live={rowNote.ok ? 'polite' : 'assertive'}>{rowNote.text}</div>}
                   {detailId === u.user_id && typeof document !== 'undefined' && createPortal(
-                    <div className="moduleEnter settingsWorkspace aurModalLayer"><div className="rmModalBackdrop" role="presentation" onKeyDown={(e) => { if (e.key === 'Escape') setDetailId(null) }}>
-                    <section className="rmModalSheet userDetailSheet" role="dialog" aria-modal="true" aria-label={`Detail akun ${u.full_name || u.email || ''}`}>
-                    <div className="userDetailHead"><div><span>Detail akun</span><h4>{u.full_name || u.username || u.email || 'Pengguna'}</h4><p>{u.username ? '@' + u.username + ' · ' : ''}{u.email || 'Email belum diisi'}</p></div><button type="button" className="uBtn outline" autoFocus onClick={() => setDetailId(null)}>Tutup</button></div>
+                    <div className="moduleEnter settingsWorkspace aurModalLayer"><div className="rmModalBackdrop" role="presentation">
+                    <section ref={accountDialogRef} tabIndex={-1} className="rmModalSheet userDetailSheet" role="dialog" aria-modal="true" aria-label={`Detail akun ${u.full_name || u.email || ''}`}>
+                    <div className="userDetailHead"><div><span>Detail akun</span><h4>{u.full_name || u.username || u.email || 'Pengguna'}</h4><p>{u.username ? '@' + u.username + ' · ' : ''}{u.email || 'Email belum diisi'}</p></div><button type="button" className="uBtn outline" data-dialog-autofocus onClick={() => setDetailId(null)}>Tutup</button></div>
                     {rowNote?.id === u.user_id && <div className={`userRowNote ${rowNote.ok ? 'ok' : 'error'}`} role={rowNote.ok ? 'status' : 'alert'}>{rowNote.text}</div>}
                     <div className="userDetail">
                       <div className="userDetailCol">

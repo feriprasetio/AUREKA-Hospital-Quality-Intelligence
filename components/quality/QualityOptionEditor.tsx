@@ -1,5 +1,7 @@
 'use client'
 
+import { useLayoutEffect, useRef } from 'react'
+
 type OptionRow = {
   label: string
   code: number | null
@@ -9,58 +11,86 @@ type OptionRow = {
   [key: string]: unknown
 }
 
+const emptyOption: OptionRow = {
+  label: '', code: null, numerator: null, denominator: true, review_required: false,
+}
+
 export default function QualityOptionEditor({ text, onChange }: {
   text: string
   onChange: (next: string) => void
 }) {
+  const editorRef = useRef<HTMLDivElement>(null)
+  const nextFocus = useRef<number | 'add' | null>(null)
+  useLayoutEffect(() => {
+    if (nextFocus.current === null) return
+    const selector = nextFocus.current === 'add' ? '.qoeAdd' : `[data-option-label="${nextFocus.current}"]`
+    editorRef.current?.querySelector<HTMLElement>(selector)?.focus()
+    nextFocus.current = null
+  }, [text])
+
   let rows: OptionRow[] | null = null
   try {
     const parsed: unknown = JSON.parse(text || '[]')
     if (Array.isArray(parsed)) rows = parsed.map((item: unknown) => ({
-      label: '', code: null, numerator: null, denominator: true, review_required: false,
+      ...emptyOption,
       ...(item && typeof item === 'object' && !Array.isArray(item) ? item : { label: String(item ?? '') }),
     }))
   } catch { rows = null }
-  if (!rows) return <div role="alert" className="qoeWarning">Opsi jawaban tersimpan tidak dapat dibaca. Tidak ada konfigurasi yang diubah. Periksa berkas sumber atau hubungi pengelola.</div>
-  const write = (items: OptionRow[]) => onChange(JSON.stringify(items, null, 2))
-  const update = (i: number, patch: Partial<OptionRow>) => write(rows!.map((r, index) => index === i ? { ...r, ...patch } : r))
+  if (!rows) return <p role="alert" className="qoeWarning">Opsi jawaban tersimpan tidak dapat dibaca. Periksa berkas sumber atau hubungi pengelola.</p>
 
-  return <div className="qoe">
-    <style>{[
-      '.qoe{display:grid;gap:8px}.qoeRow{display:grid;grid-template-columns:26px minmax(150px,2fr) minmax(140px,1.5fr) minmax(140px,1.5fr) auto auto 32px;gap:7px;align-items:center;border:1px solid var(--line,#dbe5e0);padding:9px;border-radius:10px;background:var(--surface,#fff)}',
-      '.qoeRow input[type=text],.qoeRow select{min-width:0;width:100%;border:1px solid var(--line,#dbe5e0);border-radius:8px;min-height:36px;padding:7px 8px;background:var(--surface,#fff);color:var(--ink,#293c32);font:inherit;font-size:12px}',
-      '.qoeRow .qoeNumber{color:var(--muted,#7b867e);font-size:11px;text-align:center}.qoeCheck{display:flex;gap:5px;align-items:center;white-space:nowrap;font-size:11px;color:var(--muted,#66766c)}',
-      '.qoeAdd,.qoeRemove{border:1px solid var(--line,#dbe5e0);background:var(--surface,#fff);color:var(--accent2,#266b4e);border-radius:8px;min-height:35px;cursor:pointer;font-size:12px;font-weight:750}.qoeRemove{min-width:31px}.qoeAdd{justify-self:start;padding:0 12px}',
-      '.qoeHint,.qoeWarning{font-size:11px;color:var(--muted,#68786e);line-height:1.5}.qoeWarning{color:#a34b38}',
-      '@media(max-width:950px){.qoeRow{grid-template-columns:24px minmax(110px,1fr) minmax(120px,1fr)}.qoeCheck{white-space:normal}.qoeRemove{justify-self:start}}',
-      '@media(max-width:550px){.qoeRow{grid-template-columns:1fr 1fr}.qoeRow .qoeNumber{grid-column:1/-1;text-align:left}}',
-    ].join('\n')}</style>
-    <div className="qoeHint">Atur label, kode pilihan, status pembilang/penyebut, dan kewajiban alasan melalui kontrol. Tidak perlu mengedit JSON.</div>
-    {rows.map((row, i) => <div key={i} className="qoeRow">
-      <span className="qoeNumber">{i + 1}</span>
-      <input type="text" value={String(row.label ?? '')} aria-label={'Label pilihan ' + (i + 1)}
-        placeholder="Mis. Sesuai standar" onChange={event => update(i, { label: event.target.value })} />
-      <select aria-label={'Kode pilihan ' + (i + 1)}
-        value={row.code == null ? '' : String(row.code)}
-        onChange={event => update(i, { code: event.target.value ? Number(event.target.value) : null })}>
-        <option value="">Tanpa kode</option>
-        <option value="1">Code 1</option><option value="2">Code 2</option><option value="3">Code 3</option>
-      </select>
-      <select aria-label={'Numerator pilihan ' + (i + 1)}
-        value={row.numerator === true ? 'yes' : row.numerator === false ? 'no' : 'unset'}
-        onChange={event => update(i, { numerator: event.target.value === 'yes' ? true : event.target.value === 'no' ? false : null })}>
-        <option value="unset">Pembilang: mengikuti aturan kode</option>
-        <option value="yes">Masuk pembilang</option><option value="no">Tidak masuk pembilang</option>
-      </select>
-      <label className="qoeCheck"><input type="checkbox" checked={row.denominator !== false}
-        onChange={event => update(i, { denominator: event.target.checked })} /> Penyebut</label>
-      <label className="qoeCheck"><input type="checkbox" checked={row.review_required === true}
-        onChange={event => update(i, { review_required: event.target.checked })} /> Perlu telaah</label>
-      <button type="button" className="qoeRemove" aria-label={'Hapus pilihan ' + (i + 1)}
-        onClick={() => write(rows!.filter((_, index) => index !== i))}>×</button>
-    </div>)}
-    <button type="button" className="qoeAdd" onClick={() => write([...rows!, {
-      label: '', code: null, numerator: null, denominator: true, review_required: false,
-    }])}>+ Tambah pilihan</button>
+  const items = rows
+  const write = (options: OptionRow[]) => onChange(JSON.stringify(options, null, 2))
+  const update = (index: number, patch: Partial<OptionRow>) =>
+    write(items.map((row, i) => i === index ? { ...row, ...patch } : row))
+  const remove = (index: number) => {
+    nextFocus.current = items.length > 1 ? Math.min(index, items.length - 2) : 'add'
+    write(items.filter((_, i) => i !== index))
+  }
+
+  return <div ref={editorRef} className="qoe">
+    {items.length === 0 && <p className="qoeHint">Belum ada opsi jawaban. Klik Tambah pilihan untuk membuatnya.</p>}
+    {items.map((row, i) => {
+      const code = row.code == null ? '' : String(row.code)
+      return <fieldset key={i} className="qoeRow">
+        <legend>Pilihan {i + 1}</legend>
+        <label className="qoeLabel">
+          <span>Label jawaban</span>
+          <textarea rows={2} data-option-label={i} value={String(row.label ?? '')}
+            placeholder="Mis. Sesuai standar" onChange={event => update(i, { label: event.target.value })} />
+        </label>
+        <label className="qoeLabel">
+          <span>Kode pilihan</span>
+          <select value={code} onChange={event => update(i, { code: event.target.value ? Number(event.target.value) : null })}>
+            <option value="">Tanpa kode</option>
+            {['1', '2', '3'].map(value => <option key={value} value={value}>Kode {value}</option>)}
+            {code && !['1', '2', '3'].includes(code) && <option value={code}>Kode tersimpan ({code})</option>}
+          </select>
+        </label>
+        <label className="qoeLabel">
+          <span>Pembilang</span>
+          <select value={row.numerator === true ? 'yes' : row.numerator === false ? 'no' : 'unset'}
+            onChange={event => update(i, { numerator: event.target.value === 'unset' ? null : event.target.value === 'yes' })}>
+            <option value="unset">Ikuti aturan kode</option>
+            <option value="yes">Masuk pembilang</option>
+            <option value="no">Tidak masuk pembilang</option>
+          </select>
+        </label>
+        <div className="qoeActions">
+          <label className="qoeCheck">
+            <input type="checkbox" checked={row.denominator !== false} onChange={event => update(i, { denominator: event.target.checked })} />
+            Masuk penyebut
+          </label>
+          <label className="qoeCheck">
+            <input type="checkbox" checked={row.review_required === true} onChange={event => update(i, { review_required: event.target.checked })} />
+            Perlu telaah
+          </label>
+          <button type="button" className="akBtn akBtnGhost qoeRemove" aria-label={`Hapus pilihan ${i + 1}`} onClick={() => remove(i)}>Hapus</button>
+        </div>
+      </fieldset>
+    })}
+    <button type="button" className="akBtn akBtnGhost qoeAdd" onClick={() => {
+      nextFocus.current = items.length
+      write([...items, emptyOption])
+    }}>+ Tambah pilihan</button>
   </div>
 }

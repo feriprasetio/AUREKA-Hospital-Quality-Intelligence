@@ -766,6 +766,7 @@ export default function IsolasiInpatientExcelImportDialog({
       </div>
 
       <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="isolasi-inpatient" year={year} />
+        <div className="qiuMain">
         <div className="suBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -841,12 +842,13 @@ export default function IsolasiInpatientExcelImportDialog({
           <div className="aqSub">Seluruh respons indikator berada dalam status pending untuk review sebelum digunakan pada analisis mutu.</div>
         </div>}
 
-        <div className="suFooter">
-          <span className="aqMetaText">{errors.length ? errors.length + ' baris dikecualikan; ' + rows.length + ' episode valid siap diimpor setelah ditinjau.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Isolasi, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
-            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Rawat Inap Isolasi'}</button>
-          </div>
+        </div>
+      </div>
+      <div className="aqFoot suFooter">
+        <span className="aqMetaText">{errors.length ? errors.length + ' baris dikecualikan; ' + rows.length + ' episode valid siap diimpor setelah ditinjau.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Isolasi, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
+          <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Rawat Inap Isolasi'}</button>
         </div>
       </div>
     </section>

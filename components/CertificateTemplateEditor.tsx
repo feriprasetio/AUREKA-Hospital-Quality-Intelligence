@@ -90,11 +90,6 @@ export default function CertificateTemplateEditor({ templateKey, role, onClose }
   }, [templateKey])
 
   useEffect(() => { void load() }, [load])
-  useEffect(() => {
-    const previous = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = previous }
-  }, [])
 
   const moveToPointer = (event: PointerEvent<HTMLDivElement>) => {
     const id = dragRef.current

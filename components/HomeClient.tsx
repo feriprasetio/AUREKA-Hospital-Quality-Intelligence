@@ -1,4 +1,5 @@
 'use client'
+import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import TrainingBanner from '@/components/layout/TrainingBanner'
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import type {ReactNode} from 'react'
@@ -337,6 +338,7 @@ export default function HomeClient(){
  // Keluar otomatis hanya di perangkat ini (scope local): sesi di HP/PC lain yang sedang dipakai tidak ikut dicabut.
  // Keluar otomatis setelah 30 menit tidak dipakai (peringatan 2 menit sebelumnya) — melindungi data pasien di komputer bersama.
  const idle=useIdleLogout({enabled:view==='workspace',timeoutMs:30*60_000,warnMs:2*60_000,onTimeout:()=>{void logout('local').then(()=>{setView('login');setAuthInfo('Anda keluar otomatis karena AUREKA tidak dipakai selama 30 menit. Silakan masuk kembali.')})}})
+ const idleDialogRef=useAccessibleDialog<HTMLDivElement>({open:idle.secondsLeft!=null,closeOnEscape:false})
   const admin=role==='ADMIN'
  const manager=MANAGER_ROLES.includes(role||'')
  const validator=role==='VALIDATOR'
@@ -1203,11 +1205,11 @@ export default function HomeClient(){
    </button>
   </header>
   {view==='workspace'&&<TrainingBanner/>}
-  {idle.secondsLeft!=null&&<div className="idleWarnBackdrop"><div className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
+  {idle.secondsLeft!=null&&typeof document!=='undefined'&&createPortal(<div className="idleWarnBackdrop"><div ref={idleDialogRef} tabIndex={-1} className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
    <strong id="idle-warn-title">Masih di sana?</strong>
    <p id="idle-warn-desc">Demi keamanan data pasien, AUREKA akan keluar otomatis dalam <b>{Math.floor(idle.secondsLeft/60)}:{String(idle.secondsLeft%60).padStart(2,'0')}</b>.</p>
-   <div className="idleWarnActions"><button type="button" onClick={()=>void logout('local')}>Keluar sekarang</button><button type="button" className="primary" autoFocus onClick={idle.stay}>Tetap masuk</button></div>
-  </div></div>}
+   <div className="idleWarnActions"><button type="button" onClick={()=>void logout('local')}>Keluar sekarang</button><button type="button" className="primary" data-dialog-autofocus onClick={idle.stay}>Tetap masuk</button></div>
+  </div></div>,document.body)}
   {activeToast&&<div className={'dynamicIslandToast '+activeToast.kind} role={activeToast.kind==='error'?'alert':'status'}>
    <span className="dynamicIslandIcon">{activeToast.kind==='error'?'!':activeToast.kind==='success'?'✓':'i'}</span>
    <div className="dynamicIslandText"><strong>{activeToast.kind==='error'?'Perlu perhatian':activeToast.kind==='success'?'Berhasil':'Informasi'}</strong><span>{activeToast.message}</span></div>

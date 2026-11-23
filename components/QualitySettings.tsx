@@ -5,7 +5,7 @@ import { prepareAnnualQualityCatalog, type AnnualCatalogPlan } from '@/lib/aurek
 import { readQualityReference2026 } from '@/lib/aureka/quality-reference-2026'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useId, type CSSProperties } from 'react'
 import dynamic from 'next/dynamic'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
@@ -28,6 +28,36 @@ const YEARS = Array.from({ length: 12 }, (_, i) => 2024 + i)
 type Room = { id: number; name: string }
 type Model = Record<string, any>
 type MetadataTab = 'programs' | 'profiles'
+
+function ProfileChoiceField({ label, value, choices, onChange }: {
+  label: string
+  value: string
+  choices: string[]
+  onChange: (value: string) => void
+}) {
+  const [custom, setCustom] = useState(false)
+  const options = value && !choices.includes(value) && !custom ? [...choices, value] : choices
+  return <div className="qualityProfileChoice">
+    <label className="qualityProfileField">
+      <span>{label}</span>
+      <select value={custom ? 'custom' : value ? String(options.indexOf(value)) : ''}
+        onChange={event => {
+          const selection = event.target.value
+          const isCustom = selection === 'custom'
+          setCustom(isCustom)
+          if (!isCustom) onChange(selection === '' ? '' : options[Number(selection)] ?? '')
+        }}>
+        <option value="">Belum ditentukan</option>
+        {options.map((item, index) => <option key={item} value={index}>{item}</option>)}
+        <option value="custom">Isi sendiri…</option>
+      </select>
+    </label>
+    {custom && <label className="qualityProfileField">
+      <span>{label} khusus</span>
+      <input value={value} onChange={event => onChange(event.target.value)} />
+    </label>}
+  </div>
+}
 
 const empty = (room: Room | undefined, year: number, indicatorType = ''): Model => ({
   profile_year: year,
@@ -340,7 +370,7 @@ function UnitLiveProfileEditor({
     }
   }
 
-  const gridStyle: CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 9 }
+  const gridStyle: CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 190px),1fr))', gap: 9 }
   const fieldStyle: CSSProperties = { display: 'grid', gap: 4, color: 'var(--muted)', fontSize: 12, minWidth: 0 }
   const textInputStyle: CSSProperties = { width: '100%', minWidth: 0, boxSizing: 'border-box' }
   const input = (label: string, value: unknown, onChange: (value: string) => void, opts: { type?: string; placeholder?: string } = {}) => (
@@ -369,31 +399,30 @@ function UnitLiveProfileEditor({
       open={open}
       size="xl"
       closeDisabled={savingBatch}
+      closeOnBackdrop={false}
       onClose={onClose}
       title={'Edit seluruh profil · ' + room.name}
       subtitle={'Tahun ' + year + ' · perubahan disimpan sekaligus sebagai versi baru; kode indikator dijaga tetap.'}
       footer={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, color: 'var(--muted)' }}>{changes.length} dari {drafts.length} profil berubah</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" className="textButton" disabled={savingBatch} onClick={onClose}>Batal</button>
-            <LiquidGlassButton disabled={savingBatch || changes.length === 0} onClick={() => void save()}>
-              {savingBatch ? 'Menyimpan satu batch…' : 'Simpan semua perubahan'}
-            </LiquidGlassButton>
-          </div>
-        </div>
+        <>
+          {error && <p className="qualityProfileError" role="alert">{error}</p>}
+          <span className="qualityBatchCount" role="status">{changes.length} dari {drafts.length} profil berubah</span>
+          <button type="button" className="akBtn akBtnGhost" disabled={savingBatch} onClick={onClose}>Batal</button>
+          <button type="button" className="akBtn akBtnPrimary" disabled={savingBatch || changes.length === 0} onClick={() => void save()}>
+            {savingBatch ? 'Menyimpan…' : 'Simpan semua perubahan'}
+          </button>
+        </>
       }
     >
-      <div style={{ display: 'grid', gap: 12, padding: 12, maxHeight: '70vh', overflow: 'auto' }}>
+      <div style={{ display: 'grid', gap: 12, minWidth: 0 }}>
         <div style={{ border: '1px solid rgba(28,107,73,.20)', background: 'rgba(28,107,73,.055)', borderRadius: 11, padding: 10, fontSize: 12, lineHeight: 1.55 }}>
           Setiap kartu mewakili satu profil indikator. Untuk pemetaan Excel, gunakan nama judul kolom agar tetap sesuai jika urutan kolom berubah.
         </div>
-        {error && <div role="alert" style={{ color: '#9c3f32', border: '1px solid rgba(184,52,52,.3)', borderRadius: 9, padding: 9, fontSize: 12 }}>{error}</div>}
         {drafts.map((model, index) => (
-          <section key={String(model.id)} style={{ border: '1px solid rgba(25,55,37,.13)', borderRadius: 12, padding: 12, background: 'rgba(255,255,255,.65)', display: 'grid', gap: 10 }}>
+          <section key={String(model.id)} style={{ border: '1px solid var(--aureka-dialog-edge)', borderRadius: 12, padding: 12, background: 'var(--aureka-dialog-muted)', display: 'grid', gap: 10 }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', minWidth: 0 }}>
-                <code style={{ color: '#256247', fontWeight: 800 }}>{model.code}</code>
+                <code style={{ color: 'var(--aureka-color-foreground-secondary)', fontWeight: 800 }}>{model.code}</code>
                 <strong style={{ fontSize: 13 }}>{model.title}</strong>
               </div>
               <span style={{ color: 'var(--muted)', fontSize: 12 }}>v{model.version} → v{Number(model.version || 1) + 1}</span>
@@ -453,7 +482,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [programFilter, setProgramFilter] = useState('')
   const [profileViewFilter, setProfileViewFilter] = useState<ProfileViewFilter>('active')
-  const editorRef = useRef<HTMLDivElement | null>(null)
+  const editorFormId = useId()
   const importFileRef = useRef<HTMLInputElement | null>(null)
   const [importPreview, setImportPreview] = useState<IndicatorProfileBackup | null>(null)
   const [annualImport, setAnnualImport] = useState<AnnualCatalogPlan | null>(null)
@@ -473,15 +502,6 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const [pendingDelete, setPendingDelete] = useState<Model | null>(null)
   // Mutasi kamus profil hanya untuk Super Admin; role lain tetap dapat membaca profil dan memakai alur usulan yang memiliki otorisasi tersendiri.
   const canManageCatalog = role === 'ADMIN'
-
-  const editorOpen = Boolean(edit || newOne)
-  useEffect(() => {
-    if (!editorOpen) return
-    const frame = window.requestAnimationFrame(() => {
-      void editorRef.current
-    })
-    return () => window.cancelAnimationFrame(frame)
-  }, [editorOpen])
 
   const load = useCallback(async () => {
     const isCurrent = beginLoad()
@@ -522,6 +542,13 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
       if (value) values.add(value)
     })
     return Array.from(values).sort((a, b) => a.localeCompare(b, 'id'))
+  }, [profiles])
+
+  const profileChoices = useMemo(() => {
+    const sortedValues = (key: 'category' | 'unit_of_measure') =>
+      Array.from(new Set(profiles.map(profile => String(profile[key] ?? '')).filter(value => value.trim())))
+        .sort((a, b) => a.localeCompare(b, 'id'))
+    return { categories: sortedValues('category'), units: sortedValues('unit_of_measure') }
   }, [profiles])
 
   const programStats = useMemo(() => programs.map((name) => {
@@ -930,44 +957,52 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
 
   const selectedRoomForEditor = rooms.find((item) => String(item.id) === room) ?? null
 
-    const fieldStyle: CSSProperties = {
-    display: 'grid',
-    gap: 5,
-    fontSize: 12,
-    color: 'var(--muted)',
-  }
+  const closeEditor = () => { setEdit(null); setNewOne(null); setMsg('') }
   const editor = (model: Model, setModel: (value: Model) => void, onSave: () => void) => (
-    <div style={{ marginTop: 12, padding: 14, borderRadius: 16, background: 'rgba(255,255,255,.30)', border: '1px solid rgba(255,255,255,.68)' }}>
-      <div className="eyebrow">{model.id ? 'EDIT · TERBITKAN VERSI BARU' : 'INDIKATOR BARU'}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 9, marginTop: 10 }}>
-        <label className="field" style={fieldStyle}><span>Tahun</span><select value={model.profile_year} onChange={(e) => setModel({ ...model, profile_year: Number(e.target.value) })}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
-        <label className="field" style={fieldStyle}><span>Kode indikator</span><input required value={model.code || ''} onChange={(e) => setModel({ ...model, code: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Unit pemilik</span><select required value={model.room_id ?? ''} disabled={lockRoomScope || saving} onChange={(e) => { const selected = rooms.find((item) => String(item.id) === e.target.value); setModel({ ...model, room_id: e.target.value ? Number(e.target.value) : '', unit_name: selected?.name || '' }) }}><option value="">Pilih unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-        <label className="field" style={fieldStyle}><span>Nama indikator</span><input required value={model.title || ''} onChange={(e) => setModel({ ...model, title: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Program kerja / jenis indikator</span><input value={model.indicator_type || ''} placeholder="Mis. INM, IMP-RS, IMP-Unit" onChange={(e) => setModel({ ...model, indicator_type: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Kategori</span><input value={model.category || ''} placeholder="Mis. Proses, Outcome, Struktur" onChange={(e) => setModel({ ...model, category: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Satuan</span><input value={model.unit_of_measure || ''} placeholder="Persentase (%), menit, angka" onChange={(e) => setModel({ ...model, unit_of_measure: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Target tertulis</span><input value={model.target_text || ''} placeholder="Mis. ≥ 85%" onChange={(e) => setModel({ ...model, target_text: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Operator target</span><select value={model.target_operator || '>='} onChange={(e) => setModel({ ...model, target_operator: e.target.value })}><option value=">=">≥</option><option value="<=">≤</option><option value="=">=</option><option value=">">&gt;</option><option value="<">&lt;</option></select></label>
-        <label className="field" style={fieldStyle}><span>Nilai target numerik</span><input type="number" value={model.target_value ?? ''} onChange={(e) => setModel({ ...model, target_value: e.target.value })} /></label>
-        <label className="field" style={fieldStyle}><span>Tipe pengukuran</span><select required value={model._measurement_type || ''} onChange={(e) => setModel({ ...model, _measurement_type: e.target.value })}><option value="">Pilih tipe pengukuran</option>{MEASUREMENT_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-        <label className="field" style={fieldStyle}><span>Satuan pencatatan</span><select value={model.measurement_grain || 'activity'} onChange={(e) => setModel({ ...model, measurement_grain: e.target.value })}>{grains.map((grain) => <option key={grain} value={grain}>{GRAIN_LABEL[grain] || grain}</option>)}</select></label>
-        <label className="field" style={fieldStyle}><span>Arah indikator</span><select value={model._indicator_direction || ''} onChange={(e) => setModel({ ...model, _indicator_direction: e.target.value })}><option value="">Pilih arah indikator</option><option value="positive">Positif, semakin tinggi semakin baik</option><option value="negative">Negatif, semakin rendah semakin baik</option></select></label>
-        <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi numerator</span><textarea value={model.numerator_definition || ''} onChange={(e) => setModel({ ...model, numerator_definition: e.target.value })} /></label>
-        <label className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Definisi denominator</span><textarea value={model.denominator_definition || ''} onChange={(e) => setModel({ ...model, denominator_definition: e.target.value })} /></label>
-        <div className="field" style={{ ...fieldStyle, gridColumn: '1/-1' }}><span>Opsi jawaban di logbook</span><OptionsEditor text={model._options_text ?? '[]'} onChange={(next) => setModel({ ...model, _options_text: next })} /></div>
-        <div className="field" style={{ gridColumn: '1/-1', padding: 10, border: '1px solid var(--line)', borderRadius: 10, fontSize: 12, color: 'var(--muted)' }}>
-          Pengaturan instrumen dibuat dari pilihan GUI di atas. Metadata lanjutan yang telah tersimpan tetap dipertahankan otomatis pada versi baru. Pemetaan Excel dilakukan melalui tombol <strong>Pilih Kolom dari Excel</strong>.
-        </div>
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-        <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(null); setNewOne(null) }}>Batal</button>
-        <LiquidGlassButton onClick={onSave} disabled={saving}>{saving ? 'Menyimpan…' : model.id ? 'Terbitkan versi baru' : 'Tambah indikator'}</LiquidGlassButton>
-      </div>
-      <div style={{ marginTop: 7, fontSize: 12, color: 'var(--muted)' }}>
-        Perubahan pada indikator yang sudah terbit dibuat sebagai versi baru.
-      </div>
-    </div>
+    <form id={editorFormId} className="qualityProfileForm" onSubmit={event => { event.preventDefault(); if (!saving) onSave() }}
+      onKeyDown={event => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+          event.preventDefault()
+          event.currentTarget.requestSubmit()
+        }
+      }}>
+      <fieldset className="qualityProfileFields" disabled={saving}>
+        <section className="qualityProfileSection">
+          <h4>Identitas indikator</h4>
+          <div className="qualityProfileGrid">
+            <label className="qualityProfileField"><span>Tahun</span><select value={model.profile_year} onChange={(e) => setModel({ ...model, profile_year: Number(e.target.value) })}>{YEARS.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
+            <label className="qualityProfileField"><span>Kode indikator</span><input required value={model.code || ''} onChange={(e) => setModel({ ...model, code: e.target.value })} /></label>
+            <label className="qualityProfileField"><span>Unit pemilik</span><select required value={model.room_id ?? ''} disabled={lockRoomScope || saving} onChange={(e) => { const selected = rooms.find((item) => String(item.id) === e.target.value); setModel({ ...model, room_id: e.target.value ? Number(e.target.value) : '', unit_name: selected?.name || '' }) }}><option value="">Pilih unit</option>{rooms.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+            <label className="qualityProfileField qualityProfileWide"><span>Nama indikator</span><textarea rows={2} required value={model.title || ''} onChange={(e) => setModel({ ...model, title: e.target.value })} /></label>
+            <ProfileChoiceField label="Program kerja / jenis indikator" value={String(model.indicator_type ?? '')} choices={programs} onChange={value => setModel({ ...model, indicator_type: value })} />
+            <ProfileChoiceField label="Kategori" value={String(model.category ?? '')} choices={profileChoices.categories} onChange={value => setModel({ ...model, category: value })} />
+            <ProfileChoiceField label="Satuan" value={String(model.unit_of_measure ?? '')} choices={profileChoices.units} onChange={value => setModel({ ...model, unit_of_measure: value })} />
+          </div>
+        </section>
+        <section className="qualityProfileSection">
+          <h4>Target dan pengukuran</h4>
+          <div className="qualityProfileGrid">
+            <label className="qualityProfileField"><span>Operator target</span><select value={model.target_operator || '>='} onChange={(e) => setModel({ ...model, target_operator: e.target.value })}><option value=">=">≥</option><option value="<=">≤</option><option value="=">=</option><option value=">">&gt;</option><option value="<">&lt;</option></select></label>
+            <label className="qualityProfileField"><span>Nilai target numerik</span><input type="number" step="any" value={model.target_value ?? ''} onChange={(e) => setModel({ ...model, target_value: e.target.value })} /></label>
+            <label className="qualityProfileField"><span>Tipe pengukuran</span><select required value={model._measurement_type || ''} onChange={(e) => setModel({ ...model, _measurement_type: e.target.value })}><option value="">Pilih tipe pengukuran</option>{MEASUREMENT_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+            <label className="qualityProfileField"><span>Satuan pencatatan</span><select value={model.measurement_grain || 'activity'} onChange={(e) => setModel({ ...model, measurement_grain: e.target.value })}>{grains.map((grain) => <option key={grain} value={grain}>{GRAIN_LABEL[grain] || grain}</option>)}</select></label>
+            <label className="qualityProfileField"><span>Arah indikator</span><select value={model._indicator_direction || ''} onChange={(e) => setModel({ ...model, _indicator_direction: e.target.value })}><option value="">Pilih arah indikator</option><option value="positive">Positif (lebih tinggi lebih baik)</option><option value="negative">Negatif (lebih rendah lebih baik)</option></select></label>
+            <label className="qualityProfileField qualityProfileWide"><span>Target tertulis</span><textarea rows={2} value={model.target_text || ''} placeholder="Mis. ≥ 85%" onChange={(e) => setModel({ ...model, target_text: e.target.value })} /></label>
+          </div>
+        </section>
+        <section className="qualityProfileSection">
+          <h4>Definisi operasional</h4>
+          <div className="qualityProfileGrid">
+            <label className="qualityProfileField qualityProfileWide"><span>Definisi numerator</span><textarea rows={4} value={model.numerator_definition || ''} onChange={(e) => setModel({ ...model, numerator_definition: e.target.value })} /></label>
+            <label className="qualityProfileField qualityProfileWide"><span>Definisi denominator</span><textarea rows={4} value={model.denominator_definition || ''} onChange={(e) => setModel({ ...model, denominator_definition: e.target.value })} /></label>
+          </div>
+        </section>
+        <section className="qualityProfileSection">
+          <h4>Opsi jawaban di logbook</h4>
+          <OptionsEditor text={model._options_text ?? '[]'} onChange={next => setModel({ ...model, _options_text: next })} />
+        </section>
+      </fieldset>
+    </form>
   )
 
   return (
@@ -1115,21 +1150,29 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               title="Konfirmasi penggantian Profil Indikator"
               subtitle="Periksa tahun tujuan dan cakupan unit sebelum menerapkan seluruh isi berkas."
               closeDisabled={saving}
-              onClose={() => { setImportPreview(null); setReplaceConfirmed(false) }}
+              onClose={() => { setImportPreview(null); setReplaceConfirmed(false); setMsg('') }}
+              closeOnBackdrop={false}
+              footer={<>
+                {msg.startsWith('Impor tidak berhasil') && <p className="qualityProfileError" role="alert">{msg}</p>}
+                <button type="button" className="akBtn akBtnGhost" disabled={saving} onClick={() => { setImportPreview(null); setReplaceConfirmed(false); setMsg('') }}>Batal</button>
+                <button type="button" className="akBtn akBtnDanger" onClick={() => void replaceProfileSet()} disabled={saving || !replaceConfirmed}>
+                  {saving ? 'Mengganti profil…' : 'Ganti seluruh profil'}
+                </button>
+              </>}
             >
               {importPreview && (
-                <div style={{ display: 'grid', gap: 12, padding: 14 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 8 }}>
+                <div style={{ display: 'grid', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 150px),1fr))', gap: 8 }}>
                     <div style={{ padding: 10, border: '1px solid var(--line, rgba(20,34,27,.12))', borderRadius: 10 }}>
-                      <div style={{ fontSize: 9, color: 'var(--muted)' }}>Tahun sumber</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)' }}>Tahun sumber</div>
                       <strong style={{ fontSize: 15 }}>{importPreview.profile_year}</strong>
                     </div>
                     <div style={{ padding: 10, border: '1px solid var(--line, rgba(20,34,27,.12))', borderRadius: 10 }}>
-                      <div style={{ fontSize: 9, color: 'var(--muted)' }}>Tahun tujuan</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)' }}>Tahun tujuan</div>
                       <strong style={{ fontSize: 15 }}>{year}</strong>
                     </div>
                     <div style={{ padding: 10, border: '1px solid var(--line, rgba(20,34,27,.12))', borderRadius: 10 }}>
-                      <div style={{ fontSize: 9, color: 'var(--muted)' }}>Profil dalam berkas</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)' }}>Profil dalam berkas</div>
                       <strong style={{ fontSize: 15 }}>{importPreview.profiles.length.toLocaleString('id-ID')}</strong>
                     </div>
                   </div>
@@ -1137,19 +1180,13 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     Cakupan: <strong style={{ color: 'var(--text, inherit)' }}>{importPreview.scope.unit_name}</strong>.
                     Seluruh profil aktif/draf pada tahun dan cakupan tujuan akan dipensiunkan, lalu diganti dengan isi berkas ini.
                   </div>
-                  <div style={{ border: '1px solid rgba(190,125,35,.35)', background: 'rgba(190,125,35,.07)', borderRadius: 10, padding: 11, fontSize: 10, lineHeight: 1.6 }}>
+                  <div style={{ border: '1px solid rgba(190,125,35,.35)', background: 'rgba(190,125,35,.07)', borderRadius: 10, padding: 11, fontSize: 13, lineHeight: 1.6 }}>
                     Data audit tidak dihapus. Sistem akan menautkan ulang ID indikator dan mengganti kode pada nilai audit lama yang memiliki pasangan pemetaan. Jika pemetaan berpotensi menimpa nilai indikator lain, seluruh transaksi impor akan dibatalkan.
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, lineHeight: 1.5 }}>
-                    <input type="checkbox" checked={replaceConfirmed} onChange={(event) => setReplaceConfirmed(event.target.checked)} style={{ marginTop: 2 }} />
-                    Saya memahami bahwa seluruh profil aktif pada cakupan tahun tujuan akan diganti dengan isi berkas ini.
+                  <label className="qoeCheck">
+                    <input type="checkbox" disabled={saving} checked={replaceConfirmed} onChange={event => setReplaceConfirmed(event.target.checked)} />
+                    Saya memahami bahwa seluruh profil aktif dan draf pada tahun dan cakupan tujuan akan diganti dengan isi berkas.
                   </label>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
-                    <button type="button" className="textButton" disabled={saving} onClick={() => { setImportPreview(null); setReplaceConfirmed(false) }}>Batal</button>
-                    <LiquidGlassButton onClick={() => void replaceProfileSet()} disabled={saving || !replaceConfirmed}>
-                      {saving ? 'Mengganti profil…' : 'Ganti seluruh profil'}
-                    </LiquidGlassButton>
-                  </div>
                 </div>
               )}
             </AurekaModal>
@@ -1174,37 +1211,43 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
               title="Hapus profil indikator permanen?"
               subtitle={pendingDelete ? String(pendingDelete.code) + ' · ' + String(pendingDelete.title) : ''}
               closeDisabled={saving}
-              onClose={() => setPendingDelete(null)}
+              role="alertdialog"
+              size="md"
+              onClose={() => { setPendingDelete(null); setMsg('') }}
+              footer={<>
+                {msg && <p className="qualityProfileError" role="alert">{msg}</p>}
+                <button type="button" className="akBtn akBtnGhost" data-dialog-autofocus disabled={saving} onClick={() => { setPendingDelete(null); setMsg('') }}>Batal</button>
+                <button type="button" className="akBtn akBtnDanger" disabled={saving} onClick={() => void permanentlyDelete()}>
+                  {saving ? 'Memeriksa dan menghapus…' : 'Hapus permanen'}
+                </button>
+              </>}
             >
-              <div style={{ display: 'grid', gap: 12, padding: 14 }}>
+              <div style={{ display: 'grid', gap: 12 }}>
                 <div style={{ fontSize: 12, lineHeight: 1.6 }}>
                   Profil ini akan dihapus dari kamus indikator, bukan hanya disembunyikan. Aksi hanya diizinkan untuk profil <strong>retired/draf yang nonaktif</strong> dan tidak memiliki tautan ke respons, catatan audit, aturan OPPE, atau proposal.
                 </div>
                 <div style={{ border: '1px solid rgba(190,125,35,.34)', background: 'rgba(190,125,35,.07)', borderRadius: 10, padding: 11, fontSize: 12, lineHeight: 1.55 }}>
                   Riwayat versi ini akan hilang. Data audit tidak dihapus. Server memeriksa ulang seluruh referensi sebelum mengizinkan penghapusan.
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
-                  <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(null)}>Batal</button>
-                  <button type="button" className="textButton" disabled={saving} onClick={() => void permanentlyDelete()} style={{ color: '#a23b31', fontWeight: 800 }}>
-                    {saving ? 'Memeriksa dan menghapus…' : 'Hapus permanen'}
-                  </button>
-                </div>
               </div>
             </AurekaModal>
             <AurekaModal
               open={Boolean(edit || newOne)}
               title={edit ? 'Edit indikator' : 'Tambah indikator'}
-              subtitle={edit ? 'Perubahan diterbitkan sebagai versi baru; versi lama tetap tersimpan.' : 'Isi profil indikator mutu baru untuk unit dan tahun terpilih.'}
+              subtitle={edit ? 'Perubahan diterbitkan sebagai versi baru. Versi lama tetap tersimpan.' : undefined}
+              size="xl"
               closeDisabled={saving}
-              onClose={() => { setEdit(null); setNewOne(null) }}
+              closeOnBackdrop={false}
+              onClose={closeEditor}
+              footer={<>
+                {msg && <p className="qualityProfileError" role="alert">{msg}</p>}
+                <button type="button" className="akBtn akBtnGhost" disabled={saving} onClick={closeEditor}>Batal</button>
+                <button type="submit" form={editorFormId} className="akBtn akBtnPrimary" disabled={saving}>
+                  {saving ? 'Menyimpan…' : edit ? 'Terbitkan versi baru' : 'Tambah indikator'}
+                </button>
+              </>}
             >
-              <div ref={editorRef} className="akModalEditor">
-                {edit
-                  ? editor(edit, setEdit, () => void publish())
-                  : newOne
-                    ? editor(newOne, setNewOne, () => void add())
-                    : null}
-              </div>
+              {edit ? editor(edit, setEdit, () => void publish()) : newOne ? editor(newOne, setNewOne, () => void add()) : null}
             </AurekaModal>
             <div style={{ display: 'grid', gap: 7 }}>
               {profileGroups.map(([label, group]) => <section key={label} style={{ display: 'grid', gap: 7 }}>
@@ -1233,7 +1276,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     {canManageCatalog && (profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
                     {canManageCatalog && isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
                     {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 12, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
-                    {canManageCatalog && profile.is_active === false && (profile.status === 'retired' || profile.status === 'draft') && <button type="button" className="textButton" disabled={saving} onClick={() => setPendingDelete(profile)} style={{ color: '#a23b31', fontWeight: 800 }}>Hapus permanen</button>}
+                    {canManageCatalog && profile.is_active === false && (profile.status === 'retired' || profile.status === 'draft') && <button type="button" className="textButton" disabled={saving} onClick={() => { setMsg(''); setPendingDelete(profile) }} style={{ color: '#a23b31', fontWeight: 800 }}>Hapus permanen</button>}
                   </div>
                 </div>
               ))}

@@ -723,7 +723,7 @@ html[data-mode="gelap"] body:not(#_) :is(.moduleErrorActions, .idleWarnActions) 
 html[data-mode="gelap"] body:not(#_) :is(.moduleErrorActions, .idleWarnActions) button.primary { background: linear-gradient(90deg, #5ec4cf, #7dd3a8); border: 0; color: #0a0d13; }
 
 /* Peringatan keluar otomatis */
-html body:not(#_) .idleWarnBackdrop { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 20px; background: rgba(15, 18, 24, 0.42); }
+html body:not(#_) .idleWarnBackdrop { position: fixed; inset: 0; z-index: calc(var(--aureka-z-dialog) + 1); display: grid; place-items: center; padding: 20px; background: rgba(15, 18, 24, 0.42); }
 html body:not(#_) .idleWarn { width: min(420px, 100%); display: grid; gap: 8px; padding: 26px 24px 22px; border-radius: 24px; background: #fff; color: #1f2430; box-shadow: 0 30px 70px rgba(15, 18, 24, 0.25); text-align: center; }
 html body:not(#_) .idleWarn strong { font-size: 20px; font-weight: 800; }
 html body:not(#_) .idleWarn p { margin: 0; font-size: 14px; line-height: 1.6; color: #4b5565; }

@@ -691,6 +691,7 @@ export default function PonekExcelImportDialog({
       </div>
 
       <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="ponek" year={year} />
+        <div className="qiuMain">
         <div className="poBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -763,12 +764,13 @@ export default function PonekExcelImportDialog({
           <div className="aqSub">Semua episode tetap Ready for Review; respons indikator menunggu klasifikasi numerator/denominator.</div>
         </div>}
 
-        <div className="poFooter">
-          <span className="aqMetaText">{errors.length ? 'Lengkapi Tanggal Masuk pada seluruh baris bermasalah sebelum impor; tidak ada partial import.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses PONEK, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
-            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode PONEK'}</button>
-          </div>
+        </div>
+      </div>
+      <div className="aqFoot poFooter">
+        <span className="aqMetaText">{errors.length ? 'Lengkapi Tanggal Masuk pada seluruh baris bermasalah sebelum impor; tidak ada partial import.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses PONEK, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
+          <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode PONEK'}</button>
         </div>
       </div>
     </section>

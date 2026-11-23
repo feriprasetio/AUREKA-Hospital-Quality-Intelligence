@@ -48,7 +48,8 @@ test('phone drawer and bottom dock remain accessible, but are phone-only', () =>
   assert.match(controller,/if \(event\.key === 'Escape'\)/)
   assert.match(controller,/lastElement\.focus\(\)/)
   assert.match(controller,/firstElement\.focus\(\)/)
-  assert.match(controller,/previousBodyOverflow/)
+  assert.match(controller,/const unlockScroll = lockDocumentScroll\(\)/)
+  assert.match(controller,/unlockScroll\(\)/)
   assert.match(controller,/restoreTarget\?\.focus\(\)/)
 })
 

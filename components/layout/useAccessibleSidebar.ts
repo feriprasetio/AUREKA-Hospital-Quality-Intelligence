@@ -1,5 +1,6 @@
 'use client'
 
+import { hasActiveDialog, lockDocumentScroll } from './useAccessibleDialog'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PHONE_DRAWER_MEDIA_QUERY } from '@/lib/ui/device-navigation'
 
@@ -50,9 +51,7 @@ export function useAccessibleSidebar() {
     if (!isOpen) return
 
     const panel = panelRef.current
-    const previousBodyOverflow = document.body.style.overflow
-
-    document.body.style.overflow = 'hidden'
+    const unlockScroll = lockDocumentScroll()
 
     const getFocusableElements = (): HTMLElement[] => {
       if (!panel) return []
@@ -72,6 +71,7 @@ export function useAccessibleSidebar() {
     initialFocus?.focus()
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || hasActiveDialog()) return
       if (event.key === 'Escape') {
         event.preventDefault()
         close()
@@ -111,7 +111,7 @@ export function useAccessibleSidebar() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('resize', handleResize)
-      document.body.style.overflow = previousBodyOverflow
+      unlockScroll()
 
       // After a resize, restore focus to whichever trigger remains visible.
       const candidates = [requestedTriggerRef.current, triggerRef.current]
