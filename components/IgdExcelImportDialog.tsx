@@ -861,7 +861,7 @@ export default function IgdExcelImportDialog({
                 })}
               </tbody></table></div>}
               
-              {mainImporting && <div className="ciMessage" role="status">Impor logbook: {mainProgress}% selesai.</div>
+              {mainImporting && <div className="ciMessage" role="status">Impor logbook: {mainProgress}% selesai.</div>}
               {mainResult && <div className="ciMessage ciSuccess">Logbook selesai diproses: {mainResult.imported} episode baru, {mainResult.skipped} sudah ada, {mainResult.received} total. Relasi konsultasi dapat dilanjutkan.</div>}
             </div></div>
           </section>
@@ -892,7 +892,7 @@ export default function IgdExcelImportDialog({
               </tbody></table></div>}
               
               {warningConsults > 0 && <div className="ciPrivacy">{warningConsults} sampel memiliki catatan QA timestamp, perbedaan durasi, RM numerik, atau status pencocokan.</div>}
-              {consultImporting && <div className="ciMessage" role="status">Impor konsultasi: {consultProgress}% selesai.</div>
+              {consultImporting && <div className="ciMessage" role="status">Impor konsultasi: {consultProgress}% selesai.</div>}
               {consultResult && <div className="ciMessage ciSuccess">Audit konsultasi selesai: {consultResult.imported} baru, {consultResult.skipped} sudah ada, {consultResult.received} total. Jawaban belum otomatis menjadi klasifikasi resmi.</div>}
             </div></div>
           </section>
