@@ -28,4 +28,4 @@ jobs:
           git config user.email "maintenance@users.noreply.github.com"
 
       - name: Jalankan Branch Cleanup
-        run: bash scripts/bersihkan-branch-aureka.shS
+        run: bash scripts/bersihkan-branch-aureka.sh
