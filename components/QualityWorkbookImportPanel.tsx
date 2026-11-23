@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
 import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-source-audit'
 import { isExcelSourceError, isMaterialWorkbookSourceRow } from '@/lib/aureka/quality-import-row-filter'
@@ -193,6 +194,7 @@ export default function QualityWorkbookImportPanel({
   const [replaceConfirmed, setReplaceConfirmed] = useState(false)
 
   const currentProfiles = useMemo(() => preview?.profiles ?? activeProfiles, [preview?.profiles, activeProfiles])
+  const stagedPreview = useQualityWorkbookPreview(preview?.rows ?? [])
   const dataHeaders = sheets.find(sheet => sheet.name === dataSheet)?.headers ?? []
   const profileHeaders = sheets.find(sheet => sheet.name === profileSheet)?.headers ?? []
   const optionHeaders = sheets.find(sheet => sheet.name === optionsSheet)?.headers ?? []
@@ -890,6 +892,29 @@ export default function QualityWorkbookImportPanel({
     {preview && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8 }}>
       {[['Profil',preview.profiles.length],['Baris sumber (termasuk templat)',preview.workbookRows],['Baris templat diabaikan',preview.skippedTemplateRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 11, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
     </div>}
+    {preview && preview.rows.length > 0 && <section className="qwiPreview" aria-label="Pratinjau data workbook">
+      <QualityWorkbookPreviewControls config={stagedPreview} title="Pratinjau record sebelum impor"/>
+      <div className="qwiPreviewScroll" role="region" tabIndex={0} aria-label="Tabel pratinjau Excel tanpa identitas pasien">
+        <table>
+          <thead><tr><th>Sheet</th><th>Baris Excel</th><th>Tanggal</th><th>Jenis pengukuran</th><th>Respons indikator</th><th>Status</th></tr></thead>
+          <tbody>
+            {stagedPreview.preview.map((item, index) => {
+              const record = item.row_payload.record_payload
+              const responses = Array.isArray(item.row_payload.responses) ? item.row_payload.responses : []
+              return <tr key={item.source_key + ':' + index}>
+                <td>{item.source_sheet}</td>
+                <td>{item.source_row}</td>
+                <td>{String(record.record_date ?? '—')}</td>
+                <td>{String(record.measurement_grain ?? '—')}</td>
+                <td>{responses.length}</td>
+                <td>{record.review_required ? 'Perlu telaah' : record.status === 'draft' ? 'Draf' : 'Siap ditinjau'}</td>
+              </tr>
+            })}
+            {stagedPreview.preview.length === 0 && <tr><td colSpan={6}>Tidak ada baris pada filter ini.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </section>}
     {preview?.issues?.length ? <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid #f0d7d2', borderRadius: 9, background: '#fff9f8', padding: 10 }}>
       <strong style={{ display: 'block', marginBottom: 7, fontSize: 12, color: '#92483d' }}>Masalah yang harus diperbaiki</strong>
       {preview.issues.slice(0, 100).map((issue,index)=><div key={index} style={{ padding: '5px 0', borderBottom: '1px solid #f5e9e6', fontSize: 11, color: '#7f5049' }}>{issue.sheet} · baris {issue.row || '-'} · {issue.field}: {issue.message}</div>)}
