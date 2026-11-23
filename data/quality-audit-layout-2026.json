@@ -159,7 +159,11 @@
       "Door-to-Decision",
       "Response Triage",
       "Response Time DPJP"
-    ]
+    ],
+    "fieldTypes": {
+      "Waktu Masuk": "datetime-local",
+      "Waktu Transfer": "datetime-local"
+    }
   },
   {
     "roomId": 7,
@@ -372,7 +376,12 @@
       "Pengulangan Rontgen",
       "Kerusakan Film",
       "Kekosongan BHP"
-    ]
+    ],
+    "fieldTypes": {
+      "Waktu Registrasi": "datetime-local",
+      "Waktu Permintaan": "datetime-local",
+      "Waktu Selesai": "datetime-local"
+    }
   },
   {
     "roomId": 11,
@@ -1110,5 +1119,5 @@
       "Partograf Lengkap",
       "Tanggap SC Emergency"
     ]
-  }
-]
+  },
+{"roomId":38,"measurementGrain":"activity","fields":["Tanggal pengamatan","Catatan kegiatan"],"indicators":["Tercapainya Pertemuan Wajib Pelayanan Medik"]}]

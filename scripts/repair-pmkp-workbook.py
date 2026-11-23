@@ -154,6 +154,19 @@ def build_rules(source, workbook):
             return ('Rujukan angka Laboratorium', expected, None) if formula != expected else None
 
         rules[logbook._worksheet_path] = correct_lab_count
+    if any(unit in name for unit in ('instalasi bedah sentral', 'emergensi komprehensi', 'instalasi gizi')):
+        dashboard = workbook['Dashboard']
+
+        def mark_unavailable(address, formula):
+            if 'Logbook!#REF!' not in formula:
+                return None
+            # A deleted source column cannot be recovered from the surviving report.
+            # Put a status in the report instead of producing a zero or a false count.
+            return ('Rekap tanpa kolom sumber', '"Kolom sumber tidak tersedia"', None)
+
+        rules[dashboard._worksheet_path] = mark_unavailable
+        if 'instalasi gizi' in name:
+            rules[workbook['20']._worksheet_path] = mark_unavailable
     if 'instalasi rawat jalan' in name:
         blocks, counts, below = outpatient_inputs(workbook)
 

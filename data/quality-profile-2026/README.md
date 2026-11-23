@@ -10,3 +10,5 @@ Direktori ini menyimpan snapshot metadata profil indikator 2026 yang digunakan s
 - Jika profil produksi berubah, snapshot perlu diperbarui dan jumlah/kode profil diverifikasi kembali sebelum digunakan untuk pemulihan atau seeding.
 
 Snapshot ini tidak menggantikan backup database dan tidak boleh digunakan untuk menimpa profil produksi tanpa prosedur telaah serta versioning.
+
+Koreksi 23 November 2026 menambahkan profil 38.1 dari baris 190 master tahunan, menyelaraskan opsi visite ICU 14.4 dengan workbook ICU, dan membetulkan satuan Rehab Medik 12.2. Snapshot kini memuat 189 profil.

@@ -14,7 +14,7 @@ test('2026 canonical indicator profile snapshot contains all twelve complete chu
     chunks.push(...rows)
   }
 
-  assert.equal(chunks.length, 188, 'snapshot must contain all 188 active published profiles')
+  assert.equal(chunks.length, 189, 'snapshot must contain all 189 active published profiles')
   const codes = chunks.map((row) => row.code)
   assert.equal(new Set(codes).size, codes.length, 'indicator codes must be unique in the active snapshot')
 

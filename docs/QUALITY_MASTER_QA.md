@@ -25,4 +25,9 @@ Jalankan `python scripts/repair-pmkp-workbook.py --output /direktori/salinan /di
 
 Pola yang ditangani mencakup durasi transfer IGD, rujukan diagnosis pada beberapa workbook rawat inap, rekap stase Timkordik, rujukan angka Laboratorium, dan rekap harian Rawat Jalan. Rekap Rawat Jalan menggunakan tanggal pengamatan dan baris dokter yang terpetakan. Sel dengan nilai sumber tanpa identitas dokter memerlukan konfirmasi dari unit.
 
-Rekap Dashboard Bedah Sentral dan PONEK memiliki rujukan ke kolom petugas yang tidak tersedia dalam workbook terlampir. Pada Gizi, rekap lama di sheet 20 merujuk ke kolom indikator yang tidak tersedia. Ketiga sumber ini memerlukan pemetaan dari pemilik workbook sebelum rumus tersebut dapat diperbaiki.
+Rekap Dashboard Bedah Sentral dan PONEK memiliki rujukan ke kolom petugas yang tidak tersedia dalam workbook terlampir. Pada Gizi, rekap lama di sheet 20 merujuk ke kolom indikator yang tidak tersedia. Skrip menandai rekap yang bergantung pada rujukan terhapus sebagai “Kolom sumber tidak tersedia”. Angka untuk rekap itu baru dapat dihitung setelah kolom asli dipulihkan.
+
+
+## Rekonsiliasi produksi 23 November 2026
+
+`scripts/reconcile-pmkp-2026.sql` menelusuri perubahan data master dan respons tanpa mengganti ID profil. ICU 14.4 memakai Code 1 untuk visite sesuai waktu dan Code 3 untuk terlambat atau tidak visite. Opsi hari libur dan visite oleh spesialis lain tidak mempunyai kode pada sheet Profil ICU dan meminta telaah. Profil 38.1 memakai pemilik, N/D, dan target 100% dari baris 190 master tahunan. Unit baru tidak otomatis memberi penugasan akses pengguna.

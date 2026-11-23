@@ -424,9 +424,11 @@ function inputKind(field:string,layout:AuditLayout|undefined){
  return'text'
 }
 function recordDateFrom(formData:Record<string,any>,layout:AuditLayout|undefined,fallback=''){
+ const observationField=primaryDateField(layout)
+ if(observationField&&formData?.[observationField])return String(formData[observationField])
  const priorities=['Tanggal Masuk','Tanggal Aduan','Tanggal Permintaan','Tanggal Keluhan','Tanggal Dilayani','Tanggal Audit','Tanggal Lapor','Tanggal Kunjungan','Tanggal Berkunjung','Tanggal Visite','Tanggal Pertemuan','Tanggal Mulai Praktek','Tanggal Pelaporan','Tanggal Insiden','Tanggal']
  for(const label of priorities)if(layout?.fields.includes(label)&&formData?.[label])return String(formData[label])
- const alternative=layout?.fields.find(label=>/tanggal|date/i.test(label)&&formData?.[label]&&!isComputedField(label,layout))
+ const alternative=layout?.fields.find(label=>(/tanggal|date/i.test(label)||layout?.fieldTypes?.[label]==='datetime-local')&&formData?.[label]&&!isComputedField(label,layout))
  return alternative?String(formData[alternative]):fallback
 }
 function dateDiffDays(a:unknown,b:unknown){
@@ -515,6 +517,8 @@ function recordTitle(p:Patient){
  return String(p.name??'').trim()||String(f['Nama Mahasiswa']??'').trim()||String(f['Nama MPP']??'').trim()||String(f['Gangguan IT']??'').trim()||String(f['Insiden yang Terjadi']??'').trim()||String(f['Nama Pertemuan Ilmiah']??'').trim()||(provider&&clinic?`${provider} · ${clinic}`:'')||String(f['Alur layanan']??'').trim()||'Catatan logbook'
 }
 function primaryDateField(layout:AuditLayout|undefined){
+ if(layout?.roomId===6)return 'Waktu Masuk'
+ if(layout?.roomId===10)return 'Waktu Permintaan'
  return layout?.fields.find(f=>/tanggal masuk|tanggal aduan|tanggal permintaan|tanggal keluhan|tanggal dilayani|tanggal audit|tanggal lapor|tanggal kunjungan|tanggal berkunjung|tanggal visite|tanggal pertemuan|tanggal mulai praktek|tanggal pelaporan/i.test(f))??layout?.fields.find(f=>/tanggal|date/i.test(f))
 }
 function dominantGrain(profiles:Profile[],layout:AuditLayout|undefined){

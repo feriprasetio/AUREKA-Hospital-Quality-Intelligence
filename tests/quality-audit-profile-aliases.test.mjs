@@ -33,7 +33,7 @@ function matchingProfiles(roomId, header) {
 }
 
 test('2026 profile alias registry points to an existing profile in the same unit', () => {
-  assert.equal(profiles.length, 188)
+  assert.equal(profiles.length, 189)
   for (const [room, roomAliases] of Object.entries(aliases)) {
     const layout = layouts.find((item) => Number(item.roomId) === Number(room))
     assert.ok(layout, 'layout for room ' + room + ' must exist')
