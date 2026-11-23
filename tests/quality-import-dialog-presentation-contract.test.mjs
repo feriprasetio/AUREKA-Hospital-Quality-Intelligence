@@ -20,7 +20,8 @@ test('all 21 specialized unit importers share the IBS-style audited settings pan
   for (const [name, unitKey] of specialized) {
     const content = read('components/' + name + 'ExcelImportDialog.tsx')
     assert.ok(content.includes("import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'"), name)
-    assert.ok(content.includes('<div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="' + unitKey + '" year={year} />'), name)
+    assert.ok(content.includes('<QualityWorkbookImportSidebar unitKey="' + unitKey + '" year={year} />'), name)
+    assert.ok(content.includes(unitKey === 'outpatient' ? 'className="aqBody qiuBody oiImportBody"' : 'className="aqBody qiuBody"'), name)
     assert.ok(sidebar.includes('"' + unitKey + '":'), 'Missing source format for ' + unitKey)
     assert.ok(content.includes('<QualityWorkbookPreviewControls'), 'Missing preview settings in ' + name)
   }
