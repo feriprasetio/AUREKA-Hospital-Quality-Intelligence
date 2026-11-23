@@ -31,3 +31,9 @@ Rekap Dashboard Bedah Sentral dan PONEK memiliki rujukan ke kolom petugas yang t
 ## Rekonsiliasi produksi 23 November 2026
 
 `scripts/reconcile-pmkp-2026.sql` menelusuri perubahan data master dan respons tanpa mengganti ID profil. Sebelas profil visite dengan instrumen sumber yang sama memakai Code 1 untuk visite sesuai waktu dan Code 3 untuk terlambat atau tidak visite. Opsi hari libur dan visite oleh spesialis lain tidak mempunyai kode pada sheet Profil ICU dan meminta telaah. Profil 38.1 memakai pemilik, N/D, dan target 100% dari baris 190 master tahunan. Unit baru tidak otomatis memberi penugasan akses pengguna.
+
+## Koreksi teknis 64 profil
+
+`scripts/reconcile-pmkp-2026-technical-profiles.sql` mencatat koreksi arah, tipe pengukuran, definisi, dan pemetaan opsi 64 profil aktif. Profil dengan pilihan berkode menghitung proporsi per observasi dan tetap menerima catatan agregat historis yang hanya berisi N/D. Farmasi, Rawat Jalan, dan Pertemuan Wajib memakai angka sesuai instrumen masing-masing.
+
+Untuk IGD 6.4 serta Rekam Medis 13.1 dan 13.2, Code 2 dan Code 3 masuk pembilang sesuai rumus rekap unit. Pada Laboratorium 9.1, pembilang mengikuti definisi kantong yang dibatalkan/terbuang. Standar numerik 1% ditafsirkan sebagai batas atas sesuai arah kejadian. Pada IGD 6.1, DOA dikeluarkan dari pengukuran kematian setelah tiba. Target yang kosong dan target positif 0% yang tidak bermakna tetap tampil untuk peninjauan tanpa menilai kepatuhan.

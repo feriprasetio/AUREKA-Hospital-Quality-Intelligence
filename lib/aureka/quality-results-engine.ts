@@ -6,6 +6,7 @@ import {
   isWithinVisitWindow,
   resolveMeasurementKind,
   usesCategoricalResponseCapture,
+  usesStoredAggregateResponse,
   type MeasurementKind,
 } from './indicator-engine.ts'
 
@@ -179,7 +180,7 @@ function findOption(profile: IndicatorProfileForResults, response: Record<string
   if (matching.length === 1) return matching[0]
   if (!answer && response.code_only === true && matching.length > 1) {
     const first = matching[0]
-    const directional = indicatorDirection(profile) != null
+    const directional = indicatorDirection(profile) != null && profile.schema_json?.numerator_from_option !== true
     if (matching.every(option =>
       (option.eligible === false || option.denominator_excluded === true) ===
         (first.eligible === false || first.denominator_excluded === true) &&
@@ -263,7 +264,13 @@ function extractOptionObservation(
     // Positive N = Code 1; negative N = Code 3; D = Codes 1 + 2 + 3.
     const code = optionCode
     if (code == null || ![1, 2, 3].includes(code)) return null
-    const metricNumerator = direction === 'negative' ? code === 3 : code === 1
+    if (profile.schema_json?.numerator_from_option === true && typeof option.numerator !== 'boolean') return null
+    const configured = profile.schema_json?.numerator_codes
+    const metricNumerator = profile.schema_json?.numerator_from_option === true
+      ? option.numerator === true
+      : Array.isArray(configured) && configured.length > 0 && configured.every(item => [1, 2, 3].includes(item))
+        ? configured.includes(code)
+        : direction === 'negative' ? code === 3 : code === 1
     return { month, numerator: metricNumerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
   }
 
@@ -310,7 +317,7 @@ function extractObservation(
 
   // ICU/HCU 2026 uses one coded categorical response per patient episode,
   // even when a legacy profile still declares ratio or visit as its type.
-  if (usesCategoricalResponseCapture(profile)) {
+  if (usesCategoricalResponseCapture(profile) && !usesStoredAggregateResponse(profile, response)) {
     const categorical = extractOptionObservation(profile, response, month, inputAt)
     if (categorical !== undefined) return categorical
     const hasCategoricalValue = !!String(response.answer ?? '').trim() ||

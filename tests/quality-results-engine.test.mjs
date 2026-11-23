@@ -932,3 +932,44 @@ test('does not publish ICU visit attainment when the workbook and master disagre
   assert.equal(calculateIndicatorResult(profile, [row], 2026, true).annualRate, null)
   assert.equal(diagnoseIndicator(profile, [row], 2026).needsProfileSetup, 1)
 })
+
+test('metadata reconciliation covers all 64 profiles and each can calculate its workbook observation type', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const chunks = await Promise.all(Array.from({ length: 12 }, (_, index) =>
+    readFile(new URL('../data/quality-profile-2026/chunk-' + String(index + 1).padStart(2, '0') + '.json', import.meta.url), 'utf8').then(JSON.parse),
+  ))
+  const repaired = chunks.flat().filter(profile => profile.schema_json.metadata_reconciliation_source)
+  assert.equal(repaired.length, 64)
+  for (const profile of repaired) {
+    const schema = profile.schema_json
+    assert.ok(profile.numerator_definition?.trim() && profile.denominator_definition?.trim() && profile.unit_of_measure?.trim(), profile.code)
+    assert.ok(['positive', 'negative'].includes(schema.indicator_direction), profile.code)
+    const option = profile.options_json.find(o => o.code === 1 && o.eligible !== false && !o.review_required)
+    const response = schema.response_capture_mode === 'categorical'
+      ? { answer: option.label, code: option.code }
+      : { numerator: 2, denominator: 4 }
+    const row = {
+      record_date: '2026-07-01', status: 'validated', room_id: profile.room_id,
+      core_data: {
+        indicator_values: { [profile.code]: response },
+        form_fields: { Klinik: 'Klinik uji', Dokter: 'Dokter uji', 'Waktu Tunggu Rawat Jalan (Menit)': 45 },
+      },
+    }
+    const result = calculateIndicatorResult(profile, [row], 2026)
+    assert.equal(result.annualDenominator, profile.code === '11.1' || schema.response_capture_mode === 'categorical' ? 1 : 4, profile.code)
+    assert.notEqual(result.annualRate, null, profile.code)
+  }
+})
+
+test('a workbook can count Code 2 as an event and still accept a historic aggregate record', () => {
+  const profile = {
+    code: '13.1', schema_json: { measurement_type: 'ratio', response_capture_mode: 'categorical',
+      indicator_direction: 'negative', numerator_codes: [2, 3], accept_aggregate_responses: true },
+    options_json: [{ label: 'Ditolak', code: 2, numerator: true, denominator: true }],
+  }
+  const rows = [{ answer: 'Ditolak', code: 2 }, { answer: '', numerator: 1, denominator: 4 }].map(response => ({
+    record_date: '2026-07-01', status: 'validated', core_data: { indicator_values: { '13.1': response } },
+  }))
+  const result = calculateIndicatorResult(profile, rows, 2026)
+  assert.deepEqual([result.annualNumerator, result.annualDenominator, result.annualRate], [2, 5, 40])
+})
