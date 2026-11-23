@@ -909,6 +909,80 @@ export default function IgdExcelImportDialog({
               </div>}
               {mainExcluded.length > 0 && <details className="ciReviewDetails"><summary>{mainExcluded.length} baris dikecualikan · lihat alasan</summary><div>Waktu Masuk kosong, tidak valid, atau di luar 2026. Tanggal tidak dibuat otomatis.</div></details>}
               {reviewEpisodeCount > 0 && <details className="ciReviewDetails"><summary>{reviewEpisodeCount.toLocaleString('id-ID')} episode memiliki catatan pemeriksaan</summary><div>{unmatchedEpisodeCount.toLocaleString('id-ID')} episode memiliki jawaban indikator yang belum dikenali. Catatan lain dapat terkait identitas, waktu, atau formula sumber. Satu episode dapat mempunyai lebih dari satu jenis temuan.</div></details>
+              {mainRows.length > 0 && sourceIssues.length > 0 && <details className="ciIgdSourceAudit">
+                <summary>
+                  <span><strong>Periksa respons indikator dari Excel</strong><small>{stillUnmatchedCells.toLocaleString('id-ID')} respons belum dikenali · {unmatchedEpisodeCount.toLocaleString('id-ID')} episode terdampak</small></span>
+                  <span className="ciIgdAuditHint">Lihat nilai sumber dan pilihan perbaikannya</span>
+                </summary>
+                <div className="ciIgdSourceAuditContent">
+                  <p>Ini bukan jumlah pasien gagal mutu. Nilai sumber dibandingkan dengan opsi profil aktif. Pilih opsi hanya jika Anda dapat memastikan artinya sama; keputusan berlaku untuk semua baris dengan respons sumber identik dan tetap memerlukan validasi setelah impor.</p>
+                  <div className="ciIgdAuditStats">
+                    <span>Respons belum cocok <strong>{stillUnmatchedCells.toLocaleString('id-ID')}</strong></span>
+                    <span>Dipetakan dengan persetujuan <strong>{manuallyMappedCellCount.toLocaleString('id-ID')}</strong></span>
+                    <span>Berisi judul kolom <strong>{placeholderCellCount.toLocaleString('id-ID')}</strong></span>
+                    <span>Episode dengan catatan (semua jenis) <strong>{reviewEpisodeCount.toLocaleString('id-ID')}</strong></span>
+                  </div>
+                  <label className="ciIgdAuditFilter">Indikator
+                    <select value={sourceReviewFilter} disabled={busy}
+                      onChange={event => setSourceReviewFilter(event.target.value)}>
+                      <option value="all">Seluruh indikator</option>
+                      {IGD_INDICATORS.map(indicator => <option key={indicator.code} value={indicator.code}>{indicator.code} · {indicator.header}</option>)}
+                    </select>
+                  </label>
+                  <div className="ciIgdAuditTable" role="region" tabIndex={0} aria-label="Nilai jawaban sumber yang belum dikenali">
+                    <table>
+                      <thead><tr><th>Indikator</th><th>Nilai asli dari Excel</th><th>Jumlah</th><th>Tindakan</th></tr></thead>
+                      <tbody>
+                        {sourceIssues.filter(issue => sourceReviewFilter === 'all' || issue.code === sourceReviewFilter).slice(0, 80).map(issue => {
+                          const profile = activeProfileByCode.get(issue.code)
+                          const current = sourceChoices[issue.key]
+                          const options = profile?.options_json ?? []
+                          const selected = profile?.id ? approvedIgdSourceChoice(
+                            issue.code, issue.sourceValue, profile.id, options, current,
+                          ) : null
+                          const selectedIndex = selected ? options.findIndex(option =>
+                            option.label === selected.label && option.code === selected.code) : -1
+                          return <tr key={issue.key}>
+                            <td><strong>{issue.code}</strong><span>{issue.header}</span></td>
+                            <td title={issue.sourceValue}>{issue.sourceValue.length > 130 ? issue.sourceValue.slice(0, 130) + '…' : issue.sourceValue}</td>
+                            <td>{issue.count.toLocaleString('id-ID')}</td>
+                            <td>{issue.placeholder ?
+                              <span className="ciIgdAuditBlocked">Isi sel berupa judul indikator, bukan opsi klinis. Perbaiki sumber Excel.</span> :
+                              <select aria-label={'Pilih opsi profil untuk indikator ' + issue.code + ' sumber ' + issue.sourceValue.slice(0, 50)}
+                                value={selectedIndex < 0 ? '' : String(selectedIndex)}
+                                disabled={busy || !!mainResult || !profile?.id}
+                                onChange={event => {
+                                  const position = event.target.value === '' ? -1 : Number(event.target.value)
+                                  const option = options[position]
+                                  setSourceChoices(currentChoices => {
+                                    const next = { ...currentChoices }
+                                    if (position < 0 || !option || !profile?.id) delete next[issue.key]
+                                    else next[issue.key] = {
+                                      profileId: profile.id,
+                                      sourceValue: issue.sourceValue,
+                                      optionLabel: option.label,
+                                      optionCode: option.code == null ? null : Number(option.code),
+                                    }
+                                    return next
+                                  })
+                                }}>
+                                <option value="">— Belum dipetakan; perlu telaah —</option>
+                                {options.map((option, index) => <option key={index} value={String(index)}
+                                  disabled={issue.explicitCode != null && Number(option.code) !== issue.explicitCode}>
+                                  {option.code == null ? 'Perlu telaah' : 'Code ' + option.code} · {option.label}
+                                </option>)}
+                              </select>}
+                            </td>
+                          </tr>
+                        })}
+                      </tbody>
+                    </table>
+                    {sourceIssues.filter(issue => sourceReviewFilter === 'all' || issue.code === sourceReviewFilter).length > 80 &&
+                      <p>Hanya 80 variasi respons pertama ditampilkan. Pilih filter indikator untuk meninjau variasi lain.</p>}
+                  </div>
+                  <p>Respons yang masih belum dikenali tetap disimpan tanpa kode. Pemetaan manual tidak mengubah isi Excel asli dan tidak otomatis memvalidasi indikator.</p>
+                </div>
+              </details>}
               {mainRows.length > 0 && <div className="ciTable"><QualityWorkbookPreviewControls config={mainPreview} title="Pratinjau Logbook" />
                 <table><thead><tr><th>Baris</th><th>Waktu masuk</th><th>Nama</th><th>RM</th><th>Indikator tidak cocok</th><th>Catatan</th></tr></thead><tbody>
                 {mainPreview.preview.map(row => {
