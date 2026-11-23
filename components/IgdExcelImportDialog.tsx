@@ -1,5 +1,5 @@
 'use client'
-import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useMemo, useState } from 'react'
@@ -873,7 +873,8 @@ export default function IgdExcelImportDialog({
           </div>
           <button className="aqClose" type="button" disabled={busy} onClick={close} aria-label="Tutup">×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="igd" year={year} /><div className="qiuMain">
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar /><div className="qiuMain">
+        <QualityWorkbookLogbookHeading />
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke IGD.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih Instalasi Gawat Darurat dan tahun profil 2026 sebelum membuka impor.</div>}
           <div className="ciFlowHint">Pilih alur, unggah workbook, lalu periksa pratinjau sebelum impor.</div>

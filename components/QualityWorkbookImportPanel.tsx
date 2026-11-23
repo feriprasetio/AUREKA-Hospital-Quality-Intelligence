@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
+import QualityWorkbookStagedPreview from '@/components/quality/QualityWorkbookStagedPreview'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
 import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-source-audit'
 import { isExcelSourceError, isMaterialWorkbookSourceRow } from '@/lib/aureka/quality-import-row-filter'
@@ -38,7 +38,7 @@ type SavedMapping = WorkbookSourceRule & { target_type: string; target_key: stri
 const headerText = (columnKey: string) => columnKey.replace(/^[A-Z]+: /, '')
 type ImportIssue = { sheet: string; row: number; field: string; message: string }
 type StagedRow = { source_key: string; source_sheet: string; source_row: number; row_payload: Record<string, any> }
-type Preview = { profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; skippedTemplateRows: number; draftRows: number }
+type Preview = { master: Profile[]; profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; skippedTemplateRows: number; draftRows: number }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -153,7 +153,7 @@ const clockPair = (value: string) => {
 }
 
 export default function QualityWorkbookImportPanel({
-  roomId, roomName, year, importerKey, role, activeProfiles, onImported, dataOnly = false, initialFile = null,
+  roomId, roomName, year, importerKey, role, activeProfiles, onImported, dataOnly = false, profilesOnly = false, initialFile = null,
 }: {
   roomId: number
   roomName: string
@@ -163,11 +163,13 @@ export default function QualityWorkbookImportPanel({
   activeProfiles: Profile[]
   onImported: () => void
   dataOnly?: boolean
+  profilesOnly?: boolean
   initialFile?: File | null
 }) {
   const workbookRef = useRef<any>(null)
   const fileRef = useRef<File | null>(null)
   const lastInitialFile = useRef<File | null>(null)
+  const pendingLogbookPreview = useRef(false)
   const [sheets, setSheets] = useState<SheetMeta[]>([])
   const [fileName, setFileName] = useState('')
   const [fileHash, setFileHash] = useState('')
@@ -183,9 +185,11 @@ export default function QualityWorkbookImportPanel({
   const [indicatorColumns, setIndicatorColumns] = useState<Record<string, string>>({})
   const [numeratorColumns, setNumeratorColumns] = useState<Record<string, string>>({})
   const [denominatorColumns, setDenominatorColumns] = useState<Record<string, string>>({})
-  const [importMode, setImportMode] = useState<'profiles_and_data' | 'profiles_only' | 'data_only'>('data_only')
+  const [selectedMode, setImportMode] = useState<'profiles_and_data' | 'profiles_only' | 'data_only'>('data_only')
+  const importMode = profilesOnly ? 'profiles_only' : dataOnly ? 'data_only' : selectedMode
   const [dataMode, setDataMode] = useState<'append' | 'upsert'>('append')
-  const [preview, setPreview] = useState<Preview | null>(null)
+  const [prepared, setPreview] = useState<Preview | null>(null)
+  const preview = prepared?.master === activeProfiles ? prepared : null
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -194,7 +198,6 @@ export default function QualityWorkbookImportPanel({
   const [replaceConfirmed, setReplaceConfirmed] = useState(false)
 
   const currentProfiles = useMemo(() => preview?.profiles ?? activeProfiles, [preview?.profiles, activeProfiles])
-  const stagedPreview = useQualityWorkbookPreview(preview?.rows ?? [])
   const dataHeaders = sheets.find(sheet => sheet.name === dataSheet)?.headers ?? []
   const profileHeaders = sheets.find(sheet => sheet.name === profileSheet)?.headers ?? []
   const optionHeaders = sheets.find(sheet => sheet.name === optionsSheet)?.headers ?? []
@@ -219,6 +222,7 @@ export default function QualityWorkbookImportPanel({
   }
 
   const inspect = async (file: File) => {
+    pendingLogbookPreview.current = false
     setError(''); setNotice(''); setPreview(null); setBatchId(''); setReplaceConfirmed(false)
     setSheets([]); setFileName(''); setFileHash(''); setSourceNotes([])
     workbookRef.current = null
@@ -259,7 +263,7 @@ export default function QualityWorkbookImportPanel({
       const digest = await crypto.subtle.digest('SHA-256', bytes)
       setFileHash(Array.from(new Uint8Array(digest)).map(x => x.toString(16).padStart(2, '0')).join(''))
       setSheets(detected)
-      const pSheet = detected.find(s => /profil.*indikator|daftar.*indikator|master.*indikator/i.test(s.name))
+      const pSheet = detected.find(s => /^profil$|profil.*indikator|daftar.*indikator|master.*indikator/i.test(s.name))
         ?? detected.find(s => findHeader(s.headers, ['kode indikator', 'indicator code', 'code']) && findHeader(s.headers, ['nama indikator', 'indicator name', 'title']))
       const oSheet = detected.find(s => /opsi.*indikator|pilihan.*indikator|opsi/i.test(s.name))
         ?? detected.find(s => findHeader(s.headers, ['kode opsi', 'option code']) && findHeader(s.headers, ['kode indikator', 'indicator code']))
@@ -275,7 +279,7 @@ export default function QualityWorkbookImportPanel({
           headers: knownColumns.map(column => column.key),
         }
       }
-      const { data: savedMap } = await q().rpc('quality_excel_header_mapping_list', {
+      const { data: savedMap } = profilesOnly ? { data: null } : await q().rpc('quality_excel_header_mapping_list', {
         p_room_id: roomId, p_profile_year: year, p_importer_key: importerKey,
       })
       const saved: SavedMapping[] = Array.isArray(savedMap?.mappings) ? savedMap.mappings : []
@@ -306,7 +310,7 @@ export default function QualityWorkbookImportPanel({
       setDataSheet(dSheet?.name ?? '')
       // Empty master: prefer a non-destructive profile-only bootstrap first.
       // The user can later import logbook rows separately after reviewing the new profiles.
-      if (roleCanImportProfiles && pSheet && activeProfiles.length === 0) {
+      if (!profilesOnly && roleCanImportProfiles && pSheet && activeProfiles.length === 0) {
         setImportMode('profiles_only')
       }
       setProfileHeaderRow(pSheet?.headerRow ?? 1)
@@ -345,6 +349,7 @@ export default function QualityWorkbookImportPanel({
       setIndicatorColumns(nextIndicators)
       setNumeratorColumns(nextNums)
       setDenominatorColumns(nextDens)
+      pendingLogbookPreview.current = dataOnly && Boolean(dSheet)
       setNotice('Worksheet dikenali. Periksa kembali peran sheet dan pemetaan setiap kolom sebelum membuat pratinjau. Aturan tersimpan per unit akan dipakai kembali. Baris data tidak dikirim ke NARA.')
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Workbook gagal dibaca. Pastikan berkas bukan hasil ekspor rusak atau dilindungi kata sandi.' }))
@@ -427,7 +432,7 @@ export default function QualityWorkbookImportPanel({
     if (!roomId || !importerKey) { setError('Unit dan jenis workbook wajib dipilih.'); return }
     const issues: ImportIssue[] = []
     const profileRows = importMode === 'data_only' ? [] : sheetRows(profileSheet, profileHeaderRow)
-    const optionRows = optionsSheet ? sheetRows(optionsSheet, optionsHeaderRow) : []
+    const optionRows = importMode !== 'data_only' && optionsSheet ? sheetRows(optionsSheet, optionsHeaderRow) : []
     const sourceDataRows = importMode === 'profiles_only' ? [] : sheetRows(dataSheet, dataHeaderRow)
     if (importMode !== 'data_only' && (!profileSheet || !profileRows.length)) issues.push({ sheet: profileSheet || '-', row: 0, field: 'Profil Indikator', message: 'Sheet profil tidak ditemukan atau tidak berisi baris data.' })
     if (importMode !== 'profiles_only' && (!dataSheet || !sourceDataRows.length)) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Logbook', message: 'Sheet logbook tidak ditemukan atau tidak berisi baris data.' })
@@ -685,13 +690,13 @@ export default function QualityWorkbookImportPanel({
     }
     if (rows.length > 10000) issues.push({ sheet: dataSheet, row: 0, field: 'Batas impor', message: 'Jumlah record hasil pemetaan melebihi batas 10.000 per batch.' })
     if (importMode !== 'profiles_only' && !rows.length) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Respons', message: 'Tidak ada respons indikator valid yang dapat disimpan.' })
-    setPreview({ profiles, rows, issues, workbookRows: sourceDataRows.length, skippedTemplateRows, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
+    setPreview({ master: activeProfiles, profiles, rows, issues, workbookRows: sourceDataRows.length, skippedTemplateRows, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
     if (issues.length) setError('Pratinjau menemukan ' + issues.length.toLocaleString('id-ID') + ' masalah. Perbaiki pemetaan atau nilai sumber sebelum commit.')
     else setNotice('Pratinjau valid: ' + profiles.length.toLocaleString('id-ID') + ' profil, ' + rows.length.toLocaleString('id-ID') + ' record, ' + sourceDataRows.length.toLocaleString('id-ID') + ' baris sumber. ' + rows.filter(row => row.row_payload.record_payload.status === 'draft').length.toLocaleString('id-ID') + ' record parsial akan tetap draf.')
   }
 
   const runImport = async () => {
-    if (!preview || preview.issues.length) return
+    if (busy || !preview || preview.issues.length || (importMode !== 'data_only' && !preview.profiles.length)) return
     if (importMode !== 'data_only' && activeProfiles.length > 0 && !replaceConfirmed) {
       setError('Impor set profil penuh akan memensiunkan versi master yang aktif. Centang persetujuan eksplisit sebelum melanjutkan; gunakan impor penambahan profil yang belum ada untuk mempertahankan master.')
       return
@@ -764,65 +769,116 @@ export default function QualityWorkbookImportPanel({
     } finally { setBusy(false) }
   }
 
-  const selectStyle: CSSProperties = { width: '100%', minHeight: 36, border: '1px solid #d7e2e9', borderRadius: 8, padding: '6px 8px', background: '#fff', color: '#243b4d', fontSize: 12 }
-  const fieldStyle: CSSProperties = { display: 'grid', gap: 4, minWidth: 0, color: '#5e7381', fontSize: 11, fontWeight: 700 }
+  const previewWorkbook = async () => {
+    if (busy) return
+    setBusy(true)
+    try {
+      await buildPreview()
+    } catch (cause) {
+      setError(toUserFacingError(cause, { fallback: 'Pratinjau gagal dibuat. Periksa workbook yang dipilih.' }))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!pendingLogbookPreview.current || busy) return
+    pendingLogbookPreview.current = false
+    void previewWorkbook()
+  })
+
+  const selectStyle: CSSProperties = { width: '100%', minHeight: 44, border: '1px solid var(--aureka-dialog-edge)', borderRadius: 8, padding: '6px 8px', background: 'var(--aureka-dialog-surface)', color: 'var(--aureka-color-foreground)', fontSize: 12 }
+  const fieldStyle: CSSProperties = { display: 'grid', gap: 4, minWidth: 0, color: 'var(--aureka-color-foreground-secondary)', fontSize: 11, fontWeight: 700 }
   const mappingSelect = (headers: string[], value: string, onChange: (value: string) => void, label: string) => (
     <label style={fieldStyle}>{label}
-      <select style={selectStyle} value={value} onChange={event => { onChange(event.target.value); setPreview(null) }}>
+      <select style={selectStyle} value={value} disabled={busy} onChange={event => { onChange(event.target.value); setPreview(null) }}>
         <option value="">— Tidak dipetakan —</option>
         {headers.map(header => <option key={header} value={header}>{header}</option>)}
       </select>
     </label>
   )
 
-  return <section style={{ display: 'grid', gap: 12, padding: 14, border: '1px solid #dce7ed', borderRadius: 12, background: '#fbfdfe' }}>
-    <header>
-      <div style={{ fontSize: 11, letterSpacing: '.1em', fontWeight: 850, color: '#3a788e' }}>INDIKATOR MUTU · IMPOR EXCEL</div>
-      <strong style={{ display: 'block', marginTop: 4, fontSize: 16 }}>Impor Profil dan Logbook dari Excel</strong>
-      <p style={{ margin: '5px 0 0', color: '#708391', fontSize: 12, lineHeight: 1.5 }}>
-        Workbook unit menjadi sumber konfigurasi dan data. AUREKA membaca sheet profil, opsi, dan logbook; setiap kolom dapat dipetakan ulang sebelum validasi dan commit.
-      </p>
-    </header>
-
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(175px,1fr))', gap: 9 }}>
-      <label style={fieldStyle}>Mode impor
+  return <section className="qwiImportPanel" aria-busy={busy}>
+    <h3>{profilesOnly ? 'Impor profil indikator' : dataOnly ? 'Impor logbook' : 'Impor profil dan logbook dari Excel'}</h3>
+    {profilesOnly && <p className="qwiHint">Pilih workbook berisi sheet profil indikator. Periksa daftar profil sebelum menyimpannya.</p>}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 175px),1fr))', gap: 9 }}>
+      {!dataOnly && !profilesOnly && <label style={fieldStyle}>Mode impor
         <select style={selectStyle} value={importMode} disabled={busy || !roleCanImportProfiles} onChange={event => { setImportMode(event.target.value as any); setReplaceConfirmed(false); setPreview(null) }}>
           {roleCanImportProfiles && <option value="profiles_and_data">Profil + Data logbook</option>}
           {roleCanImportProfiles && <option value="profiles_only">Profil indikator saja</option>}
           <option value="data_only">Data logbook saja</option>
         </select>
-      </label>
-      <label style={fieldStyle}>Perlakuan baris data
-        <select style={selectStyle} value={dataMode} disabled={busy || importMode === 'profiles_only'} onChange={event => setDataMode(event.target.value as any)}>
+      </label>}
+      {!profilesOnly && <label style={fieldStyle}>Perlakuan baris data
+        <select style={selectStyle} value={dataMode} disabled={busy || importMode === 'profiles_only'} onChange={event => { setDataMode(event.target.value as 'append' | 'upsert'); setPreview(null) }}>
           <option value="append">Append · Tolak duplikasi</option>
           <option value="upsert">Upsert · Perbarui draf yang belum divalidasi</option>
         </select>
-      </label>
-      <label style={fieldStyle}>Workbook .xlsx
+      </label>}
+      <label style={fieldStyle}>{profilesOnly ? 'Workbook profil (.xlsx)' : dataOnly ? 'Workbook logbook (.xlsx)' : 'Workbook .xlsx'}
         <input type="file" accept=".xlsx" disabled={busy} onChange={event => { const file = event.target.files?.[0]; if (file) { setBusy(true); void inspect(file).finally(() => setBusy(false)) }; event.currentTarget.value = '' }} style={{ ...selectStyle, padding: '6px 8px' }}/>
       </label>
     </div>
-    {fileName && <div style={{ fontSize: 11, color: '#5d7481' }}>File: <strong>{fileName}</strong> · {sheets.length} worksheet terdeteksi · SHA-256 aktif</div>}
+    {busy && <p className="qwiHint" role="status">Memproses workbook…</p>}
+    {fileName && <div style={{ fontSize: 11, color: 'var(--aureka-color-foreground-secondary)' }}>File: <strong>{fileName}</strong> · {sheets.length} worksheet terdeteksi · SHA-256 aktif</div>}
     {sourceNotes.length > 0 && <div role="status" style={{fontSize:12,lineHeight:1.55,color:'#6c6045',padding:10,border:'1px solid #e9dfc5',borderRadius:9,background:'#fffcf3'}}>
       {sourceNotes.map((item,index)=><p key={index} style={{margin:index?'5px 0 0':0}}>{item}</p>)}
     </div>}
 
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <button type="button" disabled={!sheets.length || busy} onClick={() => void previewWorkbook()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#e9f2f7', color: '#26536e', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>{profilesOnly ? 'Pratinjau profil' : dataOnly ? 'Pratinjau logbook' : 'Periksa data'}</button>
+      <button type="button" disabled={!preview || !!preview.issues.length || busy || (importMode !== 'data_only' && !preview.profiles.length) || (importMode !== 'profiles_only' && !preview.rows.length) || (importMode !== 'data_only' && activeProfiles.length > 0 && !replaceConfirmed)} onClick={() => void runImport()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#176d4d', color: '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>{busy ? 'Memproses…' : profilesOnly ? 'Impor profil' : dataOnly ? 'Impor logbook' : 'Impor data terverifikasi'}</button>
+      {canSaveMappings && dataSheet && importMode === 'data_only' && <button type="button" disabled={busy}
+        className="workspaceSecondaryButton" onClick={() => void saveSelectedMappings()}>Simpan tautan kolom</button>}
+      {batchId && <button type="button" disabled={busy} onClick={() => void cancelBatch()} style={{ border: '1px solid #e1d4ce', borderRadius: 8, padding: '9px 13px', background: '#fff', color: '#8d5142', fontWeight: 750, fontSize: 12, cursor: 'pointer' }}>Batalkan batch</button>}
+    </div>
+
+    {preview && !profilesOnly && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 130px),1fr))', gap: 8 }}>
+      {[['Profil',preview.profiles.length],['Baris sumber (termasuk templat)',preview.workbookRows],['Baris templat diabaikan',preview.skippedTemplateRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid var(--aureka-dialog-edge)', borderRadius: 9, background: 'var(--aureka-dialog-muted)' }}><span style={{ display: 'block', fontSize: 11, color: 'var(--aureka-color-foreground-secondary)' }}>{label}</span><strong style={{ fontSize: 18, color: 'var(--aureka-color-foreground)' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
+    </div>}
+    {importMode !== 'profiles_only' && !preview?.rows.length && <p className="qwiHint">{preview ? 'Tidak ada baris valid untuk ditampilkan. Lihat hasil pemeriksaan di bawah.' : dataOnly ? 'Pilih workbook untuk melihat baris dan respons sebelum impor. Setelah mengubah pemetaan, klik Pratinjau logbook.' : 'Klik Periksa data untuk melihat baris dan respons sebelum impor.'}</p>}
+    {preview && <QualityWorkbookStagedPreview rows={preview.rows} />}
+    {preview?.issues?.length ? <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid #f0d7d2', borderRadius: 9, background: '#fff9f8', padding: 10 }}>
+      <strong style={{ display: 'block', marginBottom: 7, fontSize: 12, color: '#92483d' }}>Masalah yang harus diperbaiki</strong>
+      {preview.issues.slice(0, 100).map((issue,index)=><div key={index} style={{ padding: '5px 0', borderBottom: '1px solid #f5e9e6', fontSize: 11, color: '#7f5049' }}>{issue.sheet} · baris {issue.row || '-'} · {issue.field}: {issue.message}</div>)}
+      {preview.issues.length>100&&<div style={{ marginTop: 6, fontSize: 11, color: '#92584e' }}>Menampilkan 100 masalah pertama dari {preview.issues.length}.</div>}
+    </div> : null}
+    {error && <div role="alert" style={{ padding: 10, borderRadius: 8, background: '#fff0ee', border: '1px solid #efd0ca', color: '#93463d', fontSize: 11 }}>{error}</div>}
+    {notice && <div role="status" style={{ padding: 10, borderRadius: 8, background: '#eef7f2', border: '1px solid #d4e9dc', color: '#3c7253', fontSize: 11 }}>{notice}</div>}
+    {importMode !== 'data_only' && !!preview?.profiles.length &&
+      <div className="qwiPreviewScroll" tabIndex={0} role="region" aria-label="Tabel pratinjau profil indikator">
+        <table className="qwiProfileTable">
+          <thead><tr><th>Kode</th><th>Nama indikator</th></tr></thead>
+          <tbody>{preview.profiles.map(profile => <tr key={profile.code}><td>{profile.code}</td><td>{profile.title}</td></tr>)}</tbody>
+        </table>
+      </div>}
+    {roleCanImportProfiles && activeProfiles.length > 0 && importMode !== 'data_only' && preview && !preview.issues.length &&
+      <label style={{ ...fieldStyle, padding: 12, background: '#fff4ec', border: '1px solid #e9b39a', borderRadius: 8 }}>
+        <span>Perhatian: impor profil penuh akan menonaktifkan versi master indikator yang sedang aktif pada unit/tahun ini, termasuk profil yang tidak tercantum dalam workbook.</span>
+        <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input type="checkbox" checked={replaceConfirmed} onChange={event => setReplaceConfirmed(event.target.checked)}
+            disabled={busy} style={{ width: 18, height: 18 }}/>
+          Saya menyetujui penggantian set profil aktif setelah memeriksa daftar indikator lengkap.
+        </span>
+      </label>}
+    {sheets.length > 0 && <details className="qwiMapping" open={(!profilesOnly && !dataSheet) || (profilesOnly && !profileSheet) || undefined}>
+      <summary>{profilesOnly ? 'Sheet dan kolom profil' : 'Sheet dan kolom workbook'}</summary>
     {sheets.length > 0 && <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 9 }}>
-        {roleCanImportProfiles && <>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 180px),1fr))', gap: 9 }}>
+        {roleCanImportProfiles && importMode !== 'data_only' && <>
           <label style={fieldStyle}>Sheet Profil Indikator
-            <select style={selectStyle} value={profileSheet} onChange={event => { setProfileSheet(event.target.value); setPreview(null); const s=sheets.find(x=>x.name===event.target.value); if(s)setProfileHeaderRow(s.headerRow) }}>
+            <select style={selectStyle} value={profileSheet} disabled={busy} onChange={event => { setProfileSheet(event.target.value); setPreview(null); const s=sheets.find(x=>x.name===event.target.value); if(s)setProfileHeaderRow(s.headerRow) }}>
               <option value="">Pilih sheet profil</option>{sheets.map(s=><option key={s.name} value={s.name}>{s.name}</option>)}
             </select>
           </label>
           <label style={fieldStyle}>Sheet Opsi Indikator
-            <select style={selectStyle} value={optionsSheet} onChange={event => { setOptionsSheet(event.target.value); setPreview(null); const s=sheets.find(x=>x.name===event.target.value); if(s)setOptionsHeaderRow(s.headerRow) }}>
+            <select style={selectStyle} value={optionsSheet} disabled={busy} onChange={event => { setOptionsSheet(event.target.value); setPreview(null); const s=sheets.find(x=>x.name===event.target.value); if(s)setOptionsHeaderRow(s.headerRow) }}>
               <option value="">Tanpa sheet opsi terpisah</option>{sheets.map(s=><option key={s.name} value={s.name}>{s.name}</option>)}
             </select>
           </label>
         </>}
         {importMode !== 'profiles_only' && <label style={fieldStyle}>Sheet Logbook / Data
-          <select style={selectStyle} value={dataSheet} onChange={event => { const next=sheets.find(item=>item.name===event.target.value); changeDataSource(event.target.value,next?.headerRow??1) }}>
+          <select style={selectStyle} value={dataSheet} disabled={busy} onChange={event => { const next=sheets.find(item=>item.name===event.target.value); changeDataSource(event.target.value,next?.headerRow??1) }}>
             <option value="">Pilih sheet data</option>{sheets.map(s=><option key={s.name} value={s.name}>{s.name}</option>)}
           </select>
         </label>}
@@ -835,95 +891,43 @@ export default function QualityWorkbookImportPanel({
       </label>}
     </>}
 
-    {roleCanImportProfiles && importMode !== 'data_only' && profileSheet && <details style={{ border: '1px solid #e4ebef', borderRadius: 9, padding: 10 }}>
-      <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: '#335d73' }}>Pemetaan kolom sheet Profil Indikator</summary>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 9, marginTop: 10 }}>
+    {roleCanImportProfiles && importMode !== 'data_only' && profileSheet && <details style={{ border: '1px solid var(--aureka-dialog-edge)', borderRadius: 9, padding: 10 }}>
+      <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: 'var(--aureka-color-foreground)' }}>Pemetaan kolom sheet Profil Indikator</summary>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 210px),1fr))', gap: 9, marginTop: 10 }}>
         {PROFILE_FIELDS.map(([key, label]) => <div key={key}>{mappingSelect(profileHeaders, profileColumns[key] ?? '', value => setProfileColumns(current => ({ ...current, [key]: value })), label)}</div>)}
       </div>
     </details>}
 
-    {roleCanImportProfiles && importMode !== 'data_only' && optionsSheet && <details style={{ border: '1px solid #e4ebef', borderRadius: 9, padding: 10 }}>
-      <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: '#335d73' }}>Pemetaan kolom sheet Opsi Indikator</summary>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 9, marginTop: 10 }}>
+    {roleCanImportProfiles && importMode !== 'data_only' && optionsSheet && <details style={{ border: '1px solid var(--aureka-dialog-edge)', borderRadius: 9, padding: 10 }}>
+      <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: 'var(--aureka-color-foreground)' }}>Pemetaan kolom sheet Opsi Indikator</summary>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 210px),1fr))', gap: 9, marginTop: 10 }}>
         {(['indicator_code','label','code','review_required'] as const).map(key => <div key={key}>{mappingSelect(optionHeaders, optionColumns[key] ?? '', value => setOptionColumns(current => ({ ...current, [key]: value })), ({indicator_code:'Kode indikator',label:'Label opsi',code:'Kode opsi 1/2/3',review_required:'Perlu review'} as any)[key])}</div>)}
       </div>
     </details>}
 
     {importMode !== 'profiles_only' && dataSheet && <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 9 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%, 180px),1fr))', gap: 9 }}>
         {(['date','subject_key','patient_name','diagnosis','dpjp'] as const).map(key => <div key={key}>{mappingSelect(dataHeaders, dataColumns[key] ?? '', value => setDataColumns(current => ({ ...current, [key]: value })), ({date:'Tanggal pencatatan',subject_key:'Nomor RM / kunci subjek',patient_name:'Nama pasien / subjek',diagnosis:'Diagnosa',dpjp:'DPJP / penanggung jawab'} as any)[key])}</div>)}
       </div>
-      <details open style={{ border: '1px solid #e4ebef', borderRadius: 9, padding: 10 }}>
-        <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: '#335d73' }}>Pilih kolom Excel untuk setiap indikator ({currentProfiles.length}) · dropdown N / O / dst.</summary>
-        <p style={{ fontSize: 12, color: '#607987', lineHeight: 1.6 }}>Pilih kolom respons, pembilang, dan penyebut langsung dari daftar huruf kolom dan nama header. Pemetaan tidak memerlukan pengetikan judul kolom atau konfigurasi kode.</p>
+      <details style={{ border: '1px solid var(--aureka-dialog-edge)', borderRadius: 9, padding: 10 }}>
+        <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: 'var(--aureka-color-foreground)' }}>Pilih kolom Excel untuk setiap indikator ({currentProfiles.length}) · dropdown N / O / dst.</summary>
+        <p style={{ fontSize: 12, color: 'var(--aureka-color-foreground-secondary)', lineHeight: 1.6 }}>Pilih kolom respons, pembilang, dan penyebut langsung dari daftar huruf kolom dan nama header. Pemetaan tidak memerlukan pengetikan judul kolom atau konfigurasi kode.</p>
         <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
           {currentProfiles.map(profile => {
             const isRatio = resolveMeasurementKind(profile) === 'ratio' && !usesCategoricalResponseCapture(profile)
             return <div key={profile.code} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,170px),1fr))', gap: 8, alignItems: 'end', padding: '8px 0', borderBottom: '1px solid #edf1f4' }}>
-              <div><strong style={{ display: 'block', fontSize: 11, color: '#2d5368' }}>{profile.code} · {profile.title}</strong><span style={{ fontSize: 11, color: '#8a9aa2' }}>{profile.measurement_grain} · {resolveMeasurementKind(profile)}{usesCategoricalResponseCapture(profile) ? ' · dropdown 1/2/3' : ''}</span></div>
+              <div><strong style={{ display: 'block', fontSize: 11, color: 'var(--aureka-color-foreground)' }}>{profile.code} · {profile.title}</strong><span style={{ fontSize: 11, color: 'var(--aureka-color-foreground-secondary)' }}>{profile.measurement_grain} · {resolveMeasurementKind(profile)}{usesCategoricalResponseCapture(profile) ? ' · dropdown 1/2/3' : ''}</span></div>
               {mappingSelect(dataHeaders, indicatorColumns[profile.code] ?? '', value => setIndicatorColumns(current => ({ ...current, [profile.code]: value })), 'Kolom respons / nilai')}
               {isRatio ? <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 {mappingSelect(dataHeaders, numeratorColumns[profile.code] ?? '', value => setNumeratorColumns(current => ({ ...current, [profile.code]: value })), 'Pembilang')}
                 {mappingSelect(dataHeaders, denominatorColumns[profile.code] ?? '', value => setDenominatorColumns(current => ({ ...current, [profile.code]: value })), 'Penyebut')}
-              </div> : <div style={{ fontSize: 11, color: '#82929b', paddingBottom: 9 }}>Satu kolom sumber</div>}
+              </div> : <div style={{ fontSize: 11, color: 'var(--aureka-color-foreground-secondary)', paddingBottom: 9 }}>Satu kolom sumber</div>}
             </div>
           })}
         </div>
       </details>
     </>}
 
-    {roleCanImportProfiles && activeProfiles.length > 0 && importMode !== 'data_only' &&
-      <label style={{ ...fieldStyle, padding: 12, background: '#fff4ec', border: '1px solid #e9b39a', borderRadius: 8 }}>
-        <span>Perhatian: impor profil penuh akan menonaktifkan versi master indikator yang sedang aktif pada unit/tahun ini, termasuk profil yang tidak tercantum dalam workbook.</span>
-        <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input type="checkbox" checked={replaceConfirmed} onChange={event => setReplaceConfirmed(event.target.checked)}
-            disabled={busy} style={{ width: 18, height: 18 }}/>
-          Saya menyetujui penggantian set profil aktif setelah memeriksa daftar indikator lengkap.
-        </span>
-      </label>}
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      <button type="button" disabled={!sheets.length || busy} onClick={() => void buildPreview()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#e9f2f7', color: '#26536e', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>Periksa data</button>
-      <button type="button" disabled={!preview || !!preview.issues.length || busy || (importMode !== 'data_only' && activeProfiles.length > 0 && !replaceConfirmed)} onClick={() => void runImport()} style={{ border: 0, borderRadius: 8, padding: '9px 13px', background: '#176d4d', color: '#fff', fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>{busy ? 'Memproses batch…' : 'Impor data terverifikasi'}</button>
-      {canSaveMappings && dataSheet && importMode === 'data_only' && <button type="button" disabled={busy}
-        className="workspaceSecondaryButton" onClick={() => void saveSelectedMappings()}>Simpan tautan kolom</button>}
-      <button type="button" disabled={!batchId || busy} onClick={() => void cancelBatch()} style={{ border: '1px solid #e1d4ce', borderRadius: 8, padding: '9px 13px', background: '#fff', color: '#8d5142', fontWeight: 750, fontSize: 12, cursor: 'pointer' }}>Batalkan batch</button>
-    </div>
-
-    {preview && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8 }}>
-      {[['Profil',preview.profiles.length],['Baris sumber (termasuk templat)',preview.workbookRows],['Baris templat diabaikan',preview.skippedTemplateRows],['Record per grain',preview.rows.length],['Masih draf',preview.draftRows],['Masalah',preview.issues.length]].map(([label,value])=><div key={String(label)} style={{ padding: 10, border: '1px solid #e4ebef', borderRadius: 9, background: '#fff' }}><span style={{ display: 'block', fontSize: 11, color: '#798b95' }}>{label}</span><strong style={{ fontSize: 18, color: '#294e64' }}>{Number(value).toLocaleString('id-ID')}</strong></div>)}
-    </div>}
-    {preview && preview.rows.length > 0 && <section className="qwiPreview" aria-label="Pratinjau data workbook">
-      <QualityWorkbookPreviewControls config={stagedPreview} title="Pratinjau record sebelum impor"/>
-      <div className="qwiPreviewScroll" role="region" tabIndex={0} aria-label="Tabel pratinjau Excel tanpa identitas pasien">
-        <table>
-          <thead><tr><th>Sheet</th><th>Baris Excel</th><th>Tanggal</th><th>Jenis pengukuran</th><th>Respons indikator</th><th>Status</th></tr></thead>
-          <tbody>
-            {stagedPreview.preview.map((item, index) => {
-              const record = item.row_payload.record_payload
-              const responses = Array.isArray(item.row_payload.responses) ? item.row_payload.responses : []
-              return <tr key={item.source_key + ':' + index}>
-                <td>{item.source_sheet}</td>
-                <td>{item.source_row}</td>
-                <td>{String(record.record_date ?? '—')}</td>
-                <td>{String(record.measurement_grain ?? '—')}</td>
-                <td>{responses.length}</td>
-                <td>{record.review_required ? 'Perlu telaah' : record.status === 'draft' ? 'Draf' : 'Siap ditinjau'}</td>
-              </tr>
-            })}
-            {stagedPreview.preview.length === 0 && <tr><td colSpan={6}>Tidak ada baris pada filter ini.</td></tr>}
-          </tbody>
-        </table>
-      </div>
-    </section>}
-    {preview?.issues?.length ? <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid #f0d7d2', borderRadius: 9, background: '#fff9f8', padding: 10 }}>
-      <strong style={{ display: 'block', marginBottom: 7, fontSize: 12, color: '#92483d' }}>Masalah yang harus diperbaiki</strong>
-      {preview.issues.slice(0, 100).map((issue,index)=><div key={index} style={{ padding: '5px 0', borderBottom: '1px solid #f5e9e6', fontSize: 11, color: '#7f5049' }}>{issue.sheet} · baris {issue.row || '-'} · {issue.field}: {issue.message}</div>)}
-      {preview.issues.length>100&&<div style={{ marginTop: 6, fontSize: 11, color: '#92584e' }}>Menampilkan 100 masalah pertama dari {preview.issues.length}.</div>}
-    </div> : null}
-    {error && <div role="alert" style={{ padding: 10, borderRadius: 8, background: '#fff0ee', border: '1px solid #efd0ca', color: '#93463d', fontSize: 11 }}>{error}</div>}
-    {notice && <div role="status" style={{ padding: 10, borderRadius: 8, background: '#eef7f2', border: '1px solid #d4e9dc', color: '#3c7253', fontSize: 11 }}>{notice}</div>}
-    <div style={{ fontSize: 11, color: '#8999a2', lineHeight: 1.5 }}>
-      Unit: <strong>{roomName}</strong> · Tahun: <strong>{year}</strong> · Mode categorical mengikuti kode opsi 1/2/3 dari profil. Data pasien diproses di browser lalu dikirim ke staging Supabase dengan akses RPC terkontrol; data baris tidak dikirim ke NARA.
-    </div>
+    </details>}
   </section>
 }

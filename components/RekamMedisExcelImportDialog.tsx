@@ -1,5 +1,5 @@
 'use client'
-import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading, QualityWorkbookLogbookMapping } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
@@ -353,11 +353,12 @@ export default function RekamMedisExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="rekam-medis" year={year}
-    mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="rekam-medis"
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar /><div className="qiuMain">
+        <QualityWorkbookLogbookHeading />
+        <QualityWorkbookLogbookMapping><QualityWorkbookInlineColumnMapping file={file} importerKey="rekam-medis"
       fields={INLINE_MAPPING_FIELDS} disabled={parsing||importing}
-      onApply={()=>file ? parseWorkbook(file) : undefined}/>}
-  /><div className="qiuMain">
+      onApply={()=>file ? parseWorkbook(file) : undefined}/>
+        </QualityWorkbookLogbookMapping>
           <div className="rmIntro">
             Pilih workbook .xlsx yang berisi sheet <strong>Logbook</strong>. Baris header dibaca dari baris 2. Setiap baris pasien menjadi satu catatan event dengan dua respons indikator. Data hanya dipetakan ke master indikator aktif; nilai yang tidak dikenal dipertahankan dan diberi penanda perlu ditinjau.
           </div>

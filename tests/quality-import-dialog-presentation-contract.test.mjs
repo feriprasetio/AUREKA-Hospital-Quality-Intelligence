@@ -14,30 +14,32 @@ const specialized = [
   ['SarafInpatient','saraf-inpatient'], ['PenyakitDalamInpatient','penyakit-dalam-inpatient'],
 ]
 
-test('all 21 specialized unit importers share the IBS-style audited settings panel', () => {
+test('all 21 specialized unit importers show profile import on the left and logbook preview on the right', () => {
   const sidebar = read('components/quality/QualityWorkbookImportSidebar.tsx')
   assert.equal(specialized.length, 21)
   for (const [name, unitKey] of specialized) {
     const content = read('components/' + name + 'ExcelImportDialog.tsx')
-    assert.ok(content.includes("import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'"), name)
-    assert.ok(content.includes('<QualityWorkbookImportSidebar unitKey="' + unitKey + '" year={year}'), name)
+    assert.match(content, /<QualityWorkbookImportSidebar \/>\s*<div className="(?:oiMain|qiuMain)">\s*<QualityWorkbookLogbookHeading \/>/, name)
     assert.ok(content.includes(unitKey === 'outpatient' ? 'className="oiMain"' : 'className="qiuMain"'), name)
     assert.ok(content.includes(unitKey === 'outpatient' ? 'className="aqBody qiuBody oiImportBody"' : 'className="aqBody qiuBody"'), name)
-    assert.ok(sidebar.includes('"' + unitKey + '":'), 'Missing source format for ' + unitKey)
     assert.ok(content.includes('<QualityWorkbookPreviewControls'), 'Missing preview settings in ' + name)
     assert.match(content, /<\/div>\s*<\/div>\s*<div className="aqFoot(?: [a-z]+Footer)?"/, name)
   }
-  assert.match(sidebar, /<summary>Panduan dan aturan impor<\/summary>/)
+  assert.match(sidebar, /<aside className="qiuSidebar" aria-label="Impor profil indikator"/)
+  assert.match(sidebar, /importerKey="unit-logbook" profilesOnly/)
+  assert.match(sidebar, /scope\?\.role === 'ADMIN'/)
   const ibs = read('components/IbsExcelImportDialog.tsx')
+  assert.match(ibs, /<QualityWorkbookImportSidebar \/>\s*<div className="qiuMain">/)
   assert.ok(ibs.includes('className="ciImportGrid"'))
   assert.ok(ibs.includes('className="ciSettingsList"'))
 })
 
-test('generic patient episode importer uses the same audited source/settings presentation', () => {
+test('generic patient episode importer uses the separate profile panel and staged logbook table', () => {
   const generic = read('components/PatientEpisodeWorkbookDialog.tsx')
   const sidebar = read('components/quality/QualityWorkbookImportSidebar.tsx')
   assert.ok(generic.includes('className="episodeWorkbook qiuBody"'))
-  assert.ok(generic.includes('unitKey="generic" year={year} unitName={roomName}'))
+  assert.match(generic, /<QualityWorkbookImportSidebar \/>/)
+  assert.match(generic, /<QualityWorkbookStagedPreview rows=\{preview\.rows\}/)
   assert.ok(sidebar.includes('.episodeWorkbook.qiuBody'))
   assert.ok(sidebar.includes('@media(max-width:940px)'))
   assert.ok(sidebar.includes('@media(max-width:540px)'))

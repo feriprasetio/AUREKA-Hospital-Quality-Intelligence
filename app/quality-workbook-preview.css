@@ -187,3 +187,26 @@ html[data-skin="arktik"][data-mode="gelap"] .aq.aqPortal.aqAuditWorkspace .aqDra
   color: var(--aureka-color-foreground) !important;
   -webkit-text-fill-color: currentColor;
 }
+
+/* Profile and logbook panels share the same workbook dialog. */
+.qwiImportPanel {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--aureka-dialog-edge);
+  border-radius: 12px;
+  background: var(--aureka-dialog-surface);
+  color: var(--aureka-color-foreground);
+}
+:is(.qiuLogbookHeading, .qwiImportPanel) h3 { margin: 0; font-size: 16px; line-height: 1.4; }
+.qwiHint { margin: 4px 0 0; color: var(--aureka-color-foreground-secondary); font-size: 13px; line-height: 1.5; }
+.qwiMapping { min-width: 0; padding: 0 12px; border: 1px solid var(--aureka-dialog-edge); border-radius: 10px; }
+.qwiMapping[open] { padding-bottom: 12px; }
+.qwiMapping > summary { min-height: 44px; align-content: center; cursor: pointer; font-size: 13px; font-weight: 700; }
+.qwiMapping > div + div, .qwiMapping > details { margin-top: 10px; }
+.qwiPreviewScroll .qwiProfileTable { min-width: 100%; }
+.qwiProfileTable td { overflow-wrap: anywhere; }
+.qwiResponseList { margin: 0; padding: 0; list-style: none; }
+.qwiResponseList li + li { margin-top: 4px; }

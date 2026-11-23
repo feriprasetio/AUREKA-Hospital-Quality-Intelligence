@@ -1,5 +1,5 @@
 'use client'
-import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading, QualityWorkbookLogbookMapping } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -197,12 +197,14 @@ export default function OutpatientExcelImportDialog({open,roomId,year,authorized
   <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqWide aqOutpatientImport" role="dialog" aria-modal="true" aria-labelledby="aqOutpatientTitle">
    <style>{'.aqOutpatientImport .aqBody{display:grid;gap:12px}.aqOutpatientImport .oiBox{padding:11px 13px;border:1px solid #e2e8e4;border-radius:11px;background:#fff;font-size:12px;line-height:1.5}.aqOutpatientImport .oiError{background:#fff1f0;color:#8b2822}.aqOutpatientImport .oiWarn{background:#fff8e8;color:#795c26}.aqOutpatientImport .oiSuccess{background:#ebf8ef;color:#1e6544}.aqOutpatientImport .oiTable{max-height:300px;overflow:auto;border:1px solid #e2e8e4;border-radius:10px}.aqOutpatientImport table{width:100%;border-collapse:collapse;font-size:12px}.aqOutpatientImport th,.aqOutpatientImport td{padding:8px;border-bottom:1px solid #e2e8e4;text-align:left}.aqOutpatientImport th{position:sticky;top:0;background:#f5f8f6}.aqOutpatientImport .oiStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.aqOutpatientImport .oiStat{padding:10px;border:1px solid #e2e8e4;border-radius:10px}.aqOutpatientImport .oiStat span{display:block;color:#65736b;font-size:12px}.aqOutpatientImport .oiStat strong{display:block;font-size:17px;margin-top:4px}.aqOutpatientImport .oiMuted{font-size:12px;color:#65736b;line-height:1.5}@media(max-width:560px){.aqOutpatientImport .oiStats{grid-template-columns:1fr 1fr}}'}</style><style>{OUTPATIENT_IMPORT_LAYOUT}</style>
    <div className="aqDHead"><div><div className="eyebrow">Audit Indikator Mutu · Instalasi Rawat Jalan</div><h4 id="aqOutpatientTitle">Unggah workbook Rawat Jalan</h4><p>Impor data harian dokter–klinik untuk penghitungan waktu tunggu.</p></div><button type="button" className="aqClose" disabled={parsing||importing} onClick={close}>×</button></div>
-   <div className="aqBody qiuBody oiImportBody"><QualityWorkbookImportSidebar unitKey="outpatient" year={year} mapping={
-    matrixMode ? <p className="qiuMappingNotice">Workbook matriks tanggal menggunakan pemetaan klinik–dokter khusus. Pengaturan kolom di bawah berlaku untuk workbook berbentuk tabel observasi, bukan matriks tanggal.</p> :
+   <div className="aqBody qiuBody oiImportBody"><QualityWorkbookImportSidebar /><div className="oiMain">
+        <QualityWorkbookLogbookHeading />
+        <QualityWorkbookLogbookMapping>
+    {matrixMode ? <p className="qiuMappingNotice">Workbook matriks tanggal menggunakan pemetaan klinik–dokter khusus. Pengaturan kolom di bawah berlaku untuk workbook berbentuk tabel observasi, bukan matriks tanggal.</p> :
     <QualityWorkbookInlineColumnMapping file={file} importerKey="outpatient"
       fields={OUTPATIENT_MAPPING_FIELDS} disabled={parsing||importing}
-      onApply={()=>file ? parseWorkbook(file) : undefined}/>
-   }/><div className="oiMain">
+      onApply={()=>file ? parseWorkbook(file) : undefined}/>}
+        </QualityWorkbookLogbookMapping>
     {!authorized&&<div className="oiBox oiError">Impor workbook hanya tersedia bagi Admin/Komite PMKP.</div>}
     {!eligible&&<div className="oiBox oiError">Pilih Instalasi Rawat Jalan dan tahun profil yang sesuai.</div>}
     <div className="oiBox">Workbook mendukung dua bentuk: (1) logbook matriks PMKP: tanggal pada kolom mendatar, klinik sebagai kelompok baris, dan dokter pada baris di bawahnya; atau (2) tabel dengan kolom Tanggal pengamatan, Klinik, Dokter, dan Waktu Tunggu Rawat Jalan (Menit). Sistem mengabaikan rumus rekap klinik, memetakan dokter ke roster, lalu menampilkan pratinjau sebelum impor. File diproses di browser; hanya pengukuran valid yang dikirim ke Supabase.</div>

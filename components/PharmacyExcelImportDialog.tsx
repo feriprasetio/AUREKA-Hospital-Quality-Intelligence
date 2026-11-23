@@ -1,5 +1,5 @@
 'use client'
-import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
@@ -490,7 +490,8 @@ export default function PharmacyExcelImportDialog({
           </div>
           <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="pharmacy" year={year} /><div className="qiuMain">
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar /><div className="qiuMain">
+        <QualityWorkbookLogbookHeading />
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih Instalasi Farmasi dan tahun 2026 sebelum membuka alur impor ini.</div>}
           <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca delapan sheet harian: Copy Resep, High Alert, Fornas, dan Formularium Rumah Sakit untuk Rawat Jalan dan Rawat Inap. Header berada pada baris 10, data mulai baris 11. Sheet Dashboard dan rekap gabungan bulanan tidak diimpor agar tidak terjadi penghitungan ganda.</div></details>

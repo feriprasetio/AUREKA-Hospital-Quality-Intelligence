@@ -26,7 +26,7 @@ test('universal importer supports profile-only without patient data, and checks 
 
 
 test('empty master defaults to profile-only import before any patient logbook ingestion', () => {
-  assert.match(panel, /if \(roleCanImportProfiles && pSheet && activeProfiles\.length === 0\)/)
+  assert.match(panel, /if \(!profilesOnly && roleCanImportProfiles && pSheet && activeProfiles\.length === 0\)/)
   assert.match(panel, /setImportMode\('profiles_only'\)/)
   assert.match(panel, /p_expected_rows: importMode === 'profiles_only' \? 0 : preview\.rows\.length/)
 })

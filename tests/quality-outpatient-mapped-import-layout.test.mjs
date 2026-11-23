@@ -7,7 +7,7 @@ const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8'
 test('Rawat Jalan keeps preview and audit notices in independent normal-flow main column', () => {
   const source = read('components/OutpatientExcelImportDialog.tsx')
   assert.match(source, /className="aqBody qiuBody oiImportBody"/)
-  assert.match(source, /unitKey="outpatient" year=\{year\} mapping=\{/)
+  assert.match(source, /<QualityWorkbookLogbookMapping>\s*\{matrixMode \?[\s\S]*?<QualityWorkbookInlineColumnMapping/)
   assert.match(source, /className="oiMain"/)
   assert.match(source, /className="oiTable" aria-label="Pratinjau data Rawat Jalan"/)
   assert.match(source, /className="oiPreviewScroll" role="region" tabIndex=\{0\}/)
@@ -31,7 +31,7 @@ test('Rawat Jalan never subtracts already rejected rows from validated rows twic
   assert.match(source, /Impor baris valid dan sisakan baris yang perlu koreksi/)
 })
 
-test('Hemodialisa and Radiologi have mapped-import entries and a shared source settings sidebar', () => {
+test('Hemodialisa and Radiologi have mapped-import entries and a separate profile and logbook panels', () => {
   const workspace=read('components/QualityIndicatorWorkspace.tsx')
   const modal=read('components/UnitMappedWorkbookDialog.tsx')
   const sidebar=read('components/quality/QualityWorkbookImportSidebar.tsx')
@@ -42,20 +42,17 @@ test('Hemodialisa and Radiologi have mapped-import entries and a shared source s
   assert.match(workspace, /setMappedWorkbookOpen\(false\)/)
   assert.match(modal, /roomId: 8 \| 10/)
   assert.match(modal, /className="episodeWorkbook qiuBody qimuMappedLayout"/)
-  assert.match(modal, /<QualityWorkbookImportSidebar unitKey=\{unitKey\}/)
+  assert.match(modal, /<QualityWorkbookImportSidebar \/>\s*<div className="qimuMappedMain">/)
   assert.match(modal, /<QualityWorkbookImportPanel/)
   assert.match(modal, /importerKey="unit-logbook"/)
   assert.match(modal, /dataOnly/)
-  assert.match(sidebar, /"hemodialysis":/)
-  assert.match(sidebar, /"radiology":/)
-  assert.match(sidebar, /"limitMb": 25/)
+  assert.match(sidebar, /importerKey="unit-logbook" profilesOnly/)
 })
 
 test('mapped imports do not silently overwrite profiles or assume clinical compliance', () => {
   const modal=read('components/UnitMappedWorkbookDialog.tsx')
   const panel=read('components/QualityWorkbookImportPanel.tsx')
   assert.match(modal, /dataOnly/)
-  assert.match(modal, /Pilih worksheet, baris header, dan kolom respons/)
   assert.match(panel, /const roleCanImportProfiles = role === 'ADMIN' && !dataOnly/)
   assert.match(panel, /validate_quality_import_batch/)
   assert.match(panel, /commit_quality_import_batch/)
