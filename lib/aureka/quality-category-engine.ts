@@ -1,5 +1,5 @@
-import { compareToTarget } from './indicator-engine.ts'
-import type { IndicatorResult, IndicatorProfileForResults, ResultRecord } from './quality-results-engine.ts'
+import { compareToTarget, usesContinuousAttainmentTarget } from './indicator-engine.ts'
+import { isResultStatusIncluded, type IndicatorResult, type IndicatorProfileForResults, type ResultRecord } from './quality-results-engine.ts'
 
 export type QualityProgram = 'INM' | 'IMP-RS' | 'IMP-Unit' | 'Lainnya'
 export type CategoryAnalysisKind = 'inm' | 'audit' | 'oppe' | 'program' | 'hospital' | 'unit'
@@ -142,6 +142,7 @@ export function buildQualityCategoryAnalytics(
   results: IndicatorResult[],
   records: ResultRecord[],
   year: number,
+  includeReady = false,
 ): QualityCategoryAnalytics[] {
   const categories = new Map<string, QualityCategoryAnalytics>()
   const subjects = new Map<string, Set<string>>()
@@ -163,7 +164,7 @@ export function buildQualityCategoryAnalytics(
     item.configured += 1
     item.observations += result.observations
     item.validatedObservations += result.validatedRecords
-    if (!result.validatedRecords) item.withoutData += 1
+    if (!(result.validatedRecords + (includeReady ? result.readyRecords : 0))) item.withoutData += 1
     else if (result.targetMet == null) item.withoutTarget += 1
     else {
       item.assessed += 1
@@ -172,9 +173,10 @@ export function buildQualityCategoryAnalytics(
     item.byIndicator[indicatorProfileKey(result.profile)] = { ...emptyCodes(), profileKey: indicatorProfileKey(result.profile), recorded: 0 }
     for (const month of result.monthly) {
       const trend = item.trend[month.month - 1]
-      trend.observations += month.validatedRecords
-      if (!month.validatedRecords) continue
-      const actual = result.continuous ? month.mean : month.rate
+      const count = month.validatedRecords + (includeReady ? month.readyRecords : 0)
+      trend.observations += count
+      if (!count) continue
+      const actual = result.continuous && !usesContinuousAttainmentTarget(result.profile) ? month.mean : month.rate
       const met = actual == null ? null : compareToTarget(result.profile, actual, result.continuous ? undefined : '=')
       if (met != null) {
         trend.assessed += 1
@@ -187,7 +189,7 @@ export function buildQualityCategoryAnalytics(
   }
 
   for (const record of records) {
-    if (String(record.status ?? '').toLowerCase() !== 'validated' || !validYear(record, year)) continue
+    if (!isResultStatusIncluded(record.status, includeReady) || !validYear(record, year) || record.core_data?.source_import?.exclude_from_profile_year_metrics === true) continue
     const values = record.core_data?.indicator_values
     if (!values || typeof values !== 'object') continue
     for (const result of profilesByRoom.get(Number(record.room_id)) ?? []) {
@@ -227,7 +229,7 @@ export function buildCategoryNaraBrief(
     'Indikator aktif: ' + category.configured + '; dinilai: ' + category.assessed +
       '; memenuhi target: ' + category.met + '; belum punya data: ' + category.withoutData +
       '; belum dapat dinilai karena target: ' + category.withoutTarget + '.',
-    'Respons berkode tervalidasi (menghitung kriteria, BUKAN jumlah pasien): Code 1=' +
+    'Distribusi respons per kriteria: Code 1=' +
       category.codes.code1 + ', Code 2=' + category.codes.code2 + ', Code 3=' +
       category.codes.code3 + ', tanpa Code=' + category.codes.uncoded +
       ', perlu rekonsiliasi=' + category.codes.pending + '.',

@@ -843,7 +843,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     if (!file) return
     setMsg('')
     try {
-      if (!/\\.xlsx$/i.test(file.name)) {
+      if (!/\.xlsx$/i.test(file.name)) {
         throw new Error('Format impor harus .xlsx. Berkas JSON tidak lagi didukung.')
       }
       if (file.size > 25 * 1024 * 1024) throw new Error('Pilih workbook XLSX dengan ukuran maksimal 25 MB.')

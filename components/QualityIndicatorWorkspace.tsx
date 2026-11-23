@@ -68,6 +68,7 @@ const PenyakitDalamInpatientExcelImportDialog=dynamic(()=>import('@/components/P
 
 const sb=aurekaSupabase
 const q=()=>sb.schema('aureka_quality')
+const LOGBOOK_PAGE_SIZE=100
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
 const CONTAINERS=['Audit Indikator Mutu','Audit Clinical Pathway','Audit Klinis dan Kematian'] as const
 const YEARS=[2025,2026,2027,2028,2029]
@@ -831,25 +832,22 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
        const core=r.core_data??r.subject_json??{}
        return !Object.keys(core.indicator_values??{}).length||!!core.source_import
      }).map(r=>String(r.id))
-     for(let offset=0;offset<missingResponseIds.length;offset+=80){
+     const responseBatches:string[][]=[]
+     for(let offset=0;offset<missingResponseIds.length;offset+=80)responseBatches.push(missingResponseIds.slice(offset,offset+80))
+     for(let offset=0;offset<responseBatches.length;offset+=6){
        if(!isCurrent())return false
-       const ids=missingResponseIds.slice(offset,offset+80)
-       let from=0
-       while(true){
-         const {data,error}=await q().from('quality_record_responses')
+       const batchResults=await Promise.all(responseBatches.slice(offset,offset+6).map(ids=>
+         readAllPages<any>((from,to)=>q().from('quality_record_responses')
            .select('record_id,indicator_id,response_label,response_code,raw_value,review_status')
-           .in('record_id',ids).order('record_id').order('indicator_id').range(from,from+499)
-         if(error)throw error
-         for(const item of data??[]){
-           const profile=profileById.get(String(item.indicator_id))
-           if(!profile)continue
-           const byCode=responseValuesByRecord.get(String(item.record_id))??{}
-           const raw=item.raw_value&&typeof item.raw_value==='object'?item.raw_value as Resp:{}
-           byCode[String(profile.code)]={...raw,answer:raw.answer??item.response_label??'',code:raw.code??item.response_code??null,review_status:item.review_status??'not_required'}
-           responseValuesByRecord.set(String(item.record_id),byCode)
-         }
-         if(!data||data.length<500)break
-         from+=500
+           .in('record_id',ids).order('record_id').order('indicator_id').range(from,to)),
+       ))
+       for(const batch of batchResults)for(const item of batch){
+         const profile=profileById.get(String(item.indicator_id))
+         if(!profile)continue
+         const byCode=responseValuesByRecord.get(String(item.record_id))??{}
+         const raw=item.raw_value&&typeof item.raw_value==='object'?item.raw_value as Resp:{}
+         byCode[String(profile.code)]={...raw,answer:raw.answer??item.response_label??'',code:raw.code??item.response_code??null,review_status:item.review_status??'not_required'}
+         responseValuesByRecord.set(String(item.record_id),byCode)
        }
      }
      const attributionByRecord=new Map<string,Record<string,string>>()
@@ -953,6 +951,12 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const hay=`${p.name} ${p.rm} ${p.diagnosis} ${p.dpjp} ${p.unit} ${JSON.stringify(p.formData??{})}`.toLowerCase()
    return (ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&roomOk&&monthOk&&hay.includes(search.toLowerCase().trim())
  }),[patients,year,roomId,roomMap,monthFilter,search])
+ const [logbookPage,setLogbookPage]=useState(0)
+ const logbookPageCount=Math.max(1,Math.ceil(filtered.length/LOGBOOK_PAGE_SIZE))
+ const currentLogbookPage=Math.min(logbookPage,logbookPageCount-1)
+ const logbookOffset=currentLogbookPage*LOGBOOK_PAGE_SIZE
+ const visibleLogbookRows=filtered.slice(logbookOffset,logbookOffset+LOGBOOK_PAGE_SIZE)
+ useEffect(()=>setLogbookPage(0),[scopeKey,monthFilter,search])
  const yearPatients=useMemo(()=>patients.filter(p=>!p.excludeFromYearMetrics&&(ymd(p.admit)===year||p.allowCrossYear===true||(!p.admit&&p.source==='memory'&&!p.recordId))&&(roomId==null||Number(p.roomId)===Number(roomId)||p.unit===roomMap.get(Number(roomId)))),[patients,year,roomId,roomMap])
  const filledObservations=useMemo(()=>yearPatients.reduce((sum,p)=>{
    const unitProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId)))
@@ -1447,7 +1451,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
 {Number(roomId)===11?<div><span>Pengukuran terisi</span><strong>{yearPatients.filter(p=>outpatientWaitingMinutes(p.formData??{})!=null).length}</strong></div>:<><div><span>Indikator tersedia</span><strong>{patientProfiles.length}</strong></div><div><span>Identitas pasien</span><button type="button" className="aqBtn" style={{marginTop:4}} aria-pressed={showIdentity} onClick={()=>setShowIdentity(v=>!v)}>{showIdentity?'Samarkan':'Tampilkan'}</button></div>
 <div><span>Respons indikator terisi</span><strong>{filledObservations}</strong></div>
 </>}
-<div><span>Ditampilkan</span><strong>{filtered.length}</strong></div></div>
+<div><span>Catatan pada filter</span><strong>{filtered.length}</strong></div></div>
 </div>}
       {unmatchedIndicatorHeaders.length>0&&<div className="aqNotice" role="alert">Sebagian indikator pada template belum memiliki profil master yang cocok: {unmatchedIndicatorHeaders.join(", ")}. Capaian ditampilkan terhadap seluruh indikator yang diharapkan agar kelengkapan tidak tampak lebih tinggi dari keadaan sebenarnya.</div>}
  <section className={`glass aqTable aqHideStatus ${isValidator?'aqValidatorLogbook':''}`}>
@@ -1461,7 +1465,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
        <th scope="col">{Number(roomId)===11?'Pengukuran terisi':'Indikator terisi'}</th>
        <th scope="col">Status</th><th scope="col">Tindakan</th>
       </tr></thead>
-      <tbody>{filtered.map((p,index)=>{
+      <tbody>{visibleLogbookRows.map((p,index)=>{
        const isOutpatient=Number(p.roomId)===11
        const rowProfiles=layoutProfiles(profiles,getLayout(Number(p.roomId))).filter(profile=>
         Number(profile.room_id)===Number(p.roomId)&&isIndicatorApplicableToDiagnosis(profile.indicator_type,p.diagnosis),
@@ -1471,7 +1475,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
         (isAdmin||canViewAllRooms||String(p.enteredBy??'')===currentUserId)&&
         !['validated','archived'].includes(String(p.databaseStatus??'').toLowerCase())
        return <tr key={p.id} onClick={()=>void openPatient(p)}>
-        <td>{index+1}</td>
+        <td>{logbookOffset+index+1}</td>
         {summaryFields.map(field=>{
          const raw=String(summaryCellValue(p,field)??'')||'-'
          return <td key={field}>{showIdentity?raw:maskIdentity(field,raw)}</td>
@@ -1487,7 +1491,11 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
      </table>
     </WorkspaceTableViewport>}
 
-<div className="aqTableFooter"><span>{scopeReady&&<>{filtered.length} dari {yearPatients.length} catatan pada filter aktif</>}</span><button type="button" className="aqBtn" disabled={busy} onClick={()=>void load()}>{busy?'Memuat…':'↻ Muat ulang data'}</button></div>
+<div className="aqTableFooter"><span>{scopeReady&&<>{filtered.length ? logbookOffset+1 : 0}–{logbookOffset+visibleLogbookRows.length} dari {filtered.length} catatan pada filter aktif{filtered.length!==yearPatients.length&&<> · {filtered.length} dari {yearPatients.length} catatan tahun ini</>}</>}</span>{scopeReady&&logbookPageCount>1&&<nav aria-label="Halaman logbook">
+ <button type="button" className="aqBtn" disabled={currentLogbookPage===0} onClick={()=>setLogbookPage(currentLogbookPage-1)}>Sebelumnya</button>
+ <span aria-live="polite"> {currentLogbookPage+1} / {logbookPageCount} </span>
+ <button type="button" className="aqBtn" disabled={currentLogbookPage+1===logbookPageCount} onClick={()=>setLogbookPage(currentLogbookPage+1)}>Berikutnya</button>
+</nav>}<button type="button" className="aqBtn" disabled={busy} onClick={()=>void load()}>{busy?'Memuat…':'↻ Muat ulang data'}</button></div>
 </section></>}
 
    {patientOpen&&selected&&typeof document!=='undefined'&&createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack aqEditorBack" role="presentation"><div ref={editorDialogRef} className="aqEditorDialog" role="dialog" aria-modal="true" aria-label={`Formulir logbook ${recordTitle(selected)}`} tabIndex={-1}>{renderPatientEditor()}</div>

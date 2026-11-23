@@ -83,5 +83,5 @@ test('Super Admin quality results can aggregate every room without mixing reused
   assert.match(results, /selectedRoom == null && !canViewAllRooms/)
   assert.match(results, /calculateIndicatorResultsForProfiles/)
   assert.match(results, /roomId == null && <th>Unit kerja<\/th>/)
-  assert.match(engine, /rows\.filter\(\(row\) => Number\(row\.room_id\) === Number\(profileRoomId\)\)/)
+  assert.match(engine, /byRoom\.get\(Number\(profile\.room_id\)\)/)
 })

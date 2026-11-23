@@ -18,3 +18,11 @@ This note records data-quality defects found during the 29 October 2026 review. 
 - Publish corrected metadata as a new version with approver, effective date, source worksheet, and a regression case for its calculation.
 - Keep ambiguous values in manual review; do not turn missing or unclassified data into a zero or an automatic pass.
 - Reconcile repository source chunks with the live Supabase master before import or deployment. A source JSON file is not the authority for the currently published database profile.
+
+## Salinan workbook dengan rumus yang dapat dipulihkan
+
+Jalankan `python scripts/repair-pmkp-workbook.py --output /direktori/salinan /direktori/sumber/*.xlsx` dengan Python dan `openpyxl`. Skrip mendeteksi pola yang diperiksa pada template 2026, menyalin workbook yang perlu diperbaiki, dan melaporkan jumlah rumus yang diubah per workbook. Berkas sumber tetap utuh. Buka salinan di Excel agar rekap yang bergantung pada rumus tersebut dihitung ulang.
+
+Pola yang ditangani mencakup durasi transfer IGD, rujukan diagnosis pada beberapa workbook rawat inap, rekap stase Timkordik, rujukan angka Laboratorium, dan rekap harian Rawat Jalan. Rekap Rawat Jalan menggunakan tanggal pengamatan dan baris dokter yang terpetakan. Sel dengan nilai sumber tanpa identitas dokter memerlukan konfirmasi dari unit.
+
+Rekap Dashboard Bedah Sentral dan PONEK memiliki rujukan ke kolom petugas yang tidak tersedia dalam workbook terlampir. Pada Gizi, rekap lama di sheet 20 merujuk ke kolom indikator yang tidak tersedia. Ketiga sumber ini memerlukan pemetaan dari pemilik workbook sebelum rumus tersebut dapat diperbaiki.

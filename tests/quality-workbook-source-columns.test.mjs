@@ -94,3 +94,26 @@ test('reads the PMKP numbered profile table beside the duplicate instrument head
   assert.equal(profile.metadata.target_value,80)
   assert.deepEqual(profile.options.map(option=>option.code),[1])
 })
+
+test('provider-day matrix continues after the PMKP February 29 placeholder with or without a leap day', () => {
+  for (const year of [2026, 2028]) {
+    const workbook = new ExcelJS.Workbook()
+    const sheet = workbook.addWorksheet('Logbook')
+    sheet.getRow(1).values = [
+      'Poliklinik', new Date(Date.UTC(year, 1, 28)),
+      { formula: 'IF(AND(MONTH(B1)=2,DAY(B1)=28,OR(MOD(YEAR(B1),400)=0,AND(MOD(YEAR(B1),4)=0,MOD(YEAR(B1),100)<>0))),B1+1,"")' },
+      { formula: 'IF(C1="",B1+1,C1+1)' },
+      { formula: 'D1+1' },
+    ]
+    sheet.getRow(2).values = ['Klinik Uji']
+    sheet.getRow(3).values = ['Dokter Uji', 59, year === 2028 ? 49 : null, 60, 61]
+    const result = parseOutpatientMatrixWorkbook(workbook, year, [{ clinic: 'Klinik Uji', doctors: ['Dokter Uji'] }])
+    assert.deepEqual(result.errors, [])
+    assert.deepEqual(result.rows.map(row => [row.date, row.sourceColumn]), [
+      [year + '-02-28', 'B'],
+      ...(year === 2028 ? [[year + '-02-29', 'C']] : []),
+      [year + '-03-01', 'D'],
+      [year + '-03-02', 'E'],
+    ])
+  }
+})

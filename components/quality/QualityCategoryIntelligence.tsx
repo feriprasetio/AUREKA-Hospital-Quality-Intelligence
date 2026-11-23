@@ -22,7 +22,7 @@ const resultValue = (result: IndicatorResult): string =>
   result.continuous ? (result.annualMean == null ? '—' :
     result.annualMean.toLocaleString('id-ID', { maximumFractionDigits: 2 }) + (result.unit ? ' ' + result.unit : ''))
     : pct(result.annualRate)
-const resultStatus = (result: IndicatorResult): string => !result.validatedRecords ? 'Belum ada hasil' :
+const resultStatus = (result: IndicatorResult, includeReady: boolean): string => !(result.validatedRecords || (includeReady && result.readyRecords)) ? 'Belum ada hasil' :
   result.targetMet == null ? 'Target belum dapat dinilai' : result.targetMet ? 'Memenuhi' : 'Belum memenuhi'
 const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
 const CSS = [
@@ -73,7 +73,7 @@ export default function QualityCategoryIntelligence({
   results, records, year, scopeLabel, selectedCategoryId, onSelectCategory, includeReady, onAskNara, roomName,
 }: Props) {
   const [program, setProgram] = useState<'all' | QualityProgram>('all')
-  const analytics = useMemo(() => buildQualityCategoryAnalytics(results, records, year), [results, records, year])
+  const analytics = useMemo(() => buildQualityCategoryAnalytics(results, records, year, includeReady), [results, records, year, includeReady])
   const byId = useMemo(() => new Map(analytics.map(item => [item.definition.id, item])), [analytics])
   const catalogue = useMemo(() => [...QUALITY_CATEGORY_CATALOG,
     ...analytics.filter(item => !QUALITY_CATEGORY_CATALOG.some(def => def.id === item.definition.id)).map(item => item.definition),
@@ -155,7 +155,7 @@ export default function QualityCategoryIntelligence({
               <td>{item.continuous ? '—' : fmt(item.annualNumerator)}</td>
               <td>{item.continuous ? '—' : fmt(item.annualDenominator)}</td>
               <td><b>{resultValue(item)}</b></td><td>{String(item.profile.target_text ?? 'Belum ditetapkan')}</td>
-              <td className={item.targetMet === false ? 'qciWarning' : ''}>{resultStatus(item)}</td>
+              <td className={item.targetMet === false ? 'qciWarning' : ''}>{resultStatus(item, includeReady)}</td>
             </tr>
           })}</tbody>
         </table></div>

@@ -900,3 +900,35 @@ test('Rawat Jalan reads validated numeric provider-day observations for shared r
   assert.equal(result.targetMet, false)
   assert.equal(diagnoseIndicator(profile, rows, 2026).counted, 4)
 })
+
+
+test('provisional results count ready reports without reclassifying them or changing official totals', () => {
+  const profile = { room_id: 1, code: '1.1', measurement_grain: 'daily_metric', schema_json: { measurement_type: 'ratio' }, target_value: 50, target_operator: '>=' }
+  const rows = Array.from({ length: 13_664 }, (_, index) => qualityRow('2026-01-01', index % 2 ? 'ready' : 'validated', index % 2, 1))
+  const excluded = qualityRow('2026-01-01', 'validated', 1, 1)
+  excluded.core_data.source_import = { exclude_from_profile_year_metrics: true }
+  rows.push(excluded)
+  const [provisional] = calculateIndicatorResultsForProfiles([profile], rows, 2026, true)
+  const [official] = calculateIndicatorResultsForProfiles([profile], rows, 2026)
+  assert.equal(provisional.monthly[0].validatedRecords, 6_832)
+  assert.equal(provisional.monthly[0].readyRecords, 6_832)
+  assert.equal(provisional.annualDenominator, 13_664)
+  assert.equal(provisional.annualRate, 50)
+  assert.equal(official.annualDenominator, 6_832)
+  assert.equal(official.annualRate, 0)
+  assert.equal(rows[1].status, 'ready')
+})
+
+
+test('does not publish ICU visit attainment when the workbook and master disagree on late or absent visits', () => {
+  const profile = {
+    room_id: 14, code: '14.4', title: 'Kepatuhan Jam Visite Dokter Spesialis',
+    options_json: [{ code: 1, label: 'Tidak Visite', numerator: true, denominator: true }],
+  }
+  const row = {
+    room_id: 14, record_date: '2026-01-02', status: 'validated',
+    core_data: { indicator_values: { '14.4': { answer: 'Tidak Visite', code: 1 } } },
+  }
+  assert.equal(calculateIndicatorResult(profile, [row], 2026, true).annualRate, null)
+  assert.equal(diagnoseIndicator(profile, [row], 2026).needsProfileSetup, 1)
+})

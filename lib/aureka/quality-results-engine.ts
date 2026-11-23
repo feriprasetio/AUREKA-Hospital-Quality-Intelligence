@@ -272,14 +272,26 @@ function extractOptionObservation(
   return { month, numerator: option.numerator ? 1 : 0, denominator: 1, value: null, targetMet: null, inputAt }
 }
 
+export function indicatorProfileIssue(profile: IndicatorProfileForResults): string | null {
+  if (Number(profile.room_id) !== 14 || String(profile.code) !== '14.4') return null
+  const options = Array.isArray(profile.options_json) ? profile.options_json : []
+  const hasConflictingVisit = options.some(option =>
+    /^(tidak visite|visite hari kerja \(diatas 14\.00\))$/i.test(String(option.label ?? '').trim()) &&
+    (Number(option.code) !== 3 || option.numerator !== false),
+  )
+  return hasConflictingVisit
+    ? 'Profil 14.4 masih memberi kode atau numerator yang bertentangan untuk kunjungan terlambat atau tidak visite. Periksa profil bersama Komite PMKP.'
+    : null
+}
+
 function extractObservation(
   profile: IndicatorProfileForResults,
   row: ResultRecord,
   month: number,
 ): MeasurementObservation | null {
   const core = row.core_data ?? {}
+  if (core.source_import?.exclude_from_profile_year_metrics === true) return null
   if (isOutpatientWaitingIndicator(profile.room_id, profile.code)) {
-    if (core.source_import?.exclude_from_profile_year_metrics === true) return null
     const value = outpatientWaitingMinutes({ ...core.form_data, ...core.form_fields })
     if (value == null) return null
     const meetsThreshold = value < outpatientWaitingThreshold(profile.schema_json?.threshold_minutes)
@@ -377,23 +389,35 @@ export function calculateIndicatorResultsForProfiles(
   profiles: IndicatorProfileForResults[],
   rows: ResultRecord[],
   year: number,
+  includeReady = false,
 ): IndicatorResult[] {
-  return profiles.map((profile) => {
-    const profileRoomId = profile.room_id
-    const unitRows = profileRoomId == null
-      ? rows
-      : rows.filter((row) => Number(row.room_id) === Number(profileRoomId))
-    return calculateIndicatorResult(profile, unitRows, year)
-  })
+  const byRoom = new Map<number, ResultRecord[]>()
+  for (const row of rows) {
+    if (row.room_id == null) continue
+    const roomId = Number(row.room_id)
+    const roomRows = byRoom.get(roomId)
+    if (roomRows) roomRows.push(row)
+    else byRoom.set(roomId, [row])
+  }
+  return profiles.map(profile => calculateIndicatorResult(
+    profile, profile.room_id == null ? rows : byRoom.get(Number(profile.room_id)) ?? [], year, includeReady,
+  ))
+}
+
+export function isResultStatusIncluded(status: unknown, includeReady: boolean): boolean {
+  const value = String(status ?? '').toLowerCase()
+  return value === 'validated' || (includeReady && value === 'ready')
 }
 
 export function calculateIndicatorResult(
   profile: IndicatorProfileForResults,
   rows: ResultRecord[],
   year: number,
+  includeReady = false,
 ): IndicatorResult {
   const kind = isOutpatientWaitingIndicator(profile.room_id, profile.code) ? 'ratio' : resolveMeasurementKind(profile)
   const continuous = !usesCategoricalResponseCapture(profile) && (kind === 'door' || kind === 'minutes' || kind === 'numeric')
+  const profileIssue = indicatorProfileIssue(profile)
   const accumulators = Array.from({ length: 12 }, (_, index) => ({
     month: index + 1,
     numerator: 0,
@@ -409,7 +433,7 @@ export function calculateIndicatorResult(
   let validatedRecords = 0
   let latestInputAt: string | null = null
 
-  for (const row of rows) {
+  for (const row of profileIssue ? [] : rows) {
     const status = String(row.status ?? '').toLowerCase()
     if (status !== 'ready' && status !== 'validated') continue
     const date = recordDate(row)
@@ -422,6 +446,11 @@ export function calculateIndicatorResult(
     if (status === 'validated') {
       bucket.validatedRecords += 1
       validatedRecords += 1
+    } else {
+      bucket.readyRecords += 1
+      readyRecords += 1
+    }
+    if (isResultStatusIncluded(status, includeReady)) {
       bucket.numerator += observation.numerator
       bucket.denominator += observation.denominator
       if (observation.value != null) bucket.values.push(observation.value)
@@ -429,9 +458,6 @@ export function calculateIndicatorResult(
         bucket.targetDenominator += 1
         if (observation.targetMet) bucket.targetMet += 1
       }
-    } else {
-      bucket.readyRecords += 1
-      readyRecords += 1
     }
     if (observation.inputAt && (!latestInputAt || observation.inputAt > latestInputAt)) latestInputAt = observation.inputAt
   }
@@ -842,6 +868,14 @@ export function diagnoseIndicator(profile: IndicatorProfileForResults, rows: Res
   const kind = resolveMeasurementKind(profile)
   const direction = indicatorDirection(profile)
   const unitRows = profile.room_id == null ? rows : rows.filter((row) => Number(row.room_id) === Number(profile.room_id))
+  const profileIssue = indicatorProfileIssue(profile)
+  if (profileIssue) {
+    d.total = unitRows.length
+    d.notCountable = unitRows.length
+    d.needsProfileSetup = unitRows.length
+    d.reasons.push(profileIssue)
+    return d
+  }
   for (const row of unitRows) {
     d.total++
     const status = String(row.status ?? '').toLowerCase()

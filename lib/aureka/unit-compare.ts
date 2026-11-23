@@ -19,11 +19,11 @@ const higherIsBetter = (r: IndicatorResult) => {
   return !(r.kind === 'door' || r.kind === 'minutes')
 }
 
-export function groupComparable(results: IndicatorResult[], roomName: (id: number) => string): CompareGroup[] {
+export function groupComparable(results: IndicatorResult[], roomName: (id: number) => string, includeReady = false): CompareGroup[] {
   const map = new Map<string, IndicatorResult[]>()
   for (const r of results) {
     const key = titleKey(r.profile.title)
-    if (!key || valueOf(r) == null || r.validatedRecords === 0) continue
+    if (!key || valueOf(r) == null || !(r.validatedRecords || (includeReady && r.readyRecords))) continue
     map.set(key, [...(map.get(key) || []), r])
   }
   const groups: CompareGroup[] = []
@@ -34,7 +34,7 @@ export function groupComparable(results: IndicatorResult[], roomName: (id: numbe
     const entries = list.map((r) => {
       const value = valueOf(r) as number
       const unit = r.continuous ? (r.unit ? ' ' + r.unit : '') : '%'
-      return { roomId: Number(r.profile.room_id), room: roomName(Number(r.profile.room_id)), value, display: value.toLocaleString('id-ID', { maximumFractionDigits: 2 }) + unit, met: r.targetMet, n: r.validatedRecords }
+      return { roomId: Number(r.profile.room_id), room: roomName(Number(r.profile.room_id)), value, display: value.toLocaleString('id-ID', { maximumFractionDigits: 2 }) + unit, met: r.targetMet, n: r.validatedRecords + (includeReady ? r.readyRecords : 0) }
     }).sort((a, b) => higherBetter ? b.value - a.value : a.value - b.value)
     groups.push({ key, title: String(list[0].profile.title ?? ''), target: String(list[0].profile.target_text ?? ''), higherBetter, entries })
   }

@@ -25,6 +25,8 @@ import {
   calculateIndicatorResult,
   calculateIndicatorResultsForProfiles,
   diagnoseIndicator,
+  isResultStatusIncluded,
+  indicatorProfileIssue,
   type ClinicalDeathAuditResultRow,
   type ClinicalPathwayRow,
   type IndicatorProfileForResults,
@@ -174,8 +176,8 @@ function indicatorMonthlyLabel(result: ReturnType<typeof calculateIndicatorResul
   return formatPct(item.rate)
 }
 
-function attainmentCaption(result: ReturnType<typeof calculateIndicatorResult>): string {
-  if (result.validatedRecords === 0) return 'Belum ada data tervalidasi'
+function attainmentCaption(result: ReturnType<typeof calculateIndicatorResult>, includeReady: boolean): string {
+  if (result.validatedRecords === 0 && !(includeReady && result.readyRecords > 0)) return 'Belum ada data tervalidasi'
   if (result.continuous) {
     return result.annualTargetAttainment == null
       ? 'Rerata pengukuran; target per observasi belum dapat dihitung'
@@ -234,14 +236,12 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   }, [roomId, onRoomChange, canViewAllRooms])
   const [year, setYear] = useState(2026)
   const [clinicalTab, setClinicalTab] = useState<ClinicalTab>('clinical')
-  const [rawIndicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
+  const [indicatorData, setIndicatorData] = useState<IndicatorDataset>({ profiles: [], rows: [] })
   // Official INM export always uses the validated dataset. The checkbox adds ready reports to the on-screen view.
-  const [includeReady, setIncludeReady] = useState(false)
-  const rawReadyCount = useMemo(() => rawIndicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'ready').length, [rawIndicatorData])
-  const rawValidatedCount = useMemo(() => rawIndicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'validated').length, [rawIndicatorData])
-  const indicatorData = useMemo<IndicatorDataset>(() => includeReady
-    ? { ...rawIndicatorData, rows: rawIndicatorData.rows.map((row) => String(row.status ?? '').toLowerCase() === 'ready' ? { ...row, status: 'validated' } : row) }
-    : rawIndicatorData, [rawIndicatorData, includeReady])
+  const [includeReadyPreference, setIncludeReady] = useState<boolean | null>(null)
+  const rawReadyCount = useMemo(() => indicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'ready').length, [indicatorData])
+  const rawValidatedCount = useMemo(() => indicatorData.rows.filter((row) => String(row.status ?? '').toLowerCase() === 'validated').length, [indicatorData])
+  const includeReady = includeReadyPreference ?? (rawReadyCount > 0 && rawValidatedCount === 0)
   const [pathwayData, setPathwayData] = useState<PathwayDataset>([])
   const [clinicalData, setClinicalData] = useState<ClinicalDataset>([])
   const [reading, setLoading] = useState(true)
@@ -286,19 +286,17 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           if (selectedRoom != null) request = request.eq('room_id', selectedRoom)
           return request.range(from, to).abortSignal(controller.signal)
         })
-        const recordQuery = readPagesWithLimit<ResultRecord>((from, to) => {
+        const recordQuery = readAllPages<ResultRecord>((from, to) => {
           let request: any = q().from('quality_records')
             .select(indicatorRecordSelect)
             .eq('profile_year', year)
             .neq('status', 'archived')
           if (selectedRoom != null) request = request.eq('room_id', selectedRoom)
           return request.order('created_at', { ascending: false }).order('id').range(from, to).abortSignal(controller.signal)
-        }, RECORD_LIMIT)
-        const [activeProfiles, recordResult] = await Promise.all([profileQuery, recordQuery])
+        })
+        const [activeProfiles, loadedRecords] = await Promise.all([profileQuery, recordQuery])
         if (cancelled) return
-        requireComplete(recordResult.capped)
-        if (recordResult.rows.length > 0) {
-          recordResult.rows = recordResult.rows.map((row: any) => ({
+        const records = loadedRecords.map((row: any): ResultRecord => ({
             ...row,
             core_data: {
               indicator_values: row.indicator_values ?? {},
@@ -309,7 +307,6 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               ...(row.source_import != null ? { source_import: row.source_import } : {}),
             },
           }))
-        }
 
         // Reconciliation decisions live in quality_record_responses, not inside
         // quality_records.core_data. Hydrate the per-indicator review status before
@@ -317,7 +314,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
         const profileById = new Map(activeProfiles.map(profile => [String(profile.id ?? ''), profile]))
         const reviewRows: IndicatorResponseReview[] = []
         if (profileById.size) {
-          const recordIds = recordResult.rows.map(row => String(row.id))
+          const recordIds = records.map(row => String(row.id))
           const batches: string[][] = []
           for (let from = 0; from < recordIds.length; from += 100) batches.push(recordIds.slice(from, from + 100))
           for (let from = 0; from < batches.length; from += 6) {
@@ -334,7 +331,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           }
         }
         const rowById = new Map<string, ResultRecord>()
-        recordResult.rows.forEach((row) => rowById.set(String(row.id), row))
+        records.forEach((row) => rowById.set(String(row.id), row))
         const reviewByRecordProfile = new Map<string, string>()
         const normalizedResponseByKey = new Map<string, IndicatorResponseReview>()
         for (const item of reviewRows) {
@@ -370,7 +367,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
           row.core_data = { ...(row.core_data ?? {}), indicator_values: values }
         }
         if (cancelled) return
-        const indicatorDataset = { profiles: activeProfiles, rows: recordResult.rows }
+        const indicatorDataset = { profiles: activeProfiles, rows: records }
         setIndicatorData(indicatorDataset)
       } else if (mode === 'pathway') {
         const start = String(year) + '-01-01'
@@ -418,17 +415,15 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     return () => { cancelled = true; controller.abort() }
   }, [mode, roomId, year, canViewAllRooms, scope])
 
-  const indicatorResults = useMemo(() => calculateIndicatorResultsForProfiles(
+  const officialIndicatorResults = useMemo(() => calculateIndicatorResultsForProfiles(
     indicatorData.profiles, indicatorData.rows, year,
   ), [indicatorData, year])
+  const indicatorResults = useMemo(() => includeReady ? calculateIndicatorResultsForProfiles(
+    indicatorData.profiles, indicatorData.rows, year, true,
+  ) : officialIndicatorResults, [includeReady, indicatorData, year, officialIndicatorResults])
   const assessedIndicators = indicatorResults.filter((result) => result.observations > 0 && result.targetMet != null)
-  // A category is resolved from the published indicator's program (workbook column G).
-  // The classification catalogue is independent of the profile import lifecycle.
-  const officialIndicatorResults = useMemo(() => calculateIndicatorResultsForProfiles(
-    rawIndicatorData.profiles, rawIndicatorData.rows, year,
-  ), [rawIndicatorData, year])
   const roomNameOf = (id: number) => rooms.find((room) => Number(room.id) === id)?.name ?? 'Unit ' + id
-  const compareGroups = useMemo(() => roomId == null ? groupComparable(indicatorResults, roomNameOf) : [], [indicatorResults, roomId, rooms]) // eslint-disable-line react-hooks/exhaustive-deps
+  const compareGroups = useMemo(() => roomId == null ? groupComparable(indicatorResults, roomNameOf, includeReady) : [], [indicatorResults, roomId, rooms, includeReady]) // eslint-disable-line react-hooks/exhaustive-deps
   const [compareOpen, setCompareOpen] = useState(false)
   const hasInm = indicatorResults.some(isInm)
   const inmHasData = useMemo(() => buildInmRows(officialIndicatorResults, year, () => '').length > 0, [officialIndicatorResults, year])
@@ -445,7 +440,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
   const [whyFor, setWhyFor] = useState<IndicatorProfileForResults | null>(null)
-  const whyDiagnosis = useMemo(() => whyFor ? diagnoseIndicator(whyFor, rawIndicatorData.rows, year) : null, [whyFor, rawIndicatorData, year])
+  const whyDiagnosis = useMemo(() => whyFor ? diagnoseIndicator(whyFor, indicatorData.rows, year) : null, [whyFor, indicatorData, year])
   const [spcFor, setSpcFor] = useState<ReturnType<typeof calculateIndicatorResult> | null>(null)
   const [sourceFor, setSourceFor] = useState<IndicatorProfileForResults | null>(null)
   const [sourceMonth, setSourceMonth] = useState<number | null>(null)
@@ -518,20 +513,13 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
   const visibleIndicatorResults = groupBy === 'category' && categoryFilter ? indicatorResults.filter((result) => resolveQualityCategory(result.profile).id === categoryFilter) : indicatorResults
   const metIndicators = assessedIndicators.filter((result) => result.targetMet === true).length
   const overallIndicatorAchievement = assessedIndicators.length ? (metIndicators / assessedIndicators.length) * 100 : null
-  const readyCount = mode === 'indicators'
-    ? 0
-    : 0
-  const validatedCount = mode === 'indicators'
-    ? indicatorData.rows.filter((row) => ['ready','validated'].includes(String(row.status).toLowerCase())).length
-    : 0
-
   const pharmacyMetricSummary = useMemo(() => {
     if (mode !== 'indicators' || Number(roomId) !== 5) return null
 
     const yearRows = indicatorData.rows.filter((row) => operationalCalendarParts(row)?.year === year)
     const validatedRows = yearRows.filter((row) => String(row.status ?? '').toLowerCase() === 'validated')
     const readyRecords = yearRows.filter((row) => String(row.status ?? '').toLowerCase() === 'ready').length
-    const pharmacyRows = validatedRows.map((row) => ({
+    const pharmacyRows = yearRows.filter(row => isResultStatusIncluded(row.status, includeReady)).map((row) => ({
       databaseStatus: row.status,
       formData: operationalFormFields(row),
       indicatorValues: row.core_data?.indicator_values ?? {},
@@ -556,17 +544,17 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       readyRecords,
       periodLabel: String(year),
     }
-  }, [mode, roomId, indicatorData, indicatorResults, year])
+  }, [mode, roomId, indicatorData, includeReady, year])
 
   const outpatientClinicSummary = useMemo(() => {
     if (mode !== 'indicators' || Number(roomId) !== 11) return null
 
     const yearRows = indicatorData.rows.filter((row) => operationalCalendarParts(row)?.year === year)
-    const validatedRows = yearRows.filter((row) =>
-      String(row.status ?? '').toLowerCase() === 'validated' &&
+    const includedRows = yearRows.filter((row) =>
+      isResultStatusIncluded(row.status, includeReady) &&
       row.core_data?.source_import?.exclude_from_profile_year_metrics !== true
     )
-    const outpatientRows = validatedRows.map((row) => {
+    const outpatientRows = includedRows.map((row) => {
       const date = operationalRecordDate(row)
       return {
         admit: date,
@@ -587,10 +575,10 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
       metrics,
       thresholdMinutes,
       recordsWithMinutes: metrics.reduce((total, item) => total + item.measurementCount, 0),
-      validatedRecords: validatedRows.length,
+      includedRecords: includedRows.length,
       periodLabel: String(year),
     }
-  }, [mode, roomId, indicatorData, year])
+  }, [mode, roomId, indicatorData, includeReady, year])
 
   const pathway = useMemo(() => aggregateClinicalPathwayRows(pathwayData), [pathwayData])
   const pathwayMonthly = useMemo(() => aggregatePathwayByMonth(pathwayData, year), [pathwayData, year])
@@ -771,6 +759,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
             </div>
             <div className="qraNotice" role="status" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}><input type="checkbox" checked={includeReady} onChange={(event) => setIncludeReady(event.target.checked)} /> Hitung juga laporan yang belum divalidasi</label>
+              {includeReady ? <span>Pratinjau capaian sementara. Ekspor INM memakai laporan tervalidasi.</span> : rawReadyCount > 0 && rawValidatedCount === 0 && <span>Laporan tersedia untuk pratinjau. Belum ada laporan tervalidasi.</span>}
             </div>
             {groupBy === 'category' && <section className="qraPanel" aria-label="Capaian per kategori indikator">
               <QualityCategoryIntelligence
@@ -804,18 +793,18 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                   <thead><tr>{roomId == null && <th>Unit kerja</th>}<th>Indikator / target</th>{MONTHS.map((month) => <th key={month}>{month}</th>)}<th>Rata-rata tahunan</th><th>Status target</th><th>Input terakhir</th><th>Jumlah data</th></tr></thead>
                   <tbody>{visibleIndicatorResults.map((result) => <tr key={result.profile.id ?? result.profile.code}>
                     {roomId == null && <td><strong>{rooms.find((room) => Number(room.id) === Number(result.profile.room_id))?.name ?? 'Unit tidak diketahui'}</strong></td>}
-                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small><button type="button" className="qraSourceBtn" onClick={() => openSourceTrace(result.profile)}>Sumber Excel · semua bulan</button>{result.validatedRecords > 0 && <button type="button" className="qraSpcBtn" onClick={() => setSpcFor(result)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8 3 3" /></svg>Grafik kendali</button>}</td>
+                    <td><strong>{result.profile.code ? result.profile.code + ' · ' : ''}{result.profile.title ?? 'Indikator tanpa judul'}</strong><small>Target: {targetLabel(result.profile)} · {result.kind === 'ratio' ? 'Rasio N/D' : result.continuous ? 'Rerata pengukuran dan target per observasi' : 'Proporsi hasil numerator'}</small><button type="button" className="qraSourceBtn" onClick={() => openSourceTrace(result.profile)}>Sumber Excel · semua bulan</button>{(result.validatedRecords > 0 || (includeReady && result.readyRecords > 0)) && <button type="button" className="qraSpcBtn" onClick={() => setSpcFor(result)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 3 6-8 3 3" /></svg>Grafik kendali</button>}</td>
                     {result.monthly.map((month) => <td key={month.month} className={month.observations === 0 ? 'qraDim' : ''}>
                       <button type="button" className="qraSourceCell" onClick={() => openSourceTrace(result.profile, month.month)} title={'Telusuri nilai sumber Excel untuk ' + MONTHS[month.month - 1]}>
                         <strong>{indicatorMonthlyLabel(result, month.month)}</strong>
-                        <small>{month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) + (result.continuous ? '' : ' · N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator)) + (month.readyRecords ? ' · ' + formatCount(month.readyRecords) + ' siap' : '') : month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau · belum tervalidasi' : 'Belum ada hasil tercatat'}</small>
+                        <small>{month.observations ? [month.validatedRecords ? 'Valid n=' + formatCount(month.validatedRecords) : '', month.readyRecords ? formatCount(month.readyRecords) + ' siap ditinjau' : '', !result.continuous && month.denominator > 0 ? 'N/D ' + formatCount(month.numerator) + '/' + formatCount(month.denominator) : ''].filter(Boolean).join(' · ') : 'Belum ada hasil tercatat'}</small>
                         <em>Lacak Excel</em>
                       </button>
                     </td>)}
-                    <td><strong>{result.continuous ? (result.annualMean == null ? '-' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
+                    <td><strong>{result.continuous ? (result.annualMean == null ? '-' : result.annualMean.toFixed(2).replace('.', ',') + (result.unit ? ' ' + result.unit : '')) : formatPct(result.annualRate)}</strong><small>{attainmentCaption(result, includeReady)}{result.monthlyMeanRate == null ? '' : ' · rerata bulanan ' + formatPct(result.monthlyMeanRate)}{result.readyRecords ? ' · ' + formatCount(result.readyRecords) + ' siap ditinjau' : ''}</small></td>
                     <td><StatusPill value={result.targetMet} /></td>
                     <td>{formatDateTime(result.latestInputAt)}</td>
-                    <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small>{result.observations === 0 && <button type="button" className="qraWhyBtn" onClick={() => setWhyFor(result.profile)}>Kenapa kosong?</button>}</td>
+                    <td><strong>{formatCount(result.observations)}</strong><small>{formatCount(result.readyRecords)} siap · {formatCount(result.validatedRecords)} valid</small>{indicatorProfileIssue(result.profile) && <small>Profil memerlukan koreksi</small>}{(result.observations === 0 || (!includeReady && result.validatedRecords === 0)) && <button type="button" className="qraWhyBtn" onClick={() => setWhyFor(result.profile)}>Kenapa kosong?</button>}</td>
                   </tr>)}</tbody>
                 </table></WorkspaceTableViewport>}
               <AurekaModal open={!!whyFor} size="md" onClose={() => setWhyFor(null)}
@@ -833,7 +822,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               </AurekaModal>
               <AurekaModal open={!!spcFor} size="lg" onClose={() => setSpcFor(null)}
                 title={spcFor ? (spcFor.profile.code ? spcFor.profile.code + ' · ' : '') + (spcFor.profile.title ?? 'Indikator') : ''}
-                subtitle={spcFor ? 'Grafik kendali ' + year + ' · ' + (rooms.find((room) => Number(room.id) === Number(spcFor.profile.room_id))?.name ?? selectedRoomName) + ' · target ' + targetLabel(spcFor.profile) : ''}>
+                subtitle={spcFor ? 'Grafik kendali ' + year + (includeReady ? ' · pratinjau sementara' : '') + ' · ' + (rooms.find((room) => Number(room.id) === Number(spcFor.profile.room_id))?.name ?? selectedRoomName) + ' · target ' + targetLabel(spcFor.profile) : ''}>
                 {spcFor && <SpcChart
                   percent={!spcFor.continuous && spcFor.kind !== 'ratio'}
                   unit={spcFor.continuous ? (spcFor.unit ? ' ' + spcFor.unit : '') : '%'}
@@ -891,7 +880,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                         <td>{row.status || '-'}</td>
                       </tr>)}</tbody>
                     </table>
-                    {sourceProvenance.rowsWithValues > sourceProvenance.rows.length && <div className="qraMuted">Menampilkan 25 nilai sumber terbaru.</div>}
+                    {sourceProvenance.rows.length > 25 && <div className="qraMuted">Menampilkan 25 nilai sumber terbaru.</div>}
                   </div> : <EmptyState title="Nilai sumber belum tersedia" detail="Belum ada nilai kolom Excel yang tersimpan untuk indikator ini pada episode yang dimuat." />}
                   <div className="qraInfo">
                     Header dan koordinat sel aktual direkam dari workbook saat impor. Referensi seperti Logbook!J42 menunjuk ke sel sumber yang digunakan. Untuk data impor terdahulu, AUREKA hanya menampilkan metadata yang memang tersimpan dan tidak menebak header atau kolom.
@@ -906,7 +895,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 </div>
                 <div className="qraKpis qraKpisThree">
                   <Kpi label="Catatan tervalidasi" value={formatCount(pharmacyMetricSummary.validatedRecords)} detail="" />
-                  <Kpi label="Siap ditinjau" value={formatCount(pharmacyMetricSummary.readyRecords)} detail="Tidak dimasukkan ke numerator/denominator resmi" />
+                  <Kpi label="Siap ditinjau" value={formatCount(pharmacyMetricSummary.readyRecords)} detail={includeReady ? "Termasuk dalam pratinjau" : "Menunggu validasi"} />
                   <Kpi label="Indikator Farmasi" value={formatCount(pharmacyMetricSummary.metrics.length)} detail="Empat indikator pada rekap operasional" />
                 </div>
                 <WorkspaceTableViewport label="Rekap capaian indikator Farmasi" className="qraTableWrap">
@@ -934,7 +923,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               {outpatientClinicSummary && <section className="qraPanel" aria-label="Rekap capaian waktu tunggu Rawat Jalan">
                 <div className="qraPanelHead">
                   <div><h3>Rekap waktu tunggu Rawat Jalan per klinik</h3></div>
-                  <span className="qraPill">{outpatientClinicSummary.periodLabel} · {outpatientClinicSummary.validatedRecords} {includeReady ? 'catatan dalam rekap' : 'tervalidasi'}</span>
+                  <span className="qraPill">{outpatientClinicSummary.periodLabel} · {outpatientClinicSummary.includedRecords} {includeReady ? 'catatan dalam rekap' : 'tervalidasi'}</span>
                 </div>
                 <div className="qraKpis qraKpisThree">
                   <Kpi label="Pengukuran berangka" value={formatCount(outpatientClinicSummary.recordsWithMinutes)} detail={outpatientClinicSummary.periodLabel} />

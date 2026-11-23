@@ -89,8 +89,14 @@ export function parseOutpatientMatrixSheet(sheet:Worksheet,year:number,groups:Ou
   if(parsed&&Number(parsed.slice(0,4))===year){currentDate=parsed;dateColumns.push({column:c,date:parsed});continue}
   const formula=String(cell.formula??'').replace(/[=$\s]/g,'').toUpperCase()
   const previous=c>firstDateColumn?sheet.getRow(headerRow).getCell(c - 1).address.toUpperCase():''
-  if(c>firstDateColumn&&formula===previous+'+1'){
-   const next=new Date(currentDate+'T00:00:00Z');next.setUTCDate(next.getUTCDate()+1);currentDate=next.toISOString().slice(0,10)
+  const beforePrevious=c>firstDateColumn+1?sheet.getRow(headerRow).getCell(c - 2).address.toUpperCase():''
+  const leapPlaceholder=previous&&formula===`IF(AND(MONTH(${previous})2,DAY(${previous})28,OR(MOD(YEAR(${previous}),400)0,AND(MOD(YEAR(${previous}),4)0,MOD(YEAR(${previous}),100)<>0))),${previous}+1,"")`
+  const afterLeapPlaceholder=beforePrevious&&formula===`IF(${previous}"",${beforePrevious}+1,${previous}+1)`
+  const next=new Date(currentDate+'T00:00:00Z')
+  next.setUTCDate(next.getUTCDate()+1)
+  if(leapPlaceholder&&next.getUTCMonth()===2&&next.getUTCDate()===1)continue
+  if(previous&&(formula===previous+'+1'||leapPlaceholder||afterLeapPlaceholder)){
+   currentDate=next.toISOString().slice(0,10)
    if(Number(currentDate.slice(0,4))===year)dateColumns.push({column:c,date:currentDate})
    continue
   }
