@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
@@ -104,6 +105,7 @@ export default function ItExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<ItPreparedLogbookRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -391,10 +393,11 @@ export default function ItExcelImportDialog({
                 <strong>Pratinjau berhasil.</strong> {rows.length} laporan terstruktur dan akan dikirim dalam batch. Nomor laporan menjadi kunci idempotensi; unggah ulang workbook yang sama tidak membuat rekaman ganda.
               </div>
               <div className="itTable">
-                <table>
+                <QualityWorkbookPreviewControls config={previewConfig} />
+          <table>
                   <thead><tr><th>No.</th><th>Tanggal keluhan</th><th>Gangguan IT</th><th>Asal ruangan</th><th>Petugas IT</th><th>Tindak lanjut</th><th>Mapping</th></tr></thead>
                   <tbody>
-                    {rows.slice(0, 20).map((row) => (
+                    {previewConfig.preview.map((row) => (
                       <tr key={row.sourceNo}>
                         <td>{row.sourceNo}</td>
                         <td>{row.recordDateTime.replace('T', ' ')}</td>

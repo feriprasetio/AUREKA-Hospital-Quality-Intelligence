@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
@@ -241,6 +242,7 @@ export default function ComplaintExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -473,8 +475,9 @@ export default function ComplaintExcelImportDialog({
             <strong>Impor diblokir: perbaiki/cek data sumber dahulu.</strong>{'\n'}{errors.slice(0, 20).map((error, index) => String(index + 1) + '. ' + error).join('\n')}{errors.length > 20 ? '\n… dan ' + (errors.length - 20) + ' kesalahan lainnya.' : ''}
           </div>}
           {rows.length > 0 && <div className="ciTable">
-            <table><thead><tr><th>Baris</th><th>Tanggal aduan</th><th>Nama (disamarkan)</th><th>No. RM</th><th>Unit layanan</th><th>Durasi formula Excel</th><th>Peringatan sumber</th></tr></thead>
-              <tbody>{rows.slice(0, 100).map(row => <tr key={row.sourceRow}>
+            <QualityWorkbookPreviewControls config={previewConfig} />
+          <table><thead><tr><th>Baris</th><th>Tanggal aduan</th><th>Nama (disamarkan)</th><th>No. RM</th><th>Unit layanan</th><th>Durasi formula Excel</th><th>Peringatan sumber</th></tr></thead>
+              <tbody>{previewConfig.preview.map(row => <tr key={row.sourceRow}>
                 <td>{row.sourceRow}</td>
                 <td>{row.formFields['Tanggal Aduan'].replace('T', ' ')}</td>
                 <td>{row.patientName.length > 2 ? row.patientName.slice(0, 1) + '•••' + row.patientName.slice(-1) : '•••'}</td>

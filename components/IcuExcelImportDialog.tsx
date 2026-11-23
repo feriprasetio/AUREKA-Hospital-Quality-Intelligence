@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
@@ -351,6 +352,7 @@ export default function IcuExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -362,7 +364,7 @@ export default function IcuExcelImportDialog({
   const [findings, setFindings] = useState<WorkbookFindings | null>(null)
 
   const eligible = open && authorized && roomId === 14 && year === 2026
-  const preview = useMemo(() => rows.slice(0, 100), [rows])
+  const preview = previewConfig.preview
   const mappedResponses = useMemo(
     () => rows.reduce((count, row) => count + Object.values(row.indicators).filter(answer => !answer.reviewRequired).length, 0),
     [rows],
@@ -682,7 +684,8 @@ export default function IcuExcelImportDialog({
         {rows.length > 0 && <div className="iiBox">
           <strong>Preview tersamarkan · 100 dari {rows.length} episode pertama</strong>
           <div className="iiTable" style={{ marginTop: 8 }}>
-            <table>
+            <QualityWorkbookPreviewControls config={previewConfig} />
+          <table>
               <thead><tr><th>Baris Excel</th><th>No. RM</th><th>Nama</th><th>Tanggal masuk–keluar</th><th>LOS</th><th>Respons master</th><th>Warnings</th></tr></thead>
               <tbody>
                 {preview.map(row => {

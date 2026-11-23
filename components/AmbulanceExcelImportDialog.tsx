@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
@@ -221,6 +222,7 @@ export default function AmbulanceExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [excludedRows, setExcludedRows] = useState<ExcludedRow[]>([])
   const [formulaErrorCount, setFormulaErrorCount] = useState(0)
   const [errors, setErrors] = useState<string[]>([])
@@ -492,8 +494,9 @@ export default function AmbulanceExcelImportDialog({
             {excludedRows.length > 35 ? '\n… dan ' + (excludedRows.length - 35) + ' baris lainnya.' : ''}
           </div>}
           {rows.length > 0 && <div className="ciTable">
-            <table><thead><tr><th>Baris</th><th>Tanggal</th><th>Nama (disamarkan)</th><th>Jam minta</th><th>Jam diantar</th><th>Menit respons</th><th>Catatan QA</th></tr></thead>
-              <tbody>{rows.slice(0, 120).map(row => (
+            <QualityWorkbookPreviewControls config={previewConfig} />
+          <table><thead><tr><th>Baris</th><th>Tanggal</th><th>Nama (disamarkan)</th><th>Jam minta</th><th>Jam diantar</th><th>Menit respons</th><th>Catatan QA</th></tr></thead>
+              <tbody>{previewConfig.preview.map(row => (
                 <tr key={row.sourceRow}>
                   <td>{row.sourceRow}</td>
                   <td>{row.requestDate}</td>

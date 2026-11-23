@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
@@ -234,6 +235,7 @@ export default function GiziExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [excludedRows, setExcludedRows] = useState<ExcludedRow[]>([])
   const [duplicateStats, setDuplicateStats] = useState<DuplicateStats | null>(null)
   const [sourceRowCount, setSourceRowCount] = useState(0)
@@ -590,8 +592,9 @@ export default function GiziExcelImportDialog({
           </div>}
           {rows.some(row => row.warnings.length > 0) && <div className="ciMessage ciWarning"><strong>{warningRows.length} episode perlu pemeriksaan sumber.</strong> Nilai asli dipertahankan pada provenance; respons yang kosong atau tidak cocok dengan master tidak diklasifikasikan otomatis.</div>}
           {rows.length > 0 && <div className="ciTable">
-            <table><thead><tr><th>Baris Excel</th><th>Tanggal masuk</th><th>Nama (masking)</th><th>No. RM (masking)</th><th>7.1 · Assessment</th><th>7.2 · Instruksi DPJP</th><th>Catatan QA</th></tr></thead>
-              <tbody>{rows.slice(0, 120).map(row => (
+            <QualityWorkbookPreviewControls config={previewConfig} />
+          <table><thead><tr><th>Baris Excel</th><th>Tanggal masuk</th><th>Nama (masking)</th><th>No. RM (masking)</th><th>7.1 · Assessment</th><th>7.2 · Instruksi DPJP</th><th>Catatan QA</th></tr></thead>
+              <tbody>{previewConfig.preview.map(row => (
                 <tr key={row.sourceRow}>
                   <td>{row.sourceRow}</td>
                   <td>{row.date}</td>
