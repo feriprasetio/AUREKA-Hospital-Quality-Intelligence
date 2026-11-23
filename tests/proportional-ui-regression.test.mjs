@@ -32,7 +32,8 @@ test('proportional UI stylesheet loads after existing theme and motion styles', 
   assert.ok(imports.indexOf('aureka-universal-tabs.css') < imports.indexOf('aureka-navigation-repair.css'))
   assert.ok(imports.indexOf('aureka-layout-integrity.css') < imports.indexOf('aureka-navigation-pill.css'))
   assert.ok(imports.indexOf('aureka-navigation-pill.css') < imports.indexOf('aureka-navigation-system.css'))
-  assert.equal(imports.at(-1), 'aureka-canvas-preferences.css')
+  assert.equal(imports.at(-1), 'aureka-contrast-guardrails.css')
+  assert.ok(imports.indexOf('aureka-canvas-preferences.css') < imports.indexOf('aureka-contrast-guardrails.css'))
   assert.ok(imports.indexOf('aureka-navigation-system.css') < imports.indexOf('aureka-canvas-preferences.css'))
 })
 

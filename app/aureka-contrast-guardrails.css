@@ -1,0 +1,229 @@
+/*
+ * AUREKA contrast safety net – shared by every workspace and body-portal dialog.
+ *
+ * Root cause (23 Nov 2026): the Arktik .aqBtn color rule had greater
+ * specificity than .aqBtn.primary. In AurekaModal the primary gradient was
+ * dark navy but its inherited text became dark navy as well (1.3:1).
+ * The module-local correction did not reach portals mounted below <body>.
+ *
+ * Keep surfaces and foregrounds paired; do not fix colors with broad
+ * button {color:...} rules, which break secondary and danger actions.
+ */
+html[data-skin="arktik"] {
+  --aureka-action-bg: #0b467a;
+  --aureka-action-hover: #093d6b;
+  --aureka-action-fg: #ffffff;
+  --aureka-action-disabled-bg: #53677c;
+  --aureka-action-disabled-fg: #ffffff;
+  --aureka-neutral-action-bg: #ffffff;
+  --aureka-neutral-action-fg: #0b2f52;
+  --aureka-neutral-action-edge: #bdcfe2;
+  --aureka-focus-contrast: #0b467a;
+}
+
+html[data-skin="arktik"][data-mode="gelap"] {
+  --aureka-action-bg: #4993d4;
+  --aureka-action-hover: #65a5de;
+  --aureka-action-fg: #0b1f33;
+  --aureka-action-disabled-bg: #a2b8cc;
+  --aureka-action-disabled-fg: #0b1f33;
+  --aureka-neutral-action-bg: #1b2a3c;
+  --aureka-neutral-action-fg: #edf4fd;
+  --aureka-neutral-action-edge: #627992;
+  --aureka-focus-contrast: #fbbf46;
+}
+
+/*
+ * Reach both workspace-local UI and document.body portals. Specificity and
+ * !important are intentional: the older Arktik theme carries important rules
+ * on the base button class that otherwise override .primary in dark mode.
+ */
+html[data-skin="arktik"] body
+:is(.workspaceRoot, .akModalRoot, .aqPortal, [aria-modal="true"])
+:is(
+  .aqBtn.primary,
+  .psBtn.primary,
+  .rmButton.primary,
+  .cpBtn.primary,
+  .cpButton.primary,
+  .oppeBtn.primary,
+  .oppeButton.primary,
+  .sdBtn.primary,
+  .stBtn.primary,
+  .stButton.primary,
+  .uBtn.primary,
+  .qraBtn.primary,
+  .acdBtn.primary,
+  .prButton.primary,
+  .akBtn.primary
+):not(.danger) {
+  background: var(--aureka-action-bg) !important;
+  border-color: var(--aureka-action-bg) !important;
+  color: var(--aureka-action-fg) !important;
+  -webkit-text-fill-color: var(--aureka-action-fg) !important;
+  text-shadow: none !important;
+  font-weight: 700;
+}
+
+/* Child labels and icons must share the accessible foreground, not a stale
+   nested "muted" color from a previous theme or density stylesheet. */
+html[data-skin="arktik"] body
+:is(.workspaceRoot, .akModalRoot, .aqPortal, [aria-modal="true"])
+:is(
+  .aqBtn.primary,
+  .psBtn.primary,
+  .rmButton.primary,
+  .cpBtn.primary,
+  .cpButton.primary,
+  .oppeBtn.primary,
+  .oppeButton.primary,
+  .sdBtn.primary,
+  .stBtn.primary,
+  .stButton.primary,
+  .uBtn.primary,
+  .qraBtn.primary,
+  .acdBtn.primary,
+  .prButton.primary,
+  .akBtn.primary
+):not(.danger) :is(span, small, strong, b, em, svg) {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+html[data-skin="arktik"] body
+:is(.workspaceRoot, .akModalRoot, .aqPortal, [aria-modal="true"])
+:is(
+  .aqBtn.primary,
+  .psBtn.primary,
+  .rmButton.primary,
+  .cpBtn.primary,
+  .cpButton.primary,
+  .oppeBtn.primary,
+  .oppeButton.primary,
+  .sdBtn.primary,
+  .stBtn.primary,
+  .stButton.primary,
+  .uBtn.primary,
+  .qraBtn.primary,
+  .acdBtn.primary,
+  .prButton.primary,
+  .akBtn.primary
+):not(.danger):is(:hover, :focus-visible, :active) {
+  background: var(--aureka-action-hover) !important;
+  border-color: var(--aureka-action-hover) !important;
+  color: var(--aureka-action-fg) !important;
+  -webkit-text-fill-color: var(--aureka-action-fg) !important;
+}
+
+/* Disabled does not mean illegible: keep a distinguishable neutral surface. */
+html[data-skin="arktik"] body
+:is(.workspaceRoot, .akModalRoot, .aqPortal, [aria-modal="true"])
+:is(
+  .aqBtn.primary,
+  .psBtn.primary,
+  .rmButton.primary,
+  .cpBtn.primary,
+  .cpButton.primary,
+  .oppeBtn.primary,
+  .oppeButton.primary,
+  .sdBtn.primary,
+  .stBtn.primary,
+  .stButton.primary,
+  .uBtn.primary,
+  .qraBtn.primary,
+  .acdBtn.primary,
+  .prButton.primary,
+  .akBtn.primary
+):not(.danger):disabled {
+  background: var(--aureka-action-disabled-bg) !important;
+  border-color: var(--aureka-action-disabled-bg) !important;
+  color: var(--aureka-action-disabled-fg) !important;
+  -webkit-text-fill-color: var(--aureka-action-disabled-fg) !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+}
+
+/*
+ * Specifically repair the "Impor Excel" choice dialog (IBS, ICU, Gizi, etc).
+ * This menu is a body-portal, not a child of .workspaceRoot/.moduleEnter.
+ */
+html[data-skin="arktik"] .akModalRoot .aqWorkbookChoices {
+  display: grid;
+  gap: 10px;
+  padding: 4px 0;
+  min-width: 0;
+}
+html[data-skin="arktik"] .akModalRoot .aqWorkbookChoices > .aqBtn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px !important;
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+  line-height: 1.5 !important;
+  font-size: 14px !important;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html[data-skin="arktik"] .akModalRoot .aqWorkbookChoices > .aqBtn:not(.primary):not(.danger) {
+  background: var(--aureka-neutral-action-bg) !important;
+  border: 1px solid var(--aureka-neutral-action-edge) !important;
+  color: var(--aureka-neutral-action-fg) !important;
+  -webkit-text-fill-color: var(--aureka-neutral-action-fg) !important;
+}
+html[data-skin="arktik"] .akModalRoot .aqWorkbookChoices > .aqBtn:not(.primary):not(.danger):hover {
+  border-color: var(--aureka-focus-contrast) !important;
+}
+
+/* Modal controls remain readable in both appearance modes and on mobile. */
+html[data-skin="arktik"]:not([data-mode="gelap"])
+:is(.akModalRoot, .aqPortal)
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select, textarea) {
+  background-color: #ffffff;
+  color: #0b1f33;
+  -webkit-text-fill-color: #0b1f33;
+}
+html[data-skin="arktik"][data-mode="gelap"]
+:is(.akModalRoot, .aqPortal)
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select, textarea) {
+  background-color: #19293c;
+  color: #eaf3fd;
+  -webkit-text-fill-color: #eaf3fd;
+}
+html[data-skin="arktik"]:not([data-mode="gelap"])
+:is(.akModalRoot, .aqPortal)
+:is(input, textarea)::placeholder { color: #52677b; opacity: 1; }
+html[data-skin="arktik"][data-mode="gelap"]
+:is(.akModalRoot, .aqPortal)
+:is(input, textarea)::placeholder { color: #bdd0e3; opacity: 1; }
+
+/* System-wide keyboard focus, including custom portal widgets. */
+html[data-skin="arktik"] body
+:is(.workspaceRoot, .akModalRoot, .aqPortal)
+:is(button, a, input, select, textarea, summary, [role="button"], [role="tab"]):focus-visible {
+  outline: 3px solid var(--aureka-focus-contrast) !important;
+  outline-offset: 3px !important;
+}
+
+/* Minimum mobile target size for modal commands, but do not enlarge data cells. */
+@media (pointer: coarse) {
+  html[data-skin="arktik"] .akModalRoot .akModalClose,
+  html[data-skin="arktik"] .akModalRoot .aqWorkbookChoices > button,
+  html[data-skin="arktik"] .akModalRoot .akModalFoot button {
+    min-height: 44px !important;
+  }
+}
+
+/* Native high-contrast users should get system colors, not forced brand paint. */
+@media (forced-colors: active) {
+  html[data-skin="arktik"] body :is(.workspaceRoot,.akModalRoot,.aqPortal,[aria-modal="true"])
+  :is(.aqBtn.primary,.psBtn.primary,.rmButton.primary,.cpBtn.primary,.oppeBtn.primary,.sdBtn.primary,.stBtn.primary,.uBtn.primary,.akBtn.primary):not(.danger) {
+    forced-color-adjust: auto;
+    background: Highlight !important;
+    color: HighlightText !important;
+    -webkit-text-fill-color: HighlightText !important;
+    border-color: Highlight !important;
+  }
+}
