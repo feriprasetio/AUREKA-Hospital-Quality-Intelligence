@@ -345,7 +345,7 @@ export default function RekamMedisExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="rekam-medis" year={year} />
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="rekam-medis" year={year} /><div className="qiuMain">
           <div className="rmIntro">
             Pilih workbook .xlsx yang berisi sheet <strong>Logbook</strong>. Baris header dibaca dari baris 2. Setiap baris pasien menjadi satu catatan event dengan dua respons indikator. Data hanya dipetakan ke master indikator aktif; nilai yang tidak dikenal dipertahankan dan diberi penanda perlu ditinjau.
           </div>
@@ -402,6 +402,7 @@ export default function RekamMedisExcelImportDialog({
             <strong>Impor selesai.</strong> Diterima: {result.received_count}; catatan baru: {result.imported_count}; sudah ada dan dilewati: {result.skipped_existing_count}.
           </div>}
         </div>
+</div>
         <div className="aqFoot">
           <span className="rmPrivacy">Status setelah impor: Siap Ditinjau. Validasi tetap dilakukan oleh validator yang berwenang.</span>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
