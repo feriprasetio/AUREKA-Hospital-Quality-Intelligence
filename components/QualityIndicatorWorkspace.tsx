@@ -24,7 +24,7 @@ import {useAccessibleDialog} from '@/components/layout/useAccessibleDialog'
 
 
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
-import { compareToTarget, isWithinVisitWindow, resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
+import { compareToTarget, isWithinVisitWindow, resolveMeasurementKind, usesCategoricalResponseCapture, usesStoredAggregateResponse } from '@/lib/aureka/indicator-engine'
 import { buildIndicatorDropdownOptions, findIndicatorDropdownSelection, shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
 import { isCategoricalResponseRecorded, isIndicatorApplicableToDiagnosis } from '@/lib/aureka/quality-logbook-coverage'
 import { getOutpatientDoctorsForClinic, isOutpatientWaitingIndicator, outpatientWaitingMinutes, OUTPATIENT_WAITING_MINUTES_FIELD } from '@/lib/aureka/outpatient-logbook'
@@ -262,7 +262,7 @@ function responseComplete(p:Profile,r:Resp|undefined){
  }
  const k=kind(p),opts=optionsFor(p)
  if(r.code_only&&validResponseCode(r.code)!=null)return opts.some((option:any)=>Number(option.code)===r.code)
- if(isCategoricalResponseCapture(p)){
+ if(isCategoricalResponseCapture(p)&&!usesStoredAggregateResponse(p,r)){
    if(!String(r.answer??'').trim())return false
    return isCategoricalResponseRecorded(opts,r)
  }
@@ -1250,7 +1250,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  }
 
  const indicatorEditor=(p:Profile)=>{
-   const k=String(p.id??p.code),r=draft[k]??empty(p),kindNow=String(p.schema_json?.input_mode??'')==='free_text_event'?'occurrence':kind(p),categoricalCapture=isCategoricalResponseCapture(p),isHit=hit(p,selected?.diagnosis??''),opts=optionsFor(p),title=displayTitle(p)
+   const k=String(p.id??p.code),r=draft[k]??empty(p),kindNow=String(p.schema_json?.input_mode??'')==='free_text_event'?'occurrence':kind(p),categoricalCapture=isCategoricalResponseCapture(p)&&!usesStoredAggregateResponse(p,r),isHit=hit(p,selected?.diagnosis??''),opts=optionsFor(p),title=displayTitle(p)
    const choices=indicatorChoicesFor(p,selectedLayout,r)
    const selectedChoiceIndex=findIndicatorDropdownSelection(choices,r as any)
    const selectedChoice=selectedChoiceIndex>=0?choices[selectedChoiceIndex]:undefined
@@ -1263,7 +1263,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
    const actualForTarget=kindNow==='ratio'?rateNow:kindNow==='door'?diff(String(r.start??''),String(r.end??'')):kindNow==='minutes'?r.minutes:kindNow==='numeric'?r.value:kindNow==='visit'?r.time:null
    const resultLabel=targetKinds?(actualForTarget==null||actualForTarget===''?'Belum dihitung':metricMet==null?'Target belum dapat dinilai':metricMet?'Memenuhi target':'Belum memenuhi target'):needsSourceReview?'Perlu review':resultCode===1?'Memenuhi / Sesuai':resultCode===2?'Pengecualian / Perlu review':resultCode===3?'Tidak memenuhi / Tidak sesuai':(option?.code==null&&r.answer)?'Perlu review':'Belum tervalidasi'
    const freeTextEvent=String(p.schema_json?.input_mode??'')==='free_text_event'
-   const genericOptions=!freeTextEvent&&(categoricalCapture||shouldUseIndicatorDropdown(p)||(choices.length>1&&!['ratio','visit','door','minutes','numeric'].includes(kindNow)))
+   const genericOptions=!freeTextEvent&&!usesStoredAggregateResponse(p,r)&&(categoricalCapture||shouldUseIndicatorDropdown(p)||(choices.length>1&&!['ratio','visit','door','minutes','numeric'].includes(kindNow)))
    const typeLabel=indicatorTypeLabel(p.indicator_type)
    const grainText=grainLabel(String(p.measurement_grain))
    return <article className={'aqInd '+(isHit?'hit':'')} key={k}>

@@ -65,6 +65,17 @@ export function usesCategoricalResponseCapture(profile: IndicatorProfile): boole
   return codedOptions.length >= 2
 }
 
+/** Existing aggregate observations remain editable when a unit adopts a coded logbook. */
+export function usesStoredAggregateResponse(profile: IndicatorProfile, response: {
+  numerator?: unknown; denominator?: unknown; answer?: unknown; code?: unknown;
+  source_code?: unknown; source_value?: unknown; source_label?: unknown
+}): boolean {
+  return profile.schema_json?.accept_aggregate_responses === true &&
+    (response.numerator != null || response.denominator != null) &&
+    !readText(response.answer) && response.code == null && response.source_code == null &&
+    !readText(response.source_value) && !readText(response.source_label)
+}
+
 export function resolveMeasurementKind(profile: IndicatorProfile): MeasurementKind {
   const schema = profile.schema_json ?? {}
   const declarations = [
