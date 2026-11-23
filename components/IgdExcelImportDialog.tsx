@@ -908,7 +908,7 @@ export default function IgdExcelImportDialog({
                 <div className="ciStat"><span>RM unik</span><strong>{new Set(mainRows.map(row => row.medicalRecordNo).filter(Boolean)).size}</strong></div>
               </div>}
               {mainExcluded.length > 0 && <details className="ciReviewDetails"><summary>{mainExcluded.length} baris dikecualikan · lihat alasan</summary><div>Waktu Masuk kosong, tidak valid, atau di luar 2026. Tanggal tidak dibuat otomatis.</div></details>}
-              {reviewEpisodeCount > 0 && <details className="ciReviewDetails"><summary>{reviewEpisodeCount.toLocaleString('id-ID')} episode memiliki catatan pemeriksaan</summary><div>{unmatchedEpisodeCount.toLocaleString('id-ID')} episode memiliki jawaban indikator yang belum dikenali. Catatan lain dapat terkait identitas, waktu, atau formula sumber. Satu episode dapat mempunyai lebih dari satu jenis temuan.</div></details>
+              {reviewEpisodeCount > 0 && <details className="ciReviewDetails"><summary>{reviewEpisodeCount.toLocaleString('id-ID')} episode memiliki catatan pemeriksaan</summary><div>{unmatchedEpisodeCount.toLocaleString('id-ID')} episode memiliki jawaban indikator yang belum dikenali. Catatan lain dapat terkait identitas, waktu, atau formula sumber. Satu episode dapat mempunyai lebih dari satu jenis temuan.</div></details>}
               {mainRows.length > 0 && sourceIssues.length > 0 && <details className="ciIgdSourceAudit">
                 <summary>
                   <span><strong>Periksa respons indikator dari Excel</strong><small>{stillUnmatchedCells.toLocaleString('id-ID')} respons belum dikenali · {unmatchedEpisodeCount.toLocaleString('id-ID')} episode terdampak</small></span>
