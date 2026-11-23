@@ -628,7 +628,7 @@ export default function LaboratoryExcelImportDialog({
           </div>
           <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="laboratory" year={year} />
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="laboratory" year={year} /><div className="qiuMain">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke Instalasi Laboratorium.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Instalasi Laboratorium dan tahun 2026 sebelum membuka alur impor ini.</div>}
           <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header pada baris 2 (kolom sumber A:N), dan data mulai baris 3. Nomor urut yang terisi otomatis sampai baris 5.002 tidak dianggap sebagai baris operasional tanpa data sumber B:N. Kolom formula/turunan AE:AH, dashboard, profil, dan tab rekap tidak diimpor.</div></details>
@@ -686,6 +686,7 @@ export default function LaboratoryExcelImportDialog({
           {partial && !importing && !result && partial.completedBatches > 0 && <div className="ciMessage ciWarning">Sebagian proses selesai sebelum terjadi kegagalan: {partial.received} baris diproses, {partial.imported} event baru tersimpan, {partial.skipped} sudah ada. Unggah ulang aman karena kunci setiap baris idempoten; periksa pesan galat sebelum mengulang.</div>}
           {result && <div className="ciMessage ciSuccess" role="status">Impor selesai untuk {result.received} event valid. {result.imported} event baru tersimpan; {result.skipped} baris yang sudah ada dilewati. {result.completedBatches} batch selesai; daftar dimuat ulang dari server. Record tetap Ready for Review.</div>}
         </div>
+</div>
         <div className="aqFoot">
           <span style={{ fontSize: 12, color: 'var(--muted)' }}>Tinjau pilihan yang tidak cocok dan verifikasi setiap event sebelum validasi klinis.</span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
