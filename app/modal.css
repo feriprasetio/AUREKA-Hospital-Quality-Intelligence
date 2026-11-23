@@ -135,3 +135,29 @@ html[data-aureka-motion="off"] :is(.akModalRoot, .akModal, .akModal button) { an
 @media (max-width: 720px) {
   .episodeWorkbook :is(input:not([type="checkbox"]), select) { font-size: 16px; }
 }
+
+
+/*
+ * Import menu critical action: never inherit the ordinary .aqBtn text color.
+ * This rule lives beside AurekaModal instead of depending solely on an
+ * application-wide theme stylesheet. The component also applies an inline
+ * important paint as a defense against cached/late-injected legacy CSS.
+ */
+html body .akModalRoot .akModal .aqWorkbookChoices > button.aqBtn.primary.aqImportChoicePrimary {
+  background: #0b467a !important;
+  border-color: #0b467a !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: none !important;
+  font-weight: 750;
+  min-height: 48px;
+  width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html body .akModalRoot .akModal .aqWorkbookChoices > button.aqBtn.primary.aqImportChoicePrimary:is(:hover,:focus-visible,:active) {
+  background: #093d6b !important;
+  border-color: #093d6b !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
