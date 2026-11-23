@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -120,6 +121,7 @@ export default function TimkordikExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<TimkordikPreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -141,7 +143,7 @@ export default function TimkordikExcelImportDialog({
     for (const profile of activeProfiles) map.set(String(profile.code), profile)
     return map
   }, [activeProfiles])
-  const preview = useMemo(() => rows.slice(0, 20), [rows])
+  const preview = previewConfig.preview
   const codeCounts = useMemo(() => {
     const counts = { code1: 0, code2: 0, code3: 0 }
     for (const row of rows) {
@@ -438,7 +440,8 @@ export default function TimkordikExcelImportDialog({
               <strong>Pratinjau berhasil.</strong> {rows.length} catatan dan {rows.length * 5} respons indikator lolos pemeriksaan lokal. Catatan disimpan dengan grain activity dan status Siap Ditinjau. Unggah ulang nomor sumber yang sama akan dilewati.
             </div>
             <div className="tkTable">
-              <table>
+              <QualityWorkbookPreviewControls config={previewConfig} />
+            <table>
                 <thead><tr><th>No.</th><th>Mahasiswa</th><th>Prodi</th><th>Kampus</th><th>Stase</th><th>Mulai</th><th>Selesai</th><th>Kode 30.1–30.5</th></tr></thead>
                 <tbody>{preview.map(row => <tr key={row.sourceNo}>
                   <td>{row.sourceNo}</td>

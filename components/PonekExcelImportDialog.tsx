@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 
@@ -320,6 +321,7 @@ export default function PonekExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -331,7 +333,7 @@ export default function PonekExcelImportDialog({
   const [findings, setFindings] = useState<WorkbookFindings | null>(null)
 
   const eligible = open && authorized && roomId === 33 && year === 2026
-  const preview = useMemo(() => rows.slice(0, 100), [rows])
+  const preview = previewConfig.preview
   const matchedResponses = useMemo(
     () => rows.reduce((sum, row) => sum + Object.keys(row.indicators).length, 0),
     [rows],
@@ -720,6 +722,7 @@ export default function PonekExcelImportDialog({
         {rows.length > 0 && <div className="poBox">
           <strong>Preview tersamarkan · {preview.length} dari {rows.length} episode lolos validasi</strong>
           <div className="poTable" style={{ marginTop: 8 }}>
+            <QualityWorkbookPreviewControls config={previewConfig} />
             <table>
               <thead><tr><th>Baris Excel</th><th>No. RM</th><th>Nama</th><th>Tanggal Masuk</th><th>Kategori</th><th>Respons</th><th>Warning</th></tr></thead>
               <tbody>

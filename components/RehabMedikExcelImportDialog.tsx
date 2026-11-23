@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
 
@@ -235,6 +236,7 @@ function makePayload(row:PreparedRow,fileName:string,year:number,userId:string,p
 export default function RehabMedikExcelImportDialog({open,roomId,year,authorized,profiles,onClose,onImported}:Props){
  const [file,setFile]=useState<File|null>(null)
  const [rows,setRows]=useState<PreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
  const [errors,setErrors]=useState<string[]>([])
  const [parsing,setParsing]=useState(false)
  const [importing,setImporting]=useState(false)
@@ -244,7 +246,7 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
  const [errorMessage,setErrorMessage]=useState('')
  const [fileKey,setFileKey]=useState(0)
  const eligible=open&&authorized&&roomId===12&&year>=2026&&year<=2100
- const preview=useMemo(()=>rows.slice(0,100),[rows])
+ const preview = previewConfig.preview
  const stats=useMemo(()=>formatCounts(rows),[rows])
  const reset=()=>{setFile(null);setRows([]);setErrors([]);setParsing(false);setImporting(false);setResult(null);setPartial(null);setProgress(0);setErrorMessage('');setFileKey(v=>v+1)}
  const close=()=>{if(parsing||importing)return;reset();onClose()}
@@ -379,7 +381,8 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
     {rows.length>0&&<div className="riStats"><div className="riStat"><span>Baris valid</span><strong>{rows.length.toLocaleString('id-ID')}</strong></div><div className="riStat"><span>Baris bermasalah</span><strong>{errors.length.toLocaleString('id-ID')}</strong></div><div className="riStat"><span>Jumlah terapis</span><strong>{stats.therapists}</strong></div></div>}
     {rows.length>0&&<div className="riBox">Periode data: {stats.firstDate} s.d. {stats.lastDate} · {stats.treatments} jenis tindakan yang terisi · pratinjau menampilkan maksimal 100 baris tanpa identitas pasien.</div>}
     {errors.length>0&&<div className="riBox riWarn"><b>Impor diblokir sampai semua baris bermasalah dikoreksi.</b>{'\n'+errors.slice(0,40).join('\n')}{errors.length>40?'\n… dan '+(errors.length-40)+' baris lainnya.':''}</div>}
-    {rows.length>0&&<div className="riTable"><table><thead><tr><th>Baris Excel</th><th>Tanggal</th><th>Nama Terapis</th><th>Jenis Tindakan</th><th>Indikator terisi</th></tr></thead><tbody>{preview.map(row=><tr key={row.sourceRow}><td>{row.sourceRow}</td><td>{row.serviceDate}</td><td>{row.therapist}</td><td>{row.treatment||'-'}</td><td>{Object.keys(row.indicators).length}/6</td></tr>)}</tbody></table></div>}
+    {rows.length>0&&<div className="riTable"><QualityWorkbookPreviewControls config={previewConfig} />
+            <table><thead><tr><th>Baris Excel</th><th>Tanggal</th><th>Nama Terapis</th><th>Jenis Tindakan</th><th>Indikator terisi</th></tr></thead><tbody>{preview.map(row=><tr key={row.sourceRow}><td>{row.sourceRow}</td><td>{row.serviceDate}</td><td>{row.therapist}</td><td>{row.treatment||'-'}</td><td>{Object.keys(row.indicators).length}/6</td></tr>)}</tbody></table></div>}
     {rows.length>100&&<div className="riMuted">Pratinjau menampilkan 100 dari {rows.length.toLocaleString('id-ID')} baris valid.</div>}
     {partial&&importing&&<div className="riBox">Progres {progress}% · {partial.completedBatches} batch selesai · {partial.imported.toLocaleString('id-ID')} catatan baru · {partial.skipped.toLocaleString('id-ID')} sudah ada.</div>}
     {partial&&!importing&&!result&&partial.completedBatches>0&&<div className="riBox riWarn">Sebagian proses selesai sebelum kegagalan. {partial.imported} catatan baru tersimpan dan {partial.skipped} dilewati. Unggah ulang aman: kunci sumber menggunakan nomor baris Logbook.</div>}

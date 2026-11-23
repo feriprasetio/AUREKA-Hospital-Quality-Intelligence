@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 
 
@@ -200,6 +201,7 @@ export default function PharmacyExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<PharmacyImportRecord[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [excluded, setExcluded] = useState<Array<{ date: string; serviceStream: string; reasons: string[]; sourceRows: Record<string, number> }>>([])
   const [noObservationCount, setNoObservationCount] = useState(0)
   const [parsing, setParsing] = useState(false)
@@ -517,8 +519,9 @@ export default function PharmacyExcelImportDialog({
             {excluded.length > 50 ? '\n… dan ' + (excluded.length - 50) + ' tanggal/alur lainnya.' : ''}
           </div>}
           {rows.length > 0 && <div className="ciTable">
+            <QualityWorkbookPreviewControls config={previewConfig} />
             <table><thead><tr><th>Tanggal</th><th>Alur</th><th>Copy Resep (N/D)</th><th>High Alert tidak berlabel (N/D)</th><th>Fornas (N/D)</th><th>Formularium RS (N/D)</th></tr></thead>
-              <tbody>{rows.slice(0, 100).map(row => (
+              <tbody>{previewConfig.preview.map(row => (
                 <tr key={row.date + row.serviceStream}>
                   <td>{row.date}</td>
                   <td>{row.serviceStream}</td>

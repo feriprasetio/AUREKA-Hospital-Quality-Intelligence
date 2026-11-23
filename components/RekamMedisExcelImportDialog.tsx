@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -100,6 +101,7 @@ export default function RekamMedisExcelImportDialog({
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<RekamMedisPreparedRow[]>([])
+  const previewConfig = useQualityWorkbookPreview(rows)
   const [errors, setErrors] = useState<string[]>([])
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -121,7 +123,7 @@ export default function RekamMedisExcelImportDialog({
     for (const profile of activeProfiles) map.set(String(profile.code), profile)
     return map
   }, [activeProfiles])
-  const preview = useMemo(() => rows.slice(0, 20), [rows])
+  const preview = previewConfig.preview
   const reviewCount = useMemo(() => rows.filter(row =>
     row.claimResponse.review_required || row.klpcmResponse.review_required,
   ).length, [rows])
@@ -378,7 +380,8 @@ export default function RekamMedisExcelImportDialog({
               <strong>Pratinjau berhasil.</strong> {rows.length} catatan lolos pemeriksaan lokal. Unggah ulang workbook yang sama akan melewati baris yang sudah ada, bukan membuat duplikasi.
             </div>
             <div className="rmTable">
-              <table>
+              <QualityWorkbookPreviewControls config={previewConfig} />
+            <table>
                 <thead><tr><th>No.</th><th>Tanggal Masuk</th><th>Pasien</th><th>No. RM</th><th>DPJP</th><th>Klaim</th><th>KLPCM</th></tr></thead>
                 <tbody>{preview.map(row => <tr key={row.sourceRow}>
                   <td>{row.sourceNo}</td>
