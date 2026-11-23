@@ -191,6 +191,24 @@ export const UNIT_IMPORT_FORMATS = {
     "review": "Perlu tinjauan sebelum validasi mutu.",
     "unit": "Rawat Inap Penyakit Dalam"
   },
+  "hemodialysis": {
+    "unit": "Instalasi Hemodialisa",
+    "sheet": "Dipilih pada pemetaan; dapat berbeda per periode",
+    "header": "Pilih setelah membaca worksheet",
+    "firstData": "Setelah baris header yang dipilih",
+    "limitMb": 25,
+    "source": "Periksa worksheet Hemodialisa per periode dan cocokkan respons dengan master indikator sebelum impor. Jangan gabungkan catatan dengan kunci subjek yang sama tanpa pemeriksaan.",
+    "review": "Pemetaan terarah: nilai indikator yang tidak cocok tetap perlu ditinjau; bukan validasi klinis otomatis."
+  },
+  "radiology": {
+    "unit": "Instalasi Radiologi",
+    "sheet": "Dipilih pada pemetaan workbook",
+    "header": "Pilih setelah membaca worksheet",
+    "firstData": "Setelah baris header yang dipilih",
+    "limitMb": 25,
+    "source": "Periksa kolom identitas, tanggal, dan respons indikator Radiologi. Format sumber tidak diasumsikan sama dengan Logbook pasien unit lain.",
+    "review": "Pemetaan terarah: hasil tanpa kolom atau profil yang cocok tidak otomatis dinyatakan patuh."
+  },
   "generic": {
     "unit": "Unit terpilih",
     "sheet": "Logbook / Profil",
