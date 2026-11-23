@@ -35,6 +35,8 @@
 @import './aureka-navigation-system.css';
 @import './quality-workbook-preview.css';
 @import './aureka-canvas-preferences.css';
+/* Final global contrast contract: after all legacy themes and density styles. */
+@import './aureka-contrast-guardrails.css';
 
 
 /* Standar Prosedur Operasional — register teks terstruktur */
