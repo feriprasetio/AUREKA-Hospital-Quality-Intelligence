@@ -42,6 +42,7 @@ const QualityExcelMappingWorkspace=dynamic(()=>import('@/components/QualityExcel
 
 const PatientEpisodeWorkbookDialog=dynamic(()=>import('@/components/PatientEpisodeWorkbookDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat impor workbook" compact/>})
 const QualityWorkbookImportPanel=dynamic(()=>import('@/components/QualityWorkbookImportPanel'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat impor profil indikator" compact/>})
+const UnitMappedWorkbookDialog=dynamic(()=>import('@/components/UnitMappedWorkbookDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat pemetaan workbook unit" compact/>})
 const ComplaintExcelImportDialog=dynamic(()=>import('@/components/ComplaintExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Pengaduan" compact/>})
 const ItExcelImportDialog=dynamic(()=>import('@/components/ItExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Informatika dan Teknologi" compact/>})
 const RekamMedisExcelImportDialog=dynamic(()=>import('@/components/RekamMedisExcelImportDialog'),{ssr:false,loading:()=> <AsyncStatePanel state="loading" title="Memuat Impor Rekam Medis" compact/>})
@@ -686,6 +687,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  useEffect(()=>{if(!patientOpen||typeof document==='undefined')return;const prev=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=prev}},[patientOpen])
  const [episodeWorkbookOpen,setEpisodeWorkbookOpen]=useState(false)
  const [genericWorkbookOpen,setGenericWorkbookOpen]=useState(false)
+ const [mappedWorkbookOpen,setMappedWorkbookOpen]=useState(false)
  const [importOptionsOpen,setImportOptionsOpen]=useState(false)
  const [pharmacyEntryOpen,setPharmacyEntryOpen]=useState(false)
  const [loadedImportDialogs,setLoadedImportDialogs]=useState<Set<ImportDialogKey>>(()=>new Set())
@@ -739,7 +741,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  useLayoutEffect(()=>{
   setSelected(null);setPatientOpen(false);setConfirmCloseEditor(false);setPendingArchive(null)
   setShowIdentity(false);setDraft({});setLoadedImportDialogs(new Set())
-  setEpisodeWorkbookOpen(false);setGenericWorkbookOpen(false);setImportOptionsOpen(false);setPharmacyEntryOpen(false);setMonthlyReviewBusy(false)
+  setEpisodeWorkbookOpen(false);setGenericWorkbookOpen(false);setMappedWorkbookOpen(false);setImportOptionsOpen(false);setPharmacyEntryOpen(false);setMonthlyReviewBusy(false)
   setBusy(false);setLoading(true)
   return clearInteractiveExcelHeaderMappingScope
  },[scopeKey])
@@ -752,11 +754,12 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const episodeWorkbookEligible=!isValidator&&year>=2026&&supportsEpisodeWorkbook(roomId,activeLayout?.measurementGrain,profiles.map(p=>({room_id:Number(p.room_id),measurement_grain:p.measurement_grain})))
  const unitWorkbookFormat=roomId!=null?unitWorkbookFormats[roomId]:undefined
  const availableUnitFormat=unitWorkbookFormat&&(!unitWorkbookFormat.classic2026||year===2026)?unitWorkbookFormat.key:null
+ const mappedUnitFormat=roomId===8||roomId===10
  const canOpenImport=!isValidator&&roomId!=null&&year>=2026&&(canImportWorkbook||(roomId===11&&canImportOutpatientWorkbook))
  const openWorkbookOptions=()=>{
    if(!canOpenImport||!canUseLogbook)return
    if(!canImportWorkbook&&roomId===11){openImportDialog('outpatient');return}
-   if(!availableUnitFormat&&!episodeWorkbookEligible){setGenericWorkbookOpen(true);return}
+   if(!availableUnitFormat&&!episodeWorkbookEligible&&!mappedUnitFormat){setGenericWorkbookOpen(true);return}
    setImportOptionsOpen(true)
  }
  const selectedLayout=useMemo(()=>selected?(selected.layoutOverride as AuditLayout|undefined)??getLayoutForRoom(Number(selected.roomId),String(selected.unit??'')):activeLayout,[selected,activeLayout])
@@ -1536,6 +1539,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    {importOptionsOpen&&roomId!=null&&<AurekaModal open title="Impor Excel" subtitle={(roomMap.get(roomId)??'Unit '+roomId)+' · '+year} size="md" onClose={()=>setImportOptionsOpen(false)}>
     <div className="aqWorkbookChoices">
      {availableUnitFormat&&<button type="button" className="aqBtn primary aqImportChoicePrimary" ref={enforceImportChoiceContrast} onClick={()=>{setImportOptionsOpen(false);openImportDialog(availableUnitFormat)}}>Workbook baku unit</button>}
+     {mappedUnitFormat&&<button type="button" className="aqBtn primary aqImportChoicePrimary" ref={enforceImportChoiceContrast} onClick={()=>{setImportOptionsOpen(false);setMappedWorkbookOpen(true)}}>Workbook unit · pemetaan terarah</button>}
      {episodeWorkbookEligible&&<button type="button" className="aqBtn" onClick={()=>{setImportOptionsOpen(false);setEpisodeWorkbookOpen(true)}}>Workbook episode pasien</button>}
      <button type="button" className="aqBtn" onClick={()=>{setImportOptionsOpen(false);setGenericWorkbookOpen(true)}}>Tautkan kolom atau impor tabel</button>
     </div>
@@ -1549,6 +1553,13 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
        activeProfiles={profiles.filter(profile=>profile.code&&profile.title&&Number(profile.room_id)===roomId) as React.ComponentProps<typeof QualityWorkbookImportPanel>['activeProfiles']}
        onImported={async()=>{setGenericWorkbookOpen(false);await load()}}/>
    </AurekaModal>}
+   {mappedWorkbookOpen&&canImportWorkbook&&(roomId===8||roomId===10)&&<UnitMappedWorkbookDialog
+     key={roomId+':'+year} open roomId={roomId} roomName={roomMap.get(roomId)??'Unit '+roomId} year={year}
+     role={isAdmin?'ADMIN':'PMKP'}
+     activeProfiles={profiles.filter(profile=>profile.code&&profile.title&&Number(profile.room_id)===roomId) as React.ComponentProps<typeof QualityWorkbookImportPanel>['activeProfiles']}
+     onClose={()=>setMappedWorkbookOpen(false)}
+     onImported={()=>{setMappedWorkbookOpen(false);void load()}}
+   />}
    {episodeWorkbookOpen&&episodeWorkbookEligible&&canImportWorkbook&&roomId!=null&&<PatientEpisodeWorkbookDialog
      key={roomId+':'+year}
      roomId={roomId} roomName={roomMap.get(roomId)??'Unit '+roomId} year={year} admin={isAdmin}
