@@ -2187,18 +2187,12 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
   .aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > :is(.aqDHead, .aqFoot) { padding-block: 8px !important; }
 }
 
-/* IBS: actual data-preview workspace, with its settings in a separate column. */
-.aq.aqPortal.aqAuditWorkspace .aqIbsImport > .aqBody {
-  display: block !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-}
+/* IBS logbook controls and table share the right panel. */
 .aqIbsImport .ciImportGrid {
   display: grid;
-  grid-template-columns: minmax(245px, 285px) minmax(0, 1fr);
-  min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
   min-width: 0;
-  height: 100%;
 }
 .aqIbsImport .ciSidePanel {
   min-width: 0;
@@ -2353,7 +2347,6 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
 }
 .aqIbsImport .ciImportProgress > div {height: 100%; background: var(--accent, #187653); transition: width .15s ease;}
 @media (max-width: 1020px) {
-  .aqIbsImport .ciImportGrid {grid-template-columns: minmax(195px, 235px) minmax(0,1fr);}
   .aqIbsImport .ciStats {grid-template-columns: repeat(3, minmax(0, 1fr));}
 }
 @media (max-width: 720px) {
@@ -2361,7 +2354,6 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
   .aq.aqPortal.aqAuditWorkspace .aqBack > .aqDrawer[class*="Import"] {
     border-radius: 12px !important;
   }
-  .aqIbsImport .ciImportGrid {display: flex; flex-direction: column; overflow: auto; height: 100%;}
   .aqIbsImport .ciSidePanel {overflow: visible; border-right: 0; border-bottom: 1px solid var(--line, #e3ebe6);}
   .aqIbsImport .ciMainPanel {overflow: visible; flex: 0 0 auto; padding: 13px;}
   .aqIbsImport .ciStats {grid-template-columns: repeat(2, minmax(0, 1fr));}

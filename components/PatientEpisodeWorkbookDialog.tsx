@@ -1,5 +1,6 @@
 'use client'
-import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookStagedPreview from '@/components/quality/QualityWorkbookStagedPreview'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 
 import { useRef, useState } from 'react'
 import AurekaModal from '@/components/ui/AurekaModal'
@@ -145,7 +146,7 @@ export default function PatientEpisodeWorkbookDialog({
           // Reading a patient's workbook must never mutate the published indicator master.
           // Profiles are imported explicitly through Profil Indikator after review.
           setAutofillNotice(plan.profiles.length.toLocaleString('id-ID') +
-            ' profil belum ada di master. Tidak ada profil yang dibuat. Periksa dan terbitkan melalui menu Profil Indikator sebelum mengimpor data pasien.')
+            ' profil belum ada di master. Tidak ada profil yang dibuat. Impor profil dari panel kiri, lalu pilih ulang workbook logbook untuk memuat profil terbaru.')
         } else if (plan.profiles.length && !admin) {
           setAutofillNotice('Workbook memuat ' + plan.profiles.length +
             ' indikator belum tersedia. Hanya Superadmin yang dapat membuat master; minta Superadmin mengunggah workbook ini.')
@@ -315,7 +316,8 @@ export default function PatientEpisodeWorkbookDialog({
       <button type="button" disabled={!file?.parsed.hasLogbook || !!busy} onClick={() => void buildPreview()}>Pratinjau Logbook</button>
       <button type="button" className="episodeWorkbookPrimary" disabled={!!busy || !preview?.rows.length || !!preview?.issues.length || (Boolean(preview?.heldRows) && !confirmedHeldRows)} onClick={() => void runImport()}>{labelImport}</button>
     </div>}>
-    <div className="episodeWorkbook qiuBody"><QualityWorkbookImportSidebar unitKey="generic" year={year} unitName={roomName} /><div className="qiuMain">
+    <div className="episodeWorkbook qiuBody"><QualityWorkbookImportSidebar /><div className="qiuMain">
+      <QualityWorkbookLogbookHeading />
       <fieldset disabled={!!busy}>
         <div className="episodeWorkbookFile">
           <label>Workbook .xlsx<input type="file" accept=".xlsx" onChange={event => {
@@ -325,6 +327,7 @@ export default function PatientEpisodeWorkbookDialog({
           }}/></label>
           {!file && onLegacyImport && <button type="button" onClick={onLegacyImport}>Buka impor khusus unit</button>}
         </div>
+        {preview && <QualityWorkbookStagedPreview rows={preview.rows} />}
         {file && <>
           <p className="episodeWorkbookMeta">{file.name} · {file.parsed.hasLogbook
             ? file.parsed.logbook.sheet.name + ' · header baris ' + file.parsed.logbook.header
@@ -351,8 +354,8 @@ export default function PatientEpisodeWorkbookDialog({
                 }}/>)}
             </div>
           </details>}
-          {file.parsed.hasLogbook && <section className="episodeWorkbookMappings" aria-label="Pemetaan profil ke Logbook">
-            <h4>Kolom respons 1, 2, 3 dan tanpa Code <span>{selectedCount} dari {mappings.length} dipetakan</span></h4>
+          {file.parsed.hasLogbook && <details className="episodeWorkbookMappings" open={selectedCount === 0 || undefined}>
+            <summary>Kolom respons logbook ({selectedCount} dari {mappings.length} dipetakan)</summary>
             {!mappings.length && <p role="status">{admin ? 'Belum ada profil episode. Unggah workbook dengan sheet Profil yang memuat kode dan nama indikator.' : 'Belum ada profil episode aktif. Hubungi Superadmin untuk menerapkan profil workbook.'}</p>}
             {mappings.map(mapping => <div className="episodeWorkbookMapping" key={mapping.key}>
               <div className="episodeWorkbookIndicator">
@@ -370,7 +373,7 @@ export default function PatientEpisodeWorkbookDialog({
               <ColumnSelect label={'Kolom Logbook · ' + (mapping.code || mapping.title)}
                 value={mapping.column} columns={columns} onChange={value => updateMapping(mapping.key, { column: value })}/>
             </div>)}
-          </section>}
+          </details>}
         </>}
       </fieldset>
       {sourceNotes.length > 0 && <section className="episodeWorkbookMeta" role="status">

@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookImportSidebar, { QualityWorkbookProfileImportScope } from '@/components/quality/QualityWorkbookImportSidebar'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { supportsEpisodeWorkbook } from '@/lib/aureka/patient-episode-workbook'
 import { aggregateRoomOverviewCounts } from '@/lib/aureka/room-overview'
@@ -664,6 +665,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [patientRows,setPatients]=useState<Patient[]>([])
  const scopeReady=loadedScope===scopeKey
  const profiles=scopeReady?profileRows:EMPTY_PROFILES
+ const workbookProfiles=useMemo(()=>profiles.filter(profile=>profile.code&&profile.title&&Number(profile.room_id)===roomId) as React.ComponentProps<typeof QualityWorkbookImportPanel>['activeProfiles'],[profiles,roomId])
  const staffOptions=scopeReady?staffRows:EMPTY_STAFF
  const patients=scopeReady?patientRows:EMPTY_PATIENTS
  const [selected,setSelected]=useState<Patient|null>(null)
@@ -1543,21 +1545,30 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
      <button type="button" className="aqBtn" onClick={()=>{setImportOptionsOpen(false);setGenericWorkbookOpen(true)}}>Tautkan kolom atau impor tabel</button>
     </div>
    </AurekaModal>}
+   <QualityWorkbookProfileImportScope.Provider value={roomId == null ? null : {
+     roomId, roomName: roomMap.get(roomId)??'Unit '+roomId, year, role: isAdmin?'ADMIN':'PMKP',
+     activeProfiles: workbookProfiles, onImported: () => { void load() },
+   }}>
    {genericWorkbookOpen&&canImportWorkbook&&roomId!=null&&<AurekaModal
      open title="Impor data dan tautkan kolom" subtitle={(roomMap.get(roomId)??'Unit '+roomId)+' · '+year}
      size="xl" onClose={()=>setGenericWorkbookOpen(false)}>
+     <div className="episodeWorkbook qiuBody">
+       <QualityWorkbookImportSidebar />
+       <div className="qiuMain">
      <QualityWorkbookImportPanel key={roomId+':'+year} roomId={roomId}
        roomName={roomMap.get(roomId)??'Unit '+roomId} year={year}
        importerKey="unit-logbook" role={isAdmin?'ADMIN':'PMKP'} dataOnly
-       activeProfiles={profiles.filter(profile=>profile.code&&profile.title&&Number(profile.room_id)===roomId) as React.ComponentProps<typeof QualityWorkbookImportPanel>['activeProfiles']}
-       onImported={async()=>{setGenericWorkbookOpen(false);await load()}}/>
+       activeProfiles={workbookProfiles}
+       onImported={()=>{void load()}}/>
+       </div>
+     </div>
    </AurekaModal>}
    {mappedWorkbookOpen&&canImportWorkbook&&(roomId===8||roomId===10)&&<UnitMappedWorkbookDialog
      key={roomId+':'+year} open roomId={roomId} roomName={roomMap.get(roomId)??'Unit '+roomId} year={year}
      role={isAdmin?'ADMIN':'PMKP'}
-     activeProfiles={profiles.filter(profile=>profile.code&&profile.title&&Number(profile.room_id)===roomId) as React.ComponentProps<typeof QualityWorkbookImportPanel>['activeProfiles']}
+     activeProfiles={workbookProfiles}
      onClose={()=>setMappedWorkbookOpen(false)}
-     onImported={()=>{setMappedWorkbookOpen(false);void load()}}
+     onImported={()=>{void load()}}
    />}
    {episodeWorkbookOpen&&episodeWorkbookEligible&&canImportWorkbook&&roomId!=null&&<PatientEpisodeWorkbookDialog
      key={roomId+':'+year}
@@ -1592,6 +1603,8 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    {loadedImportDialogs.has('isolasi-inpatient')&&<IsolasiInpatientExcelImportDialog open={isolasiInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setIsolasiInpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
    {loadedImportDialogs.has('saraf-inpatient')&&<SarafInpatientExcelImportDialog open={sarafInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setSarafInpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
    {loadedImportDialogs.has('penyakit-dalam-inpatient')&&<PenyakitDalamInpatientExcelImportDialog open={penyakitDalamInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPenyakitDalamInpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
+
+   </QualityWorkbookProfileImportScope.Provider>
 
    {Number(roomId)===6&&year===2026&&<IgdConsultationAuditPanel roomId={roomId} year={year}/>}
 

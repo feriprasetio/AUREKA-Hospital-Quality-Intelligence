@@ -50,7 +50,7 @@ test('all classic unit Excel import dialogs are positioned centrally, with scrol
   assert.match(css, /min-height: 240px !important/)
   assert.match(css, /overflow: auto !important/)
   assert.match(css, /\.aqIbsImport \.ciImportGrid/)
-  assert.match(css, /grid-template-columns: minmax\(245px, 285px\) minmax\(0, 1fr\)/)
+  assert.match(css, /\.aqIbsImport \.ciImportGrid\s*\{[^}]*grid-template-columns: minmax\(0, 1fr\)/)
   assert.match(css, /\.aqIbsImport \.ciTable/)
   assert.match(css, /min-height: 260px !important/)
 })

@@ -42,13 +42,15 @@ test('normal-flow CSS isolates preview scrolling, QA warnings, and idempotency c
   assert.ok(!rehab.includes('className="riMuted">Kunci idempotensi mengikuti'))
 })
 
-test('sidebars replace inert step numbers with functional mapping slots', () => {
-  const src=read('components/quality/QualityWorkbookImportSidebar.tsx')
-  assert.ok(src.includes('mapping?:ReactNode'))
-  assert.ok(src.includes('mapping ?? <p'))
-  assert.ok(src.includes('Tautkan kolom Excel'))
-  assert.ok(!src.includes('<h5>2. Alur pemeriksaan</h5>'))
-  assert.ok(!src.includes('<h5>3. Aturan dan tindak lanjut</h5>'))
+test('profile panel is isolated and supported logbook mappers render in the data column', () => {
+  const sidebar = read('components/quality/QualityWorkbookImportSidebar.tsx')
+  const rehab = read('components/RehabMedikExcelImportDialog.tsx')
+  const workspace = read('components/QualityIndicatorWorkspace.tsx')
+  assert.match(sidebar, /scope\?\.role === 'ADMIN'/)
+  assert.match(sidebar, /profilesOnly/)
+  assert.doesNotMatch(sidebar, /Pengaturan sumber|Pemetaan sumber/)
+  assert.match(rehab, /className="qiuMain">\s*<QualityWorkbookLogbookHeading \/>\s*<QualityWorkbookLogbookMapping>\s*<QualityWorkbookInlineColumnMapping/)
+  assert.match(workspace, /<QualityWorkbookProfileImportScope\.Provider/)
 })
 
 test('supported header-based importers expose in-dialog mapping and reparse their actual File', () => {

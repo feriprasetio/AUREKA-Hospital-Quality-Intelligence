@@ -1,5 +1,5 @@
 'use client'
-import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading, QualityWorkbookLogbookMapping } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -470,11 +470,12 @@ export default function AmbulanceExcelImportDialog({
           </div>
           <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="ambulance" year={year}
-    mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="ambulance"
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar /><div className="qiuMain">
+        <QualityWorkbookLogbookHeading />
+        <QualityWorkbookLogbookMapping><QualityWorkbookInlineColumnMapping file={file} importerKey="ambulance"
       fields={INLINE_MAPPING_FIELDS} disabled={parsing||importing}
-      onApply={()=>file ? parseWorkbook(file) : undefined}/>}
-  /><div className="qiuMain">
+      onApply={()=>file ? parseWorkbook(file) : undefined}/>
+        </QualityWorkbookLogbookMapping>
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Ambulance dan tahun 2026 sebelum membuka alur impor ini.</div>}
           <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header baris 2 dan data mulai baris 3. Hasil rumus Excel tidak dipakai untuk menghitung waktu respons; perhitungan dilakukan ulang dari jam sumber. Baris tanpa tanggal yang valid dikecualikan tanpa menebak tanggal.</div></details>

@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
@@ -500,11 +501,14 @@ export default function IbsExcelImportDialog({
             <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
           </div>
 
-          <div className="aqBody">
-            <div className="ciImportGrid">
-              <aside className="ciSidePanel" aria-label="Pengaturan impor">
+          <div className="aqBody qiuBody">
+            <QualityWorkbookImportSidebar />
+            <div className="qiuMain">
+              <QualityWorkbookLogbookHeading />
+              <div className="ciImportGrid">
+              <div className="ciSidePanel" aria-label="Workbook logbook IBS">
                 <section className="ciCard">
-                  <h5>1. Pilih berkas</h5>
+                  <h5>Pilih workbook logbook</h5>
                   <label className="aqField">
                     <span>Workbook Excel (.xlsx), maksimal 15 MB</span>
                     <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -520,34 +524,7 @@ export default function IbsExcelImportDialog({
                     : <p className="ciMiniNote">Pilih workbook IBS untuk memeriksa datanya terlebih dahulu.</p>}
                 </section>
 
-                <section className="ciCard">
-                  <h5>Pengaturan impor</h5>
-                  <dl className="ciSettingsList">
-                    <dt>Unit</dt><dd>IBS</dd>
-                    <dt>Tahun</dt><dd>2026</dd>
-                    <dt>Worksheet</dt><dd>Logbook</dd>
-                    <dt>Baris header</dt><dd>2</dd>
-                    <dt>Mulai data</dt><dd>3</dd>
-                    <dt>Indikator</dt><dd>5 kolom</dd>
-                    <dt>Status hasil</dt><dd>Perlu ditinjau</dd>
-                  </dl>
-                  <details className="ciReviewDetails" style={{ marginTop: 12 }}>
-                    <summary>Lihat kolom indikator</summary>
-                    <div>{INDICATORS.map(indicator => (
-                      <div key={indicator.code} style={{padding: '3px 0'}}><strong>{indicator.code}</strong> · {indicator.header}</div>
-                    ))}</div>
-                  </details>
-                  <p className="ciMiniNote">Format sumber sesuai workbook baku IBS. Nilai asal tetap dipertahankan.</p>
-                </section>
-
-                <section className="ciCard">
-                  <h5>Sesudah diimpor</h5>
-                  <p className="ciMiniNote" style={{margin:0}}>
-                    Data masuk sebagai <strong>Perlu Ditinjau</strong>. Petugas memeriksa catatan sebelum validasi mutu.
-                  </p>
-                  {historicalRows > 0 && <p className="ciMiniNote">Catatan lintas tahun ({historicalRows}) tetap memakai tanggal aslinya.</p>}
-                </section>
-              </aside>
+              </div>
 
               <main className="ciMainPanel" aria-label="Pratinjau workbook">
                 {!authorized && <div className="ciMessage ciError" role="alert">Akun ini belum memiliki akses impor IBS.</div>}
@@ -658,10 +635,30 @@ export default function IbsExcelImportDialog({
                 {result && <div className="ciMessage ciSuccess" role="status">
                   <strong>Impor selesai.</strong> {result.imported} catatan tersimpan dan {result.skipped} catatan yang sudah ada dilewati.
                 </div>}
+                <details className="ciReviewDetails">
+                  <summary>Format sumber logbook IBS</summary>
+                  <dl className="ciSettingsList">
+                    <dt>Unit</dt><dd>IBS</dd>
+                    <dt>Tahun</dt><dd>2026</dd>
+                    <dt>Worksheet</dt><dd>Logbook</dd>
+                    <dt>Baris header</dt><dd>2</dd>
+                    <dt>Mulai data</dt><dd>3</dd>
+                    <dt>Indikator</dt><dd>5 kolom</dd>
+                    <dt>Status hasil</dt><dd>Perlu ditinjau</dd>
+                  </dl>
+                  <details className="ciReviewDetails" style={{ marginTop: 12 }}>
+                    <summary>Lihat kolom indikator</summary>
+                    <div>{INDICATORS.map(indicator => (
+                      <div key={indicator.code} style={{padding: '3px 0'}}><strong>{indicator.code}</strong> · {indicator.header}</div>
+                    ))}</div>
+                  </details>
+                  <p className="ciMiniNote">Format sumber sesuai workbook baku IBS. Nilai asal tetap dipertahankan.</p>
+                </details>
+
               </main>
+              </div>
             </div>
           </div>
-
           <div className="aqFoot">
             <span style={{fontSize:12,color:'var(--muted)'}}>
               {rows.length ? rows.length.toLocaleString('id-ID') + ' baris siap · ' + warningRows.length + ' perlu ditinjau' : 'Pilih workbook untuk melihat pratinjau'}

@@ -1,5 +1,5 @@
 'use client'
-import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading, QualityWorkbookLogbookMapping } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -687,10 +687,11 @@ export default function NicuExcelImportDialog({
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="nicu" year={year}
-  mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="nicu" fields={INLINE_MAPPING_FIELDS}
-    disabled={parsing||importing} onApply={()=>file ? parseWorkbook(file) : undefined}/>}
- /><div className="qiuMain">
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar /><div className="qiuMain">
+        <QualityWorkbookLogbookHeading />
+        <QualityWorkbookLogbookMapping><QualityWorkbookInlineColumnMapping file={file} importerKey="nicu" fields={INLINE_MAPPING_FIELDS}
+    disabled={parsing||importing} onApply={()=>file ? parseWorkbook(file) : undefined}/>
+        </QualityWorkbookLogbookMapping>
         <div className="piBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>

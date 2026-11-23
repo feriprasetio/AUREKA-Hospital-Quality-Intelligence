@@ -1,5 +1,5 @@
 'use client'
-import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading, QualityWorkbookLogbookMapping } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
@@ -417,11 +417,12 @@ export default function TimkordikExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="timkordik" year={year}
-    mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="timkordik"
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar /><div className="qiuMain">
+        <QualityWorkbookLogbookHeading />
+        <QualityWorkbookLogbookMapping><QualityWorkbookInlineColumnMapping file={file} importerKey="timkordik"
       fields={INLINE_MAPPING_FIELDS} disabled={parsing||importing}
-      onApply={()=>file ? parseWorkbook(file) : undefined}/>}
-  /><div className="qiuMain">
+      onApply={()=>file ? parseWorkbook(file) : undefined}/>
+        </QualityWorkbookLogbookMapping>
           <div className="tkIntro">
             Pilih workbook .xlsx yang berisi sheet <strong>Profil</strong> dan <strong>Logbook</strong>. Setiap baris mahasiswa menjadi satu catatan aktivitas dengan lima respons indikator. Pilihan kode dipastikan cocok terhadap profil sumber; pratinjau menyamarkan identitas mahasiswa.
           </div>

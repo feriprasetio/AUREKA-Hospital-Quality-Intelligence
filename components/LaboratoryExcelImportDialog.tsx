@@ -1,5 +1,5 @@
 'use client'
-import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
+import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading, QualityWorkbookLogbookMapping } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -640,11 +640,12 @@ export default function LaboratoryExcelImportDialog({
           </div>
           <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
         </div>
-        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="laboratory" year={year}
-    mapping={<QualityWorkbookInlineColumnMapping file={file} importerKey="laboratory"
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar /><div className="qiuMain">
+        <QualityWorkbookLogbookHeading />
+        <QualityWorkbookLogbookMapping><QualityWorkbookInlineColumnMapping file={file} importerKey="laboratory"
       fields={INLINE_MAPPING_FIELDS} disabled={parsing||importing}
-      allowSharedColumns onApply={()=>file ? parseWorkbook(file) : undefined}/>}
-  /><div className="qiuMain">
+      allowSharedColumns onApply={()=>file ? parseWorkbook(file) : undefined}/>
+        </QualityWorkbookLogbookMapping>
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke Instalasi Laboratorium.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Instalasi Laboratorium dan tahun 2026 sebelum membuka alur impor ini.</div>}
           <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header pada baris 2 (kolom sumber A:N), dan data mulai baris 3. Nomor urut yang terisi otomatis sampai baris 5.002 tidak dianggap sebagai baris operasional tanpa data sumber B:N. Kolom formula/turunan AE:AH, dashboard, profil, dan tab rekap tidak diimpor.</div></details>
