@@ -100,7 +100,7 @@ const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
     fieldKey: aliases[0] ?? key, label:aliases[0] ?? key, aliases, required:false,
   })),
   ...LABORATORY_INDICATORS.map(item => ({
-    fieldKey:'indicator:' + item.code, label:item.code + ' · ' + item.title,
+    fieldKey:'indicator:' + item.code, label:item.code + ' · ' + item.header,
     aliases:[item.header], required:false,
   })),
 ]
