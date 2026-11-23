@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useCallback, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -74,6 +75,8 @@ export default function SpmExcelImportDialog({
   const [parsing, setParsing] = useState(false)
   const [importing, setImporting] = useState(false)
   const [preview, setPreview] = useState<SpmImportPreview | null>(null)
+  const previewRows = useMemo(() => preview?.rows ?? [], [preview])
+  const previewConfig = useQualityWorkbookPreview(previewRows)
   const [error, setError] = useState('')
   const [result, setResult] = useState<ImportResult | null>(null)
   const [progress, setProgress] = useState('')
@@ -252,11 +255,11 @@ export default function SpmExcelImportDialog({
 
         {!result && (
           <>
-            <div className="spmImportInstructions">
-              <strong>Format workbook yang didukung</strong>
+            <details className="spmImportInstructions">
+              <summary>Format workbook Excel</summary>
               <p>Gunakan workbook dengan sheet <b>Logbook</b>, berisi blok kolom No., Indikator, Parameter, serta Januari–Desember. Sheet Report dan Dashboard hanya rekap dan tidak dijadikan sumber impor.</p>
-              <p>Pastikan tahun tujuan di SPM sudah benar sebelum mengunggah. Bulan kosong tetap dianggap belum ada data. Nilai nol tetap dibaca sebagai nol.</p>
-            </div>
+              <p>Pastikan tahun tujuan sudah benar. Bulan kosong tetap kosong; nilai nol tetap terbaca.</p>
+            </details>
 
             <label className="spmImportFile">
               <strong>Pilih workbook .xlsx</strong>
@@ -301,19 +304,20 @@ export default function SpmExcelImportDialog({
             )}
 
             {preview.warnings.length > 0 && (
-              <div className="spmImportWarnings">
-                <strong>Peringatan yang perlu ditinjau ({preview.warnings.length})</strong>
+              <details className="spmImportWarnings">
+                <summary>Peringatan yang perlu ditinjau ({preview.warnings.length})</summary>
                 <ul>{preview.warnings.map((warning,index) => <li key={index}>{warning}</li>)}</ul>
-              </div>
+              </details>
             )}
 
             <div className="spmImportPreview">
-              <div><strong>Pratinjau nilai</strong><span>Menampilkan maksimal 12 baris pertama.</span></div>
+              <div><strong>Pratinjau nilai</strong><span>Periksa nilai sumber sebelum menyimpan.</span></div>
               <div className="spmImportTableScroll">
+                <QualityWorkbookPreviewControls config={previewConfig} title="Nilai indikator bulanan" />
                 <table>
                   <thead><tr><th>Kode</th><th>Indikator / Unit</th><th>Bulan</th><th>Nilai sumber</th><th>Baris XLSX</th><th>Operasi</th></tr></thead>
                   <tbody>
-                    {preview.rows.slice(0,12).map((row,index) => {
+                    {previewConfig.preview.map((row,index) => {
                       const monthName = MONTH_NAMES[row.period_month - 1]
                       const exists = existingKeys.has(measurementKey(row.indicator_id,row.period_month,row.room_id))
                       return <tr key={row.indicator_id + ':' + row.period_month + ':' + index}>
