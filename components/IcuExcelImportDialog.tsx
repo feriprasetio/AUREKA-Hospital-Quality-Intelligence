@@ -656,7 +656,7 @@ export default function IcuExcelImportDialog({
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
-      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="icu" year={year} />
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="icu" year={year} /><div className="qiuMain">
         <div className="iiBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
@@ -736,6 +736,7 @@ export default function IcuExcelImportDialog({
           </div>
         </div>
       </div>
+</div>
     </section>
   </div></div>, document.body)
 }
