@@ -85,6 +85,18 @@ test('matches source indicator choices only on exact label/code agreement', () =
   assert.equal(matchIgdSourceOption('Lainnya — tuliskan alasan/temuan', options)?.review_required, true)
 })
 
+test('accepts typography-only differences while rejecting invented synonyms or conflicting codes', () => {
+  const options = [
+    { label:'Menunggu > 2 Jam (Kapasitas Bed Rawat Inap Penuh/BOR 100%)',code:2 },
+    { label:'Respon Terlambat (Operasi Cito - Ada Backup)', code:3 },
+  ]
+  assert.equal(matchIgdSourceOption('Menunggu > 2 Jam (Kapasitas Bed Rawat Inap Penuh / BOR 100%) (Code 2)',options)?.code,2)
+  assert.equal(matchIgdSourceOption('Respon Terlambat (Operasi Cito — Ada Backup) (Code 3)',options)?.code,3)
+  assert.equal(matchIgdSourceOption('Respon Terlambat (Operasi Cito — Ada Backup) (Code 1)',options),null)
+  assert.equal(matchIgdSourceOption('Antrian Rawat Inap',options),null)
+  assert.equal(matchIgdSourceOption('Overcrowding Index',options),null)
+})
+
 test('recognizes Indonesian source months from source filenames', () => {
   assert.equal(parseIgdMonthFromFilename('1. PMKP IGD Januari Waktu Konsul DPJP.xlsx'), 1)
   assert.equal(parseIgdMonthFromFilename('PMKP IGD Mei 2026.xlsx'), 5)
