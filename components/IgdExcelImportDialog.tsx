@@ -810,16 +810,16 @@ export default function IgdExcelImportDialog({
         <style>{'.aqIgdImport .aqBody{display:grid;align-content:start;gap:12px}.aqIgdImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqIgdImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqIgdImport .ciUpload input{width:100%;font-size:12px}.aqIgdImport .ciStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.aqIgdImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqIgdImport .ciStat span{display:block;color:var(--muted);font-size:12px}.aqIgdImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqIgdImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqIgdImport .ciError{background:#fff0ef;color:#8b2822}.aqIgdImport .ciSuccess{background:#eaf8ef;color:#206443}.aqIgdImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqIgdImport .ciTable{overflow:auto;max-height:290px;border:1px solid var(--line);border-radius:11px}.aqIgdImport table{width:100%;border-collapse:collapse;font-size:12px}.aqIgdImport th,.aqIgdImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.aqIgdImport th{position:sticky;top:0;background:#f7faf8;white-space:nowrap}.aqIgdImport td.ciWrap{white-space:normal;min-width:150px;max-width:300px;overflow-wrap:anywhere}.aqIgdImport .ciPrivacy{font-size:12px;color:var(--muted);line-height:1.5}.aqIgdImport .ciCode{font-size:12px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block;white-space:normal}.aqIgdImport .ciTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:5px;border:1px solid var(--line);border-radius:14px;background:#f5f8f6}.aqIgdImport .ciTab{display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease}.aqIgdImport .ciTab.isActive{background:#fff;border-color:var(--line);box-shadow:0 3px 12px rgba(20,35,28,.06)}.aqIgdImport .ciTab:disabled{opacity:.58;cursor:progress}.aqIgdImport .ciTab[data-locked=true] .ciTabNumber{background:#eef0ed;color:#737c75}.aqIgdImport .ciTabNumber{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:9px;background:#e4eee8;color:#315d48;font-size:12px;font-weight:800}.aqIgdImport .ciTabText{display:grid;gap:3px;min-width:0}.aqIgdImport .ciTabText strong{font-size:12px;line-height:1.25}.aqIgdImport .ciTabText small{font-size:12px;line-height:1.35;color:var(--muted)}.aqIgdImport .ciTabState{margin-left:auto;max-width:112px;color:var(--muted);font-size:12px;line-height:1.3;text-align:right}.aqIgdImport .ciPanel{min-width:0}.aqIgdImport .ciTab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.aqIgdImport .aqFoot{flex:0 0 auto;position:relative;z-index:6;gap:10px;flex-wrap:wrap}.aqIgdImport .ciFootActions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-left:auto}.aqIgdImport .ciFootActions .ciImportAction{min-height:36px;padding:8px 13px;border-radius:9px;font-size:12px;white-space:nowrap}@media(max-width:700px){.aqIgdImport .aqFoot{align-items:stretch}.aqIgdImport .aqFoot>span{font-size:12px!important}.aqIgdImport .ciFootActions{width:100%;margin-left:0;justify-content:space-between}.aqIgdImport .ciFootActions .ciImportAction{flex:1}}@media(max-width:800px){.aqIgdImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}.aqIgdImport .ciTabs{grid-template-columns:1fr}.aqIgdImport .ciTabState{max-width:130px}}'}</style>
         <div className="aqDHead">
           <div>
-            <div className="eyebrow">Audit Indikator Mutu · Impor Terarah</div>
-            <h4 id="aqIgdImportTitle">Unggah workbook Instalasi Gawat Darurat</h4>
-            <p>Profil 2026 · 7 indikator aktif · dua alur sumber yang saling ditautkan</p>
+            <div className="eyebrow">Impor Excel</div>
+            <h4 id="aqIgdImportTitle">Instalasi Gawat Darurat</h4>
+            <p>Logbook episode & konsultasi DPJP · 2026</p>
           </div>
           <button className="aqClose" type="button" disabled={busy} onClick={close} aria-label="Tutup">×</button>
         </div>
         <div className="aqBody">
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke IGD.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih Instalasi Gawat Darurat dan tahun profil 2026 sebelum membuka impor.</div>}
-          <div className="ciIntro">Pilih jenis data yang akan diimpor. Setiap alur memiliki pratinjau, pemeriksaan sumber, dan hasil proses tersendiri. Data yang masuk tetap berstatus <strong>Ready for Review</strong> sampai divalidasi oleh petugas berwenang.</div>
+          <div className="ciFlowHint">Pilih alur, unggah workbook, lalu periksa pratinjau sebelum impor.</div>
 
           <div className="ciTabs" role="tablist" aria-label="Jenis impor data IGD">
             <button id="ci-igd-logbook-tab" type="button" role="tab" aria-selected={activeImportTab === 'logbook'} aria-controls="ci-igd-logbook-panel" className={`ciTab ${activeImportTab === 'logbook' ? 'isActive' : ''}`} onClick={() => setActiveImportTab('logbook')} disabled={busy}>
@@ -834,22 +834,25 @@ export default function IgdExcelImportDialog({
             </button>
           </div>
 
-          {activeImportTab === 'logbook' && <section id="ci-igd-logbook-panel" role="tabpanel" aria-labelledby="ci-igd-logbook-tab" tabIndex={0} className="ciPanel glass" style={{ padding: 13, display: 'grid', gap: 10 }}>
-            <div><strong>Logbook episode IGD</strong><div className="ciPrivacy">Membaca sheet Logbook, header baris 3, data mulai baris 4. Satu baris sumber menjadi satu episode; RM berulang tidak digabung.</div></div>
-            <div className="ciUpload">
+          {activeImportTab === 'logbook' && <section id="ci-igd-logbook-panel" role="tabpanel" aria-labelledby="ci-igd-logbook-tab" tabIndex={0} className="ciPanel ciIgdPanel glass">
+            <div className="ciIgdPanelHeading"><strong>Logbook episode IGD</strong><span>Data pelayanan IGD · satu baris satu episode</span></div>
+            <div className="ciUpload ciIgdWorkspace"><div className="ciIgdSettings">
+              <h5>1. Pilih workbook</h5>
               <label className="aqField"><span>Workbook induk (.xlsx), maksimal 25 MB</span>
                 <input key={fileInputKey} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || busy} onChange={event => { const file = event.target.files?.[0]; if (file) void parseMainWorkbook(file); event.currentTarget.value = '' }}/>
               </label>
               {mainFile && <div className="ciPrivacy">Dipilih: {mainFile.name} · {(mainFile.size / 1024 / 1024).toFixed(2)} MB · preview menyamarkan identitas pasien.</div>}
-              {mainParsing && <div className="ciMessage">Membaca 7 header indikator, tanggal episode, pilihan respons, dan provenance baris sumber…</div>}
+              <dl className="ciSettingsList"><dt>Sheet</dt><dd>Logbook</dd><dt>Header</dt><dd>Baris 3</dd><dt>Data</dt><dd>Mulai baris 4</dd><dt>Status hasil</dt><dd>Perlu ditinjau</dd></dl>
+              {mainParsing && <div className="ciMessage">Memeriksa workbook IGD…</div>}
+            </div><div className="ciIgdResults">
               {(mainRows.length > 0 || mainExcluded.length > 0) && <div className="ciStats">
                 <div className="ciStat"><span>Episode operasional</span><strong>{mainRows.length + mainExcluded.length}</strong></div>
                 <div className="ciStat"><span>Siap diimpor</span><strong>{mainRows.length}</strong></div>
                 <div className="ciStat"><span>Dikecualikan</span><strong>{mainExcluded.length}</strong></div>
                 <div className="ciStat"><span>RM unik</span><strong>{new Set(mainRows.map(row => row.medicalRecordNo).filter(Boolean)).size}</strong></div>
               </div>}
-              {mainExcluded.length > 0 && <div className="ciMessage ciWarning">{mainExcluded.length} baris tidak masuk profil 2026 karena Waktu Masuk kosong/tidak valid atau berada di luar 2026. Nomor baris fisik dan alasan tetap dicatat dalam daftar pengecualian lokal; tidak ada tanggal yang ditebak.</div>}
-              {mainRows.some(row => row.warnings.length > 0) && <div className="ciMessage ciWarning">{mainRows.filter(row => row.warnings.length > 0).length} episode memiliki catatan QA identitas, waktu, formula sumber, atau opsi indikator yang tidak cocok.</div>}
+              {mainExcluded.length > 0 && <details className="ciReviewDetails"><summary>{mainExcluded.length} baris dikecualikan · lihat alasan</summary><div>Waktu Masuk kosong, tidak valid, atau di luar 2026. Tanggal tidak dibuat otomatis.</div></details>
+              {mainRows.some(row => row.warnings.length > 0) && <details className="ciReviewDetails"><summary>{mainRows.filter(row => row.warnings.length > 0).length} episode perlu diperiksa · lihat catatan</summary><div>Periksa identitas, waktu, formula sumber, dan jawaban indikator yang tidak cocok. Catatan tiap baris tersedia pada tabel.</div></details>
               {mainRows.length > 0 && <div className="ciTable"><QualityWorkbookPreviewControls config={mainPreview} title="Pratinjau Logbook" />
                 <table><thead><tr><th>Baris</th><th>Waktu masuk</th><th>Nama</th><th>RM</th><th>Indikator tidak cocok</th><th>Catatan</th></tr></thead><tbody>
                 {mainPreview.preview.map(row => {
@@ -858,40 +861,43 @@ export default function IgdExcelImportDialog({
                 })}
               </tbody></table></div>}
               
-              {mainImporting && <div className="ciMessage">Impor logbook: {mainProgress}% · batch aman, idempotensi berdasarkan SHA-256 file dan nomor baris fisik.</div>}
-              {mainResult && <div className="ciMessage ciSuccess">Logbook selesai diproses: {mainResult.imported} episode baru, {mainResult.skipped} sudah ada, {mainResult.received} total. Semua ID episode diterima dari server dan siap digunakan untuk relasi audit konsultasi.</div>}
-            </div>
-          </section>}
+              {mainImporting && <div className="ciMessage" role="status">Impor logbook: {mainProgress}% selesai.</div>
+              {mainResult && <div className="ciMessage ciSuccess">Logbook selesai diproses: {mainResult.imported} episode baru, {mainResult.skipped} sudah ada, {mainResult.received} total. Relasi konsultasi dapat dilanjutkan.</div>}
+            </div></div>
+          </section>
 
-          {activeImportTab === 'consultation' && <section id="ci-igd-consultation-panel" role="tabpanel" aria-labelledby="ci-igd-consultation-tab" tabIndex={0} className="ciPanel glass" style={{ padding: 13, display: 'grid', gap: 10 }}>
-            <div><strong>Audit waktu konsultasi DPJP</strong><div className="ciPrivacy">Impor workbook sumber konsultasi dari periode yang sedang diaudit. Beberapa file dapat dipilih sekaligus; setiap sheet dan baris sumber tetap disimpan sebagai jejak audit dan ditautkan hanya jika RM + tanggal cocok unik.</div></div>
-            <div className="ciUpload">
+          {activeImportTab === 'consultation' && <section id="ci-igd-consultation-panel" role="tabpanel" aria-labelledby="ci-igd-consultation-tab" tabIndex={0} className="ciPanel ciIgdPanel glass">
+            <div className="ciIgdPanelHeading"><strong>Audit konsultasi DPJP</strong><span>Beberapa file · relasi episode berdasarkan kecocokan unik</span></div>
+            <div className="ciUpload ciIgdWorkspace"><div className="ciIgdSettings">
+              <h5>1. Pilih workbook</h5>
               <label className="aqField"><span>Workbook sumber konsultasi (.xlsx), pilih satu atau beberapa file</span>
                 <input type="file" multiple accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || !mainReady || busy} onChange={event => { const files = Array.from(event.target.files ?? []); if (files.length) void parseConsultationFiles(files); event.currentTarget.value = '' }}/>
               </label>
               {!mainReady && <div className="ciMessage ciWarning">Alur ini terbuka setelah impor workbook induk berhasil dan seluruh pemetaan ID episode dikonfirmasi oleh server.</div>}
               <div className="ciPrivacy">Nama file harus mencantumkan bulan sumber (Januari–Desember) agar periode audit dicatat secara konsisten.</div>
               {consultFiles.length > 0 && <div className="ciPrivacy">{consultFiles.length} file dipilih: {consultFiles.map(file => file.name).join(' · ')}</div>}
-              {consultParsing && <div className="ciMessage">Membaca tab per dokter umum, mengekstrak sampel konsultasi, menghitung selisih timestamp, dan mencocokkan RM + tanggal…</div>}
+              <dl className="ciSettingsList"><dt>Data</dt><dd>Audit konsultasi</dd><dt>Pilihan file</dt><dd>Multi-file</dd><dt>Relasi</dt><dd>RM + tanggal</dd><dt>Status hasil</dt><dd>Perlu ditinjau</dd></dl>
+              {consultParsing && <div className="ciMessage">Memeriksa workbook konsultasi…</div>}
+            </div><div className="ciIgdResults">
               {consultRows.length > 0 && <div className="ciStats">
                 <div className="ciStat"><span>Sampel konsultasi</span><strong>{consultRows.length}</strong></div>
                 <div className="ciStat"><span>Cocok unik</span><strong>{matches.matched_unique ?? 0}</strong></div>
                 <div className="ciStat"><span>Ambigu</span><strong>{matches.ambiguous_rm_date ?? 0}</strong></div>
                 <div className="ciStat"><span>Belum cocok</span><strong>{consultRows.length - (matches.matched_unique ?? 0) - (matches.ambiguous_rm_date ?? 0)}</strong></div>
               </div>}
-              {consultRows.length > 0 && <div className="ciMessage ciWarning"><strong>Interpretasi durasi:</strong> kolom sumber hanya menyediakan Waktu Registrasi dan Waktu Konsultasi DPJP. Engine menghitung selisih kedua timestamp sebagai durasi registrasi-ke-konsultasi, bukan DPJP response time sejak permintaan konsultasi. Label Ya/Tidak dan alasan sumber disimpan tanpa dikonversi menjadi Code 1/2/3.</div>}
+              {consultRows.length > 0 && <details className="ciReviewDetails"><summary>Arti durasi konsultasi · penting</summary><div>Durasi dihitung dari registrasi hingga konsultasi DPJP, bukan sejak permintaan konsultasi. Label Ya/Tidak dan alasan sumber tidak otomatis diubah menjadi kode indikator.</div></details>}
               {consultRows.length > 0 && <div className="ciTable"><QualityWorkbookPreviewControls config={consultPreview} title="Pratinjau Konsultasi" />
                 <table><thead><tr><th>Periode / sheet</th><th>Dokter IGD</th><th>Waktu registrasi</th><th>Durasi sumber</th><th>Durasi hitung</th><th>Capaian sumber</th><th>Relasi episode</th></tr></thead><tbody>
                 {consultPreview.preview.map(row => <tr key={row.sourceKey}><td>{row.sourceMonth} · {row.sourceSheet}</td><td className="ciWrap">{row.requestingDoctor || '-'}</td><td>{row.rawRegistrationAt || '-'}</td><td>{row.rawReportedElapsed || '-'}</td><td>{row.calculatedElapsedMinutes == null ? '-' : row.calculatedElapsedMinutes + ' menit'}</td><td>{row.performanceLabel || '-'}</td><td className="ciWrap">{row.matchStatus} · {row.matchNote}</td></tr>)}
               </tbody></table></div>}
               
               {warningConsults > 0 && <div className="ciPrivacy">{warningConsults} sampel memiliki catatan QA timestamp, perbedaan durasi, RM numerik, atau status pencocokan.</div>}
-              {consultImporting && <div className="ciMessage">Impor audit konsultasi: {consultProgress}% · batch aman dan idempoten.</div>}
-              {consultResult && <div className="ciMessage ciSuccess">Audit konsultasi selesai: {consultResult.imported} baru, {consultResult.skipped} sudah ada, {consultResult.received} total. Jawaban sumber belum menjadi klasifikasi indikator resmi.</div>}
-            </div>
-          </section>}
+              {consultImporting && <div className="ciMessage" role="status">Impor konsultasi: {consultProgress}% selesai.</div>
+              {consultResult && <div className="ciMessage ciSuccess">Audit konsultasi selesai: {consultResult.imported} baru, {consultResult.skipped} sudah ada, {consultResult.received} total. Jawaban belum otomatis menjadi klasifikasi resmi.</div>}
+            </div></div>
+          </section>
           {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
-          <div className="ciPrivacy">Catatan integritas: RM berulang tidak digabung; respons kosong tetap kosong; opsi tak dikenal tetap menjadi provenance; sampel yang ambigu atau tidak cocok tetap disimpan di audit konsultasi tanpa relasi episode paksa. Tidak ada file sumber yang dikirim ke layanan eksternal.</div>
+          <details className="ciReviewDetails ciIgdIntegrity"><summary>Ketentuan pemeriksaan sumber</summary><div>RM berulang tidak digabung; jawaban kosong tetap kosong; pilihan tidak dikenal dipertahankan; sampel ambigu tidak ditautkan ke episode secara paksa.</div></details>
         </div>
         <div className="aqFoot">
           <span aria-live="polite" style={{ fontSize: 12, color: errorMessage ? '#8b2822' : 'var(--muted)', lineHeight: 1.45 }}>
