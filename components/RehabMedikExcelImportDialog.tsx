@@ -383,7 +383,7 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
     {errors.length>0&&<div className="riBox riWarn"><b>Impor diblokir sampai semua baris bermasalah dikoreksi.</b>{'\n'+errors.slice(0,40).join('\n')}{errors.length>40?'\n… dan '+(errors.length-40)+' baris lainnya.':''}</div>}
     {rows.length>0&&<div className="riTable"><QualityWorkbookPreviewControls config={previewConfig} />
             <table><thead><tr><th>Baris Excel</th><th>Tanggal</th><th>Nama Terapis</th><th>Jenis Tindakan</th><th>Indikator terisi</th></tr></thead><tbody>{preview.map(row=><tr key={row.sourceRow}><td>{row.sourceRow}</td><td>{row.serviceDate}</td><td>{row.therapist}</td><td>{row.treatment||'-'}</td><td>{Object.keys(row.indicators).length}/6</td></tr>)}</tbody></table></div>}
-    {rows.length>100&&<div className="riMuted">Pratinjau menampilkan 100 dari {rows.length.toLocaleString('id-ID')} baris valid.</div>}
+    
     {partial&&importing&&<div className="riBox">Progres {progress}% · {partial.completedBatches} batch selesai · {partial.imported.toLocaleString('id-ID')} catatan baru · {partial.skipped.toLocaleString('id-ID')} sudah ada.</div>}
     {partial&&!importing&&!result&&partial.completedBatches>0&&<div className="riBox riWarn">Sebagian proses selesai sebelum kegagalan. {partial.imported} catatan baru tersimpan dan {partial.skipped} dilewati. Unggah ulang aman: kunci sumber menggunakan nomor baris Logbook.</div>}
     {result&&<div className="riBox riSuccess" role="status">Impor selesai: {result.received.toLocaleString('id-ID')} baris diproses, {result.imported.toLocaleString('id-ID')} catatan baru disimpan, dan {result.skipped.toLocaleString('id-ID')} sudah ada sehingga dilewati. Semua catatan impor menjadi laporan final PIC.</div>}

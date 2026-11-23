@@ -720,7 +720,7 @@ export default function PonekExcelImportDialog({
         </div>}
 
         {rows.length > 0 && <div className="poBox">
-          <strong>Preview tersamarkan · {preview.length} dari {rows.length} episode lolos validasi</strong>
+          <strong>Pratinjau tersamarkan · {preview.length} dari {previewConfig.filteredCount} episode</strong>
           <div className="poTable" style={{ marginTop: 8 }}>
             <QualityWorkbookPreviewControls config={previewConfig} />
             <table>
