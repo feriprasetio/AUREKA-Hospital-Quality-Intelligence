@@ -2080,3 +2080,263 @@ html[data-mode="gelap"] :is(.workspaceNotificationPanel, .workspaceSupportPanel)
 .spmTableScroll:has(.spmAnnualCell) thead th:nth-child(2),.spmTableScroll:has(.spmAnnualCell) tbody td:nth-child(2){position:sticky;left:72px;z-index:2;min-width:260px;background:var(--surface-raised,var(--surface,#fff))}
 .spmTableScroll:has(.spmAnnualCell) thead th:first-child,.spmTableScroll:has(.spmAnnualCell) thead th:nth-child(2){z-index:4}
 @media(max-width:760px){.spmTableScroll:has(.spmAnnualCell){max-height:calc(100dvh - 260px)}.spmTablePanel .spmTableHead{align-items:flex-start;flex-direction:column}.spmTablePanel .spmTableHead>button{width:100%}}
+
+
+/* Centered Excel import workspace — shared by clinical unit dialogs */
+.aq.aqPortal.aqAuditWorkspace .aqBack:has(> .aqDrawer[class*="Import"]) {
+  justify-content: center !important;
+  align-items: center !important;
+  padding: clamp(8px, 2vw, 24px) !important;
+  overflow: auto !important;
+  background: rgba(13, 26, 35, .48) !important;
+}
+.aq.aqPortal.aqAuditWorkspace .aqBack > .aqDrawer[class*="Import"] {
+  flex: 0 1 auto !important;
+  box-sizing: border-box !important;
+  width: min(1320px, calc(100vw - 32px)) !important;
+  height: min(900px, calc(100dvh - 32px)) !important;
+  max-height: calc(100dvh - 16px) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: auto !important;
+  overflow: hidden !important;
+  border: 1px solid var(--line, #dce6e1) !important;
+  border-radius: 20px !important;
+  background: var(--surface, #fff) !important;
+  color: var(--ink, #263c32) !important;
+  box-shadow: 0 28px 92px rgba(10, 26, 34, .26) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqDHead {
+  flex: 0 0 auto !important;
+  padding: 15px 21px !important;
+  gap: 12px !important;
+  background: var(--surface, #fff) !important;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqDHead h4 {
+  font-size: clamp(18px, 1.7vw, 23px) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.025em !important;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqBody {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  padding: 15px 20px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] .ciTable {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 240px !important;
+  max-height: min(50dvh, 520px) !important;
+  flex: 0 0 auto !important;
+  overflow: auto !important;
+  scrollbar-gutter: stable;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] .ciTable > table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] .ciTable th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.aq.aqPortal.aqAuditWorkspace .aqDrawer[class*="Import"] > .aqFoot {
+  flex: 0 0 auto !important;
+  min-height: 64px !important;
+  padding: 11px 20px calc(11px + env(safe-area-inset-bottom, 0px)) !important;
+  border-top: 1px solid var(--line, #e3e9e5) !important;
+  background: var(--surface, #fff) !important;
+}
+
+/* IBS: actual data-preview workspace, with its settings in a separate column. */
+.aq.aqPortal.aqAuditWorkspace .aqIbsImport > .aqBody {
+  display: block !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.aqIbsImport .ciImportGrid {
+  display: grid;
+  grid-template-columns: minmax(245px, 285px) minmax(0, 1fr);
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+}
+.aqIbsImport .ciSidePanel {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-right: 1px solid var(--line, #e3ebe6);
+  background: var(--surface-raised, #f8fbf9);
+}
+.aqIbsImport .ciMainPanel {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: auto;
+  padding: 16px 19px;
+}
+.aqIbsImport .ciCard {
+  border: 1px solid var(--line, #e3ebe6);
+  border-radius: 13px;
+  padding: 13px;
+  min-width: 0;
+  background: var(--surface, #fff);
+}
+.aqIbsImport .ciCard h5,
+.aqIbsImport .ciPreviewHead h5 {
+  margin: 0 0 8px;
+  color: var(--ink, #253d34);
+  font-weight: 800;
+  font-size: 13px;
+}
+.aqIbsImport .ciCard .aqField input[type="file"] {
+  padding: 8px !important;
+  width: 100%;
+  min-width: 0;
+  min-height: 43px;
+  border-radius: 9px;
+  border: 1px solid var(--line, #dde6e1);
+  background: var(--surface, #fff);
+}
+.aqIbsImport .ciCard .ciFileName {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--muted, #718077);
+}
+.aqIbsImport .ciSettingsList {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 10px;
+  margin: 0;
+  font-size: 12px;
+}
+.aqIbsImport .ciSettingsList dt {color: var(--muted, #6b7b72);}
+.aqIbsImport .ciSettingsList dd {margin: 0; font-weight: 750; text-align: right; color: var(--ink, #263e33);}
+.aqIbsImport .ciMiniNote {
+  margin: 8px 0 0;
+  color: var(--muted, #6b7b72);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.aqIbsImport .ciStats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.aqIbsImport .ciStat {
+  min-width: 0;
+  border: 1px solid var(--line, #e2eae5);
+  background: var(--surface, #fff);
+  border-radius: 12px;
+  padding: 9px 10px;
+}
+.aqIbsImport .ciStat span {display: block; font-size: 11px; line-height: 1.25; color: var(--muted, #708076);}
+.aqIbsImport .ciStat strong {display: block; font-size: clamp(16px, 2vw, 22px); line-height: 1.3; margin-top: 4px; font-variant-numeric: tabular-nums;}
+.aqIbsImport .ciPreviewHead {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.aqIbsImport .ciPreviewHead h5 {margin: 0 0 3px;}
+.aqIbsImport .ciPreviewControls {display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;}
+.aqIbsImport .ciPreviewControls label {display: grid; gap: 4px; font-size: 11px; color: var(--muted, #6b7b72);}
+.aqIbsImport .ciPreviewControls select {
+  padding: 7px 24px 7px 9px;
+  min-height: 34px;
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  color: var(--ink, #263e33);
+  border: 1px solid var(--line, #dce6e0);
+  font-size: 12px;
+}
+.aq.aqPortal.aqAuditWorkspace .aqIbsImport .ciTable {
+  flex: 1 1 auto !important;
+  min-height: 260px !important;
+  max-height: none !important;
+  border: 1px solid var(--line, #e2eae5);
+  border-radius: 11px;
+  background: var(--surface, #fff);
+}
+.aqIbsImport .ciTable th, .aqIbsImport .ciTable td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line, #e3ebe6);
+  font-size: 12px;
+  white-space: nowrap;
+  text-align: left;
+}
+.aqIbsImport .ciTable th {
+  color: var(--muted, #5f7167);
+  background: var(--surface-raised, #f7faf8);
+}
+.aqIbsImport .ciTable tbody tr:hover td {background: var(--surface-raised, #f7faf8);}
+.aqIbsImport .ciEmptyState {
+  flex: 1 0 auto;
+  min-height: 230px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border: 1px dashed var(--line, #e3ebe6);
+  border-radius: 13px;
+  padding: 24px;
+  background: var(--surface-raised, #f8fbf9);
+  color: var(--muted, #6b7b72);
+  font-size: 13px;
+}
+.aqIbsImport .ciReviewDetails {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  border: 1px solid var(--line, #e3ebe6);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--muted, #6b7b72);
+  background: var(--surface, #fff);
+}
+.aqIbsImport .ciReviewDetails summary {font-weight: 750; cursor: pointer; color: var(--ink, #263e33);}
+.aqIbsImport .ciReviewDetails > div {max-height: 140px; overflow: auto; margin-top: 9px; line-height: 1.5; white-space: pre-wrap;}
+.aqIbsImport .ciImportProgress {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--line, #e1e8e3);
+}
+.aqIbsImport .ciImportProgress > div {height: 100%; background: var(--accent, #187653); transition: width .15s ease;}
+@media (max-width: 1020px) {
+  .aqIbsImport .ciImportGrid {grid-template-columns: minmax(195px, 235px) minmax(0,1fr);}
+  .aqIbsImport .ciStats {grid-template-columns: repeat(3, minmax(0, 1fr));}
+}
+@media (max-width: 720px) {
+  .aq.aqPortal.aqAuditWorkspace .aqBack:has(> .aqDrawer[class*="Import"]) {padding: 7px !important;}
+  .aq.aqPortal.aqAuditWorkspace .aqBack > .aqDrawer[class*="Import"] {
+    width: calc(100vw - 14px) !important;
+    height: calc(100dvh - 14px) !important;
+    max-height: calc(100dvh - 14px) !important;
+    border-radius: 12px !important;
+  }
+  .aqIbsImport .ciImportGrid {display: flex; flex-direction: column; overflow: auto; height: 100%;}
+  .aqIbsImport .ciSidePanel {overflow: visible; border-right: 0; border-bottom: 1px solid var(--line, #e3ebe6);}
+  .aqIbsImport .ciMainPanel {overflow: visible; flex: 0 0 auto; padding: 13px;}
+  .aqIbsImport .ciStats {grid-template-columns: repeat(2, minmax(0, 1fr));}
+  .aq.aqPortal.aqAuditWorkspace .aqIbsImport .ciTable {flex: 0 0 auto !important; height: 42dvh; min-height: 230px !important;}
+  .aqIbsImport .ciPreviewHead {align-items: flex-start;}
+}
