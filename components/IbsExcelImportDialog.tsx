@@ -232,6 +232,15 @@ export default function IbsExcelImportDialog({
   const eligible = useMemo(() => open && authorized && roomId === 4 && year >= 2026, [open, authorized, roomId, year])
   const warningRows = useMemo(() => rows.filter(row => row.warnings.length > 0), [rows])
   const historicalRows = useMemo(() => rows.filter(row => row.date.slice(0, 4) !== '2026').length, [rows])
+  const [previewMode, setPreviewMode] = useState<'all' | 'warnings' | 'history'>('all')
+  const [previewSize, setPreviewSize] = useState(50)
+  const filteredPreviewRows = useMemo(() => {
+    if (previewMode === 'warnings') return rows.filter(row => row.warnings.length > 0)
+    if (previewMode === 'history') return rows.filter(row => row.date.slice(0, 4) !== '2026')
+    return rows
+  }, [rows, previewMode])
+  const shownPreviewRows = useMemo(() => filteredPreviewRows.slice(0, previewSize), [filteredPreviewRows, previewSize])
+
 
   const reset = useCallback(() => {
     setFile(null)
@@ -244,6 +253,8 @@ export default function IbsExcelImportDialog({
     setPartial(null)
     setProgress(0)
     setErrorMessage('')
+    setPreviewMode('all')
+    setPreviewSize(50)
   }, [])
 
   const close = () => {
@@ -440,7 +451,7 @@ export default function IbsExcelImportDialog({
           if (smaller != null) {
             batchSize = smaller
             batchNumber -= 1
-            setErrorMessage('Server membatasi waktu transaksi. Sistem mengecilkan batch menjadi ' + batchSize + ' baris dan mengulangi batch yang sama secara aman…')
+            setErrorMessage('Koneksi perlu penyesuaian. Impor sedang dicoba kembali secara aman…')
             continue
           }
           throw new Error('Batch ' + batchNumber + ' (' + batch.length + ' baris) gagal: ' + error.message + (isStatementTimeout(error) ? ' Server masih timeout pada ukuran minimum; periksa beban basis data dan ulangi impor.' : ''))
@@ -477,80 +488,221 @@ export default function IbsExcelImportDialog({
   }
 
   if (!open) return null
-
   if (typeof document === 'undefined') return null
- return createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
-      <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqIbsImport" role="dialog" aria-modal="true" aria-labelledby="aqIbsImportTitle">
-        <style>{'.aqIbsImport .aqBody{display:grid;align-content:start;gap:12px}.aqIbsImport .ciIntro{font-size:12px;line-height:1.55;color:var(--muted)}.aqIbsImport .ciUpload{display:grid;gap:8px;padding:13px;border:1px dashed var(--line);border-radius:13px;background:rgba(255,255,255,.65)}.aqIbsImport .ciUpload input{width:100%;font-size:12px}.aqIbsImport .ciStats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.aqIbsImport .ciStat{padding:9px;background:#fff;border:1px solid var(--line);border-radius:11px;min-width:0}.aqIbsImport .ciStat span{display:block;color:var(--muted);font-size:12px}.aqIbsImport .ciStat strong{display:block;margin-top:4px;font-size:18px;overflow-wrap:anywhere}.aqIbsImport .ciMessage{padding:11px 13px;border-radius:11px;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.aqIbsImport .ciError{background:#fff0ef;color:#8b2822}.aqIbsImport .ciSuccess{background:#eaf8ef;color:#206443}.aqIbsImport .ciWarning{background:#fff8e7;color:#7b5d25}.aqIbsImport .ciTable{overflow:auto;max-height:310px;border:1px solid var(--line);border-radius:11px}.aqIbsImport table{width:100%;border-collapse:collapse;font-size:12px}.aqIbsImport th,.aqIbsImport td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.aqIbsImport th{position:sticky;top:0;background:#f7faf8}.aqIbsImport td.ciWrap{white-space:normal;min-width:200px}.aqIbsImport .ciPrivacy{font-size:12px;color:var(--muted);line-height:1.5}.aqIbsImport .ciCode{font-size:12px;font-weight:800;border:1px solid var(--line);padding:3px 5px;border-radius:6px;display:inline-block}@media(max-width:560px){.aqIbsImport .ciStats{grid-template-columns:repeat(2,minmax(0,1fr))}}'}</style>
-        <div className="aqDHead">
-          <div>
-            <div className="eyebrow">Audit Indikator Mutu · Impor Terarah</div>
-            <h4 id="aqIbsImportTitle">Unggah workbook Instalasi Bedah Sentral</h4>
-            <p>Unit IBS · profil indikator 2026 · 5 indikator aktif</p>
+
+  return createPortal(
+    <div className="aq aqPortal aqAuditWorkspace">
+      <div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>
+        <section ref={importDialogRef} tabIndex={-1} className="aqDrawer aqIbsImport" role="dialog" aria-modal="true" aria-labelledby="aqIbsImportTitle">
+          <div className="aqDHead">
+            <div>
+              <div className="eyebrow">Impor Excel</div>
+              <h4 id="aqIbsImportTitle">Instalasi Bedah Sentral</h4>
+              <p>Logbook 2026 · 5 indikator · Pratinjau sebelum impor</p>
+            </div>
+            <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
           </div>
-          <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
-        </div>
-        <div className="aqBody">
-          {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia untuk akun administrator/PMKP dengan akses unit yang sesuai.</div>}
-          {!eligible && <div className="ciMessage ciError">Pilih unit Instalasi Bedah Sentral dan tahun 2026 sebelum membuka alur impor ini.</div>}
-          <div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header baris 2 dan data mulai baris 3. Pilihan indikator dicocokkan ke master aktif, termasuk kode sumber. Identitas pasien disamarkan di pratinjau. Data tidak dimasukkan ke repositori GitHub.</div>
-          <div className="ciUpload">
-            <label className="aqField"><span>Workbook Excel (.xlsx), maksimal 15 MB</span>
-              <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={!eligible || !authorized || parsing || importing} onChange={event => {
-                const selectedFile = event.target.files?.[0]
-                if (selectedFile) void parseWorkbook(selectedFile)
-                event.currentTarget.value = ''
-              }}/>
-            </label>
-            {file && <div className="ciPrivacy">Berkas dipilih: {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB · data identitas disamarkan di pratinjau.</div>}
-            <div className="ciPrivacy">Impor memakai sesi AUREKA terautentikasi dan kunci sumber Excel yang stabil. Semua catatan baru disimpan sebagai Ready for Review, tidak tervalidasi otomatis. Batch awal 20 baris. Jika terjadi timeout, sistem otomatis mengecilkan ukuran transaksi secara bertahap hingga 1 baris dan mengulangi batch yang sama secara idempoten.</div>
+
+          <div className="aqBody">
+            <div className="ciImportGrid">
+              <aside className="ciSidePanel" aria-label="Pengaturan impor">
+                <section className="ciCard">
+                  <h5>1. Pilih berkas</h5>
+                  <label className="aqField">
+                    <span>Workbook Excel (.xlsx), maksimal 15 MB</span>
+                    <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                      disabled={!eligible || !authorized || parsing || importing}
+                      onChange={event => {
+                        const selectedFile = event.target.files?.[0]
+                        if (selectedFile) void parseWorkbook(selectedFile)
+                        event.currentTarget.value = ''
+                      }}
+                    />
+                  </label>
+                  {file ? <div className="ciFileName" role="status"><strong>{file.name}</strong><div>{(file.size / 1024 / 1024).toFixed(2)} MB</div></div>
+                    : <p className="ciMiniNote">Pilih workbook IBS untuk memeriksa datanya terlebih dahulu.</p>}
+                </section>
+
+                <section className="ciCard">
+                  <h5>Pengaturan impor</h5>
+                  <dl className="ciSettingsList">
+                    <dt>Unit</dt><dd>IBS</dd>
+                    <dt>Tahun</dt><dd>2026</dd>
+                    <dt>Worksheet</dt><dd>Logbook</dd>
+                    <dt>Baris header</dt><dd>2</dd>
+                    <dt>Mulai data</dt><dd>3</dd>
+                    <dt>Indikator</dt><dd>5 kolom</dd>
+                    <dt>Status hasil</dt><dd>Perlu ditinjau</dd>
+                  </dl>
+                  <details className="ciReviewDetails" style={{ marginTop: 12 }}>
+                    <summary>Lihat kolom indikator</summary>
+                    <div>{INDICATORS.map(indicator => (
+                      <div key={indicator.code} style={{padding: '3px 0'}}><strong>{indicator.code}</strong> · {indicator.header}</div>
+                    ))}</div>
+                  </details>
+                  <p className="ciMiniNote">Format sumber sesuai workbook baku IBS. Nilai asal tetap dipertahankan.</p>
+                </section>
+
+                <section className="ciCard">
+                  <h5>Sesudah diimpor</h5>
+                  <p className="ciMiniNote" style={{margin:0}}>
+                    Data masuk sebagai <strong>Perlu Ditinjau</strong>. Petugas memeriksa catatan sebelum validasi mutu.
+                  </p>
+                  {historicalRows > 0 && <p className="ciMiniNote">Catatan lintas tahun ({historicalRows}) tetap memakai tanggal aslinya.</p>}
+                </section>
+              </aside>
+
+              <main className="ciMainPanel" aria-label="Pratinjau workbook">
+                {!authorized && <div className="ciMessage ciError" role="alert">Akun ini belum memiliki akses impor IBS.</div>}
+                {!eligible && <div className="ciMessage ciError" role="alert">Pilih unit Instalasi Bedah Sentral dan tahun 2026.</div>}
+                {parsing && <div className="ciMessage" role="status">Memeriksa isi workbook…</div>}
+                {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
+
+                {(rows.length > 0 || excludedRows.length > 0) && (
+                  <div className="ciStats" aria-label="Ringkasan hasil pemeriksaan">
+                    <div className="ciStat"><span>Siap diimpor</span><strong>{rows.length.toLocaleString('id-ID')}</strong></div>
+                    <div className="ciStat"><span>Dikecualikan</span><strong>{excludedRows.length.toLocaleString('id-ID')}</strong></div>
+                    <div className="ciStat"><span>Perlu ditinjau</span><strong>{warningRows.length.toLocaleString('id-ID')}</strong></div>
+                    <div className="ciStat"><span>Lintas tahun</span><strong>{historicalRows.toLocaleString('id-ID')}</strong></div>
+                    <div className="ciStat"><span>Kesalahan</span><strong>{errors.length.toLocaleString('id-ID')}</strong></div>
+                  </div>
+                )}
+
+                {errors.length > 0 && <div className="ciMessage ciError" role="alert">
+                  <strong>Periksa struktur workbook sebelum impor.</strong>
+                  <div>{errors.slice(0, 10).map((error, index) => <div key={index}>{index + 1}. {error}</div>)}</div>
+                  {errors.length > 10 && <div>Masih ada {errors.length - 10} kesalahan lain.</div>}
+                </div>}
+
+                <div className="ciPreviewHead">
+                  <div>
+                    <h5>2. Pratinjau data</h5>
+                    <span className="ciMiniNote" style={{margin:0}}>
+                      {rows.length ? shownPreviewRows.length.toLocaleString('id-ID') + ' dari ' + filteredPreviewRows.length.toLocaleString('id-ID') + ' baris ditampilkan' : 'Data akan muncul setelah berkas diperiksa'}
+                    </span>
+                  </div>
+                  <div className="ciPreviewControls">
+                    <label>Filter data
+                      <select value={previewMode} disabled={!rows.length || parsing || importing}
+                        onChange={event => setPreviewMode(event.target.value as 'all' | 'warnings' | 'history')}>
+                        <option value="all">Semua baris</option>
+                        <option value="warnings">Perlu ditinjau ({warningRows.length})</option>
+                        <option value="history">Lintas tahun ({historicalRows})</option>
+                      </select>
+                    </label>
+                    <label>Jumlah pratinjau
+                      <select value={previewSize} disabled={!rows.length || parsing || importing}
+                        onChange={event => setPreviewSize(Number(event.target.value))}>
+                        <option value={20}>20 baris</option>
+                        <option value={50}>50 baris</option>
+                        <option value={100}>100 baris</option>
+                        <option value={120}>120 baris</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                {rows.length > 0 ? (
+                  <div className="ciTable" role="region" tabIndex={0} aria-label="Tabel pratinjau data Excel IBS">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Baris</th><th>Tanggal masuk</th><th>Nama (disamarkan)</th><th>No. RM (disamarkan)</th>
+                          {INDICATORS.map(item => <th key={item.code} title={item.header}>{item.code}</th>)}
+                          <th>Catatan pemeriksaan</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {shownPreviewRows.map(row => (
+                          <tr key={row.sourceRow}>
+                            <td>{row.sourceRow}</td>
+                            <td>{row.date}</td>
+                            <td>{maskIbsPatientName(row.patientName)}</td>
+                            <td>{maskIbsMedicalRecord(row.medicalRecordNo)}</td>
+                            {INDICATORS.map(item => (
+                              <td key={item.code}>
+                                <span className="ciCode">{maskChoiceCode(row.rawAnswers[item.code])}</span>
+                              </td>
+                            ))}
+                            <td className="ciWrap" style={{color:row.warnings.length ? '#8b5b13' : 'var(--muted)'}}>
+                              {row.warnings.length ? row.warnings.join(' ') : '—'}
+                            </td>
+                          </tr>
+                        ))}
+                        {!shownPreviewRows.length && (
+                          <tr><td colSpan={10} style={{padding:25,textAlign:'center',color:'var(--muted)'}}>
+                            Tidak ada baris yang sesuai filter ini.
+                          </td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="ciEmptyState" role="status">
+                    <div>
+                      <strong>{file ? (parsing ? 'Membaca workbook…' : 'Tidak ada baris yang siap ditampilkan') : 'Pratinjau belum tersedia'}</strong>
+                      <p style={{margin:'7px 0 0'}}>Unggah workbook IBS untuk melihat isi tabel sebelum menyimpannya.</p>
+                    </div>
+                  </div>
+                )}
+
+                {excludedRows.length > 0 && <details className="ciReviewDetails">
+                  <summary>{excludedRows.length} baris dikecualikan · lihat alasannya</summary>
+                  <div>{excludedRows.slice(0, 30).map(row => (
+                    <div key={row.sourceRow} style={{marginBottom:6}}>
+                      Baris {row.sourceRow} (No. {row.sourceNo || '—'}): {row.reasons.join(' ')}
+                    </div>
+                  ))}{excludedRows.length > 30 && <div>… dan {excludedRows.length - 30} baris lainnya.</div>}</div>
+                </details>}
+
+                {warningRows.length > 0 && <details className="ciReviewDetails">
+                  <summary>{warningRows.length} baris perlu diperiksa · lihat catatan</summary>
+                  <div>
+                    Nilai kosong dipertahankan sesuai sumber, tidak dilengkapi otomatis.
+                    {warningRows.slice(0, 20).map(row => (
+                      <div key={row.sourceRow} style={{marginTop:6}}>
+                        Baris {row.sourceRow}: {row.warnings.join(' ')}
+                      </div>
+                    ))}
+                    {warningRows.length > 20 && <div>… dan {warningRows.length - 20} baris lainnya.</div>}
+                  </div>
+                </details>}
+
+                {partial && importing && <div className="ciMessage" role="status" aria-live="polite">
+                  <strong>Impor sedang berjalan · {progress}%</strong>
+                  <div className="ciImportProgress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Progres impor">
+                    <div style={{width: progress + '%'}}/>
+                  </div>
+                  <span className="ciMiniNote">{partial.imported} catatan baru · {partial.skipped} sudah ada</span>
+                </div>}
+                {partial && !importing && !result && partial.completedBatches > 0 && (
+                  <div className="ciMessage ciWarning" role="alert">
+                    Sebagian baris sudah diproses: {partial.imported} baru, {partial.skipped} sudah ada.
+                    Periksa kendala sebelum mencoba lagi.
+                  </div>
+                )}
+                {result && <div className="ciMessage ciSuccess" role="status">
+                  <strong>Impor selesai.</strong> {result.imported} catatan tersimpan dan {result.skipped} catatan yang sudah ada dilewati.
+                </div>}
+              </main>
+            </div>
           </div>
-          {parsing && <div className="ciMessage">Membaca workbook dan memeriksa baris logbook IBS…</div>}
-          {errorMessage && <div className="ciMessage ciError" role="alert">{errorMessage}</div>}
-          {(rows.length > 0 || excludedRows.length > 0) && <div className="ciStats">
-            <div className="ciStat"><span>Siap diimpor</span><strong>{rows.length}</strong></div>
-            <div className="ciStat"><span>Dikecualikan</span><strong>{excludedRows.length}</strong></div>
-            <div className="ciStat"><span>Perlu review sumber</span><strong>{warningRows.length}</strong></div>
-            <div className="ciStat"><span>Catatan historis (2025)</span><strong>{historicalRows}</strong></div>
-            <div className="ciStat"><span>Kesalahan struktur</span><strong>{errors.length}</strong></div>
-          </div>}
-          {errors.length > 0 && <div className="ciMessage ciError" role="alert">
-            <strong>Impor diblokir karena masalah struktur workbook.</strong>{'\n'}{errors.slice(0, 20).map((error, index) => String(index + 1) + '. ' + error).join('\n')}{errors.length > 20 ? '\n… dan ' + (errors.length - 20) + ' kesalahan lainnya.' : ''}
-          </div>}
-          {excludedRows.length > 0 && <div className="ciMessage ciWarning" role="alert">
-            <strong>{excludedRows.length} baris tidak ikut diimpor.</strong> Tanggal masuk atau pilihan indikator tidak valid. Lengkapi tanggal dari sumber resmi atau koreksi label sumber; sistem tidak menebak nilai. {'\n'}
-            {excludedRows.slice(0, 50).map(row => 'Baris Excel ' + row.sourceRow + ' (No. ' + (row.sourceNo || '-') + '): ' + row.reasons.join(' ')).join('\n')}
-            {excludedRows.length > 50 ? '\n… dan ' + (excludedRows.length - 50) + ' baris lainnya.' : ''}
-          </div>}
-          {rows.length > 0 && <div className="ciTable">
-            <table><thead><tr><th>Baris</th><th>Tanggal masuk</th><th>Nama (masking)</th><th>No. RM (masking)</th>{INDICATORS.map(item => <th key={item.code}>{item.code}</th>)}<th>Catatan QA</th></tr></thead>
-              <tbody>{rows.slice(0, 120).map(row => (
-                <tr key={row.sourceRow}>
-                  <td>{row.sourceRow}</td>
-                  <td>{row.date}</td>
-                  <td>{maskIbsPatientName(row.patientName)}</td>
-                  <td>{maskIbsMedicalRecord(row.medicalRecordNo)}</td>
-                  {INDICATORS.map(item => <td key={item.code}><span className="ciCode">{maskChoiceCode(row.rawAnswers[item.code])}</span></td>)}
-                  <td className="ciWrap" style={{ color: row.warnings.length ? '#8b5b13' : 'var(--muted)' }}>{row.warnings.length ? row.warnings.join(' ') : '-'}</td>
-                </tr>
-              ))}</tbody>
-            </table>
-          </div>}
-          {rows.length > 120 && <div className="ciPrivacy">Pratinjau menampilkan 120 dari {rows.length} baris yang siap diimpor.</div>}
-          {rows.some(row => row.warnings.length > 0) && <div className="ciMessage ciWarning"><strong>Perhatian data sumber.</strong> No. RM, diagnosa, jenis tindakan, dan DPJP yang kosong dipertahankan sebagai temuan; isilah dari dokumen sah sebelum validasi.</div>}
-          {partial && importing && <div className="ciMessage">Progres: {progress}% · {partial.completedBatches} batch selesai · {partial.imported} catatan baru · {partial.skipped} dilewati karena sudah ada.</div>}
-          {partial && !importing && !result && partial.completedBatches > 0 && <div className="ciMessage ciWarning">Sebagian proses telah selesai sebelum terjadi kegagalan: {partial.received} baris diproses, {partial.imported} baru tersimpan, {partial.skipped} sudah ada. Unggah ulang aman karena setiap baris menggunakan kunci sumber idempoten; periksa pesan galat sebelum mengulang.</div>}
-          {result && <div className="ciMessage ciSuccess" role="status">Impor selesai untuk {result.received} baris yang valid. {result.imported} catatan baru tersimpan; {result.skipped} baris yang sudah ada dilewati. {result.completedBatches} batch selesai; data dimuat ulang dari server.</div>}
-          <div className="ciPrivacy">Baris yang berasal dari tahun 2025 tetap disimpan sebagai historis dengan tanggal asli; jangan mengubah tanggal atau memasukkannya ke denominator mutu 2026. Tidak ada catatan yang otomatis tervalidasi.</div>
-        </div>
-        <div className="aqFoot">
-          <span style={{ fontSize: 12, color: 'var(--muted)' }}>Data sumber pasien tetap perlu pemeriksaan oleh petugas.</span>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Tutup</button>
-            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor…' : 'Impor ' + rows.length + ' catatan'}</button>
+
+          <div className="aqFoot">
+            <span style={{fontSize:12,color:'var(--muted)'}}>
+              {rows.length ? rows.length.toLocaleString('id-ID') + ' baris siap · ' + warningRows.length + ' perlu ditinjau' : 'Pilih workbook untuk melihat pratinjau'}
+            </span>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+              <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Tutup</button>
+              <button type="button" className="aqBtn primary"
+                disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result}
+                onClick={() => void importRows()}>
+                {importing ? 'Mengimpor…' : 'Impor ' + rows.length.toLocaleString('id-ID') + ' catatan'}
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
-    </div></div>, document.body
+        </section>
+      </div>
+    </div>, document.body
   )
 }
