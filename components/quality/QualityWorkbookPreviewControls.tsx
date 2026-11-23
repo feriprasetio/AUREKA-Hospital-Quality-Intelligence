@@ -24,9 +24,11 @@ export function useQualityWorkbookPreview<T>(rows: readonly T[], options?: { his
   const warningCount = useMemo(() => rows.reduce((sum, row) => sum + (hasWarning(row) ? 1 : 0), 0), [rows])
   const historical = options?.historical
   const historicalCount = useMemo(() => historical ? rows.filter(historical).length : 0, [rows, historical])
-  const filtered = useMemo(() => previewMode === 'warnings'
+  const activeMode: WorkbookPreviewMode = previewMode === 'warnings' && !warningCount
+    ? 'all' : previewMode === 'history' && !historicalCount ? 'all' : previewMode
+  const filtered = useMemo(() => activeMode === 'warnings'
     ? rows.filter(hasWarning)
-    : previewMode === 'history' && historical ? rows.filter(historical) : rows, [rows, previewMode, historical])
+    : activeMode === 'history' && historical ? rows.filter(historical) : rows, [rows, activeMode, historical])
   const preview = useMemo(() => filtered.slice(0, previewSize), [filtered, previewSize])
 
   return {
@@ -35,7 +37,7 @@ export function useQualityWorkbookPreview<T>(rows: readonly T[], options?: { his
     filteredCount: filtered.length,
     warningCount,
     historicalCount,
-    previewMode,
+    previewMode: activeMode,
     setPreviewMode,
     previewSize,
     setPreviewSize,
@@ -60,17 +62,16 @@ export default function QualityWorkbookPreviewControls({
         <span>{config.preview.length.toLocaleString('id-ID')} dari {config.filteredCount.toLocaleString('id-ID')} baris ditampilkan</span>
       </div>
       <div className="qwpToolbarFilters">
-        {(config.warningCount > 0 || config.historicalCount > 0) && (
-          <label>
-            <span>Filter</span>
-            <select aria-label="Filter pratinjau workbook" value={config.previewMode}
-              onChange={event => config.setPreviewMode(event.target.value as WorkbookPreviewMode)}>
-              <option value="all">Semua baris</option>
-              {config.warningCount > 0 && <option value="warnings">Perlu ditinjau ({config.warningCount.toLocaleString('id-ID')})</option>}
-              {config.historicalCount > 0 && <option value="history">Lintas tahun ({config.historicalCount.toLocaleString('id-ID')})</option>}
-            </select>
-          </label>
-        )}
+        <label>
+          <span>Filter</span>
+          <select aria-label="Filter pratinjau workbook" value={config.previewMode}
+            disabled={config.warningCount === 0 && config.historicalCount === 0}
+            onChange={event => config.setPreviewMode(event.target.value as WorkbookPreviewMode)}>
+            <option value="all">Semua baris</option>
+            {config.warningCount > 0 && <option value="warnings">Perlu ditinjau ({config.warningCount.toLocaleString('id-ID')})</option>}
+            {config.historicalCount > 0 && <option value="history">Lintas tahun ({config.historicalCount.toLocaleString('id-ID')})</option>}
+          </select>
+        </label>
         <label>
           <span>Jumlah baris</span>
           <select aria-label="Jumlah baris pratinjau workbook" value={config.previewSize}

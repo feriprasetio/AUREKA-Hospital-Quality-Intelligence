@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useMemo, useState } from 'react'
@@ -344,7 +345,7 @@ export default function RekamMedisExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody">
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="rekam-medis" year={year} />
           <div className="rmIntro">
             Pilih workbook .xlsx yang berisi sheet <strong>Logbook</strong>. Baris header dibaca dari baris 2. Setiap baris pasien menjadi satu catatan event dengan dua respons indikator. Data hanya dipetakan ke master indikator aktif; nilai yang tidak dikenal dipertahankan dan diberi penanda perlu ditinjau.
           </div>

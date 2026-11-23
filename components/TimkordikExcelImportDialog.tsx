@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useMemo, useState } from 'react'
@@ -404,7 +405,7 @@ export default function TimkordikExcelImportDialog({
           </div>
           <button type="button" className="aqClose" aria-label="Tutup dialog impor" disabled={parsing || importing} onClick={close}>×</button>
         </div>
-        <div className="aqBody">
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="timkordik" year={year} />
           <div className="tkIntro">
             Pilih workbook .xlsx yang berisi sheet <strong>Profil</strong> dan <strong>Logbook</strong>. Setiap baris mahasiswa menjadi satu catatan aktivitas dengan lima respons indikator. Pilihan kode dipastikan cocok terhadap profil sumber; pratinjau menyamarkan identitas mahasiswa.
           </div>

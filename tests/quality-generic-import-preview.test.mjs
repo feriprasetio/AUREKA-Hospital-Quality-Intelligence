@@ -26,6 +26,7 @@ test('shared preview warning filter includes drafts and unvalidated generic impo
   const src=read('components/quality/QualityWorkbookPreviewControls.tsx')
   assert.match(src,/staged\?\.review_required === true/)
   assert.match(src,/staged\?\.status === 'draft'/)
-  assert.match(src,/previewMode === 'history' && historical/)
+  assert.match(src,/activeMode === 'history' && historical/)
+  assert.match(src,/previewMode: activeMode/)
   assert.match(src,/filtered\.slice\(0, previewSize\)/)
 })

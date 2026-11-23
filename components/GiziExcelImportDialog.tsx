@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
@@ -555,7 +556,7 @@ export default function GiziExcelImportDialog({
           </div>
           <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
         </div>
-        <div className="aqBody">
+        <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="gizi" year={year} />
           {!authorized && <div className="ciMessage ciError">Impor workbook hanya tersedia bagi administrator/Komite PMKP dengan akses ke unit Instalasi Gizi.</div>}
           {!eligible && <div className="ciMessage ciError">Pilih unit Instalasi Gizi dan tahun 2026 sebelum membuka alur impor ini.</div>}
           <details className="ciImportGuide"><summary>Format workbook sumber</summary><div className="ciIntro">Sistem membaca sheet <strong>Logbook</strong>, header pada baris 2, dan data mulai baris 3. Sheet Profil, Dashboard, dan sheet rekap lainnya tidak diimpor karena bukan sumber episode pasien. Nomor baris fisik Excel menjadi kunci idempotensi; No. urut dan No. RM tidak dipakai untuk menghapus atau menggabungkan episode.</div></details>
