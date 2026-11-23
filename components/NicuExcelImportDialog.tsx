@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookImportSidebar from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { resolveInteractiveExcelHeaderColumn } from '@/lib/aureka/interactive-header-mapping'
@@ -671,7 +672,7 @@ export default function NicuExcelImportDialog({
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
-      <div className="aqBody">
+      <div className="aqBody qiuBody"><QualityWorkbookImportSidebar unitKey="nicu" year={year} />
         <div className="piBox">
           <strong>Unggah workbook Excel (.xlsx)</strong>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
