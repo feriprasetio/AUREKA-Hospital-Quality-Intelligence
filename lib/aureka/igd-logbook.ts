@@ -129,14 +129,29 @@ export function normalizeIgdPatientName(value: unknown): string {
   return cleanText(value).toLocaleLowerCase('id-ID')
 }
 
+/**
+ * Normalize only typographic variants of the same wording. Do not infer
+ * synonyms, turn raw indicator headers into responses, or override explicit
+ * source Code 1/2/3. Uniqueness is mandatory for any automatic match.
+ */
+export function normalizeIgdOptionText(value: unknown): string {
+  return cleanText(value)
+    .replace(/[‐‑‒–—−]/g, '-')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/\s*\/\s*/g, '/')
+    .replace(/\s*-\s*/g, '-')
+    .toLocaleLowerCase('id-ID')
+}
+
 export function matchIgdSourceOption<T extends IgdIndicatorOption>(rawValue: unknown, options: T[]): T | null {
   const raw = cleanText(rawValue)
   if (!raw) return null
   const suffix = raw.match(/\s*\(code\s*(\d+)\)\s*$/i)
   const sourceCode = suffix ? Number(suffix[1]) : null
-  const sourceLabel = cleanText(raw.replace(/\s*\(code\s*\d+\)\s*$/i, '')).toLocaleLowerCase('id-ID')
+  const sourceLabel = normalizeIgdOptionText(raw.replace(/\s*\(code\s*\d+\)\s*$/i, ''))
   const matches = options.filter(option =>
-    cleanText(option.label).toLocaleLowerCase('id-ID') === sourceLabel &&
+    normalizeIgdOptionText(option.label) === sourceLabel &&
     (sourceCode == null || (option.code != null && Number(option.code) === sourceCode))
   )
   return matches.length === 1 ? matches[0] : null
