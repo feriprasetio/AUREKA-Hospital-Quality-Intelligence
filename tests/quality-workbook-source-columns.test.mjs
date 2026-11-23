@@ -117,3 +117,16 @@ test('provider-day matrix continues after the PMKP February 29 placeholder with 
     ])
   }
 })
+
+
+test('reports numeric matrix cells without a provider instead of dropping them silently', () => {
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet('Logbook')
+  sheet.getRow(1).values = ['Poliklinik', new Date('2026-01-01T00:00:00Z')]
+  sheet.getRow(2).values = ['Klinik Uji']
+  sheet.getRow(3).values = ['Dokter Uji', 30]
+  sheet.getRow(4).values = [null, 60]
+  const result = parseOutpatientMatrixWorkbook(workbook, 2026, [{ clinic: 'Klinik Uji', doctors: ['Dokter Uji'] }])
+  assert.equal(result.rows.length, 1)
+  assert.deepEqual(result.errors, ['Sheet "Logbook" · sel B4: nilai harian tidak memiliki identitas dokter.'])
+})

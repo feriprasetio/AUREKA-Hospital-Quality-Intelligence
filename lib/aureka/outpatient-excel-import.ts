@@ -107,7 +107,15 @@ export function parseOutpatientMatrixSheet(sheet:Worksheet,year:number,groups:Ou
  let activeClinic:OutpatientProviderGroup|null=null
  for(let r=headerRow+1;r<=Math.min(sheet.rowCount,headerRow+5000);r++){
   const source=sheet.getRow(r),label=outpatientCellText(source.getCell(1))
-  if(!label)continue
+  if(!label){
+   for(const {column} of dateColumns){
+    const cell=source.getCell(column)
+    if(!cell.formula&&parseOutpatientWaitingMinutes(readOutpatientCell(cell))!=null){
+     errors.push('Sheet "'+String(sheet.name??'Logbook')+'" · sel '+cell.address+': nilai harian tidak memiliki identitas dokter.')
+    }
+   }
+   continue
+  }
   // Excel may return the merged calendar heading in column A on row 2.
   // Match the helper formulas before interpreting a label as a provider.
   const firstFormula=String(source.getCell(firstDateColumn).formula??'').replace(/[=$\s]/g,'').toUpperCase()
