@@ -1,4 +1,5 @@
 'use client'
+import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -333,6 +334,7 @@ export default function IgdExcelImportDialog({
 }: Props) {
   const [mainFile, setMainFile] = useState<File | null>(null)
   const [mainRows, setMainRows] = useState<MainRow[]>([])
+  const mainPreview = useQualityWorkbookPreview(mainRows)
   const [mainExcluded, setMainExcluded] = useState<ExcludedRow[]>([])
   const [mainFileHash, setMainFileHash] = useState('')
   const [mainReady, setMainReady] = useState(false)
@@ -343,6 +345,7 @@ export default function IgdExcelImportDialog({
   const [recordIds, setRecordIds] = useState<Record<string, string>>({})
   const [consultFiles, setConsultFiles] = useState<File[]>([])
   const [consultRows, setConsultRows] = useState<ConsultRow[]>([])
+  const consultPreview = useQualityWorkbookPreview(consultRows)
   const [consultParsing, setConsultParsing] = useState(false)
   const [consultImporting, setConsultImporting] = useState(false)
   const [consultResult, setConsultResult] = useState<ImportCounts | null>(null)
@@ -847,13 +850,14 @@ export default function IgdExcelImportDialog({
               </div>}
               {mainExcluded.length > 0 && <div className="ciMessage ciWarning">{mainExcluded.length} baris tidak masuk profil 2026 karena Waktu Masuk kosong/tidak valid atau berada di luar 2026. Nomor baris fisik dan alasan tetap dicatat dalam daftar pengecualian lokal; tidak ada tanggal yang ditebak.</div>}
               {mainRows.some(row => row.warnings.length > 0) && <div className="ciMessage ciWarning">{mainRows.filter(row => row.warnings.length > 0).length} episode memiliki catatan QA identitas, waktu, formula sumber, atau opsi indikator yang tidak cocok.</div>}
-              {mainRows.length > 0 && <div className="ciTable"><table><thead><tr><th>Baris</th><th>Waktu masuk</th><th>Nama</th><th>RM</th><th>Indikator tidak cocok</th><th>Catatan</th></tr></thead><tbody>
-                {mainRows.slice(0, 40).map(row => {
+              {mainRows.length > 0 && <div className="ciTable"><QualityWorkbookPreviewControls config={mainPreview} title="Pratinjau Logbook" />
+                <table><thead><tr><th>Baris</th><th>Waktu masuk</th><th>Nama</th><th>RM</th><th>Indikator tidak cocok</th><th>Catatan</th></tr></thead><tbody>
+                {mainPreview.preview.map(row => {
                   const unmatched = IGD_INDICATORS.filter(indicator => row.rawIndicators[indicator.code] && !row.matchedIndicators[indicator.code])
                   return <tr key={row.sourceRow}><td>{row.sourceRow}</td><td>{row.admissionAt.replace('T', ' ')}</td><td>{mask(row.patientName, 'name')}</td><td>{mask(row.medicalRecordNo, 'mrn')}</td><td>{unmatched.map(item => item.code).join(', ') || '-'}</td><td className="ciWrap">{row.warnings.join(' ') || '-'}</td></tr>
                 })}
               </tbody></table></div>}
-              {mainRows.length > 40 && <div className="ciPrivacy">Preview menampilkan 40 dari {mainRows.length} episode.</div>}
+              
               {mainImporting && <div className="ciMessage">Impor logbook: {mainProgress}% · batch aman, idempotensi berdasarkan SHA-256 file dan nomor baris fisik.</div>}
               {mainResult && <div className="ciMessage ciSuccess">Logbook selesai diproses: {mainResult.imported} episode baru, {mainResult.skipped} sudah ada, {mainResult.received} total. Semua ID episode diterima dari server dan siap digunakan untuk relasi audit konsultasi.</div>}
             </div>
@@ -876,10 +880,11 @@ export default function IgdExcelImportDialog({
                 <div className="ciStat"><span>Belum cocok</span><strong>{consultRows.length - (matches.matched_unique ?? 0) - (matches.ambiguous_rm_date ?? 0)}</strong></div>
               </div>}
               {consultRows.length > 0 && <div className="ciMessage ciWarning"><strong>Interpretasi durasi:</strong> kolom sumber hanya menyediakan Waktu Registrasi dan Waktu Konsultasi DPJP. Engine menghitung selisih kedua timestamp sebagai durasi registrasi-ke-konsultasi, bukan DPJP response time sejak permintaan konsultasi. Label Ya/Tidak dan alasan sumber disimpan tanpa dikonversi menjadi Code 1/2/3.</div>}
-              {consultRows.length > 0 && <div className="ciTable"><table><thead><tr><th>Periode / sheet</th><th>Dokter IGD</th><th>Waktu registrasi</th><th>Durasi sumber</th><th>Durasi hitung</th><th>Capaian sumber</th><th>Relasi episode</th></tr></thead><tbody>
-                {consultRows.slice(0, 60).map(row => <tr key={row.sourceKey}><td>{row.sourceMonth} · {row.sourceSheet}</td><td className="ciWrap">{row.requestingDoctor || '-'}</td><td>{row.rawRegistrationAt || '-'}</td><td>{row.rawReportedElapsed || '-'}</td><td>{row.calculatedElapsedMinutes == null ? '-' : row.calculatedElapsedMinutes + ' menit'}</td><td>{row.performanceLabel || '-'}</td><td className="ciWrap">{row.matchStatus} · {row.matchNote}</td></tr>)}
+              {consultRows.length > 0 && <div className="ciTable"><QualityWorkbookPreviewControls config={consultPreview} title="Pratinjau Konsultasi" />
+                <table><thead><tr><th>Periode / sheet</th><th>Dokter IGD</th><th>Waktu registrasi</th><th>Durasi sumber</th><th>Durasi hitung</th><th>Capaian sumber</th><th>Relasi episode</th></tr></thead><tbody>
+                {consultPreview.preview.map(row => <tr key={row.sourceKey}><td>{row.sourceMonth} · {row.sourceSheet}</td><td className="ciWrap">{row.requestingDoctor || '-'}</td><td>{row.rawRegistrationAt || '-'}</td><td>{row.rawReportedElapsed || '-'}</td><td>{row.calculatedElapsedMinutes == null ? '-' : row.calculatedElapsedMinutes + ' menit'}</td><td>{row.performanceLabel || '-'}</td><td className="ciWrap">{row.matchStatus} · {row.matchNote}</td></tr>)}
               </tbody></table></div>}
-              {consultRows.length > 60 && <div className="ciPrivacy">Preview menampilkan 60 dari {consultRows.length} sampel.</div>}
+              
               {warningConsults > 0 && <div className="ciPrivacy">{warningConsults} sampel memiliki catatan QA timestamp, perbedaan durasi, RM numerik, atau status pencocokan.</div>}
               {consultImporting && <div className="ciMessage">Impor audit konsultasi: {consultProgress}% · batch aman dan idempoten.</div>}
               {consultResult && <div className="ciMessage ciSuccess">Audit konsultasi selesai: {consultResult.imported} baru, {consultResult.skipped} sudah ada, {consultResult.received} total. Jawaban sumber belum menjadi klasifikasi indikator resmi.</div>}
