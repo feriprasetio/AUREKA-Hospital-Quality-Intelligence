@@ -973,3 +973,23 @@ test('a workbook can count Code 2 as an event and still accept a historic aggreg
   const result = calculateIndicatorResult(profile, rows, 2026)
   assert.deepEqual([result.annualNumerator, result.annualDenominator, result.annualRate], [2, 5, 40])
 })
+
+test('all five Timkordik activity profiles capture a dropdown and aggregate imported answers', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const { shouldUseIndicatorDropdown, findIndicatorDropdownSelection, buildIndicatorDropdownOptions } = await import('../lib/aureka/indicator-dropdown.ts')
+  const chunks = await Promise.all(Array.from({ length: 12 }, (_, index) =>
+    readFile(new URL('../data/quality-profile-2026/chunk-' + String(index + 1).padStart(2, '0') + '.json', import.meta.url), 'utf8').then(JSON.parse)))
+  const profiles = chunks.flat().filter(profile => profile.room_id === 30)
+  assert.equal(profiles.length, 5)
+  for (const profile of profiles) {
+    assert.equal(shouldUseIndicatorDropdown(profile), true, profile.code)
+    const option = profile.options_json.find(item => item.code === 1)
+    const response = { answer: option.label, code: option.code, source_option: false }
+    assert.ok(findIndicatorDropdownSelection(buildIndicatorDropdownOptions(profile), response) >= 0)
+    const result = calculateIndicatorResult(profile, [{
+      record_date: '2026-09-21', room_id: 30, status: 'ready',
+      core_data: { indicator_values: { [profile.code]: response } },
+    }], 2026, true)
+    assert.deepEqual([result.annualNumerator, result.annualDenominator, result.readyRecords], [1, 1, 1], profile.code)
+  }
+})
