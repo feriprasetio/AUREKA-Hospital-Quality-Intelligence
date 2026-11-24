@@ -257,12 +257,14 @@ export default function TimkordikExcelImportDialog({
       const rowErrors: string[] = []
       const seenSourceNumbers = new Set<number>()
       const upper = Math.min(worksheet.rowCount, 5003)
+      // The template fills No. even on unused rows.
+      const dataColumns = [
+        ...Object.entries(indexes).filter(([key]) => key !== 'sourceNo').map(([, column]) => column),
+        ...indicatorColumns.values(),
+      ]
       for (let excelRow = 3; excelRow <= upper; excelRow++) {
         const source = worksheet.getRow(excelRow)
-        const hasData = [
-          ...Object.values(indexes),
-          ...indicatorColumns.values(),
-        ].some(column => cellText(source.getCell(column)) !== '')
+        const hasData = dataColumns.some(column => cellText(source.getCell(column)) !== '')
         if (!hasData) continue
         if (prepared.length + rowErrors.length >= MAX_ROWS) {
           rowErrors.push('Workbook melebihi batas ' + MAX_ROWS + ' catatan.')
@@ -455,7 +457,7 @@ export default function TimkordikExcelImportDialog({
               <div className="tkStat"><span>Respons · Code 3</span><strong>{codeCounts.code3}</strong></div>
             </div>
             <div className="tkMessage">
-              <strong>Pratinjau berhasil.</strong> {rows.length} catatan dan {rows.length * 5} respons indikator lolos pemeriksaan lokal. Catatan disimpan dengan grain activity dan status Siap Ditinjau. Unggah ulang nomor sumber yang sama akan dilewati.
+              <strong>{errors.length ? 'Pratinjau sebagian.' : 'Pratinjau berhasil.'}</strong> {rows.length} catatan dan {rows.length * 5} respons indikator lolos pemeriksaan lokal. Catatan disimpan dengan grain activity dan status Siap Ditinjau. Unggah ulang nomor sumber yang sama akan dilewati.
             </div>
             <div className="tkTable">
               <QualityWorkbookPreviewControls config={previewConfig} />
