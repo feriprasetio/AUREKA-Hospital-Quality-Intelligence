@@ -11,6 +11,7 @@ import { shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
 import { isIndicatorApplicableToDiagnosis } from '@/lib/aureka/quality-logbook-coverage'
 import { getWorkbookRuleColumn, readWorkbookSourceColumns, type WorkbookSourceColumn, type WorkbookSourceRule } from '@/lib/aureka/quality-workbook-columns'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import { fuzzyFindHeader, pickBestBlock, type BlockRow } from '@/lib/aureka/smart-workbook-block'
 
 type Profile = {
   [key: string]: any
@@ -118,6 +119,27 @@ const grainValue = (value: unknown): string => {
     agregat: 'aggregate', agregasi: 'aggregate', aggregate: 'aggregate',
   }
   return aliases[raw] ?? raw
+}
+const DATA_FIELD_SYNONYMS: Record<string, string[]> = {
+  date: ['tanggal masuk','tanggal aduan','tanggal permintaan','tanggal audit','tanggal kunjungan','tanggal pengamatan','tanggal pelayanan','tanggal dilayani','tanggal survei','tanggal lapor','tanggal','date','record date'],
+  subject_key: ['no. rm', 'no rm', 'nomor rekam medis', 'no. rekam medis', 'id subjek', 'kode pegawai'],
+  patient_name: ['nama pasien', 'nama', 'patient name'],
+  diagnosis: ['diagnosa', 'diagnosis', 'diagnosis tegak'],
+  dpjp: ['dpjp', 'dokter penanggung jawab'],
+}
+/** Baca maksimal 40 baris pertama sheet sebagai teks sel untuk pencarian blok tabel. */
+const sheetPreviewRows = (sheet: any, limit = 40): BlockRow[] => {
+  const rows: BlockRow[] = []
+  for (let rowNumber = 1; rowNumber <= Math.min(limit, sheet.rowCount); rowNumber++) {
+    const cells: Array<{ index: number; text: string }> = []
+    sheet.getRow(rowNumber).eachCell((cell: any, index: number) => {
+      if (cell.isMerged && cell.master.address !== cell.address) return
+      const text = String(cell.text ?? '').trim()
+      if (text) cells.push({ index, text })
+    })
+    if (cells.length) rows.push({ rowNumber, cells })
+  }
+  return rows
 }
 const findHeader = (headers: string[], synonyms: string[]) => {
   const aliases = synonyms.filter(Boolean).map(normalize)
@@ -243,11 +265,27 @@ export default function QualityWorkbookImportPanel({
       const workbook = new ExcelJS.Workbook()
       await workbook.xlsx.load(await file.arrayBuffer())
       const detected: SheetMeta[] = []
+      // Target pencocokan: isian dasar logbook + setiap indikator aktif unit (kode, judul, alias).
+      const targets: string[][] = [
+        ...Object.values(DATA_FIELD_SYNONYMS),
+        ...activeProfiles.map(p => [p.schema_json?.excel_mapping?.indicator_header, p.schema_json?.header_label, p.title, ...aliasesFor(p)].filter(Boolean).map(String)),
+      ]
+      const previews = workbook.worksheets.slice(0, 50).map((sheet: any) => ({ name: sheet.name as string, rows: sheetPreviewRows(sheet) }))
+      const smartRow = new Map<string, number>()
+      for (const preview of previews) {
+        const pick = pickBestBlock([preview], targets)
+        if (pick && pick.matched >= 2) smartRow.set(preview.name, pick.headerRow)
+      }
       for (const sheet of workbook.worksheets.slice(0, 50)) {
+        const smart = smartRow.get(sheet.name)
+        if (smart) {
+          const columns = readWorkbookSourceColumns(sheet.getRow(smart))
+          if (columns.length) { detected.push({ name: sheet.name, headerRow: smart, columns, headers: columns.map(column => column.key) }); continue }
+        }
         let bestRow = 1
         let bestColumns: WorkbookSourceColumn[] = []
         let bestScore = -1
-        for (let rowNumber = 1; rowNumber <= Math.min(15, sheet.rowCount); rowNumber++) {
+        for (let rowNumber = 1; rowNumber <= Math.min(40, sheet.rowCount); rowNumber++) {
           const columns = readWorkbookSourceColumns(sheet.getRow(rowNumber))
           const structure = columns.filter(column => /^(no\.?$|nama pasien|tanggal |tanggal$|kode indikator|judul indikator|nama indikator|nomor rekam medis|no\.? rm|bulan$)/i.test(column.header)).length
           const score = structure * 100 + columns.filter(column => /\p{L}/u.test(column.header)).length
@@ -255,7 +293,7 @@ export default function QualityWorkbookImportPanel({
         }
         if (bestColumns.length) detected.push({ name: sheet.name, headerRow: bestRow, columns: bestColumns, headers: bestColumns.map(column => column.key) })
       }
-      if (!detected.length) throw new Error('Tidak ditemukan header pada 15 baris pertama workbook.')
+      if (!detected.length) throw new Error('Tidak ditemukan judul tabel pada 40 baris pertama setiap sheet.')
       workbookRef.current = workbook
       fileRef.current = file
       setFileName(file.name)
@@ -267,7 +305,12 @@ export default function QualityWorkbookImportPanel({
         ?? detected.find(s => findHeader(s.headers, ['kode indikator', 'indicator code', 'code']) && findHeader(s.headers, ['nama indikator', 'indicator name', 'title']))
       const oSheet = detected.find(s => /opsi.*indikator|pilihan.*indikator|opsi/i.test(s.name))
         ?? detected.find(s => findHeader(s.headers, ['kode opsi', 'option code']) && findHeader(s.headers, ['kode indikator', 'indicator code']))
-      let dSheet = detected.find(s => /^logbook$/i.test(s.name)) ?? detected.find(s => /logbook|rekap|data/i.test(s.name) && s.name !== pSheet?.name && s.name !== oSheet?.name)
+      const excluded = new Set([pSheet?.name, oSheet?.name].filter(Boolean) as string[])
+      const bestBlock = pickBestBlock(previews, targets, { exclude: excluded })
+      const smartSheet = bestBlock && bestBlock.matched >= 2 ? detected.find(s => s.name === bestBlock.sheet) : undefined
+      let dSheet = detected.find(s => /^logbook$/i.test(s.name))
+        ?? smartSheet
+        ?? detected.find(s => /logbook|rekap|data/i.test(s.name) && s.name !== pSheet?.name && s.name !== oSheet?.name)
         ?? detected.find(s => s.name !== pSheet?.name && s.name !== oSheet?.name)
       // A known PMKP template (notably IGD) may use a non-default header row.
       const verifiedRow = routing.hint?.headerRow
@@ -326,12 +369,25 @@ export default function QualityWorkbookImportPanel({
         review_required: findHeader(oSheet.headers, ['perlu review', 'review required']),
       } : {}
       setOptionColumns(nextOptions)
+      const guessed: string[] = []
+      const usedHeaders = new Set<string>()
+      // Cocokkan persis dulu; bila tidak ada, tebak kolom yang paling mirip (mis. "Tgl Msk" → Tanggal Masuk).
+      const pick = (savedValue: string | undefined, label: string, aliases: Array<string | null | undefined>) => {
+        if (savedValue !== undefined) { if (savedValue) usedHeaders.add(savedValue); return savedValue }
+        const headers = dSheet?.headers ?? []
+        const exact = findHeader(headers, aliases.filter(Boolean) as string[])
+        if (exact) { usedHeaders.add(exact); return exact }
+        const fuzzy = fuzzyFindHeader(headers.map(headerText), aliases, { exclude: new Set([...usedHeaders].map(headerText)) })
+        const key = fuzzy ? headers.find(h => headerText(h) === fuzzy.header) ?? '' : ''
+        if (key) { usedHeaders.add(key); guessed.push(label + ' ← ' + headerText(key)) }
+        return key
+      }
       const nextData: Record<string, string> = dSheet ? {
-        date: findSaved('field', 'field:record_date') ?? findHeader(dSheet.headers, ['tanggal masuk','tanggal aduan','tanggal permintaan','tanggal audit','tanggal kunjungan','tanggal pengamatan','tanggal pelayanan','tanggal dilayani','tanggal survei','tanggal lapor','tanggal','date','record date']),
-        subject_key: findSaved('field','field:subject_key') ?? findHeader(dSheet.headers, ['no. rm', 'no rm', 'nomor rekam medis', 'no. rekam medis', 'id subjek', 'kode pegawai']),
-        patient_name: findSaved('field','field:patient_name') ?? findHeader(dSheet.headers, ['nama pasien', 'nama', 'patient name']),
-        diagnosis: findSaved('field','field:diagnosis') ?? findHeader(dSheet.headers, ['diagnosa', 'diagnosis', 'diagnosis tegak']),
-        dpjp: findSaved('field','field:dpjp') ?? findHeader(dSheet.headers, ['dpjp', 'dokter penanggung jawab']),
+        date: pick(findSaved('field', 'field:record_date'), 'Tanggal', DATA_FIELD_SYNONYMS.date),
+        subject_key: pick(findSaved('field','field:subject_key'), 'No. RM', DATA_FIELD_SYNONYMS.subject_key),
+        patient_name: pick(findSaved('field','field:patient_name'), 'Nama pasien', DATA_FIELD_SYNONYMS.patient_name),
+        diagnosis: pick(findSaved('field','field:diagnosis'), 'Diagnosis', DATA_FIELD_SYNONYMS.diagnosis),
+        dpjp: pick(findSaved('field','field:dpjp'), 'DPJP', DATA_FIELD_SYNONYMS.dpjp),
       } : {}
       setDataColumns(nextData)
       const nextIndicators: Record<string, string> = {}
@@ -340,9 +396,9 @@ export default function QualityWorkbookImportPanel({
       for (const p of activeProfiles) {
         const schema = p.schema_json ?? {}
         const mapping = schema.excel_mapping ?? {}
-        nextIndicators[p.code] = findSaved('indicator', 'indicator:' + p.code) ?? findHeader(dSheet?.headers ?? [], [
+        nextIndicators[p.code] = pick(findSaved('indicator', 'indicator:' + p.code), p.code + ' · ' + p.title, [
           mapping.indicator_header, schema.header_label, p.code, p.title, ...aliasesFor(p),
-        ].filter(Boolean))
+        ])
         nextNums[p.code] = findSaved('field', 'field:' + p.code + ':numerator') ?? findHeader(dSheet?.headers ?? [], [mapping.numerator_header, p.code + ' numerator'].filter(Boolean))
         nextDens[p.code] = findSaved('field', 'field:' + p.code + ':denominator') ?? findHeader(dSheet?.headers ?? [], [mapping.denominator_header, p.code + ' denominator'].filter(Boolean))
       }
@@ -350,7 +406,9 @@ export default function QualityWorkbookImportPanel({
       setNumeratorColumns(nextNums)
       setDenominatorColumns(nextDens)
       pendingLogbookPreview.current = dataOnly && Boolean(dSheet)
-      setNotice('Worksheet dikenali. Periksa kembali peran sheet dan pemetaan setiap kolom sebelum membuat pratinjau. Aturan tersimpan per unit akan dipakai kembali. Baris data tidak dikirim ke NARA.')
+      const blockNote = dSheet ? `Tabel data ditemukan di sheet "${dSheet.name}", judul kolom di baris ${dSheet.headerRow}. ` : ''
+      const guessNote = guessed.length ? `${guessed.length} kolom dicocokkan berdasarkan kemiripan nama (${guessed.slice(0, 6).join('; ')}${guessed.length > 6 ? '; …' : ''}), mohon dicek. ` : ''
+      setNotice(blockNote + guessNote + 'Periksa kembali peran sheet dan pemetaan setiap kolom sebelum membuat pratinjau. Aturan tersimpan per unit akan dipakai kembali. Baris data tidak dikirim ke NARA.')
     } catch (cause) {
       setError(toUserFacingError(cause, { fallback: 'Workbook gagal dibaca. Pastikan berkas bukan hasil ekspor rusak atau dilindungi kata sandi.' }))
     }
