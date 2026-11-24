@@ -1827,3 +1827,11 @@ body:not(#_) .qraWhyStats b { font-size: 22px; color: #1f2430; font-variant-nume
 body:not(#_) .qraWhy ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; line-height: 1.5; }
 html[data-mode="gelap"] body:not(#_) .qraWhyBtn { background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.4); color: #fcd34d; }
 html[data-mode="gelap"] body:not(#_) .qraWhyStats span { border-color: rgba(255,255,255,.1); color: #a3b0c2; } html[data-mode="gelap"] body:not(#_) .qraWhyStats b { color: #eef2f7; }
+
+/* Strip KPI modul (Risiko, IKP, dst.): isi LiquidGlass dibungkus .liquidGlassContent,
+   jadi gap flex induk tidak sampai ke label & angka ("Risiko terdaftar0"). */
+html body:not(#_) .moduleEnter :is(.rmKpis .rmKpi,.psKpis .psKpi,.sdKpis .sdKpi,.stKpis .stKpi,.acdKpis .acdKpi) > .liquidGlassContent{
+ display:flex!important;align-items:baseline!important;gap:6px!important;min-width:0!important;white-space:nowrap!important
+}
+html body:not(#_) .moduleEnter :is(.rmKpis .rmKpi,.psKpis .psKpi,.sdKpis .sdKpi,.stKpis .stKpi,.acdKpis .acdKpi) span{color:var(--muted, inherit)!important}
+html body:not(#_) .moduleEnter :is(.rmKpis .rmKpi,.psKpis .psKpi,.sdKpis .sdKpi,.stKpis .stKpi,.acdKpis .acdKpi) strong{font-size:14px!important;font-weight:800!important;font-variant-numeric:tabular-nums!important}
