@@ -1828,10 +1828,15 @@ body:not(#_) .qraWhy ul { margin: 0; padding-left: 18px; display: grid; gap: 6px
 html[data-mode="gelap"] body:not(#_) .qraWhyBtn { background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.4); color: #fcd34d; }
 html[data-mode="gelap"] body:not(#_) .qraWhyStats span { border-color: rgba(255,255,255,.1); color: #a3b0c2; } html[data-mode="gelap"] body:not(#_) .qraWhyStats b { color: #eef2f7; }
 
-/* Strip KPI modul (Risiko, IKP, dst.): isi LiquidGlass dibungkus .liquidGlassContent,
-   jadi gap flex induk tidak sampai ke label & angka ("Risiko terdaftar0"). */
-html body:not(#_) .moduleEnter :is(.rmKpis .rmKpi,.psKpis .psKpi,.sdKpis .sdKpi,.stKpis .stKpi,.acdKpis .acdKpi) > .liquidGlassContent{
- display:flex!important;align-items:baseline!important;gap:6px!important;min-width:0!important;white-space:nowrap!important
+/* Kartu KPI modul (Risiko, IKP, Sekretariat, dst.) dibungkus LiquidGlass: label/angka ada di dalam
+   .liquidGlassContent, sehingga aturan bento "> span / > strong" tidak kena dan kartu tinggi tapi isinya
+   menempel ("Risiko terdaftar0"). display:contents membuat label, angka, keterangan jadi anak kartu langsung. */
+html body:not(#_) .workspaceRoot .workspaceContent :is(.rmKpi,.psKpi,.sdKpi,.stKpi,.acdKpi,.cpKpi,.qraKpi) > .liquidGlassContent{display:contents!important}
+html body:not(#_) .workspaceRoot .workspaceContent :is(.rmKpi,.psKpi,.sdKpi,.stKpi,.acdKpi,.cpKpi,.qraKpi):has(> .liquidGlassContent){text-align:left!important;justify-content:space-between!important}
+html body:not(#_) .workspaceRoot .workspaceContent :is(.rmKpi,.psKpi,.sdKpi,.stKpi,.acdKpi,.cpKpi,.qraKpi) > .liquidGlassContent > span{display:block!important;font-size:13px!important;font-weight:650!important;line-height:1.3!important;color:var(--ak-muted,var(--muted))!important;white-space:normal!important}
+html body:not(#_) .workspaceRoot .workspaceContent :is(.rmKpi,.psKpi,.sdKpi,.stKpi,.acdKpi,.cpKpi,.qraKpi) > .liquidGlassContent > strong{display:block!important;font-size:30px!important;font-weight:800!important;line-height:1.05!important;letter-spacing:-.02em!important;font-variant-numeric:tabular-nums!important}
+html body:not(#_) .workspaceRoot .workspaceContent :is(.rmKpi,.psKpi,.sdKpi,.stKpi,.acdKpi,.cpKpi,.qraKpi) > .liquidGlassContent > small{display:block!important;font-size:12px!important;line-height:1.35!important;color:var(--ak-muted,var(--muted))!important}
+@media (max-width:720px){
+ html body:not(#_) .workspaceRoot .workspaceContent :is(.rmKpi,.psKpi,.sdKpi,.stKpi,.acdKpi,.cpKpi,.qraKpi):has(> .liquidGlassContent){min-height:0!important;gap:6px!important}
+ html body:not(#_) .workspaceRoot .workspaceContent :is(.rmKpi,.psKpi,.sdKpi,.stKpi,.acdKpi,.cpKpi,.qraKpi) > .liquidGlassContent > strong{font-size:24px!important}
 }
-html body:not(#_) .moduleEnter :is(.rmKpis .rmKpi,.psKpis .psKpi,.sdKpis .sdKpi,.stKpis .stKpi,.acdKpis .acdKpi) span{color:var(--muted, inherit)!important}
-html body:not(#_) .moduleEnter :is(.rmKpis .rmKpi,.psKpis .psKpi,.sdKpis .sdKpi,.stKpis .stKpi,.acdKpis .acdKpi) strong{font-size:14px!important;font-weight:800!important;font-variant-numeric:tabular-nums!important}
