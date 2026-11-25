@@ -77,3 +77,27 @@ export function mergeMissing(existing:Record<string,string>,incoming:Record<stri
  for(const [key,value] of Object.entries(incoming))if(value&&(!result[key]||key.startsWith('_import_')))result[key]=value
  return result
 }
+
+function columnName(index:number):string {
+ let result='';for(let n=index+1;n>0;n=Math.floor((n-1)/26))result=String.fromCharCode(65+(n-1)%26)+result
+ return result
+}
+export function originalSourceEntries(raw:string):{column:string;label:string;value:string}[] {
+ try {
+  const source=JSON.parse(raw) as {headers?:string[]|Record<string,string>;cells?:unknown[]|Record<string,unknown>;row?:number;sheet?:string;note?:string}
+  const cells=source.cells;if(!cells)return []
+  const headings=Array.isArray(source.headers)?Object.fromEntries(source.headers.map((h,i)=>[columnName(i),h])):source.headers||{}
+  const values=Array.isArray(cells)?cells.map((value,i)=>[columnName(i),value] as const):Object.entries(cells)
+  const shifted=source.sheet==='Form Responses 1'&&values.some(([col,value])=>col==='Z'&&value!=null&&String(value).trim()!=='')&&Boolean(values.find(([col,value])=>col==='M'&&/tahun|bulan|hari/i.test(String(value??''))))
+  const actualHeadings:Record<string,string>=shifted?{...headings,K:'Nama pasien (kolom tambahan)',L:'No. rekam medis (kolom tambahan)',M:'Usia (kolom tambahan)',...Object.fromEntries(LEGACY_HEADERS.slice(10).map((h,i)=>[columnName(i+13),h]))}:headings
+  return values.filter(([,v])=>v!=null&&String(v).trim()!=='').sort(([a],[b])=>a.length-b.length||a.localeCompare(b)).map(([column,value])=>{
+   let rendered=typeof value==='object'?JSON.stringify(value):String(value)
+   const label=actualHeadings[column]||'Kolom tambahan'
+   if(typeof value==='string'&&/^\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i.test(value)){
+    if(['Tanggal','Tanggal Masuk'].includes(label)){const date=excelDate(Number(value));if(date)rendered=date+' (serial Excel: '+value+')'}
+    if(['Jam','Jam Masuk'].includes(label)){const time=excelTime(Number(value));if(time)rendered=time+' (serial Excel: '+value+')'}
+   }
+   return {column,label,value:rendered}
+  })
+ }catch{return []}
+}
