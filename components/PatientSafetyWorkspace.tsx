@@ -11,6 +11,7 @@ import { createPortal } from 'react-dom'
 import type { SafetyFocus } from '@/lib/aureka/focus'
 import { gradeIncident, IMPACT_OPTIONS } from '@/lib/patient-safety/grading'
 import IncidentExcelImport from '@/components/patient-safety/IncidentExcelImport'
+import { originalSourceEntries } from '@/lib/patient-safety/incident-excel-import'
 import QrReportsPanel, { type QrReport } from '@/components/patient-safety/QrReportsPanel'
 import { LiquidGlass } from '@/components/LiquidGlass'
 import SurveyWizard from '@/components/patient-safety/SurveyWizard'
@@ -565,16 +566,19 @@ export default function PatientSafetyWorkspace({
       if (!raw) return
       const saved = JSON.parse(raw) as { data?: Record<string, string>; savedAt?: number }
       if (!saved?.data || !saved.savedAt || Date.now() - saved.savedAt > DRAFT_TTL) { localStorage.removeItem(draftKey); return }
-      const differs = Object.entries(saved.data).some(([k, v]) => String(v || '') !== String(incidentData[k] || ''))
-      if (differs) setDraftOffer({ data: saved.data, savedAt: saved.savedAt })
+      if (incidentData._import_source) { localStorage.removeItem(draftKey); return }
+      const safeData = Object.fromEntries(Object.entries(saved.data).filter(([k]) => !k.startsWith('_import_') && !DRAFT_SKIP.has(k)))
+      if (Object.keys(safeData).length !== Object.keys(saved.data).length) localStorage.setItem(draftKey, JSON.stringify({ savedAt: saved.savedAt, data: safeData }))
+      const differs = Object.entries(safeData).some(([k, v]) => String(v || '') !== String(incidentData[k] || ''))
+      if (differs) setDraftOffer({ data: safeData, savedAt: saved.savedAt })
     } catch { /* abaikan */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formOpen, draftKey])
   useEffect(() => {
-    if (!formOpen || !draftKey || incidentLocked || !formDirty) return
+    if (!formOpen || !draftKey || incidentLocked || !formDirty || incidentData._import_source) return
     const t = window.setTimeout(() => {
       try {
-        const data = Object.fromEntries(Object.entries(incidentData).filter(([k, v]) => !DRAFT_SKIP.has(k) && String(v || '').trim()))
+        const data = Object.fromEntries(Object.entries(incidentData).filter(([k, v]) => !DRAFT_SKIP.has(k) && !k.startsWith('_import_') && String(v || '').trim()))
         localStorage.setItem(draftKey, JSON.stringify({ savedAt: Date.now(), data }))
       } catch { /* penyimpanan perangkat penuh/diblokir: abaikan */ }
     }, 800)
@@ -1136,12 +1140,22 @@ export default function PatientSafetyWorkspace({
                 ['Lokasi spesifik asli', incidentData._import_original_specific_location],
                 ['Unit pelapor asli', incidentData._import_original_reporter_unit],
                 ['Dampak pada sumber', incidentData._import_source_impact_label],
+                ['Probabilitas pada sumber', incidentData._import_source_likelihood_original],
+                ['Pernah terjadi di RS (sumber)', incidentData._import_source_recurrence],
+                ['Catatan pencegahan / kondisi pada sumber', incidentData._import_source_prevention_original],
                 ['Pelaksana pertolongan pada sumber', incidentData._import_source_first_response],
                 ['Finalisasi pada sumber', incidentData._import_source_finalization],
                 ['Catatan validasi impor', incidentData._import_warnings],
               ].filter(([, value]) => Boolean(value)).map(([label, value]) => <div key={label}><dt style={{ fontWeight: 600 }}>{label}</dt><dd style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{value}</dd></div>)}
             </dl>
-            {incidentData._import_raw_json ? <details><summary style={{ cursor: 'pointer' }}>Nilai sel sumber (rahasia)</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: 320, overflow: 'auto' }}>{incidentData._import_raw_json}</pre></details> : null}
+            {incidentData._import_raw_json ? <details><summary style={{ cursor: 'pointer', fontWeight: 600 }}>Data Excel asli · {originalSourceEntries(incidentData._import_raw_json).length} nilai sel (rahasia)</summary>
+              <div style={{ overflowX: 'auto', marginTop: 8 }}>
+                <table className="psTable" style={{ width: '100%' }}><thead><tr><th>Kolom sumber</th><th>Nilai asli</th></tr></thead><tbody>
+                  {originalSourceEntries(incidentData._import_raw_json).map(entry => <tr key={entry.column}><td style={{ verticalAlign: 'top', whiteSpace: 'normal', minWidth: 140 }}><b>{entry.label}</b><div className="psMuted">{entry.column}</div></td><td style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', verticalAlign: 'top', minWidth: 180 }}>{entry.value}</td></tr>)}
+                </tbody></table>
+              </div>
+              <details><summary style={{ cursor: 'pointer' }}>Lihat representasi data teknis</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: 320, overflow: 'auto' }}>{incidentData._import_raw_json}</pre></details>
+            </details> : null}
           </details>
         </div> : null}
         <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; laporan hanya bisa dibuka oleh petugas yang berwenang.</div>
