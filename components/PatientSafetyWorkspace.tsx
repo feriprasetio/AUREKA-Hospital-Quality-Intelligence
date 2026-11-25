@@ -10,6 +10,8 @@ import type React from 'react'
 import { createPortal } from 'react-dom'
 import type { SafetyFocus } from '@/lib/aureka/focus'
 import { gradeIncident, IMPACT_OPTIONS } from '@/lib/patient-safety/grading'
+import IncidentExcelImport from '@/components/patient-safety/IncidentExcelImport'
+import { originalSourceEntries } from '@/lib/patient-safety/incident-excel-import'
 import QrReportsPanel, { type QrReport } from '@/components/patient-safety/QrReportsPanel'
 import { LiquidGlass } from '@/components/LiquidGlass'
 import SurveyWizard from '@/components/patient-safety/SurveyWizard'
@@ -327,6 +329,9 @@ export default function PatientSafetyWorkspace({
   useEffect(() => { if (tab === 'investigation') logSensitiveView('incident_investigation', 'workspace-investigasi'); else if (tab === 'responses') logSensitiveView('survey_named_response', 'rekapan-survei-agregat') }, [tab])
   useEffect(() => { setLocalTab(initialTab) }, [initialTab])
   const [incidents, setIncidents] = useState<IncidentRow[]>([])
+  const [excelImportOpen, setExcelImportOpen] = useState(false)
+  const [excelImportBusy, setExcelImportBusy] = useState(false)
+  const allowExcelImport = isSuperAdmin && canManageWorkflow && scopeRoomId == null
   const [investigations, setInvestigations] = useState<InvestigationRow[]>([])
   const [responses, setResponses] = useState<CultureResponse[]>([])
   // Data sumber survei hanya dapat dibaca ADMIN; tampilan dan ekspor tetap agregat dengan suppression.
@@ -515,10 +520,10 @@ export default function PatientSafetyWorkspace({
   useEffect(() => {
     const defaultRoom = scopeUnitName || rooms.find(room => room.id === initialRoomId)?.name || ''
     if (defaultRoom) {
-      setIncidentData(current => ({ ...current, E2: scopeUnitName || current.E2 || defaultRoom }))
+      if (!incidentId) setIncidentData(current => ({ ...current, E2: scopeUnitName || current.E2 || defaultRoom }))
       setSurveyUnit(current => scopeUnitName || current || defaultRoom)
     }
-  }, [rooms, initialRoomId, scopeUnitName])
+  }, [rooms, initialRoomId, scopeUnitName, incidentId])
 
   const filteredIncidents = useMemo(() => incidents.filter(row => {
     const matchesStatus = statusFilter === 'all' || row.status === statusFilter
@@ -561,16 +566,19 @@ export default function PatientSafetyWorkspace({
       if (!raw) return
       const saved = JSON.parse(raw) as { data?: Record<string, string>; savedAt?: number }
       if (!saved?.data || !saved.savedAt || Date.now() - saved.savedAt > DRAFT_TTL) { localStorage.removeItem(draftKey); return }
-      const differs = Object.entries(saved.data).some(([k, v]) => String(v || '') !== String(incidentData[k] || ''))
-      if (differs) setDraftOffer({ data: saved.data, savedAt: saved.savedAt })
+      if (incidentData._import_source) { localStorage.removeItem(draftKey); return }
+      const safeData = Object.fromEntries(Object.entries(saved.data).filter(([k]) => !k.startsWith('_import_') && !DRAFT_SKIP.has(k)))
+      if (Object.keys(safeData).length !== Object.keys(saved.data).length) localStorage.setItem(draftKey, JSON.stringify({ savedAt: saved.savedAt, data: safeData }))
+      const differs = Object.entries(safeData).some(([k, v]) => String(v || '') !== String(incidentData[k] || ''))
+      if (differs) setDraftOffer({ data: safeData, savedAt: saved.savedAt })
     } catch { /* abaikan */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formOpen, draftKey])
   useEffect(() => {
-    if (!formOpen || !draftKey || incidentLocked || !formDirty) return
+    if (!formOpen || !draftKey || incidentLocked || !formDirty || incidentData._import_source) return
     const t = window.setTimeout(() => {
       try {
-        const data = Object.fromEntries(Object.entries(incidentData).filter(([k, v]) => !DRAFT_SKIP.has(k) && String(v || '').trim()))
+        const data = Object.fromEntries(Object.entries(incidentData).filter(([k, v]) => !DRAFT_SKIP.has(k) && !k.startsWith('_import_') && String(v || '').trim()))
         localStorage.setItem(draftKey, JSON.stringify({ savedAt: Date.now(), data }))
       } catch { /* penyimpanan perangkat penuh/diblokir: abaikan */ }
     }, 800)
@@ -898,7 +906,7 @@ export default function PatientSafetyWorkspace({
         setIncidentValue('E1', staff?.display_name || '')
       }}>
         <option value="">Pilih pelapor dari roster terkunci unit…</option>
-        {value && !incidentStaffId ? <option value="__unmapped__" disabled>Nama lama belum terhubung ke identitas AUREKA</option> : null}
+        {value && !incidentStaffId ? <option value="__unmapped__" disabled>{value} · Belum terhubung ke direktori AUREKA</option> : null}
         {reporterOptions.map(staff => <option key={staff.id} value={staff.id}>{staff.display_name}, {staff.employee_code} · {staff.profession_group}</option>)}
         <option value="__external__">Pelapor bukan tenaga AUREKA / identitas belum dapat dipetakan</option>
       </select>{incidentReporterExternal ? <input aria-label="Nama pelapor dari luar direktori AUREKA" aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue('E1', event.target.value)} placeholder="Nama pelapor dari luar direktori AUREKA" /> : null}<div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : incidentReporterExternal ? 'Pelapor non-tenaga AUREKA: nama disimpan sebagai teks dan tidak ditautkan sebagai pegawai internal.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
@@ -913,7 +921,7 @@ export default function PatientSafetyWorkspace({
           onChange={event => setIncidentValue(field.code, event.target.value)} placeholder="Masukkan informasi..." /> :
         field.type === 'select' ?
           <select id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)}>
-            <option value="">Pilih unit kerja</option>{roomOptions.map(name => <option key={name} value={name}>{name}</option>)}
+            <option value="">Pilih unit kerja</option>{value && !roomOptions.includes(value) ? <option value={value}>{value} · Nama historis / belum dipetakan</option> : null}{roomOptions.map(name => <option key={name} value={name}>{name}</option>)}
           </select> :
           <input id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
       }
@@ -1078,7 +1086,7 @@ export default function PatientSafetyWorkspace({
         qrProcessing.current = r.id
       }} />}
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill">{filteredIncidents.length} laporan</span><button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
+        <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill">{filteredIncidents.length} laporan</span>{allowExcelImport ? <button type="button" className="psBtn" onClick={() => setExcelImportOpen(true)}>Impor Excel / Template</button> : null}<button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
         <div className="psFilterGrid">
           <div className="psFilter psLocalSearch"><label>Cari laporan</label><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
           <div className="psFilter"><label>Status</label><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draf</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Selesai</option></select></div>
@@ -1094,6 +1102,9 @@ export default function PatientSafetyWorkspace({
           {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
       </LiquidGlass>
+      {excelImportOpen && allowExcelImport ? <PsFormModal label="Impor Excel Register Insiden" onClose={() => { if (!excelImportBusy) setExcelImportOpen(false) }}>
+        <IncidentExcelImport supabase={supabase} rooms={rooms} fields={INCIDENT_FIELDS} existing={incidents} onDone={loadData} onBusyChange={setExcelImportBusy} onClose={() => setExcelImportOpen(false)} />
+      </PsFormModal> : null}
       {formOpen ? <PsFormModal label={incidentId ? 'Laporan ' + incidentCode : 'Laporan IKP baru'} onClose={() => closeForm()}>
       <div className="psModalTop">
       <div className="psModalBar">
@@ -1112,10 +1123,41 @@ export default function PatientSafetyWorkspace({
         <div className="psMetaGrid">
           <div className="psMeta"><span>Kode Laporan</span><strong>{incidentCode || 'Dibuat saat disimpan'}</strong></div>
           <div className="psMeta"><span>Status Laporan</span><strong>{statusLabel(incidentStatus)}</strong></div>
-          <div className="psMeta"><span>Kelengkapan</span><strong>{incidentCompletion}%</strong></div>
+          <div className="psMeta"><span>Kelengkapan formulir saat ini</span><strong>{incidentCompletion}%</strong></div>
           <div className="psMeta"><span>Isian wajib belum lengkap</span><strong>{missingIncident.length}</strong></div>
         </div>
         {draftOffer ? <div className="psDraftOffer" role="status"><span>Ada isian yang belum tersimpan dari {new Date(draftOffer.savedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}. Nama pasien, No. RM, dan usia perlu diisi ulang.</span><div className="psActions"><button type="button" className="psBtn" onClick={() => { dropDraft(); setDraftOffer(null) }}>Buang</button><button type="button" className="psBtn primary" onClick={() => { setIncidentData(current => ({ ...current, ...draftOffer.data })); setDraftOffer(null) }}>Pulihkan isian</button></div></div> : null}
+        {incidentData._import_source ? <div className="psAlert" role="note" style={{ marginBottom: 10, overflowWrap: 'anywhere' }}>
+          <strong>Arsip laporan historis · belum divalidasi</strong>
+          <p style={{ margin: '5px 0' }}>Laporan berasal dari data Excel lama. Isian yang tidak tersedia dalam sumber dibiarkan kosong; kelengkapan formulir bukan ukuran kualitas investigasi. Verifikasi informasi sebelum mengirim atau mengubah status.</p>
+          <details><summary style={{ cursor: 'pointer' }}>Jejak sumber dan informasi historis</summary>
+            <dl style={{ margin: '8px 0', display: 'grid', gap: 6 }}>
+              {[
+                ['Sumber', incidentData._import_source],
+                ['Baris Excel', incidentData._import_row],
+                ['Waktu pencatatan sumber', incidentData._import_source_date_time],
+                ['Ruangan / lokasi asli', incidentData._import_original_room],
+                ['Lokasi spesifik asli', incidentData._import_original_specific_location],
+                ['Unit pelapor asli', incidentData._import_original_reporter_unit],
+                ['Dampak pada sumber', incidentData._import_source_impact_label],
+                ['Probabilitas pada sumber', incidentData._import_source_likelihood_original],
+                ['Pernah terjadi di RS (sumber)', incidentData._import_source_recurrence],
+                ['Catatan pencegahan / kondisi pada sumber', incidentData._import_source_prevention_original],
+                ['Pelaksana pertolongan pada sumber', incidentData._import_source_first_response],
+                ['Finalisasi pada sumber', incidentData._import_source_finalization],
+                ['Catatan validasi impor', incidentData._import_warnings],
+              ].filter(([, value]) => Boolean(value)).map(([label, value]) => <div key={label}><dt style={{ fontWeight: 600 }}>{label}</dt><dd style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{value}</dd></div>)}
+            </dl>
+            {incidentData._import_raw_json ? <details><summary style={{ cursor: 'pointer', fontWeight: 600 }}>Data Excel asli · {originalSourceEntries(incidentData._import_raw_json).length} nilai sel (rahasia)</summary>
+              <div style={{ overflowX: 'auto', marginTop: 8 }}>
+                <table className="psTable" style={{ width: '100%' }}><thead><tr><th>Kolom sumber</th><th>Nilai asli</th></tr></thead><tbody>
+                  {originalSourceEntries(incidentData._import_raw_json).map(entry => <tr key={entry.column}><td style={{ verticalAlign: 'top', whiteSpace: 'normal', minWidth: 140 }}><b>{entry.label}</b><div className="psMuted">{entry.column}</div></td><td style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', verticalAlign: 'top', minWidth: 180 }}>{entry.value}</td></tr>)}
+                </tbody></table>
+              </div>
+              <details><summary style={{ cursor: 'pointer' }}>Lihat representasi data teknis</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: 320, overflow: 'auto' }}>{incidentData._import_raw_json}</pre></details>
+            </details> : null}
+          </details>
+        </div> : null}
         <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; laporan hanya bisa dibuka oleh petugas yang berwenang.</div>
         <nav className="psSectionJump" aria-label="Loncat ke bagian formulir">{INCIDENT_SECTIONS.map(section => <button type="button" key={section.letter} onClick={() => document.getElementById('ikp-sec-' + section.letter)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><b>{section.letter}</b>{section.title}</button>)}</nav>
         {INCIDENT_SECTIONS.map(section => <section className="psFormSection" id={'ikp-sec-' + section.letter} key={section.letter}>
