@@ -1472,18 +1472,11 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
      <button type="button" className="aqBtn primary aqAddButton" disabled={!canUseLogbook} onClick={()=>roomId===5?setPharmacyEntryOpen(true):newPatient()}>
       <svg className="workspaceButtonIcon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg> Tambah catatan
      </button>}
+    {scopeReady&&Number(roomId)!==11&&<button type="button" className="aqBtn" aria-pressed={showIdentity} onClick={()=>setShowIdentity(v=>!v)}>{showIdentity?'Samarkan identitas':'Tampilkan identitas'}</button>}
     </div></div></section>
    {excelMappingOpen&&roomId!=null&&<QualityExcelMappingWorkspace rooms={rooms} initialRoomId={roomId} year={year} role={isAdmin?'ADMIN':'PMKP'} onClose={()=>setExcelMappingOpen(false)}/>}
 
-{scopeReady&&<div className="aqDataBar" aria-label="Statistik catatan logbook">
 
-<div className="aqRegisterSummary"><div><span>{activeGrain==='patient_episode'?'Total episode':activeGrain==='provider_day'?'Catatan dokter/hari':activeGrain==='daily_metric'?'Catatan harian':activeGrain==='event'?'Kejadian':activeGrain==='activity'?'Aktivitas':'Total catatan'}</span><strong>{yearPatients.length}</strong></div>
-<div><span>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Masih dirawat':activeGrain==='provider_day'?'Ada nama dokter':activeGrain==='event'?'Belum dikirim / ditutup':'Dengan data'}</span><strong>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?yearPatients.filter(p=>!p.discharge).length:activeGrain==='provider_day'?yearPatients.filter(p=>String(p.formData?.['Dokter']??'').trim()).length:activeGrain==='daily_metric'?yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)||(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length:activeGrain==='event'?yearPatients.filter(p=>!/(selesai|ditutup|closed|ready for review|validated)/i.test(String(p.status??''))).length:yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)).length}</strong></div>
-{Number(roomId)===11?<div><span>Pengukuran terisi</span><strong>{yearPatients.filter(p=>outpatientWaitingMinutes(p.formData??{})!=null).length}</strong></div>:<><div><span>Indikator tersedia</span><strong>{patientProfiles.length}</strong></div><div><span>Identitas pasien</span><button type="button" className="aqBtn" style={{marginTop:4}} aria-pressed={showIdentity} onClick={()=>setShowIdentity(v=>!v)}>{showIdentity?'Samarkan':'Tampilkan'}</button></div>
-<div><span>Respons indikator terisi</span><strong>{filledObservations}</strong></div>
-</>}
-<div><span>Catatan pada filter</span><strong>{filtered.length}</strong></div></div>
-</div>}
       {unmatchedIndicatorHeaders.length>0&&<div className="aqNotice" role="alert">Sebagian indikator pada template belum memiliki profil master yang cocok: {unmatchedIndicatorHeaders.join(", ")}. Capaian ditampilkan terhadap seluruh indikator yang diharapkan agar kelengkapan tidak tampak lebih tinggi dari keadaan sebenarnya.</div>}
  <section className={`glass aqTable aqHideStatus ${isValidator?'aqValidatorLogbook':''}`}>
   {!scopeReady||!filtered.length
@@ -1527,7 +1520,16 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
  <span aria-live="polite"> {currentLogbookPage+1} / {logbookPageCount} </span>
  <button type="button" className="aqBtn" disabled={currentLogbookPage+1===logbookPageCount} onClick={()=>setLogbookPage(currentLogbookPage+1)}>Berikutnya</button>
 </nav>}<button type="button" className="aqBtn" disabled={busy} onClick={()=>void load()}>{busy?'Memuat…':'↻ Muat ulang data'}</button></div>
-</section></>}
+</section>
+{scopeReady&&<div className="aqDataBar" aria-label="Statistik catatan logbook">
+
+<div className="aqRegisterSummary"><div><span>{activeGrain==='patient_episode'?'Total episode':activeGrain==='provider_day'?'Catatan dokter/hari':activeGrain==='daily_metric'?'Catatan harian':activeGrain==='event'?'Kejadian':activeGrain==='activity'?'Aktivitas':'Total catatan'}</span><strong>{yearPatients.length}</strong></div>
+<div><span>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?'Masih dirawat':activeGrain==='provider_day'?'Ada nama dokter':activeGrain==='event'?'Belum dikirim / ditutup':'Dengan data'}</span><strong>{activeGrain==='patient_episode'&&activeLayout?.fields.some(f=>normHeader(f)==='tanggal keluar')?yearPatients.filter(p=>!p.discharge).length:activeGrain==='provider_day'?yearPatients.filter(p=>String(p.formData?.['Dokter']??'').trim()).length:activeGrain==='daily_metric'?yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)||(Object.values(p.indicatorValues??{}) as Resp[]).some(filled)).length:activeGrain==='event'?yearPatients.filter(p=>!/(selesai|ditutup|closed|ready for review|validated)/i.test(String(p.status??''))).length:yearPatients.filter(p=>Object.values(p.formData??{}).some(v=>v!==''&&v!=null)).length}</strong></div>
+{Number(roomId)===11?<div><span>Pengukuran terisi</span><strong>{yearPatients.filter(p=>outpatientWaitingMinutes(p.formData??{})!=null).length}</strong></div>:<><div><span>Indikator tersedia</span><strong>{patientProfiles.length}</strong></div>
+<div><span>Respons indikator terisi</span><strong>{filledObservations}</strong></div>
+</>}
+<div><span>Catatan pada filter</span><strong>{filtered.length}</strong></div></div>
+</div>}</>}
 
    {patientOpen&&selected&&typeof document!=='undefined'&&createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack aqEditorBack" role="presentation"><div ref={editorDialogRef} className="aqEditorDialog" role="dialog" aria-modal="true" aria-label={`Formulir logbook ${recordTitle(selected)}`} tabIndex={-1}>{renderPatientEditor()}</div>
     {confirmCloseEditor&&<div className="aqBack aqDeleteConfirmBack" role="presentation"><section ref={closeConfirmDialogRef} className="aqDeleteConfirm" role="alertdialog" aria-modal="true" aria-labelledby="aqCloseConfirmTitle" tabIndex={-1}><div className="aqDeleteConfirmHeader"><span className="aqDeleteConfirmIcon">!</span></div><h4 id="aqCloseConfirmTitle">Tutup tanpa menyimpan?</h4><p>Isian pada formulir ini belum disimpan. Jika ditutup sekarang, perubahan akan hilang.</p><div className="aqDeleteConfirmActions"><button type="button" className="aqBtn" data-dialog-autofocus onClick={()=>setConfirmCloseEditor(false)}>Lanjut mengisi</button><button type="button" className="aqBtn danger" onClick={()=>{setConfirmCloseEditor(false);setPatientOpen(false)}}>Tutup tanpa simpan</button></div></section></div>}
