@@ -22,3 +22,7 @@ Perubahan diterapkan di atas `8cd33ab`. `npm run ci` lulus dengan 968 tes, valid
 T010 menghapus pencarian tombol mutasi dari teks dan perpindahan fokus otomatis. Form lama memakai perilaku native sampai aksi simpan aman didaftarkan dengan atribut eksplisit. T013 membedakan gagal-muat dan publikasi kosong serta menambah percobaan ulang. Matriks seluruh role, viewport, dan varian publikasi masih belum lengkap.
 
 Setelah navigasi harness diselaraskan dengan menu kategori dan pilihan unit, pengujian luas melewati login dan memuat 14 baris logbook sintetis. Pengujian berhenti pada viewport 1308 × 666 piksel karena hanya satu baris penuh terlihat tanpa menggulir. Bukti tersimpan pada screenshot kegagalan lokal. Skenario lanjutan dalam suite ini belum dievaluasi.
+
+## Logbook pada layar pendek
+
+Tabel logbook kini muncul sebelum ringkasan unit dalam urutan tampilan dan pembacaan. Kontrol penyamaran identitas tetap tersedia pada bilah tindakan, dengan kondisi akses dan nilai awal yang sama. Pada Chromium dengan fixture sintetis, uji 1308 × 666 kembali memenuhi batas minimal tiga baris terlihat. `npm run ci` lulus dengan 968 tes. Hasil ini belum mencakup acceptance seluruh role, tema, dan viewport dalam master plan.
