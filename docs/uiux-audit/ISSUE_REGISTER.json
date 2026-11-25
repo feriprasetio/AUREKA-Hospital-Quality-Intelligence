@@ -1,0 +1,614 @@
+{
+  "plan_id": "AUREKA-UIUX-MASTER-2026-11-25",
+  "baseline": "dc2390ed4ae79465a8f0f596e6258d235ab8af8c",
+  "tasks": [
+    {
+      "task_id": "T001",
+      "phase": "P00",
+      "title": "Verifikasi instruksi repository dan baseline",
+      "priority": "P0",
+      "audit_issue_ids": [],
+      "status": "verified",
+      "evidence_before": [
+        "AGENTS.md",
+        "DESIGN.md",
+        "docs/uiux-audit/BASELINE.md"
+      ]
+    },
+    {
+      "task_id": "T002",
+      "phase": "P00",
+      "title": "Inventaris seluruh permukaan UI dan role",
+      "priority": "P0",
+      "audit_issue_ids": [
+        "UI-001",
+        "UI-002",
+        "UI-003",
+        "UI-014",
+        "UI-016"
+      ],
+      "status": "in_progress",
+      "evidence_before": [
+        "docs/uiux-audit/ROUTE_ROLE_MATRIX.json",
+        "docs/uiux-audit/CSS_OWNERSHIP.md"
+      ]
+    },
+    {
+      "task_id": "T003",
+      "phase": "P00",
+      "title": "Baseline test dan build",
+      "priority": "P0",
+      "audit_issue_ids": [],
+      "status": "verified",
+      "evidence_before": [
+        "docs/uiux-audit/BASELINE.md"
+      ]
+    },
+    {
+      "task_id": "T004",
+      "phase": "P00",
+      "title": "Baseline visual dan task flow",
+      "priority": "P0",
+      "audit_issue_ids": [
+        "UI-009",
+        "UI-017",
+        "UI-018",
+        "UI-024"
+      ],
+      "status": "in_progress",
+      "evidence_before": [
+        "scripts/check-workspace-ui.mjs",
+        "docs/uiux-audit/BASELINE.md"
+      ]
+    },
+    {
+      "task_id": "T010",
+      "phase": "P01",
+      "title": "Ganti shortcut berbasis teks dengan action contract",
+      "priority": "P0",
+      "audit_issue_ids": [
+        "UI-004"
+      ],
+      "status": "implemented",
+      "evidence_before": [],
+      "changes": [
+        "components/FormSpeedEnhancer.tsx",
+        "components/QualitySettings.tsx"
+      ],
+      "tests": [
+        {
+          "command": "npm run ci",
+          "exit_code": 0,
+          "actual_result": "968 tes dan build lulus"
+        },
+        {
+          "command": "AUREKA_UI_FOCUSED=1 node scripts/check-workspace-ui.mjs",
+          "exit_code": 0,
+          "actual_result": "Tiga pemeriksaan Chromium lokal lulus"
+        }
+      ]
+    },
+    {
+      "task_id": "T011",
+      "phase": "P01",
+      "title": "Kontrak modal, overlay dan focus stack",
+      "priority": "P0",
+      "audit_issue_ids": [
+        "UI-003",
+        "UI-009",
+        "UI-018"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T012",
+      "phase": "P01",
+      "title": "Perlindungan perubahan belum tersimpan",
+      "priority": "P0",
+      "audit_issue_ids": [
+        "UI-010"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T013",
+      "phase": "P01",
+      "title": "Bedakan error feed publik, empty dan stale",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-008"
+      ],
+      "status": "implemented",
+      "evidence_before": [],
+      "changes": [
+        "components/PublicLandingPage.tsx"
+      ],
+      "tests": [
+        {
+          "command": "npm run ci",
+          "exit_code": 0,
+          "actual_result": "968 tes dan build lulus"
+        },
+        {
+          "command": "AUREKA_UI_FOCUSED=1 node scripts/check-workspace-ui.mjs",
+          "exit_code": 0,
+          "actual_result": "Tiga pemeriksaan Chromium lokal lulus"
+        }
+      ]
+    },
+    {
+      "task_id": "T014",
+      "phase": "P01",
+      "title": "Konfirmasi mutasi dan idempotensi UI",
+      "priority": "P0",
+      "audit_issue_ids": [
+        "UI-004",
+        "UI-009"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T020",
+      "phase": "P02",
+      "title": "Peta CSS cascade dan konsolidasi inkremental",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-001",
+        "UI-002"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T021",
+      "phase": "P02",
+      "title": "Token semantik dan tipografi",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-017",
+        "UI-023"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T022",
+      "phase": "P02",
+      "title": "Shared interaction primitives",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T023",
+      "phase": "P02",
+      "title": "Unified dialog, drawer dan full-page workbench",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-003",
+        "UI-018",
+        "UI-025"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T024",
+      "phase": "P02",
+      "title": "Kontrak status async dan feedback",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-015",
+        "UI-023"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T025",
+      "phase": "P02",
+      "title": "Shared data grid dan filter contract",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-014"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T030",
+      "phase": "P03",
+      "title": "Canonical navigation dan route contract",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-016"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T031",
+      "phase": "P03",
+      "title": "Typed command registry dan pencarian",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-011",
+        "UI-012"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T032",
+      "phase": "P03",
+      "title": "App shell, breadcrumb dan scope",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T033",
+      "phase": "P03",
+      "title": "Cross-device layout dan mobile navigation",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-018",
+        "UI-016"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T034",
+      "phase": "P03",
+      "title": "Preferensi tampilan dan preset",
+      "priority": "P2",
+      "audit_issue_ids": [
+        "UI-022",
+        "UI-017"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T040",
+      "phase": "P04",
+      "title": "Pisahkan master indikator dari logbook",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-006"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T041",
+      "phase": "P04",
+      "title": "Bangun shared import presentation contract",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-005",
+        "UI-025"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T042",
+      "phase": "P04",
+      "title": "Transactional mapping draft dan revalidation",
+      "priority": "P0",
+      "audit_issue_ids": [
+        "UI-007"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T043",
+      "phase": "P04",
+      "title": "Paritas seluruh adapter workbook dan provenance",
+      "priority": "P0",
+      "audit_issue_ids": [
+        "UI-005",
+        "UI-020"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T044",
+      "phase": "P04",
+      "title": "Logbook, validasi dan rekonsiliasi",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T045",
+      "phase": "P04",
+      "title": "Hasil capaian, INM/IMP dan SPC",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-019",
+        "UI-020"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T050",
+      "phase": "P05",
+      "title": "Register Pasien dan Pola Perawatan",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T051",
+      "phase": "P05",
+      "title": "Clinical Pathway",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T052",
+      "phase": "P05",
+      "title": "Audit Klinis dan Kematian",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T053",
+      "phase": "P05",
+      "title": "Audit Realcost",
+      "priority": "P2",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T054",
+      "phase": "P05",
+      "title": "Pelaporan insiden dan RCA",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T055",
+      "phase": "P05",
+      "title": "Survei budaya keselamatan",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T056",
+      "phase": "P05",
+      "title": "Risk register dan risk matrix",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T057",
+      "phase": "P05",
+      "title": "FMEA, konektor dan efektivitas kontrol",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T060",
+      "phase": "P06",
+      "title": "Direktori tenaga kerja, tim dan penugasan",
+      "priority": "P2",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T061",
+      "phase": "P06",
+      "title": "OPPE dan FPPE",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T062",
+      "phase": "P06",
+      "title": "In House Training dan Orientasi Mahasiswa",
+      "priority": "P2",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T063",
+      "phase": "P06",
+      "title": "Sekretariat, register dan undangan",
+      "priority": "P2",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T064",
+      "phase": "P06",
+      "title": "Program kerja, area prioritas, usulan dan RTL",
+      "priority": "P2",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T065",
+      "phase": "P06",
+      "title": "SPM, SPO dan standar prosedur",
+      "priority": "P2",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T066",
+      "phase": "P06",
+      "title": "Pengaturan, audit log dan keamanan akun",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T070",
+      "phase": "P07",
+      "title": "Dashboard berbasis role dan task queue",
+      "priority": "P2",
+      "audit_issue_ids": [
+        "UI-021"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T071",
+      "phase": "P07",
+      "title": "Portal publik dan 13 INM",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-008",
+        "UI-019",
+        "UI-020"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T072",
+      "phase": "P07",
+      "title": "Pusat verifikasi sertifikat dan dokumen",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T073",
+      "phase": "P07",
+      "title": "Login, onboarding, recovery dan session UX",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T074",
+      "phase": "P07",
+      "title": "NARA AI sebagai intelligence layer",
+      "priority": "P1",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T080",
+      "phase": "P08",
+      "title": "Pecah komponen workspace monolitik",
+      "priority": "P2",
+      "audit_issue_ids": [
+        "UI-013"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T081",
+      "phase": "P08",
+      "title": "Performa browser dan data loading",
+      "priority": "P2",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T082",
+      "phase": "P08",
+      "title": "WCAG 2.2 AA dan human factors",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-017",
+        "UI-018",
+        "UI-019"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T083",
+      "phase": "P08",
+      "title": "Microcopy dan konsistensi locale",
+      "priority": "P2",
+      "audit_issue_ids": [
+        "UI-023"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T090",
+      "phase": "P09",
+      "title": "Integrasikan browser regression ke CI",
+      "priority": "P1",
+      "audit_issue_ids": [
+        "UI-024"
+      ],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T091",
+      "phase": "P09",
+      "title": "Cross-role dan cross-viewport acceptance",
+      "priority": "P0",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T092",
+      "phase": "P09",
+      "title": "Final domain regression dan security boundary",
+      "priority": "P0",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    },
+    {
+      "task_id": "T093",
+      "phase": "P09",
+      "title": "Final handoff dan rollback plan",
+      "priority": "P0",
+      "audit_issue_ids": [],
+      "status": "not_started",
+      "evidence_before": []
+    }
+  ]
+}

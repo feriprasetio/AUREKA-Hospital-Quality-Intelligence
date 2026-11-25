@@ -959,13 +959,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
 
   const closeEditor = () => { setEdit(null); setNewOne(null); setMsg('') }
   const editor = (model: Model, setModel: (value: Model) => void, onSave: () => void) => (
-    <form id={editorFormId} className="qualityProfileForm" onSubmit={event => { event.preventDefault(); if (!saving) onSave() }}
-      onKeyDown={event => {
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
-          event.preventDefault()
-          event.currentTarget.requestSubmit()
-        }
-      }}>
+    <form id={editorFormId} className="qualityProfileForm" onSubmit={event => { event.preventDefault(); if (!saving) onSave() }}>
       <fieldset className="qualityProfileFields" disabled={saving}>
         <section className="qualityProfileSection">
           <h4>Identitas indikator</h4>

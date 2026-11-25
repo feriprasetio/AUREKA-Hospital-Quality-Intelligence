@@ -28,6 +28,7 @@ let stopRequests
 const requestsStopped = new Promise(resolve => { stopRequests = resolve })
 const isCancelledInterception = error => stopping && /Fetch domain is not enabled|Invalid InterceptionId|Invalid interceptionId|Invalid request id|No resource with given identifier|Target closed|Session closed/.test(error.message)
 let testRole = 'ADMIN'
+let publicReadAttempts = 0
 let failQualityReads = false
 let failQualitySave = false
 let failFppeWrites = false
@@ -132,6 +133,10 @@ const handlePausedRequest = async ({ request, requestId }) => {
     if (request.method === 'OPTIONS') return await fulfill(requestId, {})
     if (url.pathname.includes('/auth/v1/token')) return await fulfill(requestId, { access_token: token, token_type: 'bearer', expires_in: 86400, refresh_token: 'isolated-ui-test', user })
     if (url.pathname.includes('/auth/v1/user')) return await fulfill(requestId, user)
+    if (resource === 'aureka_public_intelligence') {
+      if (++publicReadAttempts === 1) return await fulfill(requestId, { message: 'Synthetic temporary failure' }, 503)
+      return await fulfill(requestId, {})
+    }
     if (resource === 'aureka_get_my_profile') return await fulfill(requestId, [{
       user_id: uid, full_name: user.user_metadata.full_name, email: user.email, username: 'workspace.ui',
       primary_room_id: 1, role_id: testRole.toLowerCase(), role_code: testRole,
@@ -267,8 +272,25 @@ const goModule = async (id, label) => {
     await click('.workspaceSidebarMenuButton')
     await wait("document.querySelector('.sidebar.mobileOpen')")
   }
-  await click(`.sidebarNavGroup > button[title="${label}"]`)
-  if (await evaluate("Boolean(document.querySelector('.sidebar.mobileOpen'))")) await click('.workspaceDrawerClose')
+  const entries = {
+    home: ['command_center', 'Dashboard'],
+    quality: ['quality_patient_safety', 'Indikator Mutu'],
+    safety: ['quality_patient_safety', 'Keselamatan Pasien'],
+    risk: ['quality_patient_safety', 'Manajemen Risiko'],
+    staff: ['hospital_management', 'Sumber Daya Manusia'],
+    analytics: ['director_supervisory_board', 'Rekomendasi dan Rencana Tindak Lanjut'],
+    settings: ['settings', 'Preferensi Akun'],
+  }
+  const [group, item] = entries[id]
+  const trigger = `button[aria-controls="sidebar-items-${group}"]`
+  if (await evaluate(`document.querySelector(${JSON.stringify(trigger)})?.getAttribute('aria-expanded') !== 'true'`)) {
+    await click(trigger)
+  }
+  await click(`#sidebar-items-${group} button[title="${item}"]`)
+  await wait("!document.querySelector('.sidebar.mobileOpen')")
+  if (id === 'quality') {
+    await evaluate("location.hash = '#indikator-mutu/form-logbook'")
+  }
   await wait(`document.querySelector('.moduleEnter')?.dataset.workspaceContainer===${JSON.stringify(id)}`)
   await wait("!document.querySelector('.moduleEnter > .aurekaAsyncState.loading')")
   await layout(label)
@@ -288,13 +310,13 @@ const login = async role => {
   testRole = role
   await send('Storage.clearDataForOrigin', { origin: new URL(appUrl).origin, storageTypes: 'all' })
   await send('Page.navigate', { url: appUrl })
-  await wait("document.querySelector('.a2-button-workspace')")
+  await wait("document.querySelector('button.aurekaPublicPrimary')")
   await wait("document.documentElement.dataset.theme==='solid'", 'React hydration before clicking the login action')
-  await click('.a2-button-workspace')
+  await click('button.aurekaPublicPrimary')
   await wait("document.querySelector('#password')")
   await fill('#email', user.email)
   await fill('#password', 'isolated-ui-test-only')
-  await evaluate("document.querySelector('.authForm').requestSubmit()")
+  await evaluate("document.querySelector('.authArcticForm').requestSubmit()")
   await wait("document.querySelector('.workspaceDesk')")
 }
 
@@ -316,11 +338,45 @@ try {
   await send('Network.setBlockedURLs', { urls: ['wss://*'] })
   await send('Fetch.enable', { patterns: [{ urlPattern: '*' }] })
   await viewport(1366)
+  await check('public feed shows recovery and only reports empty on success', async () => {
+    await send('Page.navigate', { url: appUrl })
+    await wait("document.querySelector('.aurekaPublicPreview [role=alert]')")
+    assert.equal(await evaluate("document.body.textContent.includes('Belum ada dataset yang disetujui')"), false)
+    await clickText('.aurekaPublicPreview button', 'Coba lagi')
+    await wait("document.body.textContent.includes('Belum ada dataset yang disetujui')")
+  })
   await login('ADMIN')
-  await wait("document.querySelector('.ovPanel')")
+  await wait("document.querySelector('.ccSectionHead')")
   await check('authenticated desktop frame', () => layout('Overview'))
   await screenshot('overview-1366')
+  await check('dialog shortcuts require a safe explicitly registered action', async () => {
+    const result = await evaluate(`(()=>{
+      const dialog=document.createElement('section')
+      dialog.setAttribute('aria-modal','true')
+      dialog.innerHTML='<form><input><button type="button">Terbitkan</button><button type="button" data-form-action="save">Simpan</button></form>'
+      document.body.append(dialog)
+      let published=0,saved=0
+      const [publish,save]=dialog.querySelectorAll('button')
+      publish.onclick=()=>published++
+      save.onclick=()=>saved++
+      const press=(key, extra={})=>dialog.querySelector('input').dispatchEvent(new KeyboardEvent('keydown',{key,ctrlKey:true,bubbles:true,cancelable:true,...extra}))
+      press('Enter')
+      press('s',{isComposing:true})
+      press('s',{repeat:true})
+      press('s')
+      save.removeAttribute('data-form-action')
+      press('s')
+      dialog.remove()
+      return {published,saved}
+    })()`)
+    assert.deepEqual(result, { published: 0, saved: 1 })
+  })
+  if (process.env.AUREKA_UI_FOCUSED !== '1') {
   await goModule('quality', 'Mutu Klinis')
+  await wait("document.querySelector('.aqRoomOverviewCard, .aqHideStatus')")
+  if (await evaluate("Boolean(document.querySelector('.aqRoomOverviewCard'))")) {
+    await clickText('.aqRoomOverviewCard', 'Informasi dan Pengaduan')
+  }
   await wait("document.querySelectorAll('.aqHideStatus tbody tr').length===14")
   await check('logbook has a usable multi-row viewport', async () => {
     const height = await evaluate("document.querySelector('.aqHideStatus .aqWrap').getBoundingClientRect().height")
@@ -717,7 +773,7 @@ try {
     await viewport(1366)
     await login(role)
     await check(`${role} menu visibility and guarded logbook controls`, async () => {
-      assert.equal(await evaluate("Boolean(document.querySelector('.sidebarNavGroup > button[title=\"Analitik & Laporan\"]'))"), false)
+      assert.equal(await evaluate("Boolean(document.querySelector('.sidebarDomainItem[title=\"Rekomendasi dan Rencana Tindak Lanjut\"]'))"), false)
       await goModule('quality', 'Mutu Klinis')
       await wait("document.querySelector('.aqHideStatus')")
       if (role === 'VALIDATOR') {
@@ -728,8 +784,9 @@ try {
     })
     await check(`${role} logout remains functional`, async () => {
       await click('.sidebarFooter .liquidButton button')
-      await wait("document.querySelector('.a2-landing')")
+      await wait("document.querySelector('.aurekaPublic')")
     })
+  }
   }
   await stopInterception()
   assert.deepEqual(exceptions, [], 'Browser runtime or interception exceptions')

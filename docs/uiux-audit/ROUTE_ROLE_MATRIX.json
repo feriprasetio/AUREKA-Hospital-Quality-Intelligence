@@ -1,0 +1,3581 @@
+{
+  "baseline": "dc2390ed4ae79465a8f0f596e6258d235ab8af8c",
+  "coverage": "Inventaris statis. Role langsung dari registry; kondisi runtime dan alias perlu dicocokkan dengan parser serta dispatch.",
+  "sources": [
+    "lib/aureka/module-registry.ts",
+    "lib/aureka/workspace-route.ts",
+    "components/HomeClient.tsx"
+  ],
+  "modules": [
+    {
+      "id": "home",
+      "label": "Dashboard",
+      "group": "command_center",
+      "status": "available",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "DEWAN_PENGAWAS",
+        "PIC",
+        "VALIDATOR"
+      ],
+      "routeHash": "#beranda",
+      "owner": "Komite PMKP",
+      "lastReviewed": "2026-11-15",
+      "description": "Landing page personal, shortcut, tugas, dan notifikasi sesuai kewenangan."
+    },
+    {
+      "id": "nara",
+      "label": "NARA AI",
+      "group": "command_center",
+      "status": "available",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "DEWAN_PENGAWAS",
+        "PIC",
+        "VALIDATOR"
+      ],
+      "routeHash": "#nara-ai",
+      "owner": "Komite PMKP / AUREKA Intelligence",
+      "lastReviewed": "2026-11-15",
+      "description": "Asisten kecerdasan rumah sakit dengan lima provider AI melalui gateway terautentikasi dan konteks data agregat."
+    },
+    {
+      "id": "patients",
+      "label": "Register Pasien",
+      "group": "patient_registry",
+      "status": "beta",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "PIC",
+        "VALIDATOR"
+      ],
+      "routeHash": "#pasien",
+      "owner": "Unit pelayanan / Komite PMKP",
+      "lastReviewed": "2026-11-20",
+      "description": "Direktori pasien dan Pola Perawatan (ICD-10, LOS, readmisi) dengan penelusuran relasi lintas pelayanan sesuai hak akses."
+    },
+    {
+      "id": "quality",
+      "label": "Indikator Mutu",
+      "group": "quality_patient_safety",
+      "status": "beta",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "DEWAN_PENGAWAS",
+        "PIC",
+        "VALIDATOR"
+      ],
+      "routeHash": "#indikator-mutu",
+      "owner": "Komite PMKP / pemilik indikator",
+      "lastReviewed": "2026-11-12",
+      "description": "Form logbook dan profil indikator untuk pelaksana; hasil capaian agregat baca-saja untuk Dewan Pengawas."
+    },
+    {
+      "id": "clinical",
+      "label": "Peningkatan Kinerja Klinis",
+      "group": "clinical_performance",
+      "status": "beta",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "PIC",
+        "VALIDATOR"
+      ],
+      "routeHash": "#peningkatan-kinerja-klinis",
+      "owner": "Komite PMKP / Komite Medik",
+      "lastReviewed": "2026-11-12",
+      "description": "Audit Clinical Pathway serta Audit Klinis dan Kematian berbasis episode."
+    },
+    {
+      "id": "safety",
+      "label": "Keselamatan Pasien",
+      "group": "quality_patient_safety",
+      "status": "beta",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "PIC"
+      ],
+      "routeHash": "#keselamatan-pasien",
+      "owner": "Komite PMKP / Tim Keselamatan Pasien",
+      "lastReviewed": "2026-11-12",
+      "description": "Register insiden, investigasi/RCA, dan survei budaya keselamatan bernama."
+    },
+    {
+      "id": "risk",
+      "label": "Manajemen Risiko",
+      "group": "quality_patient_safety",
+      "status": "beta",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "DEWAN_PENGAWAS",
+        "PIC"
+      ],
+      "routeHash": "#manajemen-risiko",
+      "owner": "Komite PMKP / Manajemen Risiko Rumah Sakit",
+      "lastReviewed": "2026-11-12",
+      "description": "Risk Register, konektor, profil risiko, FMEA, RTP, dan evaluasi efektivitas kontrol."
+    },
+    {
+      "id": "insights",
+      "label": "Analitik Rumah Sakit",
+      "group": "command_center",
+      "status": "available",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "DEWAN_PENGAWAS",
+        "PIC",
+        "VALIDATOR"
+      ],
+      "routeHash": "#beranda",
+      "owner": "Komite PMKP / Manajemen",
+      "lastReviewed": "2026-11-21",
+      "description": "Analitik dan infografis lintas domain yang terintegrasi pada Dashboard; bukan tujuan navigasi mandiri."
+    },
+    {
+      "id": "analytics",
+      "label": "Program & RTL",
+      "group": "quality_patient_safety",
+      "status": "beta",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "DEWAN_PENGAWAS",
+        "PIC",
+        "VALIDATOR"
+      ],
+      "routeHash": "#program",
+      "owner": "Komite PMKP / Manajemen",
+      "lastReviewed": "2026-11-18",
+      "description": "Pemilik area prioritas, usulan indikator, rekomendasi, rencana tindak lanjut, progres, dan evaluasi."
+    },
+    {
+      "id": "secretariat",
+      "label": "Sekretariat",
+      "group": "quality_patient_safety",
+      "status": "beta",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "DEWAN_PENGAWAS",
+        "PIC"
+      ],
+      "routeHash": "#sekretariat",
+      "owner": "Komite Peningkatan Mutu dan Keselamatan Pasien",
+      "lastReviewed": "2026-11-21",
+      "description": "Register kegiatan dan dokumen UMANG dalam satu Meeting ID, pengiriman undangan PIC melalui kotak masuk internal AUREKA, dan pencatatan respons penerima."
+    },
+    {
+      "id": "staff",
+      "label": "Sumber Daya Manusia",
+      "group": "hospital_management",
+      "status": "beta",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "PIC",
+        "VALIDATOR"
+      ],
+      "routeHash": "#sumber-daya-manusia",
+      "owner": "Super Admin / Komite PMKP",
+      "lastReviewed": "2026-11-12",
+      "description": "Master tenaga kerja, tim dan penugasan, OPPE, FPPE, serta riwayat jabatan."
+    },
+    {
+      "id": "settings",
+      "label": "Pengaturan",
+      "group": "settings",
+      "status": "beta",
+      "visibility": "all-authenticated",
+      "requiredRoles": [
+        "ADMIN",
+        "PMKP",
+        "MANAGEMENT",
+        "KABID",
+        "DIREKTUR",
+        "DEWAN_PENGAWAS",
+        "PIC",
+        "VALIDATOR"
+      ],
+      "routeHash": "#pengaturan",
+      "owner": "Super Admin / Komite PMKP",
+      "lastReviewed": "2026-11-12",
+      "description": "Profil/akun, pengguna dan role, unit, keamanan, preferensi, konfigurasi, dan audit log."
+    }
+  ],
+  "navigation": [
+    {
+      "id": "command_center",
+      "label": "Dashboard",
+      "icon": "home",
+      "items": [
+        {
+          "id": "dashboard",
+          "label": "Dashboard",
+          "moduleId": "home",
+          "childId": "overview"
+        }
+      ]
+    },
+    {
+      "id": "patient_registry",
+      "label": "Register Pasien",
+      "icon": "patients",
+      "items": [
+        {
+          "id": "patient_directory",
+          "label": "Direktori Pasien",
+          "moduleId": "patients",
+          "childId": "overview"
+        },
+        {
+          "id": "patient_patterns",
+          "label": "Pola Perawatan",
+          "moduleId": "patients",
+          "childId": "analysis"
+        }
+      ]
+    },
+    {
+      "id": "clinical_performance",
+      "label": "Peningkatan Kinerja Klinis",
+      "icon": "clinical",
+      "items": [
+        {
+          "id": "realcost_audit",
+          "label": "Audit Realcost",
+          "moduleId": "clinical",
+          "childId": "realcost",
+          "status": "available",
+          "requiredRoles": [
+            "ADMIN",
+            "PMKP",
+            "MANAGEMENT",
+            "KABID",
+            "DIREKTUR",
+            "DEWAN_PENGAWAS"
+          ]
+        },
+        {
+          "id": "clinical_pathway",
+          "label": "Audit Clinical Pathway",
+          "moduleId": "clinical",
+          "childId": "audit-pathway"
+        },
+        {
+          "id": "clinical_audit_death",
+          "label": "Audit Klinis dan Kematian",
+          "moduleId": "clinical",
+          "childId": "audit-clinical"
+        }
+      ]
+    },
+    {
+      "id": "quality_patient_safety",
+      "label": "Peningkatan Mutu dan Keselamatan Pasien",
+      "icon": "quality",
+      "items": [
+        {
+          "id": "secretariat",
+          "label": "Sekretariat",
+          "moduleId": "secretariat",
+          "childId": "register",
+          "status": "available",
+          "note": "Register dokumen, administrasi kegiatan, dan lima kategori berkas UMANG dalam satu Meeting ID."
+        },
+        {
+          "id": "quality_indicators",
+          "label": "Indikator Mutu",
+          "moduleId": "quality",
+          "childId": "quality-overview"
+        },
+        {
+          "id": "patient_safety",
+          "label": "Keselamatan Pasien",
+          "moduleId": "safety",
+          "childId": "overview"
+        },
+        {
+          "id": "risk_management",
+          "label": "Manajemen Risiko",
+          "moduleId": "risk",
+          "childId": "overview"
+        }
+      ]
+    },
+    {
+      "id": "hospital_management",
+      "label": "Manajemen Rumah Sakit",
+      "icon": "staff",
+      "items": [
+        {
+          "id": "quality_development",
+          "label": "Pengembangan dan Pengendalian Mutu",
+          "moduleId": "quality",
+          "childId": "spm"
+        },
+        {
+          "id": "human_resources",
+          "label": "Sumber Daya Manusia",
+          "moduleId": "staff",
+          "childId": "directory"
+        }
+      ]
+    },
+    {
+      "id": "education_training",
+      "label": "Pendidikan dan Pelatihan",
+      "icon": "education",
+      "items": [
+        {
+          "id": "in_house_training",
+          "label": "In House Training",
+          "moduleId": "staff",
+          "childId": "training",
+          "status": "available",
+          "note": "Register kegiatan IHT, peserta dari Direktori Tenaga Kerja, presensi, dan sertifikat PDF."
+        },
+        {
+          "id": "student_orientation",
+          "label": "Orientasi Mahasiswa",
+          "moduleId": "staff",
+          "childId": "student-orientation",
+          "status": "available",
+          "requiredRoles": [
+            "ADMIN",
+            "PMKP",
+            "MANAGEMENT",
+            "KABID",
+            "DIREKTUR",
+            "PIC"
+          ],
+          "note": "Daftar peserta dibaca otomatis dari logbook Tim Koordinasi Pendidikan; metadata orientasi dan sertifikat PDF dikelola di sini."
+        }
+      ]
+    },
+    {
+      "id": "director_supervisory_board",
+      "label": "Direktur dan Dewan Pengawas",
+      "icon": "analytics",
+      "items": [
+        {
+          "id": "recommendations",
+          "label": "Rekomendasi dan Rencana Tindak Lanjut",
+          "moduleId": "analytics",
+          "childId": "recommendations"
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "label": "Pengaturan",
+      "icon": "settings",
+      "items": [
+        {
+          "id": "account_preferences",
+          "label": "Preferensi Akun",
+          "moduleId": "settings",
+          "childId": "profile"
+        },
+        {
+          "id": "system_preferences",
+          "label": "Preferensi Sistem",
+          "moduleId": "settings",
+          "childId": "appearance"
+        }
+      ]
+    }
+  ],
+  "publicPages": [
+    "app/lapor/page.tsx",
+    "app/page.tsx"
+  ],
+  "surfaces": [
+    {
+      "path": "app/lapor/page.tsx",
+      "kind": "page",
+      "lines": [
+        5
+      ]
+    },
+    {
+      "path": "app/layout.tsx",
+      "kind": "page",
+      "lines": [
+        41
+      ]
+    },
+    {
+      "path": "app/page.tsx",
+      "kind": "page",
+      "lines": [
+        3
+      ]
+    },
+    {
+      "path": "components/AmbulanceExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        229
+      ]
+    },
+    {
+      "path": "components/AmbulanceExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        463
+      ]
+    },
+    {
+      "path": "components/AmbulanceExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        462
+      ]
+    },
+    {
+      "path": "components/AmbulanceExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        512
+      ]
+    },
+    {
+      "path": "components/AmbulanceExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        275,
+        276,
+        289,
+        483,
+        484
+      ]
+    },
+    {
+      "path": "components/AmbulanceExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        494,
+        502,
+        505,
+        529
+      ]
+    },
+    {
+      "path": "components/AsyncStatePanel.tsx",
+      "kind": "page",
+      "lines": [
+        15
+      ]
+    },
+    {
+      "path": "components/CertificateTemplateEditor.tsx",
+      "kind": "page",
+      "lines": [
+        54
+      ]
+    },
+    {
+      "path": "components/CertificateTemplateEditor.tsx",
+      "kind": "dialog",
+      "lines": [
+        172
+      ]
+    },
+    {
+      "path": "components/CertificateTemplateEditor.tsx",
+      "kind": "overlay",
+      "lines": [
+        170
+      ]
+    },
+    {
+      "path": "components/CertificateTemplateEditor.tsx",
+      "kind": "status",
+      "lines": [
+        182,
+        183
+      ]
+    },
+    {
+      "path": "components/ClinicalDeathAuditWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        218
+      ]
+    },
+    {
+      "path": "components/ClinicalDeathAuditWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        663
+      ]
+    },
+    {
+      "path": "components/ClinicalDeathAuditWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        662
+      ]
+    },
+    {
+      "path": "components/ClinicalDeathAuditWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        636
+      ]
+    },
+    {
+      "path": "components/ClinicalDeathAuditWorkspace.tsx",
+      "kind": "chart",
+      "lines": [
+        653
+      ]
+    },
+    {
+      "path": "components/ClinicalDeathAuditWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        628,
+        629,
+        707
+      ]
+    },
+    {
+      "path": "components/ClinicalPathwayTextMiningPanel.tsx",
+      "kind": "page",
+      "lines": [
+        36
+      ]
+    },
+    {
+      "path": "components/ClinicalPathwayWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        231
+      ]
+    },
+    {
+      "path": "components/ClinicalPathwayWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        273,
+        1279
+      ]
+    },
+    {
+      "path": "components/ClinicalPathwayWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        1278
+      ]
+    },
+    {
+      "path": "components/ClinicalPathwayWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        930,
+        1187,
+        1304
+      ]
+    },
+    {
+      "path": "components/ClinicalPathwayWorkspace.tsx",
+      "kind": "chart",
+      "lines": [
+        1035,
+        1036
+      ]
+    },
+    {
+      "path": "components/ClinicalPathwayWorkspace.tsx",
+      "kind": "importExport",
+      "lines": [
+        1015
+      ]
+    },
+    {
+      "path": "components/ComplaintExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        249
+      ]
+    },
+    {
+      "path": "components/ComplaintExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        449
+      ]
+    },
+    {
+      "path": "components/ComplaintExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        448
+      ]
+    },
+    {
+      "path": "components/ComplaintExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        493
+      ]
+    },
+    {
+      "path": "components/ComplaintExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        289,
+        290,
+        303,
+        469,
+        470
+      ]
+    },
+    {
+      "path": "components/ComplaintExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        480,
+        488,
+        506,
+        507
+      ]
+    },
+    {
+      "path": "components/CountUp.tsx",
+      "kind": "page",
+      "lines": [
+        5
+      ]
+    },
+    {
+      "path": "components/FormSpeedEnhancer.tsx",
+      "kind": "page",
+      "lines": [
+        38
+      ]
+    },
+    {
+      "path": "components/FppeEvaluationWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        50
+      ]
+    },
+    {
+      "path": "components/FppeEvaluationWorkspace.tsx",
+      "kind": "chart",
+      "lines": [
+        543
+      ]
+    },
+    {
+      "path": "components/FppeEvaluationWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        546,
+        547
+      ]
+    },
+    {
+      "path": "components/GeneralSettings.tsx",
+      "kind": "page",
+      "lines": [
+        59
+      ]
+    },
+    {
+      "path": "components/GeneralSettings.tsx",
+      "kind": "dialog",
+      "lines": [
+        712,
+        934
+      ]
+    },
+    {
+      "path": "components/GeneralSettings.tsx",
+      "kind": "overlay",
+      "lines": [
+        932
+      ]
+    },
+    {
+      "path": "components/GeneralSettings.tsx",
+      "kind": "form",
+      "lines": [
+        783
+      ]
+    },
+    {
+      "path": "components/GeneralSettings.tsx",
+      "kind": "chart",
+      "lines": [
+        21
+      ]
+    },
+    {
+      "path": "components/GeneralSettings.tsx",
+      "kind": "status",
+      "lines": [
+        1123
+      ]
+    },
+    {
+      "path": "components/GiziExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        246
+      ]
+    },
+    {
+      "path": "components/GiziExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        561
+      ]
+    },
+    {
+      "path": "components/GiziExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        560
+      ]
+    },
+    {
+      "path": "components/GiziExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        614
+      ]
+    },
+    {
+      "path": "components/GiziExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        308,
+        309,
+        323,
+        479,
+        581,
+        582
+      ]
+    },
+    {
+      "path": "components/GiziExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        592,
+        601,
+        631
+      ]
+    },
+    {
+      "path": "components/HomeClient.tsx",
+      "kind": "page",
+      "lines": [
+        107
+      ]
+    },
+    {
+      "path": "components/HomeClient.tsx",
+      "kind": "dialog",
+      "lines": [
+        1208
+      ]
+    },
+    {
+      "path": "components/HomeClient.tsx",
+      "kind": "overlay",
+      "lines": [
+        1097,
+        1208,
+        1218,
+        1234
+      ]
+    },
+    {
+      "path": "components/HomeClient.tsx",
+      "kind": "form",
+      "lines": [
+        981,
+        994,
+        1038,
+        1249
+      ]
+    },
+    {
+      "path": "components/HomeClient.tsx",
+      "kind": "chart",
+      "lines": [
+        1019,
+        1100,
+        1103,
+        1109,
+        1119,
+        1137,
+        1142,
+        1148,
+        1155,
+        1165,
+        1177,
+        1188,
+        1191,
+        1194,
+        1197,
+        1200
+      ]
+    },
+    {
+      "path": "components/HomeClient.tsx",
+      "kind": "status",
+      "lines": [
+        981,
+        1001,
+        1055,
+        1056,
+        1078,
+        1079,
+        1242,
+        1243,
+        1245,
+        1247,
+        1303
+      ]
+    },
+    {
+      "path": "components/HomeKpis.tsx",
+      "kind": "page",
+      "lines": [
+        16
+      ]
+    },
+    {
+      "path": "components/HomeKpis.tsx",
+      "kind": "chart",
+      "lines": [
+        92
+      ]
+    },
+    {
+      "path": "components/HomeKpis.tsx",
+      "kind": "status",
+      "lines": [
+        86
+      ]
+    },
+    {
+      "path": "components/HomeLandingWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        25
+      ]
+    },
+    {
+      "path": "components/IbsExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        221
+      ]
+    },
+    {
+      "path": "components/IbsExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        494
+      ]
+    },
+    {
+      "path": "components/IbsExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        491
+      ]
+    },
+    {
+      "path": "components/IbsExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        558
+      ]
+    },
+    {
+      "path": "components/IbsExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        280,
+        281,
+        295,
+        513,
+        514
+      ]
+    },
+    {
+      "path": "components/IbsExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        523,
+        530,
+        531,
+        532,
+        533,
+        545,
+        592,
+        622,
+        630,
+        635
+      ]
+    },
+    {
+      "path": "components/IcuExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        372
+      ]
+    },
+    {
+      "path": "components/IcuExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        670
+      ]
+    },
+    {
+      "path": "components/IcuExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        669
+      ]
+    },
+    {
+      "path": "components/IcuExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        714
+      ]
+    },
+    {
+      "path": "components/IcuExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        422,
+        423,
+        437,
+        686,
+        688
+      ]
+    },
+    {
+      "path": "components/IgdConsultationAuditPanel.tsx",
+      "kind": "page",
+      "lines": [
+        38
+      ]
+    },
+    {
+      "path": "components/IgdConsultationAuditPanel.tsx",
+      "kind": "table",
+      "lines": [
+        126
+      ]
+    },
+    {
+      "path": "components/IgdExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        339
+      ]
+    },
+    {
+      "path": "components/IgdExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        866
+      ]
+    },
+    {
+      "path": "components/IgdExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        865
+      ]
+    },
+    {
+      "path": "components/IgdExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        935,
+        989,
+        1022
+      ]
+    },
+    {
+      "path": "components/IgdExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        453,
+        462,
+        644,
+        645,
+        658,
+        899,
+        900,
+        1005,
+        1006
+      ]
+    },
+    {
+      "path": "components/IgdExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        996,
+        1027,
+        1031
+      ]
+    },
+    {
+      "path": "components/InHouseTrainingWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        86
+      ]
+    },
+    {
+      "path": "components/InHouseTrainingWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        249
+      ]
+    },
+    {
+      "path": "components/InHouseTrainingWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        249
+      ]
+    },
+    {
+      "path": "components/InHouseTrainingWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        241,
+        247
+      ]
+    },
+    {
+      "path": "components/InHouseTrainingWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        234
+      ]
+    },
+    {
+      "path": "components/IndicatorProposalWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        31
+      ]
+    },
+    {
+      "path": "components/IndicatorProposalWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        152
+      ]
+    },
+    {
+      "path": "components/IndicatorProposalWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        152
+      ]
+    },
+    {
+      "path": "components/IndicatorProposalWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        137,
+        140,
+        150
+      ]
+    },
+    {
+      "path": "components/IsolasiInpatientExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        340
+      ]
+    },
+    {
+      "path": "components/IsolasiInpatientExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        757
+      ]
+    },
+    {
+      "path": "components/IsolasiInpatientExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        756
+      ]
+    },
+    {
+      "path": "components/IsolasiInpatientExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        803
+      ]
+    },
+    {
+      "path": "components/IsolasiInpatientExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        404,
+        405,
+        419,
+        703,
+        771,
+        773
+      ]
+    },
+    {
+      "path": "components/ItExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        112
+      ]
+    },
+    {
+      "path": "components/ItExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        350
+      ]
+    },
+    {
+      "path": "components/ItExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        347
+      ]
+    },
+    {
+      "path": "components/ItExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        411
+      ]
+    },
+    {
+      "path": "components/ItExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        167,
+        168,
+        186,
+        370,
+        373,
+        376,
+        377
+      ]
+    },
+    {
+      "path": "components/ItExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        389,
+        391,
+        433
+      ]
+    },
+    {
+      "path": "components/LaboratoryExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        275
+      ]
+    },
+    {
+      "path": "components/LaboratoryExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        633
+      ]
+    },
+    {
+      "path": "components/LaboratoryExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        632
+      ]
+    },
+    {
+      "path": "components/LaboratoryExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        688
+      ]
+    },
+    {
+      "path": "components/LaboratoryExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        344,
+        345,
+        359,
+        551,
+        653,
+        654
+      ]
+    },
+    {
+      "path": "components/LaboratoryExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        664,
+        673,
+        704
+      ]
+    },
+    {
+      "path": "components/MetadataStatisticsWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        24
+      ]
+    },
+    {
+      "path": "components/MetadataStatisticsWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        9,
+        13,
+        17,
+        181
+      ]
+    },
+    {
+      "path": "components/NaraAIWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        60
+      ]
+    },
+    {
+      "path": "components/NaraAIWorkspace.tsx",
+      "kind": "chart",
+      "lines": [
+        37,
+        122
+      ]
+    },
+    {
+      "path": "components/NaraIcd10ReviewWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        19
+      ]
+    },
+    {
+      "path": "components/NaraIcd10ReviewWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        168,
+        169
+      ]
+    },
+    {
+      "path": "components/NaraVisualRenderer.tsx",
+      "kind": "page",
+      "lines": [
+        8
+      ]
+    },
+    {
+      "path": "components/NaraVisualRenderer.tsx",
+      "kind": "table",
+      "lines": [
+        49
+      ]
+    },
+    {
+      "path": "components/NaraVisualRenderer.tsx",
+      "kind": "chart",
+      "lines": [
+        23,
+        24,
+        34,
+        36,
+        38,
+        39,
+        41,
+        42,
+        43,
+        45,
+        46,
+        49
+      ]
+    },
+    {
+      "path": "components/NicuExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        360
+      ]
+    },
+    {
+      "path": "components/NicuExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        680
+      ]
+    },
+    {
+      "path": "components/NicuExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        679
+      ]
+    },
+    {
+      "path": "components/NicuExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        726
+      ]
+    },
+    {
+      "path": "components/NicuExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        404,
+        405,
+        419,
+        627,
+        696,
+        698
+      ]
+    },
+    {
+      "path": "components/NifasExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        340
+      ]
+    },
+    {
+      "path": "components/NifasExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        747
+      ]
+    },
+    {
+      "path": "components/NifasExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        746
+      ]
+    },
+    {
+      "path": "components/NifasExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        794
+      ]
+    },
+    {
+      "path": "components/NifasExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        402,
+        403,
+        417,
+        693,
+        761,
+        763
+      ]
+    },
+    {
+      "path": "components/OppeAuditWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        201
+      ]
+    },
+    {
+      "path": "components/OppeAuditWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        1385,
+        1401
+      ]
+    },
+    {
+      "path": "components/OppeAuditWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        1385,
+        1401
+      ]
+    },
+    {
+      "path": "components/OppeAuditWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        1433,
+        1441,
+        1443,
+        1489
+      ]
+    },
+    {
+      "path": "components/OppeAuditWorkspace.tsx",
+      "kind": "chart",
+      "lines": [
+        1171
+      ]
+    },
+    {
+      "path": "components/OppeAuditWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        33,
+        1178,
+        1179
+      ]
+    },
+    {
+      "path": "components/OutpatientExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        93
+      ]
+    },
+    {
+      "path": "components/OutpatientExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        197
+      ]
+    },
+    {
+      "path": "components/OutpatientExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        196
+      ]
+    },
+    {
+      "path": "components/OutpatientExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        218
+      ]
+    },
+    {
+      "path": "components/OutpatientExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        107,
+        117,
+        183,
+        211
+      ]
+    },
+    {
+      "path": "components/OutpatientExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        214,
+        222
+      ]
+    },
+    {
+      "path": "components/PatientEpisodeWorkbookDialog.tsx",
+      "kind": "page",
+      "lines": [
+        59
+      ]
+    },
+    {
+      "path": "components/PatientEpisodeWorkbookDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        311
+      ]
+    },
+    {
+      "path": "components/PatientEpisodeWorkbookDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        108,
+        109,
+        124,
+        323
+      ]
+    },
+    {
+      "path": "components/PatientEpisodeWorkbookDialog.tsx",
+      "kind": "status",
+      "lines": [
+        359,
+        379,
+        382,
+        383,
+        384,
+        390,
+        393
+      ]
+    },
+    {
+      "path": "components/PatientRegistryIntelligence.tsx",
+      "kind": "page",
+      "lines": [
+        8
+      ]
+    },
+    {
+      "path": "components/PatientRegistryIntelligence.tsx",
+      "kind": "status",
+      "lines": [
+        35,
+        37
+      ]
+    },
+    {
+      "path": "components/PatientRegistryWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        29
+      ]
+    },
+    {
+      "path": "components/PatientSafetyWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        288
+      ]
+    },
+    {
+      "path": "components/PatientSafetyWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        278
+      ]
+    },
+    {
+      "path": "components/PatientSafetyWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        276
+      ]
+    },
+    {
+      "path": "components/PatientSafetyWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        1059,
+        1093,
+        1173,
+        1208
+      ]
+    },
+    {
+      "path": "components/PatientSafetyWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        264,
+        265,
+        1104,
+        1118
+      ]
+    },
+    {
+      "path": "components/PediatricInpatientExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        404
+      ]
+    },
+    {
+      "path": "components/PediatricInpatientExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        812
+      ]
+    },
+    {
+      "path": "components/PediatricInpatientExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        811
+      ]
+    },
+    {
+      "path": "components/PediatricInpatientExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        861
+      ]
+    },
+    {
+      "path": "components/PediatricInpatientExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        474,
+        475,
+        489,
+        758,
+        826,
+        828
+      ]
+    },
+    {
+      "path": "components/PenyakitDalamInpatientExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        345
+      ]
+    },
+    {
+      "path": "components/PenyakitDalamInpatientExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        745
+      ]
+    },
+    {
+      "path": "components/PenyakitDalamInpatientExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        744
+      ]
+    },
+    {
+      "path": "components/PenyakitDalamInpatientExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        795
+      ]
+    },
+    {
+      "path": "components/PenyakitDalamInpatientExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        405,
+        406,
+        420,
+        694,
+        758,
+        760
+      ]
+    },
+    {
+      "path": "components/PerinatologyExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        268
+      ]
+    },
+    {
+      "path": "components/PerinatologyExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        560
+      ]
+    },
+    {
+      "path": "components/PerinatologyExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        559
+      ]
+    },
+    {
+      "path": "components/PerinatologyExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        602
+      ]
+    },
+    {
+      "path": "components/PerinatologyExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        312,
+        313,
+        327,
+        507,
+        573,
+        575
+      ]
+    },
+    {
+      "path": "components/PharmacyExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        200
+      ]
+    },
+    {
+      "path": "components/PharmacyExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        483
+      ]
+    },
+    {
+      "path": "components/PharmacyExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        482
+      ]
+    },
+    {
+      "path": "components/PharmacyExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        525
+      ]
+    },
+    {
+      "path": "components/PharmacyExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        254,
+        255,
+        269,
+        499,
+        500
+      ]
+    },
+    {
+      "path": "components/PharmacyExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        510,
+        542
+      ]
+    },
+    {
+      "path": "components/PicPerformanceWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        31
+      ]
+    },
+    {
+      "path": "components/PicPerformanceWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        108
+      ]
+    },
+    {
+      "path": "components/PicPerformanceWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        97,
+        98
+      ]
+    },
+    {
+      "path": "components/PonekExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        320
+      ]
+    },
+    {
+      "path": "components/PonekExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        682
+      ]
+    },
+    {
+      "path": "components/PonekExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        681
+      ]
+    },
+    {
+      "path": "components/PonekExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        728
+      ]
+    },
+    {
+      "path": "components/PonekExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        381,
+        382,
+        396,
+        628,
+        696,
+        698
+      ]
+    },
+    {
+      "path": "components/PublicLandingPage.tsx",
+      "kind": "page",
+      "lines": [
+        129
+      ]
+    },
+    {
+      "path": "components/PublicLandingPage.tsx",
+      "kind": "form",
+      "lines": [
+        258
+      ]
+    },
+    {
+      "path": "components/PublicLandingPage.tsx",
+      "kind": "status",
+      "lines": [
+        53,
+        191
+      ]
+    },
+    {
+      "path": "components/QualityExcelMappingWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        87
+      ]
+    },
+    {
+      "path": "components/QualityExcelMappingWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        679,
+        714,
+        794
+      ]
+    },
+    {
+      "path": "components/QualityExcelMappingWorkspace.tsx",
+      "kind": "importExport",
+      "lines": [
+        295,
+        296,
+        304,
+        331,
+        642,
+        765,
+        768,
+        772
+      ]
+    },
+    {
+      "path": "components/QualityExcelMappingWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        627,
+        628,
+        629,
+        630,
+        664,
+        792,
+        821
+      ]
+    },
+    {
+      "path": "components/QualityIndicatorWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        600
+      ]
+    },
+    {
+      "path": "components/QualityIndicatorWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        1532,
+        1533,
+        1535,
+        1540,
+        1552,
+        1611,
+        1613
+      ]
+    },
+    {
+      "path": "components/QualityIndicatorWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        1532,
+        1611,
+        1613
+      ]
+    },
+    {
+      "path": "components/QualityIndicatorWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        1492
+      ]
+    },
+    {
+      "path": "components/QualityIndicatorWorkspace.tsx",
+      "kind": "chart",
+      "lines": [
+        1473
+      ]
+    },
+    {
+      "path": "components/QualityIndicatorWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        41,
+        42,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        1423,
+        1442,
+        1464,
+        1487,
+        1490
+      ]
+    },
+    {
+      "path": "components/QualityReconciliationWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        103
+      ]
+    },
+    {
+      "path": "components/QualityReconciliationWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        411,
+        461
+      ]
+    },
+    {
+      "path": "components/QualityReconciliationWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        390,
+        391,
+        392,
+        394,
+        395
+      ]
+    },
+    {
+      "path": "components/QualityReportingMonitor.tsx",
+      "kind": "page",
+      "lines": [
+        10
+      ]
+    },
+    {
+      "path": "components/QualityReportingMonitor.tsx",
+      "kind": "table",
+      "lines": [
+        132
+      ]
+    },
+    {
+      "path": "components/QualityReportingMonitor.tsx",
+      "kind": "chart",
+      "lines": [
+        71,
+        124
+      ]
+    },
+    {
+      "path": "components/QualityReportingMonitor.tsx",
+      "kind": "status",
+      "lines": [
+        121,
+        122
+      ]
+    },
+    {
+      "path": "components/QualityResultsWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        219
+      ]
+    },
+    {
+      "path": "components/QualityResultsWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        804,
+        817,
+        826
+      ]
+    },
+    {
+      "path": "components/QualityResultsWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        786,
+        855,
+        885,
+        916,
+        926,
+        956
+      ]
+    },
+    {
+      "path": "components/QualityResultsWorkspace.tsx",
+      "kind": "chart",
+      "lines": [
+        10,
+        790,
+        820
+      ]
+    },
+    {
+      "path": "components/QualityResultsWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        741,
+        754
+      ]
+    },
+    {
+      "path": "components/QualitySettings.tsx",
+      "kind": "page",
+      "lines": [
+        468
+      ]
+    },
+    {
+      "path": "components/QualitySettings.tsx",
+      "kind": "dialog",
+      "lines": [
+        398,
+        1137,
+        1148,
+        1209,
+        1214,
+        1234
+      ]
+    },
+    {
+      "path": "components/QualitySettings.tsx",
+      "kind": "form",
+      "lines": [
+        962
+      ]
+    },
+    {
+      "path": "components/QualitySettings.tsx",
+      "kind": "importExport",
+      "lines": [
+        831,
+        858,
+        873,
+        874,
+        880,
+        1127,
+        1128
+      ]
+    },
+    {
+      "path": "components/QualitySettings.tsx",
+      "kind": "status",
+      "lines": [
+        408,
+        409,
+        460,
+        1010,
+        1141,
+        1156,
+        1218,
+        1243
+      ]
+    },
+    {
+      "path": "components/QualityWorkbookImportPanel.tsx",
+      "kind": "page",
+      "lines": [
+        177
+      ]
+    },
+    {
+      "path": "components/QualityWorkbookImportPanel.tsx",
+      "kind": "table",
+      "lines": [
+        908
+      ]
+    },
+    {
+      "path": "components/QualityWorkbookImportPanel.tsx",
+      "kind": "importExport",
+      "lines": [
+        252,
+        253,
+        266,
+        876,
+        877
+      ]
+    },
+    {
+      "path": "components/QualityWorkbookImportPanel.tsx",
+      "kind": "status",
+      "lines": [
+        880,
+        882,
+        904,
+        905
+      ]
+    },
+    {
+      "path": "components/ReactiveFmeaWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        17
+      ]
+    },
+    {
+      "path": "components/ReactiveFmeaWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        113
+      ]
+    },
+    {
+      "path": "components/ReactiveFmeaWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        113
+      ]
+    },
+    {
+      "path": "components/ReactiveFmeaWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        111
+      ]
+    },
+    {
+      "path": "components/ReactiveFmeaWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        104
+      ]
+    },
+    {
+      "path": "components/RealcostAuditWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        108
+      ]
+    },
+    {
+      "path": "components/RealcostAuditWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        522,
+        624
+      ]
+    },
+    {
+      "path": "components/RealcostAuditWorkspace.tsx",
+      "kind": "importExport",
+      "lines": [
+        259,
+        267,
+        455,
+        460
+      ]
+    },
+    {
+      "path": "components/RealcostAuditWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        495,
+        584,
+        703
+      ]
+    },
+    {
+      "path": "components/RehabMedikExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        265
+      ]
+    },
+    {
+      "path": "components/RehabMedikExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        399
+      ]
+    },
+    {
+      "path": "components/RehabMedikExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        398
+      ]
+    },
+    {
+      "path": "components/RehabMedikExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        421
+      ]
+    },
+    {
+      "path": "components/RehabMedikExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        288,
+        296,
+        367,
+        401,
+        412
+      ]
+    },
+    {
+      "path": "components/RehabMedikExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        415,
+        418,
+        425
+      ]
+    },
+    {
+      "path": "components/RekamMedisExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        108
+      ]
+    },
+    {
+      "path": "components/RekamMedisExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        346
+      ]
+    },
+    {
+      "path": "components/RekamMedisExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        344
+      ]
+    },
+    {
+      "path": "components/RekamMedisExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        398
+      ]
+    },
+    {
+      "path": "components/RekamMedisExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        169,
+        170,
+        195,
+        363,
+        366,
+        367,
+        368
+      ]
+    },
+    {
+      "path": "components/RekamMedisExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        379,
+        380,
+        414
+      ]
+    },
+    {
+      "path": "components/RiskManagementWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        198
+      ]
+    },
+    {
+      "path": "components/RiskManagementWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        129
+      ]
+    },
+    {
+      "path": "components/RiskManagementWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        139
+      ]
+    },
+    {
+      "path": "components/RiskManagementWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        971,
+        1094,
+        1187,
+        1190,
+        1219,
+        1248
+      ]
+    },
+    {
+      "path": "components/RiskManagementWorkspace.tsx",
+      "kind": "chart",
+      "lines": [
+        164,
+        976
+      ]
+    },
+    {
+      "path": "components/RiskManagementWorkspace.tsx",
+      "kind": "importExport",
+      "lines": [
+        773,
+        967
+      ]
+    },
+    {
+      "path": "components/RiskManagementWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        130,
+        850,
+        853,
+        1049
+      ]
+    },
+    {
+      "path": "components/SarafInpatientExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        340
+      ]
+    },
+    {
+      "path": "components/SarafInpatientExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        744
+      ]
+    },
+    {
+      "path": "components/SarafInpatientExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        743
+      ]
+    },
+    {
+      "path": "components/SarafInpatientExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        796
+      ]
+    },
+    {
+      "path": "components/SarafInpatientExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        404,
+        405,
+        419,
+        690,
+        758,
+        760
+      ]
+    },
+    {
+      "path": "components/SpmExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        71
+      ]
+    },
+    {
+      "path": "components/SpmExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        246
+      ]
+    },
+    {
+      "path": "components/SpmExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        240
+      ]
+    },
+    {
+      "path": "components/SpmExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        317
+      ]
+    },
+    {
+      "path": "components/SpmExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        116,
+        117,
+        130,
+        250,
+        265,
+        267,
+        268
+      ]
+    },
+    {
+      "path": "components/SpmExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        283
+      ]
+    },
+    {
+      "path": "components/SpmWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        118
+      ]
+    },
+    {
+      "path": "components/SpmWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        688,
+        724
+      ]
+    },
+    {
+      "path": "components/SpmWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        686,
+        722
+      ]
+    },
+    {
+      "path": "components/SpmWorkspace.tsx",
+      "kind": "form",
+      "lines": [
+        688,
+        724
+      ]
+    },
+    {
+      "path": "components/SpmWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        645
+      ]
+    },
+    {
+      "path": "components/SpmWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        537,
+        538,
+        574,
+        716,
+        772
+      ]
+    },
+    {
+      "path": "components/StaffCrossModuleProfilePanel.tsx",
+      "kind": "page",
+      "lines": [
+        20
+      ]
+    },
+    {
+      "path": "components/StaffCrossModuleProfilePanel.tsx",
+      "kind": "dialog",
+      "lines": [
+        39
+      ]
+    },
+    {
+      "path": "components/StaffCrossModuleProfilePanel.tsx",
+      "kind": "overlay",
+      "lines": [
+        38
+      ]
+    },
+    {
+      "path": "components/StaffCrossModuleProfilePanel.tsx",
+      "kind": "status",
+      "lines": [
+        42
+      ]
+    },
+    {
+      "path": "components/StaffDirectoryWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        76
+      ]
+    },
+    {
+      "path": "components/StaffDirectoryWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        442
+      ]
+    },
+    {
+      "path": "components/StaffDirectoryWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        440
+      ]
+    },
+    {
+      "path": "components/StaffDirectoryWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        412
+      ]
+    },
+    {
+      "path": "components/StaffDirectoryWorkspace.tsx",
+      "kind": "importExport",
+      "lines": [
+        373
+      ]
+    },
+    {
+      "path": "components/StaffDirectoryWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        408,
+        409,
+        462
+      ]
+    },
+    {
+      "path": "components/StaffTeamWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        33
+      ]
+    },
+    {
+      "path": "components/StaffTeamWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        238,
+        239
+      ]
+    },
+    {
+      "path": "components/StandardsProcedureWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        41
+      ]
+    },
+    {
+      "path": "components/StandardsProcedureWorkspace.tsx",
+      "kind": "chart",
+      "lines": [
+        16,
+        24,
+        35,
+        36,
+        133,
+        235,
+        237
+      ]
+    },
+    {
+      "path": "components/StandardsProcedureWorkspace.tsx",
+      "kind": "importExport",
+      "lines": [
+        205
+      ]
+    },
+    {
+      "path": "components/StandardsProcedureWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        208,
+        257
+      ]
+    },
+    {
+      "path": "components/StudentOrientationWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        245
+      ]
+    },
+    {
+      "path": "components/StudentOrientationWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        629
+      ]
+    },
+    {
+      "path": "components/StudentOrientationWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        602,
+        603
+      ]
+    },
+    {
+      "path": "components/SurgicalInpatientExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        341
+      ]
+    },
+    {
+      "path": "components/SurgicalInpatientExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        736
+      ]
+    },
+    {
+      "path": "components/SurgicalInpatientExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        735
+      ]
+    },
+    {
+      "path": "components/SurgicalInpatientExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        782
+      ]
+    },
+    {
+      "path": "components/SurgicalInpatientExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        405,
+        406,
+        420,
+        682,
+        750,
+        752
+      ]
+    },
+    {
+      "path": "components/TableSortEnhancer.tsx",
+      "kind": "page",
+      "lines": [
+        148
+      ]
+    },
+    {
+      "path": "components/TanyaAureka.tsx",
+      "kind": "page",
+      "lines": [
+        104
+      ]
+    },
+    {
+      "path": "components/TanyaAureka.tsx",
+      "kind": "overlay",
+      "lines": [
+        349
+      ]
+    },
+    {
+      "path": "components/TanyaAureka.tsx",
+      "kind": "form",
+      "lines": [
+        330
+      ]
+    },
+    {
+      "path": "components/TanyaAureka.tsx",
+      "kind": "chart",
+      "lines": [
+        88,
+        335,
+        343,
+        344
+      ]
+    },
+    {
+      "path": "components/TimkordikExcelImportDialog.tsx",
+      "kind": "page",
+      "lines": [
+        132
+      ]
+    },
+    {
+      "path": "components/TimkordikExcelImportDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        412
+      ]
+    },
+    {
+      "path": "components/TimkordikExcelImportDialog.tsx",
+      "kind": "overlay",
+      "lines": [
+        410
+      ]
+    },
+    {
+      "path": "components/TimkordikExcelImportDialog.tsx",
+      "kind": "table",
+      "lines": [
+        464
+      ]
+    },
+    {
+      "path": "components/TimkordikExcelImportDialog.tsx",
+      "kind": "importExport",
+      "lines": [
+        201,
+        202,
+        220,
+        429,
+        432,
+        433,
+        434
+      ]
+    },
+    {
+      "path": "components/TimkordikExcelImportDialog.tsx",
+      "kind": "status",
+      "lines": [
+        445,
+        446,
+        481
+      ]
+    },
+    {
+      "path": "components/UnitMappedWorkbookDialog.tsx",
+      "kind": "page",
+      "lines": [
+        31
+      ]
+    },
+    {
+      "path": "components/UnitMappedWorkbookDialog.tsx",
+      "kind": "dialog",
+      "lines": [
+        35
+      ]
+    },
+    {
+      "path": "components/WorkspaceSkeleton.tsx",
+      "kind": "page",
+      "lines": [
+        4
+      ]
+    },
+    {
+      "path": "components/WorkspaceSkeleton.tsx",
+      "kind": "status",
+      "lines": [
+        6
+      ]
+    },
+    {
+      "path": "components/governance/AnnualProgramWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        31
+      ]
+    },
+    {
+      "path": "components/governance/AnnualProgramWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        173,
+        196
+      ]
+    },
+    {
+      "path": "components/governance/AnnualProgramWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        114,
+        115,
+        133,
+        134,
+        162,
+        215
+      ]
+    },
+    {
+      "path": "components/governance/AuditLogWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        16
+      ]
+    },
+    {
+      "path": "components/governance/AuditLogWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        44
+      ]
+    },
+    {
+      "path": "components/governance/AuditLogWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        42
+      ]
+    },
+    {
+      "path": "components/governance/BackupPanel.tsx",
+      "kind": "page",
+      "lines": [
+        9
+      ]
+    },
+    {
+      "path": "components/governance/BackupPanel.tsx",
+      "kind": "importExport",
+      "lines": [
+        25
+      ]
+    },
+    {
+      "path": "components/governance/BackupPanel.tsx",
+      "kind": "status",
+      "lines": [
+        43
+      ]
+    },
+    {
+      "path": "components/governance/DocumentVerificationPage.tsx",
+      "kind": "page",
+      "lines": [
+        20
+      ]
+    },
+    {
+      "path": "components/governance/GovernanceProgramWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        27
+      ]
+    },
+    {
+      "path": "components/governance/GovernanceProgramWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        136,
+        157,
+        183,
+        188
+      ]
+    },
+    {
+      "path": "components/governance/GovernanceProgramWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        72
+      ]
+    },
+    {
+      "path": "components/governance/GovernanceProgramWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        99,
+        100
+      ]
+    },
+    {
+      "path": "components/governance/InfographicsDashboard.tsx",
+      "kind": "page",
+      "lines": [
+        170
+      ]
+    },
+    {
+      "path": "components/governance/InfographicsDashboard.tsx",
+      "kind": "chart",
+      "lines": [
+        16,
+        17,
+        34,
+        44,
+        45,
+        46,
+        47,
+        48,
+        52,
+        53,
+        54,
+        55,
+        72,
+        86,
+        105,
+        123,
+        140,
+        156,
+        166,
+        167,
+        177,
+        178,
+        248,
+        255,
+        259,
+        279,
+        280,
+        323,
+        325,
+        326,
+        328,
+        331,
+        332,
+        333,
+        334,
+        335
+      ]
+    },
+    {
+      "path": "components/governance/InfographicsDashboard.tsx",
+      "kind": "status",
+      "lines": [
+        309,
+        310
+      ]
+    },
+    {
+      "path": "components/governance/LegalAssetsWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        55
+      ]
+    },
+    {
+      "path": "components/governance/LegalAssetsWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        112,
+        113
+      ]
+    },
+    {
+      "path": "components/governance/PresentationMode.tsx",
+      "kind": "page",
+      "lines": [
+        45
+      ]
+    },
+    {
+      "path": "components/governance/PresentationMode.tsx",
+      "kind": "dialog",
+      "lines": [
+        112
+      ]
+    },
+    {
+      "path": "components/governance/PresentationMode.tsx",
+      "kind": "overlay",
+      "lines": [
+        112
+      ]
+    },
+    {
+      "path": "components/governance/PublicPublicationDesk.tsx",
+      "kind": "page",
+      "lines": [
+        41
+      ]
+    },
+    {
+      "path": "components/governance/PublicPublicationDesk.tsx",
+      "kind": "status",
+      "lines": [
+        153,
+        154
+      ]
+    },
+    {
+      "path": "components/governance/SecretariatInvitationWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        17
+      ]
+    },
+    {
+      "path": "components/governance/SecretariatInvitationWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        113
+      ]
+    },
+    {
+      "path": "components/governance/SecretariatWorkspace.tsx",
+      "kind": "page",
+      "lines": [
+        125
+      ]
+    },
+    {
+      "path": "components/governance/SecretariatWorkspace.tsx",
+      "kind": "dialog",
+      "lines": [
+        429,
+        444
+      ]
+    },
+    {
+      "path": "components/governance/SecretariatWorkspace.tsx",
+      "kind": "overlay",
+      "lines": [
+        428,
+        443
+      ]
+    },
+    {
+      "path": "components/governance/SecretariatWorkspace.tsx",
+      "kind": "table",
+      "lines": [
+        416
+      ]
+    },
+    {
+      "path": "components/governance/SecretariatWorkspace.tsx",
+      "kind": "importExport",
+      "lines": [
+        457,
+        467
+      ]
+    },
+    {
+      "path": "components/governance/SecretariatWorkspace.tsx",
+      "kind": "status",
+      "lines": [
+        412,
+        453,
+        484
+      ]
+    },
+    {
+      "path": "components/governance/SettingsGovernancePanels.tsx",
+      "kind": "table",
+      "lines": [
+        116
+      ]
+    },
+    {
+      "path": "components/governance/SettingsGovernancePanels.tsx",
+      "kind": "status",
+      "lines": [
+        43,
+        44,
+        105
+      ]
+    },
+    {
+      "path": "components/layout/InstallAppButton.tsx",
+      "kind": "page",
+      "lines": [
+        8
+      ]
+    },
+    {
+      "path": "components/layout/InstallAppButton.tsx",
+      "kind": "status",
+      "lines": [
+        32
+      ]
+    },
+    {
+      "path": "components/layout/ModuleErrorBoundary.tsx",
+      "kind": "chart",
+      "lines": [
+        36
+      ]
+    },
+    {
+      "path": "components/layout/ModuleErrorBoundary.tsx",
+      "kind": "status",
+      "lines": [
+        34
+      ]
+    },
+    {
+      "path": "components/layout/TrainingBanner.tsx",
+      "kind": "page",
+      "lines": [
+        7
+      ]
+    },
+    {
+      "path": "components/layout/TrainingBanner.tsx",
+      "kind": "status",
+      "lines": [
+        21
+      ]
+    },
+    {
+      "path": "components/layout/UpdateNotifier.tsx",
+      "kind": "page",
+      "lines": [
+        20
+      ]
+    },
+    {
+      "path": "components/layout/UpdateNotifier.tsx",
+      "kind": "status",
+      "lines": [
+        54
+      ]
+    },
+    {
+      "path": "components/navigation/UnifiedModuleNavigation.tsx",
+      "kind": "page",
+      "lines": [
+        55
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientIndexTab.tsx",
+      "kind": "page",
+      "lines": [
+        63
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientIndexTab.tsx",
+      "kind": "dialog",
+      "lines": [
+        285
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientIndexTab.tsx",
+      "kind": "overlay",
+      "lines": [
+        284
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientIndexTab.tsx",
+      "kind": "table",
+      "lines": [
+        161,
+        170
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientIndexTab.tsx",
+      "kind": "status",
+      "lines": [
+        128,
+        138,
+        167,
+        311
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientMedicalRecordsAnalytics.tsx",
+      "kind": "page",
+      "lines": [
+        33
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientMedicalRecordsAnalytics.tsx",
+      "kind": "table",
+      "lines": [
+        190,
+        209
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientMedicalRecordsAnalytics.tsx",
+      "kind": "status",
+      "lines": [
+        163
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientReadmissionPanel.tsx",
+      "kind": "page",
+      "lines": [
+        12
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientReadmissionPanel.tsx",
+      "kind": "table",
+      "lines": [
+        47
+      ]
+    },
+    {
+      "path": "components/patient-registry/PatientReadmissionPanel.tsx",
+      "kind": "status",
+      "lines": [
+        43
+      ]
+    },
+    {
+      "path": "components/patient-safety/PublicIncidentReport.tsx",
+      "kind": "page",
+      "lines": [
+        18
+      ]
+    },
+    {
+      "path": "components/patient-safety/PublicIncidentReport.tsx",
+      "kind": "form",
+      "lines": [
+        85
+      ]
+    },
+    {
+      "path": "components/patient-safety/PublicIncidentReport.tsx",
+      "kind": "status",
+      "lines": [
+        83,
+        104
+      ]
+    },
+    {
+      "path": "components/patient-safety/QrReportsPanel.tsx",
+      "kind": "page",
+      "lines": [
+        24
+      ]
+    },
+    {
+      "path": "components/patient-safety/QrReportsPanel.tsx",
+      "kind": "dialog",
+      "lines": [
+        80
+      ]
+    },
+    {
+      "path": "components/patient-safety/QrReportsPanel.tsx",
+      "kind": "chart",
+      "lines": [
+        20,
+        64
+      ]
+    },
+    {
+      "path": "components/patient-safety/SurveyWizard.tsx",
+      "kind": "page",
+      "lines": [
+        93
+      ]
+    },
+    {
+      "path": "components/patient-safety/SurveyWizard.tsx",
+      "kind": "status",
+      "lines": [
+        181,
+        282
+      ]
+    },
+    {
+      "path": "components/quality/IndicatorCoveragePanel.tsx",
+      "kind": "page",
+      "lines": [
+        20
+      ]
+    },
+    {
+      "path": "components/quality/IndicatorCoveragePanel.tsx",
+      "kind": "status",
+      "lines": [
+        114
+      ]
+    },
+    {
+      "path": "components/quality/QualityCategoryIntelligence.tsx",
+      "kind": "page",
+      "lines": [
+        72
+      ]
+    },
+    {
+      "path": "components/quality/QualityCategoryIntelligence.tsx",
+      "kind": "table",
+      "lines": [
+        144
+      ]
+    },
+    {
+      "path": "components/quality/QualityCategoryIntelligence.tsx",
+      "kind": "status",
+      "lines": [
+        165
+      ]
+    },
+    {
+      "path": "components/quality/QualityOptionEditor.tsx",
+      "kind": "page",
+      "lines": [
+        18
+      ]
+    },
+    {
+      "path": "components/quality/QualityOptionEditor.tsx",
+      "kind": "status",
+      "lines": [
+        39
+      ]
+    },
+    {
+      "path": "components/quality/QualityWorkbookImportSidebar.tsx",
+      "kind": "page",
+      "lines": [
+        131
+      ]
+    },
+    {
+      "path": "components/quality/QualityWorkbookImportSidebar.tsx",
+      "kind": "importExport",
+      "lines": [
+        24
+      ]
+    },
+    {
+      "path": "components/quality/QualityWorkbookImportSidebar.tsx",
+      "kind": "status",
+      "lines": [
+        8
+      ]
+    },
+    {
+      "path": "components/quality/QualityWorkbookInlineColumnMapping.tsx",
+      "kind": "page",
+      "lines": [
+        62
+      ]
+    },
+    {
+      "path": "components/quality/QualityWorkbookInlineColumnMapping.tsx",
+      "kind": "importExport",
+      "lines": [
+        109,
+        113
+      ]
+    },
+    {
+      "path": "components/quality/QualityWorkbookInlineColumnMapping.tsx",
+      "kind": "status",
+      "lines": [
+        174,
+        175
+      ]
+    },
+    {
+      "path": "components/quality/QualityWorkbookPreviewControls.tsx",
+      "kind": "page",
+      "lines": [
+        49
+      ]
+    },
+    {
+      "path": "components/quality/QualityWorkbookStagedPreview.tsx",
+      "kind": "page",
+      "lines": [
+        22
+      ]
+    },
+    {
+      "path": "components/quality/QualityWorkbookStagedPreview.tsx",
+      "kind": "table",
+      "lines": [
+        28
+      ]
+    },
+    {
+      "path": "components/quality/SpcChart.tsx",
+      "kind": "page",
+      "lines": [
+        14
+      ]
+    },
+    {
+      "path": "components/quality/SpcChart.tsx",
+      "kind": "chart",
+      "lines": [
+        14,
+        36,
+        41
+      ]
+    },
+    {
+      "path": "components/ui/AurekaModal.tsx",
+      "kind": "page",
+      "lines": [
+        13
+      ]
+    },
+    {
+      "path": "components/ui/AurekaModal.tsx",
+      "kind": "overlay",
+      "lines": [
+        49
+      ]
+    },
+    {
+      "path": "components/ui/AurekaModal.tsx",
+      "kind": "chart",
+      "lines": [
+        65
+      ]
+    },
+    {
+      "path": "components/ui/aurekaConfirm.tsx",
+      "kind": "dialog",
+      "lines": [
+        34,
+        36
+      ]
+    },
+    {
+      "path": "components/workspace/AdaptiveWorkspaceShell.tsx",
+      "kind": "page",
+      "lines": [
+        17
+      ]
+    },
+    {
+      "path": "components/workspace/WorkspaceIntelligence.tsx",
+      "kind": "status",
+      "lines": [
+        19
+      ]
+    },
+    {
+      "path": "components/workspace/WorkspaceModuleHeader.tsx",
+      "kind": "page",
+      "lines": [
+        13
+      ]
+    },
+    {
+      "path": "components/workspace/WorkspaceTableViewport.tsx",
+      "kind": "page",
+      "lines": [
+        13
+      ]
+    },
+    {
+      "path": "components/workspace/WorkspaceTableViewport.tsx",
+      "kind": "chart",
+      "lines": [
+        89,
+        92
+      ]
+    },
+    {
+      "path": "components/workspace/WorkspaceTabs.tsx",
+      "kind": "page",
+      "lines": [
+        24
+      ]
+    },
+    {
+      "path": "lib/aureka/sensitive-access.tsx",
+      "kind": "dialog",
+      "lines": [
+        34
+      ]
+    }
+  ]
+}

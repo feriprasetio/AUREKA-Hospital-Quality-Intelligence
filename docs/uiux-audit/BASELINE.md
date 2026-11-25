@@ -1,0 +1,24 @@
+# Baseline UI/UX AUREKA
+
+Baseline `dc2390ed4ae79465a8f0f596e6258d235ab8af8c`, sama dengan snapshot audit dan `origin/main` ketika diperiksa. Worktree awal bersih. Branch lokal `codex/aureka-uiux-master`.
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| `npm ci` | Lulus. Instalasi dari lockfile. |
+| `npm run ci` | Lulus. 962 tes, validasi 38 layout dan unit, TypeScript, build ekspor statis, dan pemeriksaan aset kontras. |
+| Browser Chromium, ekspor statis lokal, fixture sintetis | Portal publik tampil. Setelah selector portal, form login, dan dasbor disesuaikan, login ADMIN dan pengukuran layout 1366 piksel lulus. Suite berhenti pada selector navigasi `.sidebarNavGroup > button[title="Mutu Klinis"]`. Navigasi saat ini dirender lewat `.sidebarDomainTrigger` dan `.sidebarDomainItem` di `components/HomeClient.tsx`. |
+| Role, tema dan viewport lain | Verifikasi menyeluruh masih tertunda. |
+
+`ROUTE_ROLE_MATRIX.json` mencatat registry, halaman publik, dan kandidat permukaan UI berdasarkan source. Matriks belum menegaskan status aktif, alias, atau hak akses runtime tiap permukaan. `CSS_OWNERSHIP.md` mencatat urutan stylesheet, dengan penelusuran aturan yang menang masih tertunda.
+
+Reproduksi browser memakai `scripts/check-workspace-ui.mjs`, `AUREKA_UI_URL` yang menunjuk ekspor lokal, dan Chromium CDP lokal. Screenshot serta laporan sintetis berada di direktori kerja sementara. Permintaan backend browser diintersepsi oleh harness.
+
+P00 belum memenuhi inventaris runtime dan gate browser. Perbaikan yang telah dilakukan terbatas pada harness dan dokumentasi baseline. Perubahan ini dapat dibatalkan dengan membalik commit preflight lokal. Tidak ada push, merge, deploy, atau mutasi produksi.
+
+## Verifikasi perubahan awal
+
+Perubahan diterapkan di atas `8cd33ab`. `npm run ci` lulus dengan 968 tes, validasi data, TypeScript, build ekspor statis, dan pemeriksaan aset kontras. Uji terfokus `AUREKA_UI_FOCUSED=1 node scripts/check-workspace-ui.mjs` lulus tiga pemeriksaan pada Chromium 1366 piksel dengan 62 permintaan sintetis dan tanpa exception. Cakupan meliputi gagal-muat feed publik dan percobaan ulang, login ADMIN, serta seleksi aksi keyboard dengan kombinasi IME dan repeat.
+
+T010 menghapus pencarian tombol mutasi dari teks dan perpindahan fokus otomatis. Form lama memakai perilaku native sampai aksi simpan aman didaftarkan dengan atribut eksplisit. T013 membedakan gagal-muat dan publikasi kosong serta menambah percobaan ulang. Matriks seluruh role, viewport, dan varian publikasi masih belum lengkap.
+
+Setelah navigasi harness diselaraskan dengan menu kategori dan pilihan unit, pengujian luas melewati login dan memuat 14 baris logbook sintetis. Pengujian berhenti pada viewport 1308 × 666 piksel karena hanya satu baris penuh terlihat tanpa menggulir. Bukti tersimpan pada screenshot kegagalan lokal. Skenario lanjutan dalam suite ini belum dievaluasi.
