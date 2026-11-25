@@ -10,6 +10,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { LiquidGlass, LiquidGlassButton } from '@/components/LiquidGlass'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
+import { buildCsvTable, downloadCsv } from '@/lib/aureka/csv-export'
 
 type Room = { id: number; name: string }
 type RiskLevel = 'Sangat Rendah' | 'Rendah' | 'Sedang' | 'Tinggi' | 'Sangat Tinggi'
@@ -119,7 +120,6 @@ const fetchAllPages = async (buildQuery: (from: number, to: number) => any) => {
 }
 // Cache di memori: saat modul dibuka lagi, data terakhir langsung tampil sambil diperbarui di latar.
 const rmQueryCache = new Map<string, { data: any[] | null; error: any }[]>()
-const escapeCsv = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"'
 // Form ditampilkan sebagai jendela di atas halaman agar tidak perlu scroll ke bawah tabel.
 // Sengaja tidak menutup saat klik di luar / tombol Esc supaya isian tidak hilang tanpa sengaja.
 function RmModal({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
@@ -775,13 +775,7 @@ export default function RiskManagementWorkspace({
       ['Unit', 'Kategori', 'Sasaran', 'Peristiwa Risiko', 'Penyebab', 'Dampak', 'Kontrol Saat Ini', 'Kemungkinan', 'Dampak Level', 'Skor', 'Level', 'Residual Kemungkinan', 'Residual Dampak', 'Skor Residual', 'Level Residual', 'PIC', 'Target', 'Status', 'Sheet Sumber', 'Baris Sumber', 'Skor Sumber'],
       ...filteredRisks.map(r => [r.unit_name, r.category, r.objective, r.risk_event, r.causes, r.impacts, r.existing_controls, r.likelihood, r.impact, r.risk_score, r.risk_level, r.residual_likelihood, r.residual_impact, r.residual_score, r.residual_level, r.owner_name, r.due_date, r.status, r.source_sheet, r.source_row_number, r.source_risk_score]),
     ]
-    const csv = '\ufeff' + rows.map(row => row.map(escapeCsv).join(',')).join('\r\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = 'AUREKA_Risk_Register_' + new Date().toISOString().slice(0, 10) + '.csv'
-    document.body.appendChild(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url)
+    downloadCsv('AUREKA_Risk_Register_' + new Date().toISOString().slice(0, 10) + '.csv', buildCsvTable(rows[0], rows.slice(1)))
     setMessage('Ekspor CSV dibuat dari ' + filteredRisks.length + ' risiko sesuai filter aktif.')
   }
 

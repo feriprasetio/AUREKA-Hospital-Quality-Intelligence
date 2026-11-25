@@ -1,3 +1,4 @@
+import { buildCsvTable, downloadCsv } from '@/lib/aureka/csv-export'
 export type IndividualReportSection = {
   title: string
   columns: string[]
@@ -25,13 +26,8 @@ export function downloadAssessmentJson(filename: string, data: unknown) {
 }
 
 export function downloadAssessmentCsv(filename: string, headers: string[], rows: unknown[][]) {
-  const csvCell = (value: unknown) => {
-    const text = value === null || value === undefined ? '' : String(value)
-    return `"${text.replace(/"/g, '""')}"`
-  }
-  const csv = [headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n')
-  const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' })
-  downloadBlob(filename.endsWith('.csv') ? filename : `${filename}.csv`, blob)
+  const safeName = filename.split(/[\\/]/).pop()?.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'aureka-report'
+  downloadCsv(safeName, buildCsvTable(headers, rows))
 }
 
 export function openPrintableIndividualReport(options: IndividualReportOptions): boolean {

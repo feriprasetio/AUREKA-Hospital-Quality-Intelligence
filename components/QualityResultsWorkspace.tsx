@@ -11,7 +11,7 @@ import SpcChart from '@/components/quality/SpcChart'
 import QualityCategoryIntelligence from '@/components/quality/QualityCategoryIntelligence'
 import { resolveQualityCategory } from '@/lib/aureka/quality-category-engine'
 import { groupComparable, buildInmRows, isInm, INM_COLUMNS } from '@/lib/aureka/unit-compare'
-import { buildCsv } from '@/lib/aureka/csv-export'
+import { buildCsv, buildCsvTable, downloadCsv } from '@/lib/aureka/csv-export'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { compareToTarget } from '@/lib/aureka/indicator-engine'
 import { aggregatePharmacyMetric, combinePharmacyMetric } from '@/lib/aureka/pharmacy-logbook'
@@ -431,13 +431,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
     if (loading || error) return
     const rows = buildInmRows(officialIndicatorResults, year, roomNameOf)
     if (!rows.length) return
-    const blob = new Blob([buildCsv(rows, INM_COLUMNS)], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'aureka-inm-' + year + (roomId == null ? '-semua-unit' : '-unit-' + roomId) + '.csv'
-    document.body.appendChild(a); a.click(); a.remove()
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    downloadCsv('aureka-inm-' + year + (roomId == null ? '-semua-unit' : '-unit-' + roomId) + '.csv', buildCsv(rows, INM_COLUMNS))
   }
   const [whyFor, setWhyFor] = useState<IndicatorProfileForResults | null>(null)
   const whyDiagnosis = useMemo(() => whyFor ? diagnoseIndicator(whyFor, indicatorData.rows, year) : null, [whyFor, indicatorData, year])
@@ -847,20 +841,9 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                     <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
                       <button type="button" className="qraBtn" disabled={sourceProvenance.rows.length===0} onClick={() => {
                         const columns=['Baris Excel','Referensi sel','Tanggal pengamatan','Header','Nilai','Status']
-                        const cleanCsv=(value:unknown) => {
-                          const raw=String(value??'')
-                          const safe=/^[=+@\-\t\r]/.test(raw)?'\''+raw:raw
-                          return '"'+safe.replace(/"/g,'""')+'"'
-                        }
-                        const csv=[columns,...sourceProvenance.rows.map(r=>[
+                        downloadCsv('aureka-jejak-sumber-'+year+'.csv', buildCsvTable(columns, sourceProvenance.rows.map(r=>[
                           r.excelRow,r.cellRef||'',r.recordDate||'',r.header||'',r.value,r.status||''
-                        ])].map(row=>row.map(cleanCsv).join(',')).join('\r\n')
-                        const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'})
-                        const url=URL.createObjectURL(blob)
-                        const anchor=document.createElement('a')
-                        anchor.href=url;anchor.download='aureka-jejak-sumber-'+year+'.csv'
-                        document.body.appendChild(anchor);anchor.click();anchor.remove()
-                        window.setTimeout(()=>URL.revokeObjectURL(url),60000)
+                        ])))
                       }}>Ekspor jejak data sumber (CSV)</button>
                       <small>File Excel asli tidak tersedia untuk diunduh ulang. Pratinjau menampilkan hingga 25 catatan. CSV memuat seluruh catatan bernilai pada periode ini.</small>
                     </div>
