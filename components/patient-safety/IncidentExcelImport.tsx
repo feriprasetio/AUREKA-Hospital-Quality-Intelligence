@@ -1,12 +1,12 @@
 'use client'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { detectMapping, isLegacyHeader, normalizeHeader, normalizeRow, mergeMissing, type ImportField, type RawCell, type RawRow } from '@/lib/patient-safety/incident-excel-import'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Existing = { id:string; incident_code:string; incident_date:string|null; summary:string; status:string; form_data:Record<string,string> }
 type Sheet = { name:string; headers:string[]; rows:RawRow[]; raw:Record<number,unknown[]> }
-type Props = { supabase:SupabaseClient; rooms:{id:number;name:string}[]; fields:ImportField[]; existing:Existing[]; onDone:()=>Promise<void>; onClose:()=>void }
+type Props = { supabase:SupabaseClient; rooms:{id:number;name:string}[]; fields:ImportField[]; existing:Existing[]; onDone:()=>Promise<void>; onClose:()=>void; onBusyChange:(busy:boolean)=>void }
 const maxRows=1000
 const maxColumns=80
 function cellValue(cell:any):RawCell {
@@ -21,13 +21,14 @@ function cellValue(cell:any):RawCell {
 }
 const sha256=async(s:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))),b=>b.toString(16).padStart(2,'0')).join('')
 const selectStyle={width:'100%',minHeight:38,padding:'6px 10px',border:'1px solid #cbd5cf',borderRadius:8,background:'#fff',color:'#243e31'}
-export default function IncidentExcelImport({supabase,rooms,fields,existing,onDone,onClose}:Props){
+export default function IncidentExcelImport({supabase,rooms,fields,existing,onDone,onClose,onBusyChange}:Props){
  const [sheets,setSheets]=useState<Sheet[]>([])
  const [sheetName,setSheetName]=useState('')
  const [filename,setFilename]=useState('')
  const [mapping,setMapping]=useState<Record<string,number>>({})
  const [legacyRepair,setLegacyRepair]=useState(false)
  const [busy,setBusy]=useState(false)
+ useEffect(()=>{onBusyChange(busy);return ()=>onBusyChange(false)},[busy,onBusyChange])
  const [error,setError]=useState('')
  const [result,setResult]=useState<{inserted:number;updated:number;skipped:number;errors:string[]}|null>(null)
  const [confirmed,setConfirmed]=useState(false)
