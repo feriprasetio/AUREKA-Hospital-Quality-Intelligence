@@ -14,3 +14,9 @@ Baseline `dc2390ed4ae79465a8f0f596e6258d235ab8af8c`, sama dengan snapshot audit 
 Reproduksi browser memakai `scripts/check-workspace-ui.mjs`, `AUREKA_UI_URL` yang menunjuk ekspor lokal, dan Chromium CDP lokal. Screenshot serta laporan sintetis berada di direktori kerja sementara. Permintaan backend browser diintersepsi oleh harness.
 
 P00 belum memenuhi inventaris runtime dan gate browser. Perbaikan yang telah dilakukan terbatas pada harness dan dokumentasi baseline. Perubahan ini dapat dibatalkan dengan membalik commit preflight lokal. Tidak ada push, merge, deploy, atau mutasi produksi.
+
+## Verifikasi perubahan awal
+
+Perubahan diterapkan di atas `8cd33ab`. `npm run ci` lulus dengan 968 tes, validasi data, TypeScript, build ekspor statis, dan pemeriksaan aset kontras. Uji terfokus `AUREKA_UI_FOCUSED=1 node scripts/check-workspace-ui.mjs` lulus tiga pemeriksaan pada Chromium 1366 piksel dengan 62 permintaan sintetis dan tanpa exception. Cakupan meliputi gagal-muat feed publik dan percobaan ulang, login ADMIN, serta seleksi aksi keyboard dengan kombinasi IME dan repeat.
+
+T010 menghapus pencarian tombol mutasi dari teks dan perpindahan fokus otomatis. Form lama memakai perilaku native sampai aksi simpan aman didaftarkan dengan atribut eksplisit. T013 membedakan gagal-muat dan publikasi kosong serta menambah percobaan ulang. Matriks seluruh role, viewport, dan varian publikasi masih belum lengkap.

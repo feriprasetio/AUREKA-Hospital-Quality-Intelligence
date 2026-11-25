@@ -69,8 +69,24 @@
       "audit_issue_ids": [
         "UI-004"
       ],
-      "status": "not_started",
-      "evidence_before": []
+      "status": "implemented",
+      "evidence_before": [],
+      "changes": [
+        "components/FormSpeedEnhancer.tsx",
+        "components/QualitySettings.tsx"
+      ],
+      "tests": [
+        {
+          "command": "npm run ci",
+          "exit_code": 0,
+          "actual_result": "968 tes dan build lulus"
+        },
+        {
+          "command": "AUREKA_UI_FOCUSED=1 node scripts/check-workspace-ui.mjs",
+          "exit_code": 0,
+          "actual_result": "Tiga pemeriksaan Chromium lokal lulus"
+        }
+      ]
     },
     {
       "task_id": "T011",
@@ -104,8 +120,23 @@
       "audit_issue_ids": [
         "UI-008"
       ],
-      "status": "not_started",
-      "evidence_before": []
+      "status": "implemented",
+      "evidence_before": [],
+      "changes": [
+        "components/PublicLandingPage.tsx"
+      ],
+      "tests": [
+        {
+          "command": "npm run ci",
+          "exit_code": 0,
+          "actual_result": "968 tes dan build lulus"
+        },
+        {
+          "command": "AUREKA_UI_FOCUSED=1 node scripts/check-workspace-ui.mjs",
+          "exit_code": 0,
+          "actual_result": "Tiga pemeriksaan Chromium lokal lulus"
+        }
+      ]
     },
     {
       "task_id": "T014",

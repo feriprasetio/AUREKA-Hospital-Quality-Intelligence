@@ -131,6 +131,7 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
   const [feed,setFeed]=useState<PortalFeed|null>(null)
   const [loading,setLoading]=useState(true)
   const [loadError,setLoadError]=useState(false)
+  const [feedAttempt,setFeedAttempt]=useState(0)
   const [certificateInput,setCertificateInput]=useState('')
   useEffect(()=>{
     let active=true
@@ -143,11 +144,11 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
     },()=>{
       if(!active)return
       setLoadError(true)
-      setFeed(null)
       setLoading(false)
     })
     return ()=>{active=false}
-  },[verificationCode])
+  },[verificationCode,feedAttempt])
+  const feedUnavailable=loading?'Memuat data publik…':loadError?'Data publik belum dapat diperiksa.':'Belum ada periode terpublikasi'
   const indicators=useMemo(()=>publishedItems(feed),[feed])
   const measured=indicators.filter(item=>number(item.actual)!==null)
   const available=Object.values(feed||{}).filter(Boolean).length
@@ -183,12 +184,15 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
             <h2 className="aurekaPublicPanelTitle" id="aureka-public-overview">Ikhtisar data publik</h2>
             <div className="aurekaPublicHighlights">
               <div><span>Indikator dengan capaian</span><strong>{loading?'…':indicators.length?String(measured.length)+' / '+String(indicators.length):'-'}</strong><small>Dari profil yang terpublikasi</small></div>
-              <div><span>Domain terpublikasi</span><strong>{loading?'…':String(available)+' / 3'}</strong><small>INM, keselamatan, risiko</small></div>
+              <div><span>Domain terpublikasi</span><strong>{loading?'…':loadError&&!feed?'–':String(available)+' / 3'}</strong><small>INM, keselamatan, risiko</small></div>
             </div>
             <div className="aurekaPublicPreview">
               <strong>Periode publikasi</strong>
-              <p>{updated?'Pembaruan terakhir '+dateText(updated):'Belum ada dataset yang disetujui untuk tayang di ruang publik.'}</p>
-              {loadError&&<p role="alert">Layanan data publik belum dapat dijangkau.</p>}
+              <p>{updated?'Pembaruan terakhir '+dateText(updated):loading||loadError?feedUnavailable:'Belum ada dataset yang disetujui untuk tayang di ruang publik.'}</p>
+              {loadError&&<div role="alert">
+                <p>{feed?'Data yang ditampilkan berasal dari pembaruan terakhir. Layanan belum dapat memuat data terbaru.':'Layanan data publik belum dapat dijangkau.'}</p>
+                <button type="button" className="aurekaPublicSecondary" onClick={()=>{setLoadError(false);setLoading(true);setFeedAttempt(attempt=>attempt+1)}}>Coba lagi</button>
+              </div>}
             </div>
           </section>
         </div>
@@ -205,12 +209,12 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
 
       <section className="aurekaPublicSection aurekaPublicContainer" aria-labelledby="inm-title">
         <DomainHeader id="inm" kicker="Indikator mutu" title="Indikator Nasional Mutu" description="Jelajahi 13 indikator mutu rumah sakit. Nilai hanya ditampilkan bila sudah direkonsiliasi dan disetujui untuk publikasi."/>
-        <div className="aurekaPublicSectionMeta" id="inm-title"><span>{feed?.inm?'Periode: '+feed.inm.period:'Belum ada periode terpublikasi'}</span><span>{feed?.inm?'Terbit: '+dateText(feed.inm.published_at):'Data tidak direkayasa'}</span></div>
+        <div className="aurekaPublicSectionMeta" id="inm-title"><span>{feed?.inm?'Periode: '+feed.inm.period:feedUnavailable}</span><span>{feed?.inm?'Terbit: '+dateText(feed.inm.published_at):'Data tidak direkayasa'}</span></div>
         <div className="aurekaPublicIndicatorGrid">
           {NATIONAL_INDICATORS.map(([code,title])=>{
             const item=indicators.find(i=>normalize(i.title||'')===normalize(title)||normalize(i.code||'')===normalize(code))
             return <details className="aurekaPublicIndicator" key={code}>
-              <summary><span className="aurekaPublicIndicatorInfo"><strong>{title}</strong><small>{item?.period||feed?.inm?.period||'Belum ada data resmi'}</small></span><span className="aurekaPublicIndicatorValue">{item&&number(item.actual)!==null?display(item.actual,item.unit):'—'}</span><span className="aurekaPublicChevron" aria-hidden="true">⌄</span></summary>
+              <summary><span className="aurekaPublicIndicatorInfo"><strong>{title}</strong><small>{item?.period||feed?.inm?.period||(loading||loadError?feedUnavailable:'Belum ada data resmi')}</small></span><span className="aurekaPublicIndicatorValue">{item&&number(item.actual)!==null?display(item.actual,item.unit):'—'}</span><span className="aurekaPublicChevron" aria-hidden="true">⌄</span></summary>
               <div className="aurekaPublicIndicatorDetail">
                 <div><span>Target</span><strong>{item?display(item.target,item.unit):'Belum tersedia'}</strong></div>
                 <div><span>Status capaian</span><strong>{item?.status||'Belum dapat dinilai'}</strong></div>
@@ -219,7 +223,7 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
                 {item?.definition&&<p><b>Definisi:</b> {item.definition}</p>}
                 {item?.source&&<p><b>Sumber:</b> {item.source}</p>}
                 {item?.trend&&item.trend.length>0&&<div className="aurekaPublicTrend">{item.trend.slice(-12).map((p,i)=><div key={i}><span>{p.period}</span><strong>{display(p.actual,item.unit)}</strong></div>)}</div>}
-                {!item&&<p>Data indikator ini belum melewati tahapan validasi dan persetujuan publikasi.</p>}
+                {!item&&<p>{loading||loadError?feedUnavailable:'Belum ada nilai indikator yang terpublikasi.'}</p>}
               </div>
             </details>
           })}
@@ -229,8 +233,8 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
 
       <section className="aurekaPublicSection aurekaPublicTint" aria-labelledby="safety-title"><div className="aurekaPublicContainer">
         <DomainHeader id="safety" kicker="PATIENT SAFETY INTELLIGENCE" title="Keselamatan Pasien" description="Kinerja pelaporan dan tindak lanjut ditampilkan pada tingkat agregat. Identitas pasien, pelapor, kronologi individu, dan rincian investigasi tetap rahasia."/>
-        <div className="aurekaPublicSectionMeta" id="safety-title"><span>{feed?.safety?'Periode: '+feed.safety.period:'Belum ada periode terpublikasi'}</span><span>Agregat ditinjau untuk risiko identifikasi ulang</span></div>
-        {!feed?.safety?<EmptyData message="Informasi keselamatan akan muncul setelah memenuhi ambang privasi, validasi, dan persetujuan publikasi."/>:
+        <div className="aurekaPublicSectionMeta" id="safety-title"><span>{feed?.safety?'Periode: '+feed.safety.period:feedUnavailable}</span><span>Agregat ditinjau untuk risiko identifikasi ulang</span></div>
+        {!feed?.safety?loading||loadError?<p role="status">{feedUnavailable}</p>:<EmptyData message="Informasi keselamatan akan muncul setelah memenuhi ambang privasi, validasi, dan persetujuan publikasi."/>:
           <div className="aurekaPublicTwoColumns">
             <AggregatePanel title="Komposisi klasifikasi insiden" rows={feed.safety.payload.classifications} privacy/>
             <AggregatePanel title="Tren pelaporan" rows={feed.safety.payload.monthly} privacy/>
@@ -241,8 +245,8 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
 
       <section className="aurekaPublicSection aurekaPublicContainer" aria-labelledby="risk-title">
         <DomainHeader id="risk" kicker="RISK INTELLIGENCE" title="Manajemen Risiko" description="Gambaran institusional pengendalian risiko tanpa membuka detail kerentanan operasional, nama penanggung jawab, atau isi risk register internal."/>
-        <div className="aurekaPublicSectionMeta" id="risk-title"><span>{feed?.risk?'Periode: '+feed.risk.period:'Belum ada periode terpublikasi'}</span><span>Hanya kategori yang aman diungkapkan</span></div>
-        {!feed?.risk?<EmptyData message="Profil risiko akan muncul setelah ringkasan institusional disetujui dan rincian sensitif dikeluarkan."/>:
+        <div className="aurekaPublicSectionMeta" id="risk-title"><span>{feed?.risk?'Periode: '+feed.risk.period:feedUnavailable}</span><span>Hanya kategori yang aman diungkapkan</span></div>
+        {!feed?.risk?loading||loadError?<p role="status">{feedUnavailable}</p>:<EmptyData message="Profil risiko akan muncul setelah ringkasan institusional disetujui dan rincian sensitif dikeluarkan."/>:
           <div className="aurekaPublicTwoColumns">
             <AggregatePanel title="Distribusi tingkat risiko" rows={feed.risk.payload.levels}/>
             <AggregatePanel title="Efektivitas pengendalian" rows={feed.risk.payload.controls}/>
