@@ -10,6 +10,7 @@ import type React from 'react'
 import { createPortal } from 'react-dom'
 import type { SafetyFocus } from '@/lib/aureka/focus'
 import { gradeIncident, IMPACT_OPTIONS } from '@/lib/patient-safety/grading'
+import IncidentExcelImport from '@/components/patient-safety/IncidentExcelImport'
 import QrReportsPanel, { type QrReport } from '@/components/patient-safety/QrReportsPanel'
 import { LiquidGlass } from '@/components/LiquidGlass'
 import SurveyWizard from '@/components/patient-safety/SurveyWizard'
@@ -327,6 +328,9 @@ export default function PatientSafetyWorkspace({
   useEffect(() => { if (tab === 'investigation') logSensitiveView('incident_investigation', 'workspace-investigasi'); else if (tab === 'responses') logSensitiveView('survey_named_response', 'rekapan-survei-agregat') }, [tab])
   useEffect(() => { setLocalTab(initialTab) }, [initialTab])
   const [incidents, setIncidents] = useState<IncidentRow[]>([])
+  const [excelImportOpen, setExcelImportOpen] = useState(false)
+  const [excelImportBusy, setExcelImportBusy] = useState(false)
+  const allowExcelImport = isSuperAdmin && canManageWorkflow && scopeRoomId == null
   const [investigations, setInvestigations] = useState<InvestigationRow[]>([])
   const [responses, setResponses] = useState<CultureResponse[]>([])
   // Data sumber survei hanya dapat dibaca ADMIN; tampilan dan ekspor tetap agregat dengan suppression.
@@ -1078,7 +1082,7 @@ export default function PatientSafetyWorkspace({
         qrProcessing.current = r.id
       }} />}
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill">{filteredIncidents.length} laporan</span><button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
+        <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill">{filteredIncidents.length} laporan</span>{allowExcelImport ? <button type="button" className="psBtn" onClick={() => setExcelImportOpen(true)}>Impor Excel / Template</button> : null}<button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
         <div className="psFilterGrid">
           <div className="psFilter psLocalSearch"><label>Cari laporan</label><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
           <div className="psFilter"><label>Status</label><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draf</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Selesai</option></select></div>
@@ -1094,6 +1098,9 @@ export default function PatientSafetyWorkspace({
           {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
       </LiquidGlass>
+      {excelImportOpen && allowExcelImport ? <PsFormModal label="Impor Excel Register Insiden" onClose={() => { if (!excelImportBusy) setExcelImportOpen(false) }}>
+        <IncidentExcelImport supabase={supabase} rooms={rooms} fields={INCIDENT_FIELDS} existing={incidents} onDone={loadData} onBusyChange={setExcelImportBusy} onClose={() => setExcelImportOpen(false)} />
+      </PsFormModal> : null}
       {formOpen ? <PsFormModal label={incidentId ? 'Laporan ' + incidentCode : 'Laporan IKP baru'} onClose={() => closeForm()}>
       <div className="psModalTop">
       <div className="psModalBar">
@@ -1131,8 +1138,10 @@ export default function PatientSafetyWorkspace({
                 ['Dampak pada sumber', incidentData._import_source_impact_label],
                 ['Pelaksana pertolongan pada sumber', incidentData._import_source_first_response],
                 ['Finalisasi pada sumber', incidentData._import_source_finalization],
+                ['Catatan validasi impor', incidentData._import_warnings],
               ].filter(([, value]) => Boolean(value)).map(([label, value]) => <div key={label}><dt style={{ fontWeight: 600 }}>{label}</dt><dd style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{value}</dd></div>)}
             </dl>
+            {incidentData._import_raw_json ? <details><summary style={{ cursor: 'pointer' }}>Nilai sel sumber (rahasia)</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: 320, overflow: 'auto' }}>{incidentData._import_raw_json}</pre></details> : null}
           </details>
         </div> : null}
         <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; laporan hanya bisa dibuka oleh petugas yang berwenang.</div>
