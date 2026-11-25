@@ -37,8 +37,10 @@ export function normalizeOption(code:string,raw:string,options:string[]) {
  const exact=options.find(o=>normalizeHeader(o)===n);if(exact)return exact
  if(code==='A7'){const k=n==='kpc'?'kpcs':n;return options.find(o=>normalizeHeader(o).split(' ').includes(k))||''}
  if(code==='C4'){if(['l','laki laki','pria','male'].includes(n))return options.find(o=>normalizeHeader(o)==='laki laki')||'';if(['p','wanita','female','perempuan'].includes(n))return options.find(o=>normalizeHeader(o)==='perempuan')||''}
- if(code==='C5'){if(['jkn','bpjs','bpjs kesehatan'].includes(n))return options.find(o=>o.startsWith('BPJS'))||'';if(n==='umum')return options.find(o=>o.startsWith('Umum'))||''}
- if(code==='D4'){return options.find(o=>normalizeHeader(o).startsWith(n+' '))||''}
+ if(code==='C5'){if(['jkn','bpjs','bpjs kesehatan','jkn bpjs','bpjs jkn'].includes(n))return options.find(o=>o.startsWith('BPJS'))||'';if(['umum','pribadi umum','pribadi'].includes(n))return options.find(o=>o.startsWith('Umum'))||'';if(['bansos','pemerintah bansos'].includes(n))return options.find(o=>o.startsWith('Pemerintah'))||'';if(n==='lain lain')return options.find(o=>o.startsWith('Yang lain'))||''}
+ if(code==='D2'){const prefix=n==='perawat'?'paramedis':n==='dokter'?'medis':n==='farmasi'||n==='laboratorium'?'penunjang medis':'';if(prefix)return options.find(o=>normalizeHeader(o).startsWith(prefix+' '))||''}
+ if(code==='D1'&&n==='keluarga pasien lain')return options.find(o=>o.startsWith('Yang lain'))||''
+ if(code==='D4'){const prefix=['sangat jarang','sangat sering','jarang','mungkin','sering'].find(p=>n===p||n.startsWith(p+' '));return prefix?options.find(o=>normalizeHeader(o).startsWith(prefix+' '))||'':''}
  if(code==='D7'&&['tidak ada','tidak ada cedera'].includes(n))return options.find(o=>o.startsWith('Tidak signifikan'))||''
  return ''
 }
