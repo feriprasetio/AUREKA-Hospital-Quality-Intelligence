@@ -5,7 +5,7 @@ import { detectMapping, isLegacyHeader, normalizeHeader, normalizeRow, mergeMiss
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
 type Existing = { id:string; incident_code:string; incident_date:string|null; summary:string; status:string; form_data:Record<string,string> }
-type Sheet = { name:string; headers:string[]; rows:RawRow[]; raw:Record<number,unknown[]> }
+type Sheet = { name:string; headers:string[]; rows:RawRow[]; raw:Record<number,unknown[]>; fingerprints:Record<number,string> }
 type Props = { supabase:SupabaseClient; rooms:{id:number;name:string}[]; fields:ImportField[]; existing:Existing[]; onDone:()=>Promise<void>; onClose:()=>void; onBusyChange:(busy:boolean)=>void }
 const maxRows=1000
 const maxColumns=80
@@ -49,13 +49,13 @@ export default function IncidentExcelImport({supabase,rooms,fields,existing,onDo
     if(ws.rowCount>maxRows+1||ws.columnCount>maxColumns)continue
     const headers=Array.from({length:ws.getRow(1).cellCount},(_,i)=>String(cellValue(ws.getRow(1).getCell(i+1))??'').trim())
     if(!headers.some(Boolean))continue
-    const rows:RawRow[]=[];const raw:Record<number,unknown[]>={}
+    const rows:RawRow[]=[];const raw:Record<number,unknown[]>={};const fingerprints:Record<number,string>={}
     for(let n=2;n<=ws.rowCount;n++){
      const r=ws.getRow(n);const cells=Array.from({length:r.cellCount},(_,i)=>cellValue(r.getCell(i+1)))
      if(!cells.some(v=>v!==null&&String(v).trim()!==''))continue
      rows.push({row:n,cells});raw[n]=Array.from({length:r.cellCount},(_,i)=>r.getCell(i+1).value??null)
     }
-    if(rows.length)parsed.push({name:ws.name,headers,rows,raw})
+    if(rows.length){for(const row of rows)fingerprints[row.row]=await sha256(JSON.stringify([ws.name,row.row,headers,raw[row.row]]));parsed.push({name:ws.name,headers,rows,raw,fingerprints})}
    }
    if(!parsed.length)throw Error('Tidak ada worksheet dengan header pada baris 1 dan data yang memenuhi batas ukuran.')
    setFilename(file.name);setSheets(parsed);choose(parsed.find(s=>isLegacyHeader(s.headers))??parsed[0])
@@ -65,14 +65,19 @@ export default function IncidentExcelImport({supabase,rooms,fields,existing,onDo
   const n=normalizeRow(row,sheet.headers,mapping,fields,rooms)
   const codeColumn=sheet.headers.findIndex(h=>['kode insiden','incident code','kode laporan'].includes(normalizeHeader(h)))
   const requestedCode=codeColumn>=0?String(row.cells[codeColumn]??'').trim():''
-  const target=requestedCode?existing.find(i=>i.incident_code===requestedCode):legacyRepair?existing.find(i=>i.form_data._import_row===String(row.row)&&i.form_data._import_source==='Daftar Insiden Keselamatan Pasien.xlsx / Form Responses 1'):undefined
+  const historicTarget=legacyAllowed?existing.find(i=>i.form_data._import_row===String(row.row)&&i.form_data._import_source==='Daftar Insiden Keselamatan Pasien.xlsx / Form Responses 1'):undefined
+  const target=requestedCode?existing.find(i=>i.incident_code===requestedCode):legacyRepair?historicTarget:undefined
+  const fingerprint=sheet.fingerprints[row.row]
+  const exactMatch=existing.find(i=>i.form_data._import_fingerprint===fingerprint||i.incident_code==='IKP-'+n.data.A2.slice(0,4)+'-XLS-'+fingerprint.slice(0,24).toUpperCase())
   const warnings=[...n.warnings]
   let blocked=n.blocked
   if((requestedCode||legacyRepair)&&(!target||target.status!=='draft'||target.incident_date!==n.data.A2)){blocked=true;warnings.push('Target rekonsiliasi tidak ditemukan, bukan draf, atau tanggal tidak cocok.')}
+  if(exactMatch){blocked=true;warnings.push('Sudah tersimpan dengan sidik data yang sama; baris dilewati.')}
+  if(historicTarget&&!target){blocked=true;warnings.push('Laporan historis sudah ada. Aktifkan rekonsiliasi untuk melengkapi sumber.')}
   if(target)warnings.push('Rekonsiliasi: hanya melengkapi isian kosong dan menyimpan sumber; nilai lama tidak ditimpa.')
   else if(existing.some(i=>i.incident_date===n.data.A2&&normalizeHeader(i.summary)===normalizeHeader(n.data.A1))){blocked=true;warnings.push('Kemungkinan duplikat tanggal dan judul; gunakan kode laporan yang sudah ada untuk rekonsiliasi.')}
   return {...n,blocked,warnings,row,target}
- }):[],[sheet,mapping,fields,rooms,existing,legacyRepair])
+ }):[],[sheet,mapping,fields,rooms,existing,legacyRepair,legacyAllowed])
  const selected=preview.filter(r=>!r.blocked&&!excluded.includes(r.row.row))
  const blockedCount=preview.filter(r=>r.blocked).length
  const warningCount=preview.filter(r=>r.warnings.length>0).length
@@ -99,7 +104,7 @@ export default function IncidentExcelImport({supabase,rooms,fields,existing,onDo
    const db=(supabase as any).schema('aureka_patient_safety')
    for(const item of selected){
     try{
-     const fingerprint=await sha256(JSON.stringify([sheet.name,item.row.row,sheet.headers,sheet.raw[item.row.row]]))
+     const fingerprint=sheet.fingerprints[item.row.row]
      const source=JSON.stringify({sheet:sheet.name,row:item.row.row,headers:sheet.headers,cells:sheet.raw[item.row.row],mapping,normalized:item.data})
      if(source.length>250000)throw Error('Data sumber melampaui batas ukuran per baris.')
      const form={...item.data,_import_source:filename+' / '+sheet.name,_import_row:String(item.row.row),_import_raw_json:source,_import_fingerprint:fingerprint,_import_review:'Draf impor Excel; belum divalidasi Tim PMKP',_import_warnings:item.warnings.join('\n')}
@@ -111,6 +116,9 @@ export default function IncidentExcelImport({supabase,rooms,fields,existing,onDo
       // Preserve the earliest legacy source marker, and store the newest full source separately.
       if(current.form_data?._import_source)merged._import_source=current.form_data._import_source
       if(current.form_data?._import_row)merged._import_row=current.form_data._import_row
+      if(current.form_data?._import_raw_json&&current.form_data._import_raw_json!==source){
+       const history=JSON.parse(current.form_data._import_source_history||'[]');const nextHistory=JSON.stringify([...history,current.form_data._import_raw_json]);if(nextHistory.length>500000)throw Error('Riwayat sumber melampaui batas; perlu review manual.');merged._import_source_history=nextHistory
+      }
       const {data:updated,error:updateError}=await db.from('incidents').update({form_data:merged,summary:current.summary||merged.A1,unit_name:current.unit_name||merged.E2||'',incident_time:current.incident_time||merged.A3||null,incident_type:current.incident_type||merged.A7,room_id:current.room_id??item.roomId}).eq('id',current.id).eq('updated_at',current.updated_at).eq('status','draft').select('id')
       if(updateError||updated?.length!==1)throw Error('Target tidak dapat diperbarui atau berubah saat impor.')
       outcome.updated++
