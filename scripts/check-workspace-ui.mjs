@@ -373,6 +373,10 @@ try {
   })
   if (process.env.AUREKA_UI_FOCUSED !== '1') {
   await goModule('quality', 'Mutu Klinis')
+  await wait("document.querySelector('.aqRoomOverviewCard, .aqHideStatus')")
+  if (await evaluate("Boolean(document.querySelector('.aqRoomOverviewCard'))")) {
+    await clickText('.aqRoomOverviewCard', 'Informasi dan Pengaduan')
+  }
   await wait("document.querySelectorAll('.aqHideStatus tbody tr').length===14")
   await check('logbook has a usable multi-row viewport', async () => {
     const height = await evaluate("document.querySelector('.aqHideStatus .aqWrap').getBoundingClientRect().height")
@@ -769,7 +773,7 @@ try {
     await viewport(1366)
     await login(role)
     await check(`${role} menu visibility and guarded logbook controls`, async () => {
-      assert.equal(await evaluate("Boolean(document.querySelector('.sidebarNavGroup > button[title=\"Analitik & Laporan\"]'))"), false)
+      assert.equal(await evaluate("Boolean(document.querySelector('.sidebarDomainItem[title=\"Rekomendasi dan Rencana Tindak Lanjut\"]'))"), false)
       await goModule('quality', 'Mutu Klinis')
       await wait("document.querySelector('.aqHideStatus')")
       if (role === 'VALIDATOR') {
