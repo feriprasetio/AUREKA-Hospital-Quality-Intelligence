@@ -59,11 +59,12 @@ export function normalizeRow(row:RawRow,headers:string[],mapping:Record<string,n
  }
  if(legacy){
   if(!data.D7&&normalizeHeader(data.A8)==='tidak ada')data.D7=normalizeOption('D7',data.A8,fields.find(f=>f.code==='D7')?.options||[])
-  if(!data.D5&&rawAt('D5'))warnings.push('Pernah terjadi di RS tidak selalu sama dengan kejadian di ruangan lain.')
+  if(rawAt('D5') && normalizeHeader(headers[mapping.D5])==='pernah terjadi di rs'){data.D5='';warnings.push('Pernah terjadi di RS tidak selalu sama dengan kejadian di ruangan lain; dipertahankan pada data sumber.')}
  }
  if(data.A7.includes('(KTD)')&&data.D7.startsWith('Tidak signifikan'))warnings.push('KTD tanpa cedera tercatat; validasi klasifikasi.')
  const room=rooms.find(r=>normalizeHeader(r.name)===normalizeHeader(data.E2))
  if(data.E2&&!room)warnings.push('Unit pelapor belum cocok dengan master.')
+ for(const f of fields)if(!data[f.code]&&['A3','A4','A5','A6','A8','B1','D1','D2','D3','D4','D6','E1','E2','E3'].includes(f.code))warnings.push(f.code+' belum tersedia dalam hasil pemetaan.')
  if(room)data.E2=room.name
  const blocked=!data.A1||!data.A2||!data.A7
  if(blocked)warnings.push('Judul, tanggal dan jenis insiden wajib untuk impor.')
