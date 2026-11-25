@@ -1,5 +1,6 @@
 'use client'
 import { useRef } from 'react'
+import { buildCsvTable, downloadCsv } from '@/lib/aureka/csv-export'
 import { type NaraVisualSpec } from '@/lib/nara-visual'
 
 const palette = ['#176b87','#2f8f70','#d18a31','#8064a2','#bd5968','#6585b5']
@@ -21,8 +22,7 @@ export default function NaraVisualRenderer({spec}:{spec:NaraVisualSpec}) {
   const csv=()=>{
     const rows=[ [spec.xKey||'Kategori',...(spec.chartType==='risk_matrix'?['Dampak','Jumlah']:spec.series.map(s=>s.label))] ]
     for(const r of spec.data) rows.push(spec.chartType==='risk_matrix'?[String(r.likelihood),String(r.impact),String(r.count)]:[String(r[spec.xKey||'label']??''),...(spec.chartType==='pie'?[String(r[spec.valueKey||spec.series[0]?.dataKey||'value']??'')]:spec.series.map(s=>String(r[s.dataKey]??'')))])
-    const text=rows.map(row=>row.map(v=>'"'+v.replace(/"/g,'""')+'"').join(';')).join('\r\n')
-    const u=URL.createObjectURL(new Blob(['\uFEFF'+text],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='nara-data-visualisasi.csv';a.click();URL.revokeObjectURL(u)
+    downloadCsv('nara-data-visualisasi.csv',buildCsvTable(rows[0],rows.slice(1)))
   }
   const pieTotal=spec.data.reduce((n,r)=>n+Number(r[spec.valueKey||spec.series[0]?.dataKey||'value']||0),0)
   let pieAngle=-Math.PI/2
