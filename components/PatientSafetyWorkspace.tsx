@@ -515,10 +515,10 @@ export default function PatientSafetyWorkspace({
   useEffect(() => {
     const defaultRoom = scopeUnitName || rooms.find(room => room.id === initialRoomId)?.name || ''
     if (defaultRoom) {
-      setIncidentData(current => ({ ...current, E2: scopeUnitName || current.E2 || defaultRoom }))
+      if (!incidentId) setIncidentData(current => ({ ...current, E2: scopeUnitName || current.E2 || defaultRoom }))
       setSurveyUnit(current => scopeUnitName || current || defaultRoom)
     }
-  }, [rooms, initialRoomId, scopeUnitName])
+  }, [rooms, initialRoomId, scopeUnitName, incidentId])
 
   const filteredIncidents = useMemo(() => incidents.filter(row => {
     const matchesStatus = statusFilter === 'all' || row.status === statusFilter
@@ -898,7 +898,7 @@ export default function PatientSafetyWorkspace({
         setIncidentValue('E1', staff?.display_name || '')
       }}>
         <option value="">Pilih pelapor dari roster terkunci unit…</option>
-        {value && !incidentStaffId ? <option value="__unmapped__" disabled>Nama lama belum terhubung ke identitas AUREKA</option> : null}
+        {value && !incidentStaffId ? <option value="__unmapped__" disabled>{value} · Belum terhubung ke direktori AUREKA</option> : null}
         {reporterOptions.map(staff => <option key={staff.id} value={staff.id}>{staff.display_name}, {staff.employee_code} · {staff.profession_group}</option>)}
         <option value="__external__">Pelapor bukan tenaga AUREKA / identitas belum dapat dipetakan</option>
       </select>{incidentReporterExternal ? <input aria-label="Nama pelapor dari luar direktori AUREKA" aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue('E1', event.target.value)} placeholder="Nama pelapor dari luar direktori AUREKA" /> : null}<div className="psHint">{incidentStaffId ? 'Identitas pelapor tertaut ke staff_id AUREKA dan terkunci pada unit laporan.' : incidentReporterExternal ? 'Pelapor non-tenaga AUREKA: nama disimpan sebagai teks dan tidak ditautkan sebagai pegawai internal.' : value ? 'Nama yang tersimpan belum terhubung ke ID kanonik. Pilih tenaga yang benar jika pelapor merupakan staf rumah sakit.' : 'Untuk pelapor internal, pilih tenaga yang sudah terkunci pada roster unit. Pelapor dari luar direktori dapat dipilih pada opsi terakhir.'}</div></>
@@ -913,7 +913,7 @@ export default function PatientSafetyWorkspace({
           onChange={event => setIncidentValue(field.code, event.target.value)} placeholder="Masukkan informasi..." /> :
         field.type === 'select' ?
           <select id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)}>
-            <option value="">Pilih unit kerja</option>{roomOptions.map(name => <option key={name} value={name}>{name}</option>)}
+            <option value="">Pilih unit kerja</option>{value && !roomOptions.includes(value) ? <option value={value}>{value} · Nama historis / belum dipetakan</option> : null}{roomOptions.map(name => <option key={name} value={name}>{name}</option>)}
           </select> :
           <input id={`incident-field-${field.code}`} aria-labelledby={`incident-field-${field.code}-label`} aria-invalid={fieldInvalid || undefined} aria-describedby={fieldDescribedBy} type={field.type} value={value} disabled={disabled} onChange={event => setIncidentValue(field.code, event.target.value)} />
       }
@@ -1112,10 +1112,29 @@ export default function PatientSafetyWorkspace({
         <div className="psMetaGrid">
           <div className="psMeta"><span>Kode Laporan</span><strong>{incidentCode || 'Dibuat saat disimpan'}</strong></div>
           <div className="psMeta"><span>Status Laporan</span><strong>{statusLabel(incidentStatus)}</strong></div>
-          <div className="psMeta"><span>Kelengkapan</span><strong>{incidentCompletion}%</strong></div>
+          <div className="psMeta"><span>Kelengkapan formulir saat ini</span><strong>{incidentCompletion}%</strong></div>
           <div className="psMeta"><span>Isian wajib belum lengkap</span><strong>{missingIncident.length}</strong></div>
         </div>
         {draftOffer ? <div className="psDraftOffer" role="status"><span>Ada isian yang belum tersimpan dari {new Date(draftOffer.savedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}. Nama pasien, No. RM, dan usia perlu diisi ulang.</span><div className="psActions"><button type="button" className="psBtn" onClick={() => { dropDraft(); setDraftOffer(null) }}>Buang</button><button type="button" className="psBtn primary" onClick={() => { setIncidentData(current => ({ ...current, ...draftOffer.data })); setDraftOffer(null) }}>Pulihkan isian</button></div></div> : null}
+        {incidentData._import_source ? <div className="psAlert" role="note" style={{ marginBottom: 10, overflowWrap: 'anywhere' }}>
+          <strong>Arsip laporan historis · belum divalidasi</strong>
+          <p style={{ margin: '5px 0' }}>Laporan berasal dari data Excel lama. Isian yang tidak tersedia dalam sumber dibiarkan kosong; kelengkapan formulir bukan ukuran kualitas investigasi. Verifikasi informasi sebelum mengirim atau mengubah status.</p>
+          <details><summary style={{ cursor: 'pointer' }}>Jejak sumber dan informasi historis</summary>
+            <dl style={{ margin: '8px 0', display: 'grid', gap: 6 }}>
+              {[
+                ['Sumber', incidentData._import_source],
+                ['Baris Excel', incidentData._import_row],
+                ['Waktu pencatatan sumber', incidentData._import_source_date_time],
+                ['Ruangan / lokasi asli', incidentData._import_original_room],
+                ['Lokasi spesifik asli', incidentData._import_original_specific_location],
+                ['Unit pelapor asli', incidentData._import_original_reporter_unit],
+                ['Dampak pada sumber', incidentData._import_source_impact_label],
+                ['Pelaksana pertolongan pada sumber', incidentData._import_source_first_response],
+                ['Finalisasi pada sumber', incidentData._import_source_finalization],
+              ].filter(([, value]) => Boolean(value)).map(([label, value]) => <div key={label}><dt style={{ fontWeight: 600 }}>{label}</dt><dd style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{value}</dd></div>)}
+            </dl>
+          </details>
+        </div> : null}
         <div className="psAlert warn" style={{ marginBottom: 10 }}>Tanda <b>*</b> menunjukkan pertanyaan wajib diisi. Nama pelapor tidak ditampilkan dalam ringkasan daftar insiden; laporan hanya bisa dibuka oleh petugas yang berwenang.</div>
         <nav className="psSectionJump" aria-label="Loncat ke bagian formulir">{INCIDENT_SECTIONS.map(section => <button type="button" key={section.letter} onClick={() => document.getElementById('ikp-sec-' + section.letter)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}><b>{section.letter}</b>{section.title}</button>)}</nav>
         {INCIDENT_SECTIONS.map(section => <section className="psFormSection" id={'ikp-sec-' + section.letter} key={section.letter}>
