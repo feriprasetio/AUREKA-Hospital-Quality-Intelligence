@@ -288,13 +288,13 @@ const login = async role => {
   testRole = role
   await send('Storage.clearDataForOrigin', { origin: new URL(appUrl).origin, storageTypes: 'all' })
   await send('Page.navigate', { url: appUrl })
-  await wait("document.querySelector('.a2-button-workspace')")
+  await wait("document.querySelector('button.aurekaPublicPrimary')")
   await wait("document.documentElement.dataset.theme==='solid'", 'React hydration before clicking the login action')
-  await click('.a2-button-workspace')
+  await click('button.aurekaPublicPrimary')
   await wait("document.querySelector('#password')")
   await fill('#email', user.email)
   await fill('#password', 'isolated-ui-test-only')
-  await evaluate("document.querySelector('.authForm').requestSubmit()")
+  await evaluate("document.querySelector('.authArcticForm').requestSubmit()")
   await wait("document.querySelector('.workspaceDesk')")
 }
 
@@ -317,7 +317,7 @@ try {
   await send('Fetch.enable', { patterns: [{ urlPattern: '*' }] })
   await viewport(1366)
   await login('ADMIN')
-  await wait("document.querySelector('.ovPanel')")
+  await wait("document.querySelector('.ccSectionHead')")
   await check('authenticated desktop frame', () => layout('Overview'))
   await screenshot('overview-1366')
   await goModule('quality', 'Mutu Klinis')
@@ -728,7 +728,7 @@ try {
     })
     await check(`${role} logout remains functional`, async () => {
       await click('.sidebarFooter .liquidButton button')
-      await wait("document.querySelector('.a2-landing')")
+      await wait("document.querySelector('.aurekaPublic')")
     })
   }
   await stopInterception()
