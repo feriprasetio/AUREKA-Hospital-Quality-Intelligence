@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { LEGACY_HEADERS, detectMapping, excelDate, excelTime, isLegacyHeader, normalizeRow, mergeMissing } from '../lib/patient-safety/incident-excel-import.ts'
+import { LEGACY_HEADERS, detectMapping, excelDate, excelTime, isLegacyHeader, normalizeRow, mergeMissing, originalSourceEntries } from '../lib/patient-safety/incident-excel-import.ts'
 const fields=[
  {code:'A1',label:'Insiden yang Terjadi',type:'textarea'},
  {code:'A2',label:'Tanggal Insiden',type:'date'},
@@ -45,4 +45,15 @@ test('invalid primary fields block import; unknown values are not fabricated',()
 })
 test('reconciliation fills blanks without overwriting validated text',()=>{
  assert.deepEqual(mergeMissing({A1:'Narasi lama',C7:''},{A1:'Narasi baru',C7:'21:21',_import_raw_json:'{}'}),{A1:'Narasi lama',C7:'21:21',_import_raw_json:'{}'})
+})
+
+test('source view preserves shifted identity headings and original serial values',()=>{
+ const raw=JSON.stringify({sheet:'Form Responses 1',row:47,headers:LEGACY_HEADERS,cells:{B:'Contoh',C:'46286',D:'0.28125',K:'Pasien contoh',L:'000123',M:'17 tahun',N:'Perempuan',Q:'0.88958333333333328',Z:'Lengkap'}})
+ const entries=originalSourceEntries(raw)
+ assert.equal(entries.find(e=>e.column==='K').label,'Nama pasien (kolom tambahan)')
+ assert.equal(entries.find(e=>e.column==='L').value,'000123')
+ assert.equal(entries.find(e=>e.column==='N').label,'Gender')
+ assert.equal(entries.find(e=>e.column==='Q').label,'Jam Masuk')
+ assert.match(entries.find(e=>e.column==='Q').value,/21:21/)
+ assert.equal(entries.length,9)
 })
