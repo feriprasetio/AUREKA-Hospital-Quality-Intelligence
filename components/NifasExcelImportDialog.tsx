@@ -1,4 +1,6 @@
 'use client'
+
+import { useStandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -249,9 +251,11 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
       code: answer.code,
       source_value: answer.sourceLabel,
       source_code: answer.sourceCode,
-      review_required: true,
+      numerator: answer.numerator ?? null,
+      denominator: answer.denominator ?? true,
+      review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
-      classification_note: 'Klasifikasi pembilang/penyebut belum ditetapkan; telaah pemilik indikator dan Komite PMKP diperlukan.',
+      classification_note: answer.reviewRequired ? 'Respons sumber perlu ditinjau.' : 'Pilihan sumber sesuai klasifikasi master aktif.',
     }
     indicatorValues[item.code] = rawValue
     sourceIndicatorValues[item.code] = answer.sourceLabel
@@ -261,7 +265,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
       response_code: answer.code,
       raw_value: rawValue,
       other_text: answer.sourceLabel,
-      review_status: 'pending',
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
     })
   }
 
@@ -275,9 +279,9 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     unmapped_source_indicator: {
       source_header: UNMAPPED_SOURCE_HEADER,
       source_value: row.unmappedBhpLinen,
-      mapping_status: 'combined_source_not_mapped_requires_review',
-      reason: 'Sumber workbook menggabungkan BHP/Linen; master aktif memisahkan Kekosongan Linen (19.6) dan Kekosongan Obat (19.11). Nilai disimpan sebagai provenance dan tidak dipetakan otomatis.',
-      target_profiles: ['19.6 Kekosongan Linen', '19.11 Kekosongan Obat'],
+      mapping_status: 'mapped_as_combined_stockout',
+      reason: 'Pilihan sumber gabungan BHP/Linen menggunakan master 19.6.',
+      target_profiles: ['19.6 Kekosongan BHP/Linen'],
     },
     source_cached_los: row.sourceLos,
     source_warnings: row.warnings,
@@ -296,7 +300,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     'Lenght of Stay': row.computedLos,
     'Bidan Penerima': row.receivingBidan,
     'DPJP': row.dpjp,
-    'Kekosongan BHP/Linen (sumber belum dipetakan)': row.unmappedBhpLinen,
+    'Kekosongan BHP/Linen': row.unmappedBhpLinen,
   }
 
   for (const item of NIFAS_SOURCE_INDICATORS) {
@@ -359,7 +363,7 @@ export default function NifasExcelImportDialog({
     () => rows.reduce((sum, row) => sum + Object.keys(row.indicators).length, 0),
     [rows],
   )
-  const pendingResponses = matchedResponses
+  const pendingResponses = rows.reduce((sum, row) => sum + Object.values(row.indicators).filter(answer => answer.reviewRequired).length, 0)
   const rowsWithWarnings = useMemo(() => rows.filter(row => row.warnings.length > 0).length, [rows])
   const unmappedSourceRows = useMemo(() => rows.filter(row => row.unmappedBhpLinen.trim() !== '').length, [rows])
 
@@ -550,7 +554,7 @@ export default function NifasExcelImportDialog({
           if (answer) {
             indicators[item.code] = answer
             mappedResponses++
-            if (answer.mappingStatus !== 'mapped_pending_classification') {
+            if (answer.reviewRequired) {
               rowWarnings.push(item.code + ' ' + item.header + ': pilihan sumber perlu telaah (' + answer.mappingStatus + ').')
             }
           }
@@ -558,7 +562,6 @@ export default function NifasExcelImportDialog({
 
         if (unmappedBhpLinen) {
           combinedSourceRows++
-          rowWarnings.push('Kekosongan BHP/Linen disimpan utuh sebagai sumber gabungan dan tidak dipetakan ke 19.6/19.11.')
         }
 
         if (rowIssues.length) {
@@ -671,7 +674,7 @@ export default function NifasExcelImportDialog({
       if (rowErrors.length) {
         setErrorMessage('Ada baris yang tidak valid. Seluruh impor ditahan sampai baris wajib ditinjau; tidak ada partial import dari pratinjau ini.')
       } else {
-        setErrorMessage('Pratinjau selesai. Respons indikator tetap pending menunggu klasifikasi pembilang/penyebut; seluruh episode berstatus Ready for Review.')
+        setErrorMessage('Pratinjau selesai. Episode siap diimpor untuk ditinjau. Pilihan yang sesuai memakai klasifikasi master aktif.')
       }
     } catch (error) {
       setRows([])
@@ -740,6 +743,7 @@ export default function NifasExcelImportDialog({
     }
   }
 
+  useStandardQualityWorkbookUpload(open, parseWorkbook)
   if (!open) return null
 
   if (typeof document === 'undefined') return null
@@ -750,7 +754,7 @@ export default function NifasExcelImportDialog({
         <div>
           <div className="eyebrow">Audit indikator mutu · Nifas & SMF Obsgyn</div>
           <h4 id="aqNifasImportTitle">Import workbook Nifas 2026</h4>
-          <p>Pratinjau episode, sembilan indikator aktif yang dipetakan, serta telaah sumber gabungan BHP/Linen sebelum penyimpanan.</p>
+          <p>Pratinjau episode, sepuluh indikator aktif yang dipetakan, serta telaah sumber gabungan BHP/Linen sebelum penyimpanan.</p>
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
@@ -779,8 +783,8 @@ export default function NifasExcelImportDialog({
         </div>}
 
         {rows.length > 0 && findings && <div className="niBox niWarn">
-          <strong>Klasifikasi numerator/denominator belum ditetapkan:</strong> label dan kode sumber dicocokkan dengan master aktif. Kode sumber 1/2/3 tidak otomatis dianggap sebagai pembilang mutu; seluruh respons tetap pending sampai pemilik indikator menetapkan klasifikasi N/D.
-          <div style={{ marginTop: 6 }}><strong>Kekosongan BHP/Linen:</strong> {unmappedSourceRows} episode memiliki nilai sumber gabungan. Nilai disimpan utuh dan tidak dipaksakan ke indikator aktif 19.6 Linen atau 19.11 Obat.</div>
+          <strong>Klasifikasi respons</strong> · Pilihan yang cocok menggunakan master aktif. Respons yang masih memerlukan telaah tetap menyimpan nilai asli.
+          <div style={{ marginTop: 6 }}>Kekosongan BHP/Linen dipetakan ke 19.6.</div>
           <div style={{ marginTop: 6 }}>Tanggal efektif pencatatan memakai Tanggal Keluar bila tersedia. {findings.crossYearAdmissions} episode masuk pada 2025 dan keluar pada 2026 tetap dicatat pada profil 2026.</div>
           <div style={{ marginTop: 6 }}>Rumus LOS sumber menghasilkan {findings.sourceFormulaErrors} error pada worksheet Logbook; nilai turunan dihitung dari tanggal masuk/keluar dan teks/hasil rumus sumber dipertahankan pada provenance.</div>
           <div style={{ marginTop: 6 }}>Nomor RM berulang dan kombinasi episode identik tidak digabung otomatis. Setiap baris Excel tetap menjadi satu record dengan peringatan untuk verifikasi. Bidan Penerima kosong pada {findings.missingBidan} episode dan perlu dilengkapi saat review.</div>
@@ -801,7 +805,7 @@ export default function NifasExcelImportDialog({
                   <td>{row.admissionDate} – {row.dischargeDate ?? 'Belum pulang'}</td>
                   <td>{row.effectiveDate}</td>
                   <td>{row.computedLos == null ? '-' : row.computedLos + ' hari'}</td>
-                  <td>{Object.keys(row.indicators).length}/9</td>
+                  <td>{Object.keys(row.indicators).length}/{NIFAS_SOURCE_INDICATORS.length}</td>
                   <td>{row.warnings.length ? <details><summary className="niTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="niTag">OK</span>}</td>
                 </tr>)}
               </tbody>
@@ -828,7 +832,7 @@ export default function NifasExcelImportDialog({
         {result && <div className="niBox niSuccess">
           <strong>Ringkasan impor dari server</strong>
           <div style={{ marginTop: 6 }}>{result.imported} episode baru tersimpan · {result.skipped} dilewati karena sudah ada · {result.received} diterima server.</div>
-          <div className="aqSub">Semua episode tetap Ready for Review; respons indikator menunggu klasifikasi numerator/denominator.</div>
+          <div className="aqSub">Episode mengikuti proses validasi mutu.</div>
         </div>}
 
         </div>

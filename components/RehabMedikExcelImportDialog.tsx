@@ -1,4 +1,6 @@
 'use client'
+
+import { useStandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading, QualityWorkbookLogbookMapping } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
@@ -393,6 +395,7 @@ export default function RehabMedikExcelImportDialog({open,roomId,year,authorized
   }finally{setImporting(false)}
  }
 
+  useStandardQualityWorkbookUpload(open, parseWorkbook)
  if(!open)return null
  if (typeof document === 'undefined') return null
  return createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack" role="presentation" onClick={event=>{if(event.target===event.currentTarget)close()}}>

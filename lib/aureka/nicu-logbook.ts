@@ -21,8 +21,10 @@ export type NicuSourceAnswer = {
   code: number | null
   sourceLabel: string
   sourceCode: number | null
-  reviewRequired: true
-  mappingStatus: 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
+  numerator?: boolean | null
+  denominator?: boolean
+  reviewRequired: boolean
+  mappingStatus: 'mapped_existing_master' | 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
 }
 
 export const NICU_SOURCE_INDICATORS = [
@@ -31,6 +33,7 @@ export const NICU_SOURCE_INDICATORS = [
   { sourceSequence: 3, code: '18.3', header: 'Transfer IGD', sourceHeader: 'Transfer IGD' },
   { sourceSequence: 4, code: '18.1', header: 'Unplanned Extubation', sourceHeader: 'Unplanned Extubation' },
   { sourceSequence: 5, code: '18.6', header: 'LOS NICU Panjang', sourceHeader: 'LOS NICU Panjang' },
+  { sourceSequence: 6, code: '18.2', header: 'Kekosongan BHP/Linen', sourceHeader: 'Kekosongan Linen', sourceAliases: ['Kekosongan BHP/Linen'] },
 ] as const
 
 const FORMULA_ERRORS = new Set(['#VALUE!', '#NUM!', '#REF!', '#DIV/0!', '#N/A', '#NAME?'])
@@ -125,13 +128,16 @@ export function parseNicuSourceAnswer(
     }
   }
 
+  const classified = option.review_required === false && typeof option.numerator === 'boolean'
   return {
     label: option.label,
     code: masterCode,
+    numerator: classified ? option.numerator : null,
+    denominator: classified ? option.denominator !== false : true,
     sourceLabel,
     sourceCode,
-    reviewRequired: true,
-    mappingStatus: 'mapped_pending_classification',
+    reviewRequired: !classified,
+    mappingStatus: classified ? 'mapped_existing_master' : 'mapped_pending_classification',
   }
 }
 

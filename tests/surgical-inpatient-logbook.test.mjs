@@ -132,8 +132,8 @@ test('maps uncoded Visite source categories without inventing a numeric code', (
 
 test('maps the source Linen wording to the existing classified 23.2 master without changing its numerator', () => {
   const options = [
-    { code: 1, label: 'Tidak terjadi kekosongan linen', numerator: false, denominator: true },
-    { code: 3, label: 'Terjadi kekosongan linen', numerator: true, denominator: true },
+    { code: 1, label: 'Tidak terjadi kekosongan linen', numerator: false, denominator: true, review_required: false },
+    { code: 3, label: 'Terjadi kekosongan linen', numerator: true, denominator: true, review_required: false },
     { code: null, label: 'Lainnya — tuliskan alasan/temuan', numerator: null, denominator: true, review_required: true },
   ]
   const positive = parseSurgicalSourceAnswer('Adanya Kekosongan Linen (Code 3)', options, '23.2')

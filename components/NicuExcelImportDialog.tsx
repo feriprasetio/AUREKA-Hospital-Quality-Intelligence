@@ -1,4 +1,6 @@
 'use client'
+
+import { useStandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading, QualityWorkbookLogbookMapping } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
@@ -43,7 +45,7 @@ const REQUIRED_HEADERS: Record<string, string[]> = {
   sourceLos: ['Lenght of Stay', 'Length of Stay'],
   receivingNurse: ['Perawat Penerima'],
   dpjp: ['DPJP'],
-  unmappedSource: ['Kekosongan BHP/Linen'],
+  unmappedSource: ['Kekosongan BHP/Linen', 'Kekosongan Linen'],
 }
 
 const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
@@ -52,7 +54,7 @@ const INLINE_MAPPING_FIELDS: readonly InlineWorkbookField[] = [
   })),
   ...NICU_SOURCE_INDICATORS.map(item=>({
     fieldKey:'indicator:' + item.code,label:item.code + ' · ' + item.header,
-    aliases:[item.sourceHeader],required:false,
+    aliases:[item.sourceHeader, ...('sourceAliases' in item ? item.sourceAliases : [])],required:false,
   })),
 ]
 
@@ -171,7 +173,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
       if (exact(columns, aliases) == null && !['dischargeDate', 'diagnosis', 'patientCategory', 'dischargeStatus', 'sourceLos', 'unmappedSource'].includes(key)) score += 1
     }
-    for (const item of NICU_SOURCE_INDICATORS) if (exact(columns, [item.sourceHeader]) == null) score += 1
+    for (const item of NICU_SOURCE_INDICATORS) if (exact(columns, [item.sourceHeader, ...('sourceAliases' in item ? item.sourceAliases : [])]) == null) score += 1
     if (score === 0) {
       const indexes: Record<string, number> = {}
       for (const [key, aliases] of Object.entries(REQUIRED_HEADERS)) {
@@ -182,7 +184,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
         if (column != null) indexes[key] = column
       }
       for (const item of NICU_SOURCE_INDICATORS) {
-        const column = resolveInteractiveExcelHeaderColumn(columns, [item.sourceHeader], {
+        const column = resolveInteractiveExcelHeaderColumn(columns, [item.sourceHeader, ...('sourceAliases' in item ? item.sourceAliases : [])], {
           importerKey:'nicu',fieldKey:'indicator:' + item.code,fieldLabel:item.header,required:true,
         })
         if (column != null) indexes['indicator:' + item.code] = column
@@ -200,7 +202,7 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
       if (column != null) indexes[key] = column
     }
     for (const item of NICU_SOURCE_INDICATORS) {
-      const aliases = [item.sourceHeader]
+      const aliases = [item.sourceHeader, ...('sourceAliases' in item ? item.sourceAliases : [])]
       const column = resolveInteractiveExcelHeaderColumn(bestColumns, aliases, {
         importerKey: 'nicu', fieldKey: 'indicator:' + item.code, fieldLabel: item.header, required: true,
       })
@@ -208,14 +210,10 @@ function findHeaderRow(sheet: any): { rowNumber: number; indexes: Record<string,
     }
     return { rowNumber: bestRowNumber, indexes }
   }
-  throw new Error("Header Logbook NICU tidak lengkap. Periksa identitas pasien, tanggal masuk, perawat, DPJP, serta lima kolom indikator 18.1, 18.3–18.6.")
+  throw new Error("Header Logbook NICU tidak lengkap. Periksa identitas pasien, tanggal masuk, perawat, DPJP, serta enam kolom indikator 18.1–18.6.")
 }
 function rowHasData(source: any, indexes: Record<string, number>): boolean {
-  const keys = [
-    'sourceNo', 'patientName', 'medicalRecordNo', 'admissionDate', 'dischargeDate',
-    'diagnosis', 'patientCategory', 'dischargeStatus', 'receivingNurse', 'dpjp', 'unmappedSource',
-    ...NICU_SOURCE_INDICATORS.map(item => 'indicator:' + item.code),
-  ]
+  const keys = ['patientName', 'medicalRecordNo', 'admissionDate']
   return keys.some(key => {
     const index = indexes[key]
     return index != null && cellText(source.getCell(index)).trim() !== ''
@@ -274,9 +272,11 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
       code: answer.code,
       source_value: answer.sourceLabel,
       source_code: answer.sourceCode,
-      review_required: true,
+      numerator: answer.numerator ?? null,
+      denominator: answer.denominator ?? true,
+      review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
-      classification_note: 'Klasifikasi pembilang/penyebut belum ditetapkan; telaah Komite PMKP diperlukan.',
+      classification_note: answer.reviewRequired ? 'Nilai sumber perlu ditinjau.' : 'Respons sesuai klasifikasi master aktif.',
     }
     indicatorValues[item.code] = rawValue
     sourceIndicatorValues[item.code] = answer.sourceLabel
@@ -286,7 +286,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
       response_code: answer.code,
       raw_value: rawValue,
       other_text: answer.sourceLabel,
-      review_status: 'pending',
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
     })
   }
 
@@ -299,9 +299,9 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     unmapped_source_indicator: {
       source_header: UNMAPPED_SOURCE_HEADER,
       source_value: row.unmappedSource,
-      mapping_status: 'combined_source_not_mapped_requires_review',
-      reason: 'Indikator sumber menggabungkan BHP, Linen, dan barang penunjang lain; master aktif NICU memisahkan Linen (18.2) dan Obat (18.7).',
-      target_profiles: ['18.2 Kekosongan Linen', '18.7 Kekosongan Obat'],
+      mapping_status: 'mapped_as_combined_stockout',
+      reason: 'Data gabungan BHP, linen, dan penunjang dipetakan ke master 18.2.',
+      target_profiles: ['18.2 Kekosongan BHP/Linen'],
     },
     source_cached_los: row.sourceLos,
     source_warnings: row.warnings,
@@ -320,7 +320,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     'Lenght of Stay': row.computedLos,
     'Perawat Penerima': row.receivingNurse,
     'DPJP': row.dpjp,
-    'Kekosongan BHP/Linen (sumber belum dipetakan)': row.unmappedSource,
+    'Kekosongan BHP/Linen': row.unmappedSource,
   }
 
   const core = {
@@ -376,7 +376,7 @@ export default function NicuExcelImportDialog({
   const eligible = open && authorized && roomId === 18 && year === 2026
   const preview = previewConfig.preview
   const matchedResponses = useMemo(() => rows.reduce((sum, row) => sum + Object.values(row.indicators).length, 0), [rows])
-  const pendingResponses = matchedResponses
+  const pendingResponses = rows.reduce((sum, row) => sum + Object.values(row.indicators).filter(answer => answer.reviewRequired).length, 0)
   const rowsWithWarnings = useMemo(() => rows.filter(row => row.warnings.length > 0).length, [rows])
 
   const reset = () => {
@@ -532,17 +532,11 @@ export default function NicuExcelImportDialog({
               Array.isArray(profile.options_json) ? profile.options_json : [],
             )
             if (!answer) continue
-            if (answer.mappingStatus !== 'mapped_pending_classification') {
-              throw new Error(item.code + ' ' + item.header + ': pilihan sumber tidak cocok secara unik dengan master (' + answer.mappingStatus + '). Koreksi pilihan sumber sebelum impor.')
-            }
+            if (answer.reviewRequired) warnings.push(item.code + ' ' + item.header + ': nilai sumber disimpan untuk ditinjau.')
             indicators[item.code] = answer
           }
 
-          if (unmappedSource.trim()) {
-            warnings.push('Kekosongan BHP/Linen/penunjang disimpan utuh sebagai data sumber; tidak dipetakan ke master Linen 18.2 atau Obat 18.7.')
-          } else {
-            warnings.push('Kolom sumber Kekosongan BHP/Linen/penunjang kosong.')
-          }
+
 
           const row: PreparedRow = {
             sourceRow: excelRow, sourceNo, patientName, medicalRecordNo, admissionDate,
@@ -607,7 +601,7 @@ export default function NicuExcelImportDialog({
       if (rowErrors.length) {
         setErrorMessage('Ada baris yang tidak valid. Seluruh impor ditahan sampai baris wajib diperbaiki; tidak ada partial import.')
       } else {
-        setErrorMessage('Pratinjau selesai. Respons indikator menunggu klasifikasi pembilang/penyebut; seluruh episode berstatus Ready for Review.')
+        setErrorMessage('Pratinjau selesai. Episode siap diimpor untuk ditinjau. Pilihan yang sesuai memakai klasifikasi master aktif.')
       }
     } catch (error) {
       setRows([]); setErrors([])
@@ -673,6 +667,7 @@ export default function NicuExcelImportDialog({
     }
   }
 
+  useStandardQualityWorkbookUpload(open, parseWorkbook)
   if (!open) return null
 
   if (typeof document === 'undefined') return null
@@ -683,7 +678,7 @@ export default function NicuExcelImportDialog({
         <div>
           <div className="eyebrow">Audit indikator mutu · NICU & pediatrics High Dependency Unit</div>
           <h4 id="aqNicuImportTitle">Import workbook NICU 2026</h4>
-          <p>Pratinjau episode dari Logbook, pemetaan lima indikator aktif, serta telaah klasifikasi sebelum pelaporan mutu.</p>
+          <p>Pratinjau episode dari Logbook, pemetaan enam indikator aktif, serta telaah klasifikasi sebelum pelaporan mutu.</p>
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
@@ -714,8 +709,8 @@ export default function NicuExcelImportDialog({
         </div>}
 
         {rows.length > 0 && <div className="piBox piWarn">
-          <strong>Klasifikasi numerator/denominator belum ditetapkan:</strong> label dan kode sumber dicocokkan secara tepat dengan master. Kode sumber 1/2/3 tidak otomatis diartikan sebagai status memenuhi atau tidak memenuhi indikator; seluruh respons yang tersedia berstatus pending sampai pemilik indikator menetapkan klasifikasi N/D.
-          <div style={{ marginTop: 6 }}><strong>Kekosongan BHP/Linen/penunjang:</strong> nilai sumber disimpan utuh, tetapi tidak dipetakan ke 18.2 Linen atau 18.7 Obat karena definisi sumber gabungan berbeda dari kedua master aktif.</div>
+          <strong>Klasifikasi respons</strong> · Pilihan yang cocok menggunakan master aktif. Respons yang masih memerlukan telaah tetap menyimpan nilai asli.
+          <div style={{ marginTop: 6 }}>Kekosongan BHP/Linen dan barang penunjang dipetakan ke 18.2. Kolom obat kosong pada sumber tidak membuat respons.</div>
           <div style={{ marginTop: 6 }}>Tanggal pencatatan memakai Tanggal Keluar untuk episode selesai. Dengan demikian, episode yang masuk pada Desember 2025 dan keluar pada 2026 tetap tercatat pada periode profil 2026.</div>
         </div>}
 
@@ -733,7 +728,7 @@ export default function NicuExcelImportDialog({
                   <td>{row.admissionDate} – {row.dischargeDate ?? 'Belum pulang'}</td>
                   <td>{row.effectiveDate}</td>
                   <td>{row.computedLos == null ? '-' : row.computedLos + ' hari'}</td>
-                  <td>{Object.keys(row.indicators).length}/5</td>
+                  <td>{Object.keys(row.indicators).length}/{NICU_SOURCE_INDICATORS.length}</td>
                   <td>{row.warnings.length ? <details><summary className="piTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="piTag">OK</span>}</td>
                 </tr>)}
               </tbody>
@@ -760,7 +755,7 @@ export default function NicuExcelImportDialog({
         {result && <div className="piBox piSuccess">
           <strong>Ringkasan impor dari server</strong>
           <div style={{ marginTop: 6 }}>{result.imported} episode baru tersimpan · {result.skipped} dilewati karena sudah ada · {result.received} diterima server.</div>
-          <div className="aqSub">Semua episode tetap Ready for Review; respons indikator menunggu klasifikasi numerator/denominator.</div>
+          <div className="aqSub">Episode mengikuti proses validasi mutu.</div>
         </div>}
 
         </div>

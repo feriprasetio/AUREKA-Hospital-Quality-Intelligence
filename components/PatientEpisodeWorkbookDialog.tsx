@@ -6,7 +6,7 @@ import { useRef, useState } from 'react'
 import AurekaModal from '@/components/ui/AurekaModal'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
-import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-source-audit'
+import { inspectQualityWorkbookRouting, isStandardUnitWorkbook } from '@/lib/aureka/quality-workbook-source-audit'
 import {
   EPISODE_WORKBOOK_IMPORTER, buildEpisodeMappings, detectEpisodeFields, findEpisodeSourceColumn, inspectEpisodeWorkbook,
   overrideEpisodeLogbookHeader, prepareEpisodeImport, prepareMissingEpisodeProfiles, workbookSha256,
@@ -57,10 +57,10 @@ function ColumnSelect({ label, columns, value, onChange }: {
 }
 
 export default function PatientEpisodeWorkbookDialog({
-  roomId, roomName, year, admin, dateField, layoutFields, onClose, onLegacyImport, onImported,
+  roomId, roomName, year, admin, dateField, layoutFields, onClose, onLegacyImport, onStandardWorkbook, onImported,
 }: {
   roomId: number; roomName: string; year: number; admin: boolean; dateField?: string; layoutFields: string[];
-  onClose: () => void; onLegacyImport?: () => void; onImported: (message: string) => void;
+  onClose: () => void; onLegacyImport?: () => void; onStandardWorkbook?: (file: File) => void; onImported: (message: string) => void;
 }) {
   const [file, setFile] = useState<OpenWorkbook | null>(null)
   const [fields, setFields] = useState<EpisodeFields>(() => detectEpisodeFields([]))
@@ -122,6 +122,10 @@ export default function PatientEpisodeWorkbookDialog({
       const ExcelJS = module.default ?? module
       const workbook = new ExcelJS.Workbook()
       await workbook.xlsx.load(bytes)
+      if (onStandardWorkbook && isStandardUnitWorkbook(routing.hint, roomId, workbook.worksheets.map(sheet => sheet.name))) {
+        onStandardWorkbook(input)
+        return
+      }
       const savedRules: SavedMapping[] = Array.isArray(saved.data?.mappings) ? saved.data.mappings : []
       const parsed = inspectEpisodeWorkbook(workbook, dateField, savedRules)
       const next = { name: input.name, hash: await workbookSha256(bytes), parsed, profiles, reference,

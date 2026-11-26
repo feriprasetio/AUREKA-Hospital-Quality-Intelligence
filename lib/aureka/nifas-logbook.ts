@@ -24,14 +24,17 @@ export type NifasSourceAnswer = {
   code: number | null
   sourceLabel: string
   sourceCode: number | null
-  reviewRequired: true
-  mappingStatus: 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
+  numerator?: boolean | null
+  denominator?: boolean
+  reviewRequired: boolean
+  mappingStatus: 'mapped_existing_master' | 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
 }
 
 export const NIFAS_SOURCE_INDICATORS = [
   { sourceSequence: 1, code: '19.8', header: 'Visite Spesialis', sourceHeader: 'Visite Spesialis' },
   { sourceSequence: 2, code: '19.9', header: 'Validitas Asesmen Kebidanan', sourceHeader: 'Validitas Asesmen Kebidanan' },
   { sourceSequence: 3, code: '19.7', header: 'Transfer IGD', sourceHeader: 'Transfer IGD' },
+  { sourceSequence: 4, code: '19.6', header: 'Kekosongan BHP/Linen', sourceHeader: 'Kekosongan BHP/Linen' },
   { sourceSequence: 5, code: '19.1', header: 'Antibiotik Profilaksis', sourceHeader: 'Antibiotik Profilaksis' },
   { sourceSequence: 6, code: '19.2', header: 'IMD', sourceHeader: 'IMD' },
   { sourceSequence: 7, code: '19.3', header: 'Anestesi Regional', sourceHeader: 'Anestesi Regional' },
@@ -236,13 +239,16 @@ export function parseNifasSourceAnswer(
     }
   }
 
+  const classified = option.review_required === false && typeof option.numerator === 'boolean'
   return {
     label: String(option.label),
     code: masterCode,
+    numerator: classified ? option.numerator : null,
+    denominator: classified ? option.denominator !== false : true,
     sourceLabel,
     sourceCode,
-    reviewRequired: true,
-    mappingStatus: 'mapped_pending_classification',
+    reviewRequired: !classified,
+    mappingStatus: classified ? 'mapped_existing_master' : 'mapped_pending_classification',
   }
 }
 

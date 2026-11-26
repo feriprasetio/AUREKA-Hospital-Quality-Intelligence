@@ -240,16 +240,17 @@ export function parseInternalMedicineSourceAnswer(
     const option = matches[0]
     const masterCode = option.code == null ? null : Number(option.code)
     if (sourceCode != null && (sourceCode < 1 || sourceCode > 3 || masterCode !== sourceCode)) return pending('source_code_conflict', String(option.label))
+    const classified = isMedicine || (option.review_required === false && typeof option.numerator === 'boolean')
     return {
       label: String(option.label), code: masterCode,
-      numerator: typeof option.numerator === 'boolean' ? option.numerator : null,
+      numerator: classified ? option.numerator ?? null : null,
       denominator: option.denominator !== false, sourceLabel: effectiveSource, sourceCode,
-      reviewRequired: isMedicine ? false : true,
+      reviewRequired: !classified,
       freeText: isMedicine && sourceLabel && !alias ? sourceLabel : '',
-      mappingStatus: isMedicine || indicatorCode === '25.9' ? 'mapped_existing_master' : 'mapped_pending_classification',
+      mappingStatus: classified ? 'mapped_existing_master' : 'mapped_pending_classification',
     }
   }
-  if (isMedicine) {
+  if (isMedicine && sourceCode == null && !FORMULA_ERRORS.has(sourceLabel.toUpperCase())) {
     const events = masterOptions.filter(option =>
       normalizeInternalMedicineOptionLabel(option.label) === normalizeInternalMedicineOptionLabel('Terjadi kekosongan obat')
       && Number(option.code) === 3 && option.denominator !== false && option.numerator === true,

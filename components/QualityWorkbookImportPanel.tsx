@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import QualityWorkbookStagedPreview from '@/components/quality/QualityWorkbookStagedPreview'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
-import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-source-audit'
+import { inspectQualityWorkbookRouting, isStandardUnitWorkbook } from '@/lib/aureka/quality-workbook-source-audit'
+import { exactWorkbookColumn, getStandardMappedRoomDate, getStandardMappedIndicatorHeader, getIncidentReportElapsedMinutes, readCodedWorkbookChoice } from '@/lib/aureka/standard-mapped-quality-workbook'
 import { isExcelSourceError, isMaterialWorkbookSourceRow } from '@/lib/aureka/quality-import-row-filter'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
@@ -40,7 +41,7 @@ type SavedMapping = WorkbookSourceRule & { target_type: string; target_key: stri
 const headerText = (columnKey: string) => columnKey.replace(/^[A-Z]+: /, '')
 type ImportIssue = { sheet: string; row: number; field: string; message: string }
 type StagedRow = { source_key: string; source_sheet: string; source_row: number; row_payload: Record<string, any> }
-type Preview = { master: Profile[]; profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; skippedTemplateRows: number; draftRows: number }
+type Preview = { heldRows: ImportIssue[]; master: Profile[]; profiles: Profile[]; rows: StagedRow[]; issues: ImportIssue[]; workbookRows: number; skippedTemplateRows: number; draftRows: number }
 
 const sb = aurekaSupabase
 const q = () => sb.schema('aureka_quality')
@@ -96,12 +97,17 @@ const parseDate = (value: unknown): string | null => {
   if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10)
   const raw = clean(value)
   if (!raw) return null
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{1,2}:\d{2}.*)?$/)
+  if (iso) {
+    const [, year, month, day] = iso
+    const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
+    return date.toISOString().slice(0, 10) === [year, month, day].join('-') ? date.toISOString().slice(0, 10) : null
+  }
   if (typeof value === 'number' || /^\d{5}(?:\.\d+)?$/.test(raw)) {
     const serial = Number(value)
     if (serial >= 20000 && serial <= 80000) return new Date(Date.UTC(1899, 11, 30) + serial * 86400000).toISOString().slice(0, 10)
   }
-  const dmy = raw.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})$/)
+  const dmy = raw.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})(?:\s+\d{1,2}:\d{2}.*)?$/)
   if (dmy) {
     const date = new Date(Date.UTC(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1])))
     if (date.getUTCFullYear() === Number(dmy[3]) && date.getUTCMonth() === Number(dmy[2]) - 1 && date.getUTCDate() === Number(dmy[1])) return date.toISOString().slice(0, 10)
@@ -159,10 +165,13 @@ const optionForValue = (profile: Profile, rawValue: unknown) => {
   const raw = clean(rawValue)
   if (!raw) return null
   const options = Array.isArray(profile.options_json) ? profile.options_json : []
-  const suffix = raw.match(/\(code\s*([1-3])\)\s*$/i)
-  const label = suffix ? raw.slice(0, suffix.index).trim() : raw
+  const choice = readCodedWorkbookChoice(raw)
+  if (choice.conflictingCodes) return null
+  const key = (value: unknown) => normalize(value).replace(/\s*([/:])\s*/g, '$1')
   const byCode = options.filter(option => String(option.code ?? '') === raw && [1, 2, 3].includes(Number(option.code)))
-  const matches = byCode.length === 1 ? byCode : options.filter(option => normalize(option.label) === normalize(label))
+  const matches = byCode.length === 1 ? byCode : options.filter(option =>
+    key(readCodedWorkbookChoice(clean(option.label)).label) === key(choice.label) &&
+    (choice.sourceCode == null || Number(option.code) === choice.sourceCode))
   return matches.length === 1 ? matches[0] : null
 }
 const clockPair = (value: string) => {
@@ -176,7 +185,7 @@ const clockPair = (value: string) => {
 }
 
 export default function QualityWorkbookImportPanel({
-  roomId, roomName, year, importerKey, role, activeProfiles, onImported, dataOnly = false, profilesOnly = false, initialFile = null,
+  roomId, roomName, year, importerKey, role, activeProfiles, onImported, dataOnly = false, profilesOnly = false, initialFile = null, onStandardWorkbook,
 }: {
   roomId: number
   roomName: string
@@ -187,6 +196,7 @@ export default function QualityWorkbookImportPanel({
   onImported: () => void
   dataOnly?: boolean
   profilesOnly?: boolean
+  onStandardWorkbook?: (file: File) => void
   initialFile?: File | null
 }) {
   const workbookRef = useRef<any>(null)
@@ -226,8 +236,16 @@ export default function QualityWorkbookImportPanel({
   const optionHeaders = sheets.find(sheet => sheet.name === optionsSheet)?.headers ?? []
   const roleCanImportProfiles = role === 'ADMIN' && !dataOnly
   const currentAliases = year === 2026 ? (unitAliases as Record<string, Record<string,string>>)[roomId] ?? {} : {}
-  const aliasesFor = (profile: Profile) => Object.entries(currentAliases).filter(([, code]) => code === profile.code).map(([name]) => name)
+  const aliasesFor = (profile: Profile) => {
+    const stored = Object.entries(currentAliases).filter(([, code]) => code === profile.code).map(([name]) => name)
+    const sourceHeader = year === 2026 && roomId === 27 ? getStandardMappedIndicatorHeader(profile.code) : undefined
+    return sourceHeader ? [sourceHeader, ...stored] : stored
+  }
   const dataScope = sheets.find(sheet => sheet.name === dataSheet)
+  const isStandardMappedLogbook = dataOnly && year === 2026 && dataSheet === 'Logbook' &&
+    Boolean(getStandardMappedRoomDate(roomId)) && isStandardUnitWorkbook(
+      inspectQualityWorkbookRouting(fileName, roomId, year).hint, roomId, sheets.map(sheet => sheet.name),
+    )
   const canSaveMappings = role === 'ADMIN' || role === 'PMKP'
 
   const applySheetHeader = (name: string, rowNumber: number) => {
@@ -255,7 +273,10 @@ export default function QualityWorkbookImportPanel({
       return
     }
     const routing = inspectQualityWorkbookRouting(file.name, roomId, year)
-    if (routing.blockers.length) {
+    const canRouteStandard = Boolean(onStandardWorkbook && dataOnly && routing.hint?.roomId === roomId &&
+      (routing.hint.kind === 'pharmacy_multisheet' || routing.hint.kind === 'outpatient_matrix') &&
+      routing.blockers.length === 1)
+    if (routing.blockers.length && !canRouteStandard) {
       setError(routing.blockers.join(' '))
       return
     }
@@ -265,6 +286,11 @@ export default function QualityWorkbookImportPanel({
       const ExcelJS: any = (module as any).default ?? module
       const workbook = new ExcelJS.Workbook()
       await workbook.xlsx.load(await file.arrayBuffer())
+      if (dataOnly && onStandardWorkbook && isStandardUnitWorkbook(routing.hint, roomId, workbook.worksheets.map((sheet: { name: string }) => sheet.name))) {
+        onStandardWorkbook(file)
+        return
+      }
+      if (routing.blockers.length) throw new Error(routing.blockers.join(' '))
       const detected: SheetMeta[] = []
       // Target pencocokan: isian dasar logbook + setiap indikator aktif unit (kode, judul, alias).
       const targets: string[][] = [
@@ -335,7 +361,10 @@ export default function QualityWorkbookImportPanel({
         const match = workbook.getWorksheet(sheet)
         if (match && row <= match.rowCount) sources.set(JSON.stringify([sheet, row]), { sheet, row })
       }
-      if (sources.size === 1) {
+      const standardMappedDate = dataOnly && year === 2026 && isStandardUnitWorkbook(
+        routing.hint, roomId, detected.map(sheet => sheet.name),
+      ) ? getStandardMappedRoomDate(roomId) : undefined
+      if (sources.size === 1 && !standardMappedDate) {
         const source = [...sources.values()][0]
         const sheet = workbook.getWorksheet(source.sheet)
         const columns = readWorkbookSourceColumns(sheet.getRow(source.row))
@@ -385,8 +414,14 @@ export default function QualityWorkbookImportPanel({
       }
       const isolasiColumns = roomId === 24 && year === 2026 && dSheet?.name === 'Logbook'
         ? getIsolasiWorkbookIndicatorColumns(dSheet.columns) : null
+      const standardDateColumn = dSheet && standardMappedDate
+        ? (roomId === 10
+          ? dSheet.columns.find(column => column.index === 11 && normalize(column.header) === 'waktu permintaan')?.key ||
+            exactWorkbookColumn(dSheet.columns, standardMappedDate)
+          : exactWorkbookColumn(dSheet.columns, standardMappedDate))
+        : ''
       const nextData: Record<string, string> = dSheet ? {
-        date: isolasiColumns ? findHeader(dSheet.headers, ['Tanggal Masuk']) : pick(findSaved('field', 'field:record_date'), 'Tanggal', DATA_FIELD_SYNONYMS.date),
+        date: standardDateColumn || (isolasiColumns ? findHeader(dSheet.headers, ['Tanggal Masuk']) : pick(findSaved('field', 'field:record_date'), 'Tanggal', DATA_FIELD_SYNONYMS.date)),
         subject_key: pick(findSaved('field','field:subject_key'), 'No. RM', DATA_FIELD_SYNONYMS.subject_key),
         patient_name: pick(findSaved('field','field:patient_name'), 'Nama pasien', DATA_FIELD_SYNONYMS.patient_name),
         diagnosis: pick(findSaved('field','field:diagnosis'), 'Diagnosis', DATA_FIELD_SYNONYMS.diagnosis),
@@ -399,7 +434,10 @@ export default function QualityWorkbookImportPanel({
       for (const p of activeProfiles) {
         const schema = p.schema_json ?? {}
         const mapping = schema.excel_mapping ?? {}
-        nextIndicators[p.code] = isolasiColumns ? (isolasiColumns[p.code] ?? '') : pick(findSaved('indicator', 'indicator:' + p.code), p.code + ' · ' + p.title, [
+        const exactStandardColumn = standardMappedDate && dSheet
+          ? aliasesFor(p).map(alias => exactWorkbookColumn(dSheet.columns, alias)).find(Boolean)
+          : ''
+        nextIndicators[p.code] = isolasiColumns ? (isolasiColumns[p.code] ?? '') : exactStandardColumn || pick(findSaved('indicator', 'indicator:' + p.code), p.code + ' · ' + p.title, [
           mapping.indicator_header, schema.header_label, p.code, p.title, ...aliasesFor(p),
         ])
         nextNums[p.code] = findSaved('field', 'field:' + p.code + ':numerator') ?? findHeader(dSheet?.headers ?? [], [mapping.numerator_header, p.code + ' numerator'].filter(Boolean))
@@ -586,6 +624,7 @@ export default function QualityWorkbookImportPanel({
     }
 
     const rows: StagedRow[] = []
+    const heldRows: ImportIssue[] = []
     const seenSourceKeys = new Set<string>()
     let skippedTemplateRows = 0
     const excludedIsolasiRows: number[] = []
@@ -610,13 +649,29 @@ export default function QualityWorkbookImportPanel({
           excludedIsolasiRows.push(source.rowNumber)
           continue
         }
+        const readDate = (value: unknown) => parseDate(typeof value === 'number' && workbookRef.current?.properties.date1904 ? value + 1462 : value)
+        const recordDate = readDate(source.values[dataColumns.date])
+        const readExact = (header: string) => source.values[exactWorkbookColumn(dataScope?.columns ?? [], header)]
+        const sourceSequence = isStandardMappedLogbook ? clean(readExact('No.')) || clean(readExact('No')) : ''
         const byGrain = new Map<string, any[]>()
         for (const profile of profiles) {
           const schemaMapping = profile.schema_json?.excel_mapping ?? {}
           const valueHeader = indicatorColumns[profile.code] ?? findHeader(dataHeaders, [schemaMapping.indicator_header, profile.schema_json?.header_label, profile.code, profile.title, ...aliasesFor(profile)].filter(Boolean))
           const numeratorHeader = numeratorColumns[profile.code] ?? findHeader(dataHeaders, [schemaMapping.numerator_header].filter(Boolean))
           const denominatorHeader = denominatorColumns[profile.code] ?? findHeader(dataHeaders, [schemaMapping.denominator_header].filter(Boolean))
-          const rawCell = valueHeader ? source.values[valueHeader] : null
+          let rawCell = valueHeader ? source.values[valueHeader] : null
+          let elapsedMinutes: number | null = null
+          if (isStandardMappedLogbook && roomId === 29 && profile.code === '29.1' && (!clean(rawCell) || isExcelSourceError(rawCell))) {
+            elapsedMinutes = getIncidentReportElapsedMinutes(
+              readDate(readExact('Tanggal Insiden')), readExact('Jam Insiden'),
+              readDate(readExact('Tanggal Lapor')), readExact('Jam Lapor'),
+            )
+            if (elapsedMinutes != null) {
+              rawCell = elapsedMinutes < 2880
+                ? 'Laporan Masuk Tepat Waktu (< 2x24 Jam) (Code 1)'
+                : 'Laporan Masuk Terlambat (≥ 2x24 Jam) (Code 3)'
+            }
+          }
           const numeratorCell = numeratorHeader ? source.values[numeratorHeader] : null
           const denominatorCell = denominatorHeader ? source.values[denominatorHeader] : null
           const hasValue = [rawCell, numeratorCell, denominatorCell].some(value => value !== null && value !== undefined && clean(value) !== '')
@@ -629,7 +684,10 @@ export default function QualityWorkbookImportPanel({
             )
             if (excelError) throw new Error('Sumber Excel berisi error ' + excelError + '. Perbaiki sumber/pemetaan sebelum impor.')
             const kind = resolveMeasurementKind(profile)
-            const categorical = usesCategoricalResponseCapture(profile) || shouldUseIndicatorDropdown(profile as any)
+            const standardChoice = isStandardMappedLogbook && ((valueHeader && aliasesFor(profile)
+              .some(alias => normalize(alias) === normalize(headerText(valueHeader)))) || elapsedMinutes != null)
+              && (profile.options_json ?? []).some(option => [1, 2, 3].includes(Number(option.code)))
+            const categorical = standardChoice || usesCategoricalResponseCapture(profile) || shouldUseIndicatorDropdown(profile as any)
             let response: Record<string, any> = { indicator_code: profile.code, response_label: null, response_code: null, raw_value: {}, review_status: 'not_required' }
             if (valueHeader && isolasiColumns?.[profile.code] === valueHeader) {
               const answer = parseIsolasiSourceAnswer(clean(rawCell), profile.options_json as IsolasiIndicatorOption[], profile.code)
@@ -646,11 +704,25 @@ export default function QualityWorkbookImportPanel({
               response.review_status = answer.reviewRequired ? 'pending' : 'not_required'
             } else if (categorical) {
               const option = optionForValue(profile, rawCell)
-              if (!option || (option.code != null && ![1, 2, 3].includes(Number(option.code)))) throw new Error('Nilai "' + clean(rawCell) + '" tidak cocok tepat dengan opsi profil. Periksa pemetaan atau master opsi.')
-              response.response_label = String(option.label)
-              response.response_code = option.code == null ? null : Number(option.code)
-              response.raw_value = { answer: String(option.label), code: response.response_code }
-              response.review_status = option.review_required ? 'pending' : 'not_required'
+              if (!option || (option.code != null && ![1, 2, 3].includes(Number(option.code)))) {
+                if (!standardChoice) throw new Error('Nilai "' + clean(rawCell) + '" tidak cocok tepat dengan opsi profil. Periksa pemetaan atau master opsi.')
+                const sourceValue = clean(rawCell)
+                const choice = readCodedWorkbookChoice(sourceValue)
+                response.response_label = choice.label || sourceValue
+                response.raw_value = { answer: response.response_label, code: null, source_value: sourceValue,
+                  source_code: choice.sourceCode, review_required: true }
+                response.other_text = sourceValue
+                response.review_status = 'pending'
+              } else {
+                response.response_label = String(option.label)
+                response.response_code = option.code == null ? null : Number(option.code)
+                response.raw_value = { answer: String(option.label), code: response.response_code }
+                response.review_status = option.review_required ? 'pending' : 'not_required'
+                if (standardChoice) {
+                  response.raw_value.source_value = clean(rawCell)
+                  if (elapsedMinutes != null) response.raw_value.elapsed_minutes = elapsedMinutes
+                }
+              }
             } else if (kind === 'ratio') {
               let numerator = numberValue(numeratorCell), denominator = numberValue(denominatorCell)
               if (numerator == null || denominator == null) {
@@ -704,9 +776,8 @@ export default function QualityWorkbookImportPanel({
           }
         }
         for (const [grain, responses] of byGrain.entries()) {
-          const dateHeader = dataColumns.date
-          const dateCell = dateHeader ? source.values[dateHeader] : null
-          const dateValue = parseDate(typeof dateCell === 'number' && workbookRef.current?.properties.date1904 ? dateCell + 1462 : dateCell)
+          const dateValue = recordDate
+          const rowIssues = isStandardMappedLogbook && dataColumns.date ? heldRows : issues
           const subjectHeader = dataColumns.subject_key
           const nameHeader = dataColumns.patient_name
           const diagnosisHeader = dataColumns.diagnosis
@@ -719,14 +790,19 @@ export default function QualityWorkbookImportPanel({
             grainValue(profile.measurement_grain) === grain &&
             (!isolasiColumns || Boolean(indicatorColumns[profile.code])) &&
             isIndicatorApplicableToDiagnosis(profile.indicator_type, sourceDiagnosis))
-          const isReady = applicableProfiles.length > 0 && applicableProfiles.every(profile =>
-            responses.some(response => response.indicator_code === profile.code))
+          // The verified unit workbook measures only the observations present for
+          // each episode (for example Hifema or a specific radiology event).
+          // Its unused indicator cells must not keep measured results in draft.
+          const isReady = isStandardMappedLogbook
+            ? responses.some(response => response.review_status === 'not_required' && response.response_code != null)
+            : applicableProfiles.length > 0 && applicableProfiles.every(profile =>
+              responses.some(response => response.indicator_code === profile.code))
           if (!dateValue) {
-            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Tanggal', message: 'Tanggal pengamatan tidak valid atau belum dipetakan.' })
+            rowIssues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Tanggal', message: 'Tanggal pengamatan tidak valid atau belum dipetakan.' })
             continue
           }
           if (Number(dateValue.slice(0,4)) !== year) {
-            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Tanggal', message: 'Tanggal data berada di luar tahun profil yang dipilih.' })
+            rowIssues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Tanggal', message: 'Tanggal data berada di luar tahun profil yang dipilih.' })
             continue
           }
           const payload = {
@@ -752,17 +828,23 @@ export default function QualityWorkbookImportPanel({
             },
             responses, attributions: [],
           }
-          const identity = dataColumns.subject_key ? clean(source.values[dataColumns.subject_key]) : ''
+          const mappedIdentity = subjectHeader ? clean(source.values[subjectHeader]) : ''
+          const identity = isStandardMappedLogbook && roomId === 29 && /^\d+$/.test(sourceSequence)
+            ? 'insiden:' + sourceSequence : mappedIdentity
           if (!identity && (dataMode === 'upsert' || grain === 'patient_episode' || (roomId === 29 && grain === 'event'))) {
-            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Identitas sumber',
+            rowIssues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Identitas sumber',
               message: 'Data episode pasien, insiden, dan Upsert memerlukan ID yang stabil (No. RM/ID episode/ID insiden). Nomor baris dan hash berkas tidak dapat menjadi bukti episode unik lintas versi workbook.' })
             continue
           }
-          const sourceKey = await hash(JSON.stringify([roomId, year, importerKey, dataSheet, grain,
+          const identityParts = [roomId, year, importerKey, dataSheet, grain,
             identity ? identity.normalize('NFKC').toUpperCase().replace(/\s+/g, '') : fileHash + ':' + source.rowNumber,
-            identity ? dateValue : null]))
+            identity ? dateValue : null]
+          let sourceKey = await hash(JSON.stringify(identityParts))
+          if (isStandardMappedLogbook && seenSourceKeys.has(sourceKey) && /^\d+$/.test(sourceSequence)) {
+            sourceKey = await hash(JSON.stringify([...identityParts, 'no-sumber', sourceSequence]))
+          }
           if (seenSourceKeys.has(sourceKey)) {
-            issues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Identitas episode', message: 'ID subjek dan tanggal sama pada grain yang sama. Gunakan ID episode unik agar data tidak saling menimpa.' })
+            rowIssues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Identitas episode', message: 'ID subjek dan tanggal sama pada grain yang sama. Gunakan ID episode unik agar data tidak saling menimpa.' })
             continue
           }
           seenSourceKeys.add(sourceKey)
@@ -771,16 +853,19 @@ export default function QualityWorkbookImportPanel({
       }
     }
     if (rows.length > 10000) issues.push({ sheet: dataSheet, row: 0, field: 'Batas impor', message: 'Jumlah record hasil pemetaan melebihi batas 10.000 per batch.' })
-    if (importMode !== 'profiles_only' && !rows.length) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Respons', message: 'Tidak ada respons indikator valid yang dapat disimpan.' })
-    setPreview({ master: activeProfiles, profiles, rows, issues, workbookRows: sourceDataRows.length, skippedTemplateRows, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
-    const pendingIsolasiResponses = isolasiColumns
+    if (importMode !== 'profiles_only' && !rows.length) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Respons',
+      message: isStandardMappedLogbook && roomId === 31
+        ? 'Kolom Kontrol Dokter belum berisi hasil pengukuran. Isi hasil kontrol yang tercatat untuk membuat respons 31.1.'
+        : 'Tidak ada respons indikator valid yang dapat disimpan.' })
+    setPreview({ heldRows, master: activeProfiles, profiles, rows, issues, workbookRows: sourceDataRows.length, skippedTemplateRows, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
+    const pendingSourceResponses = isolasiColumns || isStandardMappedLogbook
       ? rows.reduce((total, row) => total + row.row_payload.responses.filter((response: Record<string, unknown>) =>
         response.review_status === 'pending').length, 0)
       : 0
     if (issues.length) setError('Pratinjau menemukan ' + issues.length.toLocaleString('id-ID') + ' masalah. Perbaiki pemetaan atau nilai sumber sebelum commit.')
     else setNotice('Pratinjau valid: ' + profiles.length.toLocaleString('id-ID') + ' profil, ' + rows.length.toLocaleString('id-ID') + ' record, ' + sourceDataRows.length.toLocaleString('id-ID') + ' baris sumber. ' + rows.filter(row => row.row_payload.record_payload.status === 'draft').length.toLocaleString('id-ID') + ' record parsial akan tetap draf.'
       + (excludedIsolasiRows.length ? ' Tanggal Masuk kosong pada baris Excel ' + excludedIsolasiRows.slice(0, 20).join(', ') + (excludedIsolasiRows.length > 20 ? ', …' : '') + '. Jumlah baris dilewati: ' + excludedIsolasiRows.length + '.' : '')
-      + (pendingIsolasiResponses ? ' ' + pendingIsolasiResponses + ' respons Isolasi memerlukan peninjauan. Isi asli akan disimpan.' : ''))
+      + (pendingSourceResponses ? ' ' + pendingSourceResponses + ' respons sumber memerlukan peninjauan. Isi asli akan disimpan.' : ''))
   }
 
   const runImport = async () => {
@@ -909,6 +994,12 @@ export default function QualityWorkbookImportPanel({
     </div>
     {busy && <p className="qwiHint" role="status">Memproses workbook…</p>}
     {fileName && <div style={{ fontSize: 11, color: 'var(--aureka-color-foreground-secondary)' }}>File: <strong>{fileName}</strong> · {sheets.length} worksheet terdeteksi · SHA-256 aktif</div>}
+    {preview?.heldRows.length ? <details role="status">
+      <summary>{new Set(preview.heldRows.map(issue => issue.row)).size} baris sumber memerlukan koreksi sebelum bisa diimpor</summary>
+      <ul>{preview.heldRows.slice(0, 40).map((issue, index) =>
+        <li key={index}>Baris {issue.row} · {issue.message}</li>)}</ul>
+      {preview.heldRows.length > 40 && <p>Menampilkan 40 temuan pertama.</p>}
+    </details> : null}
     {sourceNotes.length > 0 && <div role="status" style={{fontSize:12,lineHeight:1.55,color:'#6c6045',padding:10,border:'1px solid #e9dfc5',borderRadius:9,background:'#fffcf3'}}>
       {sourceNotes.map((item,index)=><p key={index} style={{margin:index?'5px 0 0':0}}>{item}</p>)}
     </div>}

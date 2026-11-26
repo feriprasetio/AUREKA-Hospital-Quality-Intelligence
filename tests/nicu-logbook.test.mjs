@@ -42,6 +42,8 @@ test('maps exact source label/code but retains pending numerator-denominator cla
   assert.deepEqual(answer, {
     label: 'Visite Hari Kerja (Diatas 14.00)',
     code: 3,
+    numerator: null,
+    denominator: true,
     sourceLabel: 'Visite Hari Kerja (Diatas 14.00) (Code 3)',
     sourceCode: 3,
     reviewRequired: true,

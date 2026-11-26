@@ -26,7 +26,7 @@ export type SarafSourceAnswer = {
   denominator: boolean
   sourceLabel: string
   sourceCode: number | null
-  reviewRequired: true
+  reviewRequired: boolean
   mappingStatus: 'mapped_pending_classification' | 'mapped_existing_master' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
 }
 
@@ -261,11 +261,11 @@ export function parseSarafSourceAnswer(
   return {
     label: String(option.label),
     code: masterCode,
-    numerator: typeof option.numerator === 'boolean' ? option.numerator : null,
+    numerator: classified ? option.numerator ?? null : null,
     denominator: option.denominator !== false,
     sourceLabel,
     sourceCode,
-    reviewRequired: true,
+    reviewRequired: !classified,
     mappingStatus: classified ? 'mapped_existing_master' : 'mapped_pending_classification',
   }
 }
