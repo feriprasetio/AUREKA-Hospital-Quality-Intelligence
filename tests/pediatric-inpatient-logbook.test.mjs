@@ -22,7 +22,7 @@ const pending = (code, label) => ({
   review_required: true,
 })
 
-test('maps the actual Rawat Inap Anak Logbook headers to six indicator fields and six source-only fields', () => {
+test('maps the actual Rawat Inap Anak Logbook headers to eight indicator fields and four source-only fields', () => {
   const headers = [
     'No.', 'Nama Pasien', 'No. Rekam Medis', 'Tanggal Masuk', 'Tanggal Keluar',
     'Diagnosa Tegak', 'Kategori Pasien', 'Status Pulang', 'Berat Badan', 'Tinggi Badan',
@@ -43,19 +43,19 @@ test('maps the actual Rawat Inap Anak Logbook headers to six indicator fields an
   assert.equal(result.indexes.admissionDate, 4)
   assert.equal(result.indexes.receivingNurse, 14)
   assert.equal(result.indexes.dpjp, 15)
-  assert.equal(result.indexes['22.4_source_only'], 21)
-  assert.equal(result.indexes['22.5_source_only'], 22)
+  assert.equal(result.indexes['indicator:22.4'], 21)
+  assert.equal(result.indexes['indicator:22.5'], 22)
   assert.equal(result.indexes['22.9_source_only'], 24)
   assert.equal(result.indexes['22.10_source_only'], 25)
   assert.equal(result.indexes['22.11_source_only'], 26)
   assert.equal(result.indexes['22.12_source_only'], 27)
   assert.deepEqual(
     PEDIATRIC_SOURCE_INDICATORS.map(item => [item.code, result.indexes['indicator:' + item.code]]),
-    [['22.7', 16], ['22.8', 17], ['22.6', 18], ['22.3', 19], ['22.2', 20], ['22.1', 23]],
+    [['22.7', 16], ['22.8', 17], ['22.6', 18], ['22.3', 19], ['22.2', 20], ['22.4', 21], ['22.1', 23]],
   )
-  assert.equal(PEDIATRIC_SOURCE_ONLY_FIELDS.length, 6)
-  assert.deepEqual(PEDIATRIC_SOURCE_ONLY_FIELDS.slice(2).map(item => item.code), ['22.9', '22.10', '22.11', '22.12'])
-  assert.ok(PEDIATRIC_SOURCE_ONLY_FIELDS.slice(2).every(item => item.mappingStatus === 'clinical_definition_pending_source_only'))
+  assert.equal(PEDIATRIC_SOURCE_ONLY_FIELDS.length, 4)
+  assert.deepEqual(PEDIATRIC_SOURCE_ONLY_FIELDS.map(item => item.code), ['22.9', '22.10', '22.11', '22.12'])
+  assert.ok(PEDIATRIC_SOURCE_ONLY_FIELDS.every(item => item.mappingStatus === 'clinical_definition_pending_source_only'))
 })
 
 test('allows older workbooks without optional source-only columns while requiring all formal indicators', () => {
@@ -64,7 +64,7 @@ test('allows older workbooks without optional source-only columns while requirin
     'Diagnosa Tegak', 'Kategori Pasien', 'Status Pulang', 'Berat Badan', 'Tinggi Badan',
     'Tanggal Lahir', 'Umur (Rumus)', 'Lenght of Stay', 'Perawat Penerima', 'DPJP',
     'Visite Spesialis', 'Validitas Asesmen Keperawatan', 'Transfer IGD',
-    'Infus Vena Perifer', 'Ketenangan Pasien', 'Assessment Stunting Wasting2',
+    'Infus Vena Perifer', 'Ketenangan Pasien', 'Kekosongan Linen', 'Kekosongan Obat', 'Assessment Stunting Wasting2',
   ]
   const result = mapPediatricLogbookHeaders(headers)
   assert.deepEqual(result.missingHeaders, [])
@@ -258,12 +258,10 @@ test('flags conflicting source codes and duplicate master labels without guessin
   assert.equal(ambiguous?.code, null)
 })
 
-test('keeps linen, free-text drug, and unsigned Dengue source fields outside formal indicator mapping', () => {
+test('keeps unsigned Dengue source fields outside formal indicator mapping', () => {
   assert.deepEqual(
     PEDIATRIC_SOURCE_ONLY_FIELDS.map(item => [item.code, item.header, item.mappingStatus]),
     [
-      ['22.4', 'Kekosongan Linen', 'source_semantics_not_mapped'],
-      ['22.5', 'Kekosongan Obat', 'free_text_source_not_mapped'],
       ['22.9', 'Demam 2–7H + Trombositopenia + ↑Ht', 'clinical_definition_pending_source_only'],
       ['22.10', 'DR ≥1×/Hari', 'clinical_definition_pending_source_only'],
       ['22.11', 'Kristaloid ≥500 cc/8J', 'clinical_definition_pending_source_only'],
@@ -298,4 +296,18 @@ test('recognizes known formula errors only', () => {
   assert.equal(isPediatricFormulaError('#VALUE!'), true)
   assert.equal(isPediatricFormulaError('#REF!'), true)
   assert.equal(isPediatricFormulaError('5'), false)
+})
+
+test('classifies substitute linen as a shortage and retains an unrelated Code 2 for review', () => {
+  const options = [
+    { code: 1, label: 'Menggunakan Linen', numerator: false, denominator: true },
+    { code: 2, label: 'Menggunakan Stick Laken Pengganti Linen', numerator: true, denominator: true },
+    { code: 3, label: 'Adanya Kekosongan Linen', numerator: true, denominator: true },
+  ]
+  const parse = raw => parsePediatricSourceAnswer(raw, options, 'negative')
+  assert.equal(parse('Menggunakan Linen (Code 1)').numerator, false)
+  assert.equal(parse('Menggunakan Stick Laken Pengganti Linen (Code 2)').numerator, true)
+  assert.equal(parse('Adanya Kekosongan Linen (Code 3)').numerator, true)
+  assert.equal(parse('Pilihan indikator lain (Code 2)').reviewRequired, true)
+  assert.equal(parse(''), null)
 })

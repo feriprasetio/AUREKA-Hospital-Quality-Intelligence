@@ -14,6 +14,7 @@ import {
 import {
   PEDIATRIC_SOURCE_INDICATORS,
   PEDIATRIC_SOURCE_ONLY_FIELDS,
+  PEDIATRIC_MEDICINE_HEADER,
   calculatePediatricStayDays,
   hasPediatricLogbookData,
   isPediatricFormulaError,
@@ -43,7 +44,7 @@ type PreparedRow = {
   admissionDate: string
   dischargeDate: string | null
   diagnosis: string | null
-  patientCategory: string
+  patientCategory: string | null
   dischargeStatus: string | null
   weight: number | null
   height: number | null
@@ -75,11 +76,7 @@ type WorkbookFindings = {
   repeatedMrnRows: number
   duplicateEpisodeGroups: number
   duplicateEpisodeRows: number
-  mappedResponses: number
   missingStuntingAnswers: number
-  linenSourceRows: number
-  medicineFreeTextRows: number
-  unknownAnswerCells: number
 }
 type ImportResponse = { received_count?: number; imported_count?: number; skipped_existing_count?: number }
 type Props = {
@@ -284,7 +281,7 @@ function preparePayload(
     })
   }
 
-  const medicineName = String(row.sourceOnlyValues['22.5'] ?? '').trim()
+  const medicineName = row.sourceIndicatorCells['22.5']
   const medicineProfile = profileByCode.get('22.5')
   if (!medicineProfile?.id) throw new Error('Master indikator 22.5 Kekosongan Obat tidak tersedia untuk impor Rawat Inap Anak.')
   const medicineAnswer = medicineName ? 'Terjadi kekosongan obat' : 'Tidak terjadi kekosongan obat'
@@ -329,7 +326,7 @@ function preparePayload(
     source_excel_no: row.sourceNo,
     dashboard_declared_count: dashboardCount,
     source_indicator_values: sourceIndicatorValues,
-    source_indicator_cells: { ...row.sourceIndicatorCells, '22.5': String(row.sourceOnlyValues['22.5'] ?? '') },
+    source_indicator_cells: row.sourceIndicatorCells,
     source_only_fields: sourceOnlyFields,
     source_cached_los: row.sourceLos,
     source_age_text: row.ageText,
@@ -355,6 +352,7 @@ function preparePayload(
     'Lenght of Stay': row.computedLos,
     'Perawat Penerima': row.receivingNurse,
     'DPJP': row.dpjp,
+    [PEDIATRIC_MEDICINE_HEADER]: medicineName,
   }
 
   for (const item of PEDIATRIC_SOURCE_INDICATORS) {
@@ -420,16 +418,16 @@ export default function PediatricInpatientExcelImportDialog({
   const eligible = open && authorized && roomId === 22 && year === 2026
   const preview = previewConfig.preview
   const mappedResponses = useMemo(
-    () => rows.reduce((sum, row) => sum + Object.keys(row.indicators).length, 0),
+    () => rows.reduce((sum, row) => sum + Object.keys(row.indicators).length + 1, 0),
     [rows],
   )
   const rowsWithWarnings = useMemo(() => rows.filter(row => row.warnings.length > 0).length, [rows])
-  const unmatchedAnswers = useMemo(
-    () => rows.reduce((sum, row) => sum + Object.values(row.indicators).filter(answer => answer.mappingStatus !== 'mapped_pending_classification').length, 0),
+  const pendingAnswers = useMemo(
+    () => rows.reduce((sum, row) => sum + Object.values(row.indicators).filter(answer => answer.reviewRequired).length, 0),
     [rows],
   )
-  const sourceOnlyLinenRows = useMemo(() => rows.filter(row => row.sourceOnlyValues['22.4'] !== '').length, [rows])
-  const sourceOnlyMedicineRows = useMemo(() => rows.filter(row => row.sourceOnlyValues['22.5'] !== '').length, [rows])
+  const linenRows = rows.filter(row => row.indicators['22.4']?.mappingStatus === 'mapped').length
+  const medicineEventRows = rows.filter(row => row.sourceIndicatorCells['22.5'] !== '').length
   const sourceOnlyDengueRows = useMemo(
     () => rows.filter(row => ['22.9', '22.10', '22.11', '22.12'].some(code => String(row.sourceOnlyValues[code] ?? '').trim() !== '')).length,
     [rows],
@@ -502,7 +500,7 @@ export default function PediatricInpatientExcelImportDialog({
 
       const header = findHeaderRow(sheet)
       const profileByCode = profileMapForRoom(profiles)
-      const missingProfiles = PEDIATRIC_SOURCE_INDICATORS.filter(item => {
+      const missingProfiles = [...PEDIATRIC_SOURCE_INDICATORS, { code: '22.5', header: PEDIATRIC_MEDICINE_HEADER }].filter(item => {
         const profile = profileByCode.get(item.code)
         return !profile?.id || !Array.isArray(profile.options_json) || profile.options_json.length === 0
       })
@@ -523,8 +521,6 @@ export default function PediatricInpatientExcelImportDialog({
       let dataRows = 0
       let openEpisodes = 0
       let missingStuntingAnswers = 0
-      let mappedResponsesCount = 0
-      let unknownAnswerCells = 0
 
       for (let rowNumber = header.rowNumber + 1; rowNumber <= sheet.rowCount; rowNumber++) {
         const source = sheet.getRow(rowNumber)
@@ -548,9 +544,10 @@ export default function PediatricInpatientExcelImportDialog({
         const dischargeDate = rawDischarge === '' || rawDischarge == null ? null : normalizePediatricDate(rawDischarge)
         const rawBirthDate = rawValue('birthDate')
         const sourceBirthDateText = value('birthDate')
-        const birthDate = rawBirthDate === '' || rawBirthDate == null ? null : normalizePediatricDate(rawBirthDate)
+        const parsedBirthDate = normalizePediatricDate(rawBirthDate)
+        const birthDate = parsedBirthDate && admissionDate && parsedBirthDate > admissionDate ? null : parsedBirthDate
         const diagnosis = value('diagnosis') || null
-        const patientCategory = value('patientCategory')
+        const patientCategory = value('patientCategory') || null
         const dischargeStatus = value('dischargeStatus') || null
         const weight = numericValue(value('weight'))
         const height = numericValue(value('height'))
@@ -571,7 +568,7 @@ export default function PediatricInpatientExcelImportDialog({
         if (admissionDate && Number(admissionDate.slice(0, 4)) !== 2026) rowIssues.push('Tanggal Masuk harus berada pada tahun profil 2026.')
         if (rawDischarge !== '' && rawDischarge != null && !dischargeDate) rowIssues.push('Tanggal Keluar terisi tetapi tidak dapat dibaca.')
         if (dischargeDate && admissionDate && dischargeDate < admissionDate) rowIssues.push('Tanggal Keluar lebih awal dari Tanggal Masuk.')
-        if (!patientCategory) rowIssues.push('Kategori Pasien kosong.')
+        if (!patientCategory) rowWarnings.push('Kategori Pasien kosong; sumber dipertahankan.')
         if (!diagnosis || !dischargeStatus || !dischargeDate) {
           openEpisodes++
           rowWarnings.push('Episode belum memiliki seluruh informasi pulang (Tanggal Keluar/Diagnosa/Status Pulang); dipertahankan sebagai episode yang masih dirawat.')
@@ -581,14 +578,21 @@ export default function PediatricInpatientExcelImportDialog({
         if (rawBirthDate !== '' && rawBirthDate != null && !birthDate) {
           rowWarnings.push('Tanggal Lahir sumber tidak dapat dinormalisasi; teks sumber tetap tersimpan.')
         }
-        if (birthDate && admissionDate && birthDate > admissionDate) rowIssues.push('Tanggal Lahir lebih baru daripada Tanggal Masuk.')
         const sourceLosNumber = numericValue(sourceLos)
         const computedLos = calculatePediatricStayDays(admissionDate ?? '', dischargeDate)
         if (computedLos != null && sourceLosNumber != null && sourceLosNumber !== computedLos) {
           rowWarnings.push('LOS sumber berbeda dari selisih tanggal; nilai turunan memakai selisih tanggal, sedangkan LOS sumber dipertahankan.')
         }
 
-        const sourceIndicatorCells: Record<string, string> = {}
+        const medicineCell = source.getCell(header.indexes['indicator:22.5'])
+        const medicineName = cellText(medicineCell)
+        const cachedMedicineValue = readCellValue(medicineCell)
+        if (isPediatricFormulaError(medicineName) ||
+          (medicineCell.formula && medicineCell.result == null) ||
+          (cachedMedicineValue !== '' && typeof cachedMedicineValue !== 'string')) {
+          rowIssues.push('Kekosongan Obat harus kosong atau berisi nama obat yang dapat dibaca.')
+        }
+        const sourceIndicatorCells: Record<string, string> = { '22.5': medicineName }
         const indicators: Record<string, PediatricSourceAnswer> = {}
         for (const item of PEDIATRIC_SOURCE_INDICATORS) {
           const sourceValue = value('indicator:' + item.code)
@@ -605,9 +609,7 @@ export default function PediatricInpatientExcelImportDialog({
           )
           if (answer) {
             indicators[item.code] = answer
-            mappedResponsesCount++
             if (answer.reviewRequired) {
-              unknownAnswerCells++
               rowWarnings.push(item.code + ' ' + item.header + ': nilai sumber perlu telaah (' + answer.mappingStatus + ').')
             }
           }
@@ -724,11 +726,7 @@ export default function PediatricInpatientExcelImportDialog({
         repeatedMrnRows,
         duplicateEpisodeGroups,
         duplicateEpisodeRows,
-        mappedResponses: mappedResponsesCount,
         missingStuntingAnswers,
-        linenSourceRows: prepared.filter(row => row.sourceOnlyValues['22.4'] !== '').length,
-        medicineFreeTextRows: prepared.filter(row => row.sourceOnlyValues['22.5'] !== '').length,
-        unknownAnswerCells,
       })
 
       if (!prepared.length && !rowErrors.length) throw new Error('Tidak ditemukan episode pasien pada sheet Logbook.')
@@ -736,8 +734,6 @@ export default function PediatricInpatientExcelImportDialog({
       setErrors(rowErrors)
       if (rowErrors.length) {
         setErrorMessage('Ada baris tidak valid. Seluruh impor ditahan; tidak ada partial import sampai seluruh episode memiliki identitas dan tanggal masuk yang sah.')
-      } else {
-        setErrorMessage('Pratinjau selesai. Respons indikator tetap pending menunggu klasifikasi numerator/denominator; episode yang belum pulang tetap dipertahankan.')
       }
     } catch (error) {
       setRows([])
@@ -815,7 +811,7 @@ export default function PediatricInpatientExcelImportDialog({
         <div>
           <div className="eyebrow">Audit indikator mutu · Rawat inap anak</div>
           <h4 id="aqPediatricImportTitle">Import workbook Rawat Inap Anak 2026</h4>
-          <p>Pratinjau episode rawat inap, enam indikator terpetakan, serta pemisahan data sumber Linen dan Obat yang belum dapat dipetakan.</p>
+          <p>Pratinjau episode rawat inap dan delapan indikator, termasuk Kekosongan Linen dan Obat.</p>
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
@@ -838,18 +834,16 @@ export default function PediatricInpatientExcelImportDialog({
 
         {rows.length > 0 && <div className="paStats">
           <div className="paStat"><span>Episode siap ditinjau</span><strong>{rows.length}</strong></div>
-          <div className="paStat"><span>Respons indikator tersinkron</span><strong>{mappedResponses}</strong></div>
-          <div className="paStat"><span>Respons pending klasifikasi</span><strong>{mappedResponses}</strong></div>
-          <div className="paStat"><span>Episode dengan warning</span><strong>{rowsWithWarnings}</strong></div>
+          <div className="paStat"><span>Respons indikator terbaca</span><strong>{mappedResponses}</strong></div>
+          <div className="paStat"><span>Respons pending klasifikasi</span><strong>{pendingAnswers}</strong></div>
+          <div className="paStat"><span>Episode dengan catatan</span><strong>{rowsWithWarnings}</strong></div>
         </div>}
 
         {rows.length > 0 && findings && <div className="paBox paWarn">
-          <strong>Klasifikasi numerator/denominator:</strong> label dan kode sumber dicocokkan ke master, tetapi seluruh enam profil hasil sinkronisasi tetap numerator NULL, denominator true, dan review_required true. Respons disimpan pending sampai pemilik indikator menetapkan klasifikasi mutu.
-          <div style={{ marginTop: 6 }}><strong>Episode ongoing:</strong> {findings.openEpisodes} episode tanpa Tanggal Keluar dipertahankan; Diagnosis dan Status Pulang tetap null, tidak diisi asumsi.</div>
-          <div style={{ marginTop: 6 }}><strong>Kekosongan Linen:</strong> {sourceOnlyLinenRows} baris disimpan sebagai sumber asli; tidak dipaksakan ke master 22.4 karena pilihan sumber berbeda dari master aktif.</div>
-          <div style={{ marginTop: 6 }}><strong>Kekosongan Obat:</strong> {sourceOnlyMedicineRows} baris berisi teks bebas nama obat; tidak dikonversi ke master 22.5.</div>
-          <div style={{ marginTop: 6 }}><strong>Kolom Dengue (22.9–22.12):</strong> {sourceOnlyDengueRows} episode memiliki nilai sumber yang disimpan untuk review. Profilnya masih draf; nilai tidak dipetakan ke capaian dan tidak dihitung sampai definisi klinis disahkan.</div>
-          <div style={{ marginTop: 6 }}>Ada {unmatchedAnswers} respons pada enam indikator formal yang label sumbernya tidak cocok secara unik dengan pilihan Profil; nilai asli tetap disimpan dan respons ditandai untuk review.</div>
+          <div><strong>Kekosongan Linen</strong> · {linenRows} respons cocok dengan pilihan master 22.4.</div>
+          <div><strong>Kekosongan Obat</strong> · {medicineEventRows} episode dengan nama obat tercatat sebagai kekosongan. {rows.length - medicineEventRows} episode tanpa nama obat tercatat tanpa kekosongan.</div>
+          {pendingAnswers > 0 && <div>{pendingAnswers} respons perlu ditinjau. Nilai asli disimpan pada masing-masing episode.</div>}
+          {sourceOnlyDengueRows > 0 && <div>Nilai Dengue dari {sourceOnlyDengueRows} episode disimpan sebagai sumber selama profil 22.9–22.12 masih draf.</div>}
           <div style={{ marginTop: 6 }}>Kolom Assessment Stunting Wasting2 kosong pada {findings.missingStuntingAnswers} episode. Sel kosong tidak diubah menjadi nol atau ketidakpatuhan.</div>
           <div style={{ marginTop: 6 }}>No. RM dan kombinasi episode berulang tidak digabung atau dihapus otomatis; setiap baris fisik Excel tetap memiliki identitas impor sendiri.</div>
         </div>}
@@ -868,7 +862,7 @@ export default function PediatricInpatientExcelImportDialog({
                   <td>{row.admissionDate}</td>
                   <td>{row.dischargeDate ?? 'Masih dirawat'}</td>
                   <td>{row.computedLos == null ? '-' : row.computedLos + ' hari'}</td>
-                  <td>{Object.keys(row.indicators).length}/6</td>
+                  <td>{Object.keys(row.indicators).length + 1}/{PEDIATRIC_SOURCE_INDICATORS.length + 1}</td>
                   <td>{row.warnings.length ? <details><summary className="paTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="paTag">OK</span>}</td>
                 </tr>)}
               </tbody>
