@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import QualityWorkbookStagedPreview from '@/components/quality/QualityWorkbookStagedPreview'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
 import { inspectQualityWorkbookRouting, isStandardUnitWorkbook } from '@/lib/aureka/quality-workbook-source-audit'
-import { exactWorkbookColumn, getStandardMappedRoomDate, getIncidentReportElapsedMinutes, readCodedWorkbookChoice } from '@/lib/aureka/standard-mapped-quality-workbook'
+import { exactWorkbookColumn, getStandardMappedRoomDate, getStandardMappedIndicatorHeader, getIncidentReportElapsedMinutes, readCodedWorkbookChoice } from '@/lib/aureka/standard-mapped-quality-workbook'
 import { isExcelSourceError, isMaterialWorkbookSourceRow } from '@/lib/aureka/quality-import-row-filter'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
@@ -236,7 +236,11 @@ export default function QualityWorkbookImportPanel({
   const optionHeaders = sheets.find(sheet => sheet.name === optionsSheet)?.headers ?? []
   const roleCanImportProfiles = role === 'ADMIN' && !dataOnly
   const currentAliases = year === 2026 ? (unitAliases as Record<string, Record<string,string>>)[roomId] ?? {} : {}
-  const aliasesFor = (profile: Profile) => Object.entries(currentAliases).filter(([, code]) => code === profile.code).map(([name]) => name)
+  const aliasesFor = (profile: Profile) => {
+    const stored = Object.entries(currentAliases).filter(([, code]) => code === profile.code).map(([name]) => name)
+    const sourceHeader = year === 2026 && roomId === 27 ? getStandardMappedIndicatorHeader(profile.code) : undefined
+    return sourceHeader ? [sourceHeader, ...stored] : stored
+  }
   const dataScope = sheets.find(sheet => sheet.name === dataSheet)
   const isStandardMappedLogbook = dataOnly && year === 2026 && dataSheet === 'Logbook' &&
     Boolean(getStandardMappedRoomDate(roomId)) && isStandardUnitWorkbook(

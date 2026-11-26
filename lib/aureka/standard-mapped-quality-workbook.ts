@@ -19,6 +19,15 @@ export function getStandardMappedRoomDate(roomId: number): string | undefined {
   return mappedRoomDates[roomId]
 }
 
+const workbookHeadersByCode: Record<string, string> = {
+  '27.6': 'Kekosongan Linen',
+  '27.12': 'Validitas Asesmen Keperawatan',
+}
+
+export function getStandardMappedIndicatorHeader(code: string): string | undefined {
+  return workbookHeadersByCode[code]
+}
+
 export function exactWorkbookColumn(columns: readonly Column[], header: string): string {
   const expected = normalizeExactHeader(header)
   const matches = columns.filter(column => normalizeExactHeader(column.header) === expected)
