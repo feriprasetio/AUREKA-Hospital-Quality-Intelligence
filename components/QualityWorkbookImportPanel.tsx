@@ -786,8 +786,13 @@ export default function QualityWorkbookImportPanel({
             grainValue(profile.measurement_grain) === grain &&
             (!isolasiColumns || Boolean(indicatorColumns[profile.code])) &&
             isIndicatorApplicableToDiagnosis(profile.indicator_type, sourceDiagnosis))
-          const isReady = applicableProfiles.length > 0 && applicableProfiles.every(profile =>
-            responses.some(response => response.indicator_code === profile.code))
+          // The verified unit workbook measures only the observations present for
+          // each episode (for example Hifema or a specific radiology event).
+          // Its unused indicator cells must not keep measured results in draft.
+          const isReady = isStandardMappedLogbook
+            ? responses.some(response => response.review_status === 'not_required' && response.response_code != null)
+            : applicableProfiles.length > 0 && applicableProfiles.every(profile =>
+              responses.some(response => response.indicator_code === profile.code))
           if (!dateValue) {
             rowIssues.push({ sheet: dataSheet, row: source.rowNumber, field: 'Tanggal', message: 'Tanggal pengamatan tidak valid atau belum dipetakan.' })
             continue
