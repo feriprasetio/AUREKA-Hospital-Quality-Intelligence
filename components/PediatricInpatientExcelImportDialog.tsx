@@ -1,4 +1,6 @@
 'use client'
+
+import { useStandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -801,6 +803,7 @@ export default function PediatricInpatientExcelImportDialog({
     }
   }
 
+  useStandardQualityWorkbookUpload(open, parseWorkbook)
   if (!open) return null
 
   if (typeof document === 'undefined') return null

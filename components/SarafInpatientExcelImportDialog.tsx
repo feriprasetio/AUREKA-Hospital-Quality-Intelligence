@@ -1,4 +1,6 @@
 'use client'
+
+import { useStandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -252,7 +254,7 @@ function preparePayload(
       denominator: answer.denominator,
       source_value: answer.sourceLabel,
       source_code: answer.sourceCode,
-      review_required: true,
+      review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
       classification_note: answer.mappingStatus === 'mapped_existing_master'
         ? 'Pilihan sumber cocok dengan opsi master aktif; respons tetap pending untuk verifikasi sebelum digunakan dalam analisis.'
@@ -268,7 +270,7 @@ function preparePayload(
       response_code: answer.code,
       raw_value: rawValue,
       other_text: answer.sourceLabel,
-      review_status: 'pending',
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
     })
   }
 
@@ -669,7 +671,7 @@ export default function SarafInpatientExcelImportDialog({
       if (rowErrors.length) {
         setErrorMessage(rowErrors.length + ' baris dikecualikan karena identitas/tanggal sumber tidak valid. ' + prepared.length + ' episode yang lolos tetap tersedia untuk impor; tidak ada nilai yang dikoreksi berdasarkan tebakan.')
       } else {
-        setErrorMessage('Pratinjau selesai. Respons indikator menunggu review. Pemetaan 26.8, 26.15, dan 26.16 dipertahankan not_in_master karena mismatch/opsi master belum tersedia.')
+        setErrorMessage('Pratinjau selesai. Pilihan yang cocok menggunakan klasifikasi master aktif.')
       }
     } catch (error) {
       setRows([])
@@ -737,6 +739,7 @@ export default function SarafInpatientExcelImportDialog({
     }
   }
 
+  useStandardQualityWorkbookUpload(open, parseWorkbook)
   if (!open) return null
 
   if (typeof document === 'undefined') return null
@@ -776,7 +779,7 @@ export default function SarafInpatientExcelImportDialog({
         </div>}
 
         {rows.length > 0 && findings && <div className="suBox suWarn">
-          <strong>Review klasifikasi:</strong> Pemetaan dilakukan berdasarkan header klinis, bukan posisi kolom. Jawaban 26.8 (STEMI LOS &lt;5 Hari) tidak cocok dengan pilihan master aktif 26.8 yang saat ini berisi kategori Door-to-Balloon. Opsi master 26.15 (Revaskularisasi) dan 26.16 (Validitas Asesmen Keperawatan) belum tersedia. Ketiga respons tersebut dipertahankan sebagai not_in_master dengan kode sumber asli; numerator tidak ditebak. Seluruh respons tetap pending untuk review.
+          <strong>Klasifikasi respons</strong> · Pilihan yang cocok menggunakan master aktif. Kolom STEMI LOS memuat sejumlah hasil pulang; nilai tersebut disimpan untuk ditinjau sebelum dipakai sebagai ukuran lama rawat.
           <div style={{ marginTop: 6 }}>No. RM wajib dan baris tanpa No. RM dikecualikan; nomor urut sumber kosong tetap dapat diproses menggunakan kunci baris fisik Excel. Kategori Pasien kosong: {findings.missingCategories}; Status Pulang kosong: {findings.missingDischargeStatus}; Perawat Penerima kosong: {findings.missingReceivingNurse}; DPJP kosong: {findings.missingDpjp}. Tidak ada nilai yang diisi otomatis.</div>
           <div style={{ marginTop: 6 }}>Respons tidak dipaksakan pada sel kosong. Rincian kelengkapan per indikator ditampilkan pada ringkasan di bawah; sel kosong tidak dibuat sebagai respons nol atau ketidakpatuhan.</div>
           <div style={{ marginTop: 6 }}>Kekosongan Linen 26.4 dan Kekosongan Obat 26.5 dipetakan melalui alias eksplisit ke opsi master yang sudah tersedia.</div>
@@ -832,7 +835,7 @@ export default function SarafInpatientExcelImportDialog({
         {result && <div className="suBox suSuccess">
           <strong>Ringkasan impor dari server</strong>
           <div style={{ marginTop: 6 }}>{result.imported} episode baru tersimpan · {result.skipped} dilewati karena sudah ada · {result.received} diterima server.</div>
-          <div className="aqSub">Seluruh respons indikator berada dalam status pending untuk review sebelum digunakan pada analisis mutu.</div>
+          <div className="aqSub">Episode mengikuti proses validasi mutu.</div>
         </div>}
 
         </div>

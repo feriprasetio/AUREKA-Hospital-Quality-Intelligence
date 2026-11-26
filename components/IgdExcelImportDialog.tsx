@@ -1,4 +1,6 @@
 'use client'
+
+import { useStandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 
@@ -860,6 +862,7 @@ export default function IgdExcelImportDialog({
   }, {} as Record<string, number>)
   const warningConsults = consultRows.filter(row => row.warnings.length > 0).length
 
+  useStandardQualityWorkbookUpload(open, parseMainWorkbook)
   if (!open) return null
   if (typeof document === 'undefined') return null
  return createPortal(<div className="aq aqPortal aqAuditWorkspace"><div className="aqBack" role="presentation" onClick={event => { if (event.target === event.currentTarget) close() }}>

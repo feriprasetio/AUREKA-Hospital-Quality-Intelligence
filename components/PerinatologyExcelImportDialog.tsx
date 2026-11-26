@@ -1,4 +1,6 @@
 'use client'
+
+import { useStandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -180,9 +182,11 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
       code: answer.code,
       source_value: answer.sourceLabel,
       source_code: answer.sourceCode,
-      review_required: true,
+      numerator: answer.numerator ?? null,
+      denominator: answer.denominator ?? true,
+      review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
-      classification_note: 'Klasifikasi pembilang/penyebut belum ditetapkan; telaah Komite PMKP diperlukan.',
+      classification_note: answer.reviewRequired ? 'Nilai sumber perlu ditinjau.' : 'Respons sesuai klasifikasi master aktif.',
     }
     indicatorValues[item.code] = rawValue
     sourceIndicatorValues[item.code] = answer.sourceLabel
@@ -191,8 +195,8 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
       response_label: answer.label,
       response_code: answer.code,
       raw_value: rawValue,
-      other_text: answer.reviewRequired ? answer.sourceLabel : null,
-      review_status: 'pending',
+      other_text: answer.sourceLabel,
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
     })
   }
 
@@ -205,9 +209,9 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     unmapped_source_indicator: {
       source_header: row.unmappedBhpLinenHeader,
       source_value: row.unmappedBhpLinen,
-      mapping_status: 'combined_bhp_linen_source_not_mapped',
-      reason: 'Pilihan sumber memuat gabungan BHP/Linen/barang penunjang; data disimpan sebagai provenance dan tidak dipaksakan ke indikator terpisah.',
-      target_profiles: ['20.6 Kekosongan Linen', '20.12 Kekosongan Obat'],
+      mapping_status: 'mapped_as_combined_stockout',
+      reason: 'Pilihan gabungan BHP/Linen dan barang penunjang dipetakan ke 20.6.',
+      target_profiles: ['20.6 Kekosongan BHP/Linen'],
     },
     source_cached_los: row.sourceLos,
     source_warnings: row.warnings,
@@ -228,7 +232,7 @@ function preparePayload(row: PreparedRow, fileName: string, userId: string, prof
     'Lenght of Stay': row.computedLos,
     'Perawat Penerima': row.receivingNurse,
     'DPJP': row.dpjp,
-    [row.unmappedBhpLinenHeader + ' (sumber belum dipetakan)']: row.unmappedBhpLinen,
+    [row.unmappedBhpLinenHeader]: row.unmappedBhpLinen,
   }
 
   const core = {
@@ -284,7 +288,7 @@ export default function PerinatologyExcelImportDialog({
   const eligible = open && authorized && roomId === 20 && year === 2026
   const preview = previewConfig.preview
   const matchedResponses = useMemo(() => rows.reduce((sum, row) => sum + Object.values(row.indicators).length, 0), [rows])
-  const pendingResponses = matchedResponses
+  const pendingResponses = rows.reduce((sum, row) => sum + Object.values(row.indicators).filter(answer => answer.reviewRequired).length, 0)
   const rowsWithWarnings = useMemo(() => rows.filter(row => row.warnings.length > 0).length, [rows])
 
   const reset = () => {
@@ -432,15 +436,11 @@ export default function PerinatologyExcelImportDialog({
               Array.isArray(profile.options_json) ? profile.options_json : [],
             )
             if (!answer) continue
-            if (answer.mappingStatus !== 'mapped_pending_classification') {
-              throw new Error(item.code + ' ' + item.header + ': pilihan sumber tidak cocok secara unik dengan master (' + answer.mappingStatus + '). Koreksi pilihan sumber sebelum impor.')
-            }
+            if (answer.reviewRequired) warnings.push(item.code + ' ' + item.header + ': nilai sumber disimpan untuk ditinjau.')
             indicators[item.code] = answer
           }
 
-          if (unmappedBhpLinen.trim()) {
-            warnings.push(unmappedBhpLinenHeader + ' memuat pilihan gabungan BHP/Linen; nilai dipertahankan sebagai data sumber dan tidak dipetakan otomatis.')
-          }
+
 
           const row: PreparedRow = {
             sourceRow: excelRow, sourceNo, patientName, medicalRecordNo, admissionDate,
@@ -487,7 +487,7 @@ export default function PerinatologyExcelImportDialog({
       if (rowErrors.length) {
         setErrorMessage('Ada baris yang tidak valid. Seluruh impor ditahan sampai baris wajib diperbaiki; tidak ada partial import.')
       } else {
-        setErrorMessage('Pratinjau selesai. Respons indikator menunggu klasifikasi pembilang; seluruh episode berstatus Ready for Review.')
+        setErrorMessage('Episode siap diimpor untuk ditinjau. Pilihan yang cocok memakai klasifikasi master aktif.')
       }
     } catch (error) {
       setRows([]); setErrors([])
@@ -553,6 +553,7 @@ export default function PerinatologyExcelImportDialog({
     }
   }
 
+  useStandardQualityWorkbookUpload(open, parseWorkbook)
   if (!open) return null
 
   if (typeof document === 'undefined') return null
@@ -563,7 +564,7 @@ export default function PerinatologyExcelImportDialog({
         <div>
           <div className="eyebrow">Audit indikator mutu · Perinatology & neonatology</div>
           <h4 id="aqPerinatologyImportTitle">Import workbook Perinatologi 2026</h4>
-          <p>Pratinjau episode dari Logbook, pemetaan 10 indikator aktif, serta telaah klasifikasi sebelum pelaporan mutu.</p>
+          <p>Pratinjau episode dari Logbook, pemetaan 11 indikator aktif, serta telaah klasifikasi sebelum pelaporan mutu.</p>
         </div>
         <button className="aqClose" type="button" disabled={parsing || importing} onClick={close} aria-label="Tutup">×</button>
       </div>
@@ -591,8 +592,8 @@ export default function PerinatologyExcelImportDialog({
         </div>}
 
         {rows.length > 0 && <div className="piBox piWarn">
-          <strong>Klasifikasi numerator belum ditetapkan:</strong> label dan kode sumber cocok dengan master, tetapi pilihan kode 1/2/3 tidak otomatis diperlakukan sebagai pembilang mutu. Seluruh respons indikator berstatus pending agar hasil mutu tidak salah dihitung sebelum pemilik indikator menetapkan pemetaan N/D.
-          <div style={{ marginTop: 6 }}><strong>Kekosongan BHP/Linen:</strong> nilai sumber disimpan utuh, tetapi tidak dipetakan ke 20.6 Linen atau 20.12 Obat karena workbook tidak membedakan jenis barang.</div>
+          <strong>Klasifikasi respons</strong> · Pilihan yang cocok menggunakan master aktif. Respons yang masih memerlukan telaah tetap menyimpan nilai asli.
+          <div style={{ marginTop: 6 }}>Nilai Kekosongan BHP/Linen dipetakan ke 20.6 sesuai pilihan master.</div>
         </div>}
 
         {rows.length > 0 && <div className="piBox">
@@ -608,7 +609,7 @@ export default function PerinatologyExcelImportDialog({
                   <td>{maskName(row.patientName)}</td>
                   <td>{row.admissionDate} – {row.dischargeDate ?? 'Belum pulang'}</td>
                   <td>{row.computedLos == null ? '-' : row.computedLos + ' hari'}</td>
-                  <td>{Object.keys(row.indicators).length}/10 tersinkron</td>
+                  <td>{Object.keys(row.indicators).length}/{PERINATOLOGY_SOURCE_INDICATORS.length} tersinkron</td>
                   <td>{row.warnings.length ? <details><summary className="piTag pending">{row.warnings.length} perlu ditinjau</summary><ul style={{ margin: 6, paddingLeft: 18, minWidth: 230 }}>{row.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details> : <span className="piTag">OK</span>}</td>
                 </tr>)}
               </tbody>
@@ -635,7 +636,7 @@ export default function PerinatologyExcelImportDialog({
         {result && <div className="piBox piSuccess">
           <strong>Ringkasan impor dari server</strong>
           <div style={{ marginTop: 6 }}>{result.imported} episode baru tersimpan · {result.skipped} dilewati karena sudah ada · {result.received} diterima server.</div>
-          <div className="aqSub">Semua episode tetap Ready for Review; respons indikator menunggu klasifikasi numerator/denominator.</div>
+          <div className="aqSub">Episode mengikuti proses validasi mutu.</div>
         </div>}
 
         </div>

@@ -13,7 +13,7 @@ import {
   parseNifasSourceAnswer,
 } from '../lib/aureka/nifas-logbook.ts'
 
-test('maps the actual Nifas Logbook header row to nine active indicators and one preserved combined source', () => {
+test('maps the actual Nifas Logbook header row to ten active indicators including the combined stockout', () => {
   const headers = [
     'No.', 'Nama Pasien', 'No. Rekam Medis', 'Tanggal Masuk', 'Tanggal Keluar',
     'Diagnosa Tegak', 'Kategori Pasien', 'Status Pulang', 'Lenght of Stay',
@@ -32,7 +32,7 @@ test('maps the actual Nifas Logbook header row to nine active indicators and one
   assert.equal(mapped.indexes.unmappedBhpLinen, 15)
   assert.deepEqual(
     NIFAS_SOURCE_INDICATORS.map(item => [item.code, mapped.indexes['indicator:' + item.code]]),
-    [['19.8', 12], ['19.9', 13], ['19.7', 14], ['19.1', 16], ['19.2', 17], ['19.3', 18], ['19.4', 19], ['19.5', 20], ['19.10', 21]],
+    [['19.8', 12], ['19.9', 13], ['19.7', 14], ['19.6', 15], ['19.1', 16], ['19.2', 17], ['19.3', 18], ['19.4', 19], ['19.5', 20], ['19.10', 21]],
   )
 })
 

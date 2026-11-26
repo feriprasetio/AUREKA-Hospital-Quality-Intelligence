@@ -112,3 +112,17 @@ export function inspectQualityWorkbookRouting(
   }
   return { hint, blockers, notes }
 }
+
+/** Recognize the source template before handing the selected file to the unit importer. */
+export function isStandardUnitWorkbook(
+  hint: QualityWorkbookHint | null,
+  roomId: number,
+  sheetNames: readonly string[],
+): boolean {
+  const names = new Set(sheetNames.map(normalize))
+  if (hint?.roomId !== roomId) return false
+  if (hint.kind === 'pharmacy_multisheet') {
+    return names.has('copy resep rajal') && names.has('copy resep ranap')
+  }
+  return names.has('logbook') && names.has('profil')
+}

@@ -98,6 +98,8 @@ test('maps a coded source label to an exact master option but keeps N/D classifi
   assert.deepEqual(answer, {
     label: 'Visite Hari Kerja (06.00-14.00)',
     code: 1,
+    numerator: null,
+    denominator: true,
     sourceLabel: 'Visite Hari Kerja (06.00-14.00)',
     sourceCode: null,
     reviewRequired: true,

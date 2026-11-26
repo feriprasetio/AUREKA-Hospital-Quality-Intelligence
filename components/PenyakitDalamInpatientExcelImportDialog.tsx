@@ -1,4 +1,6 @@
 'use client'
+
+import { useStandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -251,14 +253,14 @@ function preparePayload(
       numerator: answer.numerator,
       denominator: answer.denominator,
       source_value: answer.sourceLabel,
-      source_code: answer.sourceCode ?? answer.code,
+      source_code: answer.sourceCode,
       free_text: answer.freeText ?? '',
       review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
       classification_note: answer.freeText
         ? 'Nama obat yang tidak tersedia disimpan sebagai bukti kejadian kekosongan; diklasifikasikan code 3.'
         : answer.mappingStatus === 'mapped_existing_master'
-          ? 'Pilihan Linen/Obat dipetakan ke master aktif dan klasifikasi universal; denominator tetap dihitung.'
+          ? 'Pilihan sumber sesuai klasifikasi master aktif.'
           : 'Pilihan sumber disimpan sesuai klasifikasi yang tersedia.',
     }
     indicatorValues[item.code] = rawValue
@@ -558,7 +560,7 @@ export default function PenyakitDalamInpatientExcelImportDialog({
             if (answer.mappingStatus === 'mapped_existing_master') aliasMappedResponsesCount++
             if (answer.mappingStatus !== 'mapped_pending_classification' && answer.mappingStatus !== 'mapped_existing_master') {
               unmappedAnswers++
-              rowIssues.push(item.code + ' ' + item.header + ': label/kode sumber tidak cocok secara unik dengan master (' + answer.mappingStatus + ').')
+              rowWarnings.push(item.code + ' ' + item.header + ': label/kode sumber tidak cocok secara unik dengan master (' + answer.mappingStatus + ').')
             }
           }
         }
@@ -671,7 +673,7 @@ export default function PenyakitDalamInpatientExcelImportDialog({
       setRows(prepared)
       setErrors(rowErrors)
       if (rowErrors.length) {
-        setErrorMessage('Validasi menemukan anomali pada data sumber. Seluruh impor ditahan sampai label/kode indikator dan tanggal diperbaiki atau dikonfirmasi oleh pemilik data.')
+        setErrorMessage('Baris dengan identitas atau tanggal yang tidak valid dikecualikan. Episode lainnya tersedia untuk diimpor.')
       } else {
         setErrorMessage('Pratinjau selesai. Klasifikasi 16 indikator tetap pending; Linen dan Obat mengikuti master aktif. Episode tanpa tanggal keluar disimpan sebagai rawat berjalan.')
       }
@@ -685,7 +687,7 @@ export default function PenyakitDalamInpatientExcelImportDialog({
   }
 
   const importRows = async () => {
-    if (!eligible || !authorized || !rows.length || errors.length || importing || result) return
+    if (!eligible || !authorized || !rows.length || importing || result) return
     setImporting(true)
     setErrorMessage('')
     try {
@@ -738,6 +740,7 @@ export default function PenyakitDalamInpatientExcelImportDialog({
     }
   }
 
+  useStandardQualityWorkbookUpload(open, parseWorkbook)
   if (!open) return null
 
   if (typeof document === 'undefined') return null
@@ -810,7 +813,7 @@ export default function PenyakitDalamInpatientExcelImportDialog({
         </div>}
 
         {errors.length > 0 && <div className="imBox imError">
-          <strong>{errors.length} baris bermasalah, seluruh impor ditahan.</strong>
+          <strong>{errors.length} baris dikecualikan karena masalah identitas atau tanggal.</strong>
           <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
             {errors.slice(0, 50).map((error, index) => <li key={index}>{error}</li>)}
           </ul>
@@ -834,10 +837,10 @@ export default function PenyakitDalamInpatientExcelImportDialog({
         </div>
       </div>
       <div className="aqFoot imFooter">
-          <span className="aqMetaText">{errors.length ? 'Perbaiki seluruh anomali tanggal/pilihan master sebelum impor; tidak ada partial import.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Penyakit Dalam, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
+          <span className="aqMetaText">{errors.length ? 'Baris yang valid siap diimpor. Lihat baris sumber yang dikecualikan.' : rows.length ? 'Impor memerlukan Admin/PMKP, akses Rawat Inap Penyakit Dalam, dan sesi login aktif.' : 'Belum ada workbook yang dipratinjau.'}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" className="aqBtn" disabled={parsing || importing} onClick={close}>Batal</button>
-            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || errors.length > 0 || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Penyakit Dalam'}</button>
+            <button type="button" className="aqBtn primary" disabled={!eligible || !authorized || !rows.length || parsing || importing || !!result} onClick={() => void importRows()}>{importing ? 'Mengimpor...' : 'Impor ' + rows.length + ' episode Penyakit Dalam'}</button>
           </div>
         </div>
     </section>

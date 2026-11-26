@@ -1,4 +1,5 @@
 'use client'
+import { StandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookProfileImportScope } from '@/components/quality/QualityWorkbookImportSidebar'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import { supportsEpisodeWorkbook } from '@/lib/aureka/patient-episode-workbook'
@@ -712,7 +713,9 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  const [isolasiInpatientImportOpen,setIsolasiInpatientImportOpen]=useState(false)
  const [sarafInpatientImportOpen,setSarafInpatientImportOpen]=useState(false)
  const [penyakitDalamInpatientImportOpen,setPenyakitDalamInpatientImportOpen]=useState(false)
- const openImportDialog=(key:ImportDialogKey)=>{
+ const [standardWorkbook,setStandardWorkbook]=useState<File|null>(null)
+ const openImportDialog=(key:ImportDialogKey,file:File|null=null)=>{
+  setStandardWorkbook(file)
   setLoadedImportDialogs(current=>{if(current.has(key))return current;const next=new Set(current);next.add(key);return next})
   if(key==='complaint')setComplaintImportOpen(true)
   else if(key==='it')setItImportOpen(true)
@@ -742,7 +745,7 @@ export default function QualityIndicatorWorkspace({initialRoomId,rooms,isAdmin,i
  useLayoutEffect(()=>{
   setSelected(null);setPatientOpen(false);setConfirmCloseEditor(false);setPendingArchive(null)
   setShowIdentity(false);setDraft({});setLoadedImportDialogs(new Set())
-  setEpisodeWorkbookOpen(false);setGenericWorkbookOpen(false);setMappedWorkbookOpen(false);setImportOptionsOpen(false);setPharmacyEntryOpen(false);setMonthlyReviewBusy(false)
+  setStandardWorkbook(null);setEpisodeWorkbookOpen(false);setGenericWorkbookOpen(false);setMappedWorkbookOpen(false);setImportOptionsOpen(false);setPharmacyEntryOpen(false);setMonthlyReviewBusy(false)
   setBusy(false);setLoading(true)
   return clearInteractiveExcelHeaderMappingScope
  },[scopeKey])
@@ -1561,6 +1564,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
        roomName={roomMap.get(roomId)??'Unit '+roomId} year={year}
        importerKey="unit-logbook" role={isAdmin?'ADMIN':'PMKP'} dataOnly
        activeProfiles={workbookProfiles}
+       onStandardWorkbook={availableUnitFormat&&availableUnitFormat!=='isolasi-inpatient'?file=>{setGenericWorkbookOpen(false);openImportDialog(availableUnitFormat,file)}:undefined}
        onImported={()=>{void load()}}/>
        </div>
      </div>
@@ -1577,12 +1581,14 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
      roomId={roomId} roomName={roomMap.get(roomId)??'Unit '+roomId} year={year} admin={isAdmin}
      dateField={primaryDateField(activeLayout)} layoutFields={activeLayout?.fields??[]}
      onClose={()=>setEpisodeWorkbookOpen(false)}
+     onStandardWorkbook={availableUnitFormat?file=>{setEpisodeWorkbookOpen(false);openImportDialog(availableUnitFormat,file)}:undefined}
      onLegacyImport={availableUnitFormat?()=>{setEpisodeWorkbookOpen(false);openImportDialog(availableUnitFormat)}:undefined}
      onImported={notice=>{
       setEpisodeWorkbookOpen(false)
        void load().then(loaded=>{if(loaded)setMessage(notice)})
      }}
    />}
+   <StandardQualityWorkbookUpload.Provider value={standardWorkbook}>
    {loadedImportDialogs.has('it')&&<ItExcelImportDialog open={itImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setItImportOpen(false)} onImported={async()=>{await load()}}/>}
    {loadedImportDialogs.has('rekam-medis')&&<RekamMedisExcelImportDialog open={rekamMedisImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setRekamMedisImportOpen(false)} onImported={async()=>{await load()}}/>}
    {loadedImportDialogs.has('timkordik')&&<TimkordikExcelImportDialog open={timkordikImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setTimkordikImportOpen(false)} onImported={async()=>{await load()}}/>}
@@ -1605,6 +1611,7 @@ const isStaffNameField=(field:string)=>/(dpjp|dokter|perawat|bidan|petugas|penan
    {loadedImportDialogs.has('isolasi-inpatient')&&<IsolasiInpatientExcelImportDialog open={isolasiInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setIsolasiInpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
    {loadedImportDialogs.has('saraf-inpatient')&&<SarafInpatientExcelImportDialog open={sarafInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setSarafInpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
    {loadedImportDialogs.has('penyakit-dalam-inpatient')&&<PenyakitDalamInpatientExcelImportDialog open={penyakitDalamInpatientImportOpen} roomId={roomId} year={year} authorized={canImportWorkbook} profiles={profiles} onClose={()=>setPenyakitDalamInpatientImportOpen(false)} onImported={async()=>{await load()}}/>}
+   </StandardQualityWorkbookUpload.Provider>
 
    </QualityWorkbookProfileImportScope.Provider>
 

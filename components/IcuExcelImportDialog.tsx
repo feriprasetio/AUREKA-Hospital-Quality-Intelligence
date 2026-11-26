@@ -1,4 +1,6 @@
 'use client'
+
+import { useStandardQualityWorkbookUpload } from '@/lib/aureka/standard-quality-workbook-upload'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading, QualityWorkbookLogbookMapping } from '@/components/quality/QualityWorkbookImportSidebar'
 import QualityWorkbookInlineColumnMapping, { type InlineWorkbookField } from '@/components/quality/QualityWorkbookInlineColumnMapping'
 import QualityWorkbookPreviewControls, { useQualityWorkbookPreview } from '@/components/quality/QualityWorkbookPreviewControls'
@@ -663,6 +665,7 @@ export default function IcuExcelImportDialog({
     }
   }
 
+  useStandardQualityWorkbookUpload(open, parseWorkbook)
   if (!open) return null
 
   if (typeof document === 'undefined') return null

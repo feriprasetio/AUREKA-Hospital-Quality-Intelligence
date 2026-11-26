@@ -74,7 +74,7 @@ test('Excel import dialogs are split into on-demand chunks and remain mounted af
   }
   assert.match(source, /type ImportDialogKey=/)
   assert.match(source, /const \[loadedImportDialogs,setLoadedImportDialogs\]/)
-  assert.match(source, /const openImportDialog=\(key:ImportDialogKey\)=>/)
+  assert.match(source, /const openImportDialog=\(key:ImportDialogKey,file:File\|null=null\)=>/)
   assert.match(source, /const next=new Set\(current\);next\.add\(key\);return next/)
   assert.match(source, /else if\(key==='ponek'\)setPonekImportOpen\(true\)/)
 })

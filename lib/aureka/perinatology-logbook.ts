@@ -24,8 +24,10 @@ export type PerinatologySourceAnswer = {
   code: number | null
   sourceLabel: string
   sourceCode: number | null
-  reviewRequired: true
-  mappingStatus: 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
+  numerator?: boolean | null
+  denominator?: boolean
+  reviewRequired: boolean
+  mappingStatus: 'mapped_existing_master' | 'mapped_pending_classification' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
 }
 
 export const PERINATOLOGY_SOURCE_INDICATORS = [
@@ -33,6 +35,7 @@ export const PERINATOLOGY_SOURCE_INDICATORS = [
   { sourceSequence: 2, code: '20.11', header: 'Validitas Asesmen Keperawatan', sourceHeader: 'Validitas Asesmen Keperawatan' },
   { sourceSequence: 3, code: '20.7', header: 'Transfer IGD', sourceHeader: 'Transfer IGD' },
   { sourceSequence: 4, code: '20.9', header: 'Stabilitas Bayi Transfer', sourceHeader: 'Stabilitas Bayi Transfer' },
+  { sourceSequence: 5, code: '20.6', header: 'Kekosongan BHP/Linen', sourceHeader: 'Kekosongan BHP/Linen' },
   { sourceSequence: 6, code: '20.1', header: 'Asfiksia Tidak Ada', sourceHeader: 'Asfiksia Tidak Ada' },
   { sourceSequence: 7, code: '20.2', header: 'Ventilator Bayi', sourceHeader: 'Ventilator Bayi' },
   { sourceSequence: 8, code: '20.3', header: 'APGAR Score', sourceHeader: 'APGAR Score' },
@@ -117,7 +120,7 @@ export function mapPerinatologyLogbookHeaders(headerValues: unknown[] , interact
   }
 
   for (const item of PERINATOLOGY_SOURCE_INDICATORS) {
-    resolve('indicator:' + item.code, [item.sourceHeader])
+    resolve('indicator:' + item.code, item.code === '20.6' ? [item.sourceHeader, 'Kekosongan Linen'] : [item.sourceHeader])
   }
 
   return { indexes, missingHeaders, duplicateHeaders }
@@ -256,15 +259,16 @@ export function parsePerinatologySourceAnswer(
     }
   }
 
-  // The source code classifies the original option, not numerator compliance.
-  // Classification remains pending until the indicator owner validates its N/D mapping.
+  const classified = option.review_required === false && typeof option.numerator === 'boolean'
   return {
     label: option.label,
     code: masterCode,
+    numerator: classified ? option.numerator : null,
+    denominator: classified ? option.denominator !== false : true,
     sourceLabel,
     sourceCode,
-    reviewRequired: true,
-    mappingStatus: 'mapped_pending_classification',
+    reviewRequired: !classified,
+    mappingStatus: classified ? 'mapped_existing_master' : 'mapped_pending_classification',
   }
 }
 
