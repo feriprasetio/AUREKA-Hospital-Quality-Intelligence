@@ -37,24 +37,13 @@ export const PEDIATRIC_SOURCE_INDICATORS = [
   { sourceSequence: 3, code: '22.6', header: 'Transfer IGD', sourceHeader: 'Transfer IGD' },
   { sourceSequence: 4, code: '22.3', header: 'Infus Vena Perifer', sourceHeader: 'Infus Vena Perifer' },
   { sourceSequence: 5, code: '22.2', header: 'Ketenangan Pasien', sourceHeader: 'Ketenangan Pasien' },
+  { sourceSequence: 6, code: '22.4', header: 'Kekosongan Linen', sourceHeader: 'Kekosongan Linen' },
   { sourceSequence: 8, code: '22.1', header: 'Assessment Stunting Wasting2', sourceHeader: 'Assessment Stunting Wasting2' },
 ] as const
 
+export const PEDIATRIC_MEDICINE_HEADER = 'Kekosongan Obat'
+
 export const PEDIATRIC_SOURCE_ONLY_FIELDS = [
-  {
-    key: '22.4_source_only',
-    code: '22.4',
-    header: 'Kekosongan Linen',
-    mappingStatus: 'source_semantics_not_mapped',
-    reason: 'Pilihan sumber (Menggunakan Linen/Stick Laken/Kekosongan) tidak sama dengan pilihan master 22.4; sumber dipertahankan untuk review tanpa konversi otomatis.',
-  },
-  {
-    key: '22.5_source_only',
-    code: '22.5',
-    header: 'Kekosongan Obat',
-    mappingStatus: 'free_text_source_not_mapped',
-    reason: 'Kolom workbook berisi nama obat dalam teks bebas, bukan pilihan kategori yang dapat dipetakan secara valid ke master 22.5.',
-  },
   {
     key: '22.9_source_only',
     code: '22.9',
@@ -85,7 +74,7 @@ export const PEDIATRIC_SOURCE_ONLY_FIELDS = [
   },
 ] as const
 
-const FORMULA_ERRORS = new Set(['#VALUE!', '#NUM!', '#REF!', '#DIV/0!', '#N/A', '#NAME?'])
+const FORMULA_ERRORS = new Set(['#VALUE!', '#NUM!', '#REF!', '#DIV/0!', '#N/A', '#NAME?', '#NULL!', '#SPILL!', '#CALC!'])
 
 const CORE_HEADER_ALIASES: Record<string, string[]> = {
   sourceNo: ['No.', 'No'],
@@ -153,6 +142,7 @@ export function mapPediatricLogbookHeaders(headerValues: unknown[] , interactive
 
   for (const [key, aliases] of Object.entries(CORE_HEADER_ALIASES)) resolve(key, aliases)
   for (const item of PEDIATRIC_SOURCE_INDICATORS) resolve('indicator:' + item.code, [item.sourceHeader])
+  resolve('indicator:22.5', [PEDIATRIC_MEDICINE_HEADER])
   for (const item of PEDIATRIC_SOURCE_ONLY_FIELDS) resolve(item.key, [item.header], false)
 
   return { indexes, missingHeaders, duplicateHeaders }
@@ -238,7 +228,7 @@ export function normalizePediatricOptionLabel(value: string): string {
     .toLocaleLowerCase('id-ID')
 }
 
-/** Match source label/code to master option, but always leave N/D classification pending. */
+/** Match the source label and optional code to an active master option. */
 export function parsePediatricSourceAnswer(
   raw: string,
   options: PediatricIndicatorOption[] | null | undefined,
@@ -276,7 +266,7 @@ export function parsePediatricSourceAnswer(
   if (masterCode == null || ![1,2,3].includes(masterCode)) {
     return pending('mapped_pending_classification', String(option.label))
   }
-  if (!direction) {
+  if (direction !== 'positive' && direction !== 'negative') {
     return {
       label: String(option.label),
       code: masterCode,
@@ -292,8 +282,8 @@ export function parsePediatricSourceAnswer(
   return {
     label: String(option.label),
     code: masterCode,
-    numerator: direction === 'negative' ? masterCode !== 1 : masterCode === 1,
-    denominator: true,
+    numerator: option.numerator ?? (direction === 'negative' ? masterCode !== 1 : masterCode === 1),
+    denominator: option.denominator ?? true,
     sourceLabel,
     sourceCode,
     reviewRequired: false,
