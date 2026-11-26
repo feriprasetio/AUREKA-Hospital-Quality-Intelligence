@@ -7,6 +7,7 @@ import { inspectQualityWorkbookRouting } from '@/lib/aureka/quality-workbook-sou
 import { isExcelSourceError, isMaterialWorkbookSourceRow } from '@/lib/aureka/quality-import-row-filter'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { resolveMeasurementKind, usesCategoricalResponseCapture } from '@/lib/aureka/indicator-engine'
+import { getIsolasiWorkbookIndicatorColumns, parseIsolasiSourceAnswer, type IsolasiIndicatorOption } from '@/lib/aureka/isolasi-inpatient-logbook'
 import { shouldUseIndicatorDropdown } from '@/lib/aureka/indicator-dropdown'
 import { isIndicatorApplicableToDiagnosis } from '@/lib/aureka/quality-logbook-coverage'
 import { getWorkbookRuleColumn, readWorkbookSourceColumns, type WorkbookSourceColumn, type WorkbookSourceRule } from '@/lib/aureka/quality-workbook-columns'
@@ -382,8 +383,10 @@ export default function QualityWorkbookImportPanel({
         if (key) { usedHeaders.add(key); guessed.push(label + ' ← ' + headerText(key)) }
         return key
       }
+      const isolasiColumns = roomId === 24 && year === 2026 && dSheet?.name === 'Logbook'
+        ? getIsolasiWorkbookIndicatorColumns(dSheet.columns) : null
       const nextData: Record<string, string> = dSheet ? {
-        date: pick(findSaved('field', 'field:record_date'), 'Tanggal', DATA_FIELD_SYNONYMS.date),
+        date: isolasiColumns ? findHeader(dSheet.headers, ['Tanggal Masuk']) : pick(findSaved('field', 'field:record_date'), 'Tanggal', DATA_FIELD_SYNONYMS.date),
         subject_key: pick(findSaved('field','field:subject_key'), 'No. RM', DATA_FIELD_SYNONYMS.subject_key),
         patient_name: pick(findSaved('field','field:patient_name'), 'Nama pasien', DATA_FIELD_SYNONYMS.patient_name),
         diagnosis: pick(findSaved('field','field:diagnosis'), 'Diagnosis', DATA_FIELD_SYNONYMS.diagnosis),
@@ -396,7 +399,7 @@ export default function QualityWorkbookImportPanel({
       for (const p of activeProfiles) {
         const schema = p.schema_json ?? {}
         const mapping = schema.excel_mapping ?? {}
-        nextIndicators[p.code] = pick(findSaved('indicator', 'indicator:' + p.code), p.code + ' · ' + p.title, [
+        nextIndicators[p.code] = isolasiColumns ? (isolasiColumns[p.code] ?? '') : pick(findSaved('indicator', 'indicator:' + p.code), p.code + ' · ' + p.title, [
           mapping.indicator_header, schema.header_label, p.code, p.title, ...aliasesFor(p),
         ])
         nextNums[p.code] = findSaved('field', 'field:' + p.code + ':numerator') ?? findHeader(dSheet?.headers ?? [], [mapping.numerator_header, p.code + ' numerator'].filter(Boolean))
@@ -585,6 +588,9 @@ export default function QualityWorkbookImportPanel({
     const rows: StagedRow[] = []
     const seenSourceKeys = new Set<string>()
     let skippedTemplateRows = 0
+    const excludedIsolasiRows: number[] = []
+    const isolasiColumns = roomId === 24 && year === 2026 && dataSheet === 'Logbook' && dataScope
+      ? getIsolasiWorkbookIndicatorColumns(dataScope.columns) : null
     if (importMode !== 'profiles_only') {
       if (!dataColumns.date) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Tanggal', message: 'Kolom tanggal wajib dipetakan agar catatan tidak hilang dari filter tahun laporan.' })
       if (importMode === 'data_only' && !activeProfiles.length) issues.push({ sheet: '-', row: 0, field: 'Profil aktif', message: 'Tidak ada profil indikator aktif untuk unit dan tahun terpilih.' })
@@ -598,6 +604,10 @@ export default function QualityWorkbookImportPanel({
           // Numbered blank PMKP template rows and cached formula errors are not cases.
           // Real rows with a person/date/selected observation still reach validation.
           skippedTemplateRows++
+          continue
+        }
+        if (isolasiColumns && dataColumns.date && !clean(source.values[dataColumns.date])) {
+          excludedIsolasiRows.push(source.rowNumber)
           continue
         }
         const byGrain = new Map<string, any[]>()
@@ -621,7 +631,20 @@ export default function QualityWorkbookImportPanel({
             const kind = resolveMeasurementKind(profile)
             const categorical = usesCategoricalResponseCapture(profile) || shouldUseIndicatorDropdown(profile as any)
             let response: Record<string, any> = { indicator_code: profile.code, response_label: null, response_code: null, raw_value: {}, review_status: 'not_required' }
-            if (categorical) {
+            if (valueHeader && isolasiColumns?.[profile.code] === valueHeader) {
+              const answer = parseIsolasiSourceAnswer(clean(rawCell), profile.options_json as IsolasiIndicatorOption[], profile.code)
+              if (!answer) continue
+              response.response_label = answer.label
+              response.response_code = answer.code
+              response.raw_value = {
+                answer: answer.label, code: answer.code, numerator: answer.numerator,
+                denominator: answer.denominator, source_value: answer.sourceLabel,
+                source_code: answer.sourceCode, review_required: answer.reviewRequired,
+                mapping_status: answer.mappingStatus,
+              }
+              response.other_text = answer.sourceLabel
+              response.review_status = answer.reviewRequired ? 'pending' : 'not_required'
+            } else if (categorical) {
               const option = optionForValue(profile, rawCell)
               if (!option || (option.code != null && ![1, 2, 3].includes(Number(option.code)))) throw new Error('Nilai "' + clean(rawCell) + '" tidak cocok tepat dengan opsi profil. Periksa pemetaan atau master opsi.')
               response.response_label = String(option.label)
@@ -694,6 +717,7 @@ export default function QualityWorkbookImportPanel({
           const sourceDiagnosis = dataColumns.diagnosis ? clean(source.values[dataColumns.diagnosis]) : ''
           const applicableProfiles = profiles.filter(profile =>
             grainValue(profile.measurement_grain) === grain &&
+            (!isolasiColumns || Boolean(indicatorColumns[profile.code])) &&
             isIndicatorApplicableToDiagnosis(profile.indicator_type, sourceDiagnosis))
           const isReady = applicableProfiles.length > 0 && applicableProfiles.every(profile =>
             responses.some(response => response.indicator_code === profile.code))
@@ -749,8 +773,14 @@ export default function QualityWorkbookImportPanel({
     if (rows.length > 10000) issues.push({ sheet: dataSheet, row: 0, field: 'Batas impor', message: 'Jumlah record hasil pemetaan melebihi batas 10.000 per batch.' })
     if (importMode !== 'profiles_only' && !rows.length) issues.push({ sheet: dataSheet || '-', row: 0, field: 'Respons', message: 'Tidak ada respons indikator valid yang dapat disimpan.' })
     setPreview({ master: activeProfiles, profiles, rows, issues, workbookRows: sourceDataRows.length, skippedTemplateRows, draftRows: rows.filter(row => row.row_payload.record_payload.status === 'draft').length })
+    const pendingIsolasiResponses = isolasiColumns
+      ? rows.reduce((total, row) => total + row.row_payload.responses.filter((response: Record<string, unknown>) =>
+        response.review_status === 'pending').length, 0)
+      : 0
     if (issues.length) setError('Pratinjau menemukan ' + issues.length.toLocaleString('id-ID') + ' masalah. Perbaiki pemetaan atau nilai sumber sebelum commit.')
-    else setNotice('Pratinjau valid: ' + profiles.length.toLocaleString('id-ID') + ' profil, ' + rows.length.toLocaleString('id-ID') + ' record, ' + sourceDataRows.length.toLocaleString('id-ID') + ' baris sumber. ' + rows.filter(row => row.row_payload.record_payload.status === 'draft').length.toLocaleString('id-ID') + ' record parsial akan tetap draf.')
+    else setNotice('Pratinjau valid: ' + profiles.length.toLocaleString('id-ID') + ' profil, ' + rows.length.toLocaleString('id-ID') + ' record, ' + sourceDataRows.length.toLocaleString('id-ID') + ' baris sumber. ' + rows.filter(row => row.row_payload.record_payload.status === 'draft').length.toLocaleString('id-ID') + ' record parsial akan tetap draf.'
+      + (excludedIsolasiRows.length ? ' Tanggal Masuk kosong pada baris Excel ' + excludedIsolasiRows.slice(0, 20).join(', ') + (excludedIsolasiRows.length > 20 ? ', …' : '') + '. Jumlah baris dilewati: ' + excludedIsolasiRows.length + '.' : '')
+      + (pendingIsolasiResponses ? ' ' + pendingIsolasiResponses + ' respons Isolasi memerlukan peninjauan. Isi asli akan disimpan.' : ''))
   }
 
   const runImport = async () => {
