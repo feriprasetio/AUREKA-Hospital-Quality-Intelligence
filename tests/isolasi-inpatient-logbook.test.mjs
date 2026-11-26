@@ -8,6 +8,7 @@ import {
   isIsolasiFormulaError,
   makeIsolasiSubjectKey,
   mapIsolasiLogbookHeaders,
+  getIsolasiWorkbookIndicatorColumns,
   normalizeIsolasiDate,
   normalizeIsolasiOptionLabel,
   parseIsolasiSourceAnswer,
@@ -189,4 +190,26 @@ test('recognizes formula errors without treating ordinary formula values as erro
   assert.equal(isIsolasiFormulaError('#DIV/0!'), true)
   assert.equal(isIsolasiFormulaError('#N/A'), true)
   assert.equal(isIsolasiFormulaError('0'), false)
+})
+
+test('maps the oxygen source column only to 24.9 in the complete Isolasi workbook', () => {
+  const columns = ISOLASI_SOURCE_INDICATORS.map(({ sourceHeader }, index) => ({
+    header: sourceHeader,
+    key: String(index),
+  }))
+  const mapping = getIsolasiWorkbookIndicatorColumns(columns)
+  assert.equal(mapping['24.9'], columns.find(column => column.header === 'Oksigen Transfer IGD').key)
+  assert.equal(mapping['24.7'], undefined)
+  assert.equal(getIsolasiWorkbookIndicatorColumns(columns.slice(1)), null)
+})
+
+test('uses classified master choices and keeps uncoded OAT notes pending', () => {
+  const oxygen = 'Sesuai (Mode & Flow Oksigen sama dengan instruksi IGD/Kondisi Stabil)'
+  const answer = parseIsolasiSourceAnswer(oxygen + ' (Code 1)', [classified(1, oxygen, true)], '24.9')
+  assert.equal(answer.code, 1)
+  assert.equal(answer.numerator, true)
+  assert.equal(answer.reviewRequired, false)
+  const note = parseIsolasiSourceAnswer('OAT dapat dari faskes lain', [classified(1, 'Diberikan OAT', true)], '24.1')
+  assert.equal(note.code, null)
+  assert.equal(note.reviewRequired, true)
 })

@@ -26,7 +26,7 @@ export type IsolasiSourceAnswer = {
   denominator: boolean
   sourceLabel: string
   sourceCode: number | null
-  reviewRequired: true
+  reviewRequired: boolean
   mappingStatus: 'mapped_pending_classification' | 'mapped_existing_master' | 'not_in_master' | 'ambiguous_master' | 'source_code_conflict'
 }
 
@@ -41,6 +41,19 @@ export const ISOLASI_SOURCE_INDICATORS = [
   { code: '24.3', header: 'SITB Pencatatan', sourceHeader: 'SITB Pencatatan' },
   { code: '24.4', header: 'Gejala TB Hilang', sourceHeader: 'Gejala TB Hilang' },
 ] as const
+
+/** The 2026 unit template has oxygen transfer and no assessment-transfer column. */
+export function getIsolasiWorkbookIndicatorColumns(columns: readonly { header: string; key: string }[]) {
+  const mapping: Record<string, string> = {}
+  for (const indicator of ISOLASI_SOURCE_INDICATORS) {
+    const matches = columns.filter(column =>
+      normalizeExactHeader(column.header) === normalizeExactHeader(indicator.sourceHeader),
+    )
+    if (matches.length !== 1) return null
+    mapping[indicator.code] = matches[0].key
+  }
+  return mapping
+}
 
 const CORE_HEADER_ALIASES: Record<string, string[]> = {
   sourceNo: ['No.', 'No'],
@@ -177,11 +190,7 @@ export function normalizeIsolasiOptionLabel(value: string): string {
     .toLocaleLowerCase('id-ID')
 }
 
-/**
- * Match source answers to existing master options only.
- * Seven Isolasi indicators have no published choices at present; their source values
- * remain not_in_master and review-required rather than being assigned invented codes.
- */
+/** Use the active classification only when the source label and code agree. */
 export function parseIsolasiSourceAnswer(
   raw: string,
   options: IsolasiIndicatorOption[] | null | undefined,
@@ -207,7 +216,7 @@ export function parseIsolasiSourceAnswer(
     }
   }
 
-  const matches = masterOptions.filter(option => normalizeIsolasiOptionLabel(option.label) === canonicalSource)
+  const matches = masterOptions.filter(option => [normalizedSource, canonicalSource].includes(normalizeIsolasiOptionLabel(option.label)))
   if (!matches.length) {
     return {
       label: unwrappedLabel, code: null, numerator: null, denominator: true,
@@ -230,17 +239,16 @@ export function parseIsolasiSourceAnswer(
     }
   }
 
+  const classified = masterCode != null && typeof option.numerator === 'boolean' && option.review_required !== true
   return {
     label: String(option.label),
     code: masterCode,
-    numerator: typeof option.numerator === 'boolean' ? option.numerator : null,
-    denominator: option.denominator !== false,
+    numerator: classified ? option.numerator! : null,
+    denominator: classified ? option.denominator !== false : true,
     sourceLabel,
     sourceCode,
-    reviewRequired: true,
-    mappingStatus: indicatorCode === '24.5' || indicatorCode === '24.6'
-      ? 'mapped_existing_master'
-      : 'mapped_pending_classification',
+    reviewRequired: !classified,
+    mappingStatus: classified ? 'mapped_existing_master' : 'mapped_pending_classification',
   }
 }
 

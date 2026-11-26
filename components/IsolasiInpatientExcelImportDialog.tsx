@@ -254,10 +254,10 @@ function preparePayload(
       denominator: answer.denominator,
       source_value: answer.sourceLabel,
       source_code: answer.sourceCode,
-      review_required: true,
+      review_required: answer.reviewRequired,
       mapping_status: answer.mappingStatus,
       classification_note: answer.mappingStatus === 'mapped_existing_master'
-        ? 'Pilihan Linen/Obat diselaraskan dengan master aktif yang sudah memiliki klasifikasi; respons tetap pending untuk verifikasi sumber.'
+        ? 'Pilihan sumber cocok dengan klasifikasi master aktif.'
         : 'Pilihan sumber dipertahankan; numerator/denominator belum ditetapkan dan menunggu verifikasi pemilik indikator.',
     }
     indicatorValues[item.code] = rawValue
@@ -268,7 +268,7 @@ function preparePayload(
       response_code: answer.code,
       raw_value: rawValue,
       other_text: answer.sourceLabel,
-      review_status: 'pending',
+      review_status: answer.reviewRequired ? 'pending' : 'not_required',
     })
   }
 
@@ -773,7 +773,7 @@ export default function IsolasiInpatientExcelImportDialog({
             <input key={fileKey} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={parsing || importing} onChange={(event: any) => { const selected = event.target.files?.[0]; if (selected) void parseWorkbook(selected); event.target.value = '' }} />
             <span className="aqMetaText">{file ? file.name + ' · ' + (file.size / 1024 / 1024).toFixed(2) + ' MB' : 'Maksimal 15 MB · Sheet sumber: Logbook'}</span>
           </div>
-          {parsing && <div style={{ marginTop: 8 }}>Membaca episode, tanggal, dan pilihan tujuh indikator...</div>}
+          {parsing && <div style={{ marginTop: 8 }}>Membaca episode, tanggal, dan pilihan sembilan indikator...</div>}
         </div>
 
         {findings && <div className="suBox">
@@ -784,12 +784,12 @@ export default function IsolasiInpatientExcelImportDialog({
         {rows.length > 0 && <div className="suStats">
           <div className="suStat"><span>Episode lolos validasi</span><strong>{rows.length}</strong></div>
           <div className="suStat"><span>Respons sumber indikator</span><strong>{mappedResponses}</strong></div>
-          <div className="suStat"><span>Alias Linen/Obat ke master</span><strong>{aliasMappedResponses}</strong></div>
+          <div className="suStat"><span>Respons cocok dengan master</span><strong>{aliasMappedResponses}</strong></div>
           <div className="suStat"><span>Episode dengan warning</span><strong>{rowsWithWarnings}</strong></div>
         </div>}
 
         {rows.length > 0 && findings && <div className="suBox suWarn">
-          <strong>Review klasifikasi:</strong> Tujuh indikator 24.1–24.4, 24.8–24.10 belum memiliki pilihan pada master terbit. Nilai sumber dipertahankan sebagai not_in_master dengan kode sumber asli, numerator NULL, dan review_required true. Indikator Linen 24.5 dan Obat 24.6 menggunakan alias eksplisit ke pilihan master aktif yang telah memiliki klasifikasi; master tidak diubah. Seluruh respons tetap pending untuk review.
+          <strong>Review klasifikasi</strong> · Pilihan yang cocok dengan master aktif memakai klasifikasi profil. Nilai yang belum terpetakan tersimpan untuk ditinjau. Kolom Oksigen Transfer IGD mengisi 24.9.
           <div style={{ marginTop: 6 }}>Kategori Pasien kosong: {findings.missingCategories}; Status Pulang kosong: {findings.missingDischargeStatus}; Perawat Penerima kosong: {findings.missingReceivingNurse}; DPJP kosong: {findings.missingDpjp}. Semua nilai kosong dipertahankan, bukan diisi otomatis.</div>
           <div style={{ marginTop: 6 }}>Sel kosong: Visite Spesialis {findings.emptySpecialistVisitResponses}; Terapi OAT {findings.emptyOatResponses}; Sputum/TCM {findings.emptySputumResponses}; SITB {findings.emptySitbResponses}; Gejala TB Hilang {findings.emptySymptomResponses}. Sel kosong tidak dibuat sebagai respons nol atau ketidakpatuhan.</div>
           <div style={{ marginTop: 6 }}>Kekosongan Linen dan Kekosongan Obat memiliki pilihan kategori eksplisit pada workbook dan dipetakan melalui alias yang telah ditentukan ke master 24.5/24.6.</div>
@@ -839,7 +839,7 @@ export default function IsolasiInpatientExcelImportDialog({
         {result && <div className="suBox suSuccess">
           <strong>Ringkasan impor dari server</strong>
           <div style={{ marginTop: 6 }}>{result.imported} episode baru tersimpan · {result.skipped} dilewati karena sudah ada · {result.received} diterima server.</div>
-          <div className="aqSub">Seluruh respons indikator berada dalam status pending untuk review sebelum digunakan pada analisis mutu.</div>
+          <div className="aqSub">Respons yang cocok dengan master telah diklasifikasikan. Episode mengikuti proses validasi mutu.</div>
         </div>}
 
         </div>
