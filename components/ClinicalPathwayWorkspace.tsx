@@ -728,6 +728,9 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         p_payload: payload,
         p_staff_changes: Object.fromEntries(changedIdentityKeys.map(field => [field, staffAttributions[field] || null])),
       })
+      if (result.error?.code === 'P0001') {
+        throw new Error('Audit tidak dapat diubah atau sudah diperbarui. Buka ulang audit sebelum menyimpan.')
+      }
       if (result.error) throw result.error
       setSavedStaffAttributions({ ...staffAttributions })
       const fallback = templates.find((x) => x.code === result.data.template_code) || form.template

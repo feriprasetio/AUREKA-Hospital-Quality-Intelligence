@@ -483,6 +483,14 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         p_payload: payload,
         p_staff_changes: dpjpStaffId === savedDpjpStaffId ? {} : { dpjp: dpjpStaffId || null },
       })
+      if (error?.code === '23505') {
+        setMessage('Telaah untuk episode dan periode ini sudah ada. Muat ulang daftar untuk membukanya.')
+        return
+      }
+      if (error?.code === 'P0001') {
+        setMessage('Telaah tidak dapat diubah atau sudah diperbarui. Buka ulang telaah sebelum menyimpan.')
+        return
+      }
       if (error) throw error
       await load()
       setEditorOpen(false)
@@ -493,9 +501,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       setSavedDpjpStaffId('')
     } catch (error) {
       const detail = toUserFacingError(error, { fallback: 'Periksa koneksi atau buka ulang telaah sebelum mencoba kembali.' })
-      setMessage(/duplicate key|unique constraint|clinical_death_audits_source/i.test(detail)
-        ? 'Telaah untuk episode dan periode ini sudah ada. Muat ulang daftar untuk membukanya.'
-        : 'Gagal menyimpan telaah: ' + detail)
+      setMessage('Gagal menyimpan telaah: ' + detail)
     } finally {
       setSaving(false)
     }
@@ -522,7 +528,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
       setActiveAudit(null)
       setMessage(nextStatus === 'validated' ? 'Telaah berhasil divalidasi.' : 'Telaah dikembalikan untuk perbaikan.')
     } catch (error) {
-      const detail = toUserFacingError(error, { fallback: 'Periksa koneksi atau buka ulang telaah sebelum mencoba kembali.' })
+      const detail = error instanceof Error ? error.message : 'Kesalahan yang tidak diketahui.'
       setMessage('Gagal memperbarui status telaah: ' + detail)
     } finally {
       setSaving(false)
