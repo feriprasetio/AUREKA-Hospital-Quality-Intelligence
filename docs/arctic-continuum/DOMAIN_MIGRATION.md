@@ -1,0 +1,3 @@
+# Domain migration increment — Arctic Continuum v2.0
+
+Opt-in direct register entry for Sekretariat, Staff Directory, IHT and Student Orientation. Existing legacy landing remains reachable. Optional summaries are genuine existing content; no duplicate master data or API. Preserve document, certificate, evaluation, team, staff profile and QR flows. No database changes. Browser checks exercise the four entrypoints, not every create/update/export/role/scope combination. Backend permission and formula parity remain release blockers for full v2.0. Chromium startup failure now emits diagnostics and still blocks release; no test bypass.

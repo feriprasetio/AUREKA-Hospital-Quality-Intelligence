@@ -30,6 +30,7 @@ export default function MetadataStatisticsWorkspace({
   initialDirectoryTab = 'directory',
   showTabs = true,
   lockRoomScope = false,
+  dataFirst = false,
 }: {
   rooms: Room[]
   isSuperAdmin: boolean
@@ -39,6 +40,7 @@ export default function MetadataStatisticsWorkspace({
   initialDirectoryTab?: DirectoryTab
   showTabs?: boolean
   lockRoomScope?: boolean
+  dataFirst?: boolean
 }) {
   const canOpenTeam = ['ADMIN', 'PMKP', 'PIC', 'VALIDATOR'].includes(role || '')
   const canManageAllRooms = isSuperAdmin || role === 'PMKP'
@@ -160,7 +162,7 @@ export default function MetadataStatisticsWorkspace({
           )}
           {activeDirectoryTab === 'directory' && canOpenDirectory && (
             <div className="mswContent" role="tabpanel" aria-label="Daftar Tenaga Kerja">
-              <StaffDirectoryWorkspace />
+              <StaffDirectoryWorkspace dataFirst={dataFirst} />
             </div>
           )}
           {activeDirectoryTab === 'team' && canOpenTeam && (
