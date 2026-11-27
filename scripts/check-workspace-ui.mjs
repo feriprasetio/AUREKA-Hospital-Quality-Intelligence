@@ -488,7 +488,8 @@ try {
     try {
       await evaluate("location.hash='#keselamatan-pasien/incidents'")
       await wait("document.querySelector('.arcticGridFooter')")
-      await clickText('.psActions button','Refresh')
+      await wait("Array.from(document.querySelectorAll('.ps button')).some(b=>b.textContent.includes('Refresh')&&!b.disabled)")
+      await clickText('.ps button','Refresh')
       await wait("document.querySelector('.arcticGridFooter').textContent.includes('dari 61')")
       assert.equal(await evaluate("document.querySelectorAll('.psTable tbody tr').length"),25)
       await clickText('.arcticGridFooter button','Berikutnya')
