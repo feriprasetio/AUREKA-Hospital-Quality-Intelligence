@@ -100,7 +100,7 @@ function CertificateVerification({code,logoSrc}:{code:string;logoSrc:string}){
       </a>
       <button className="aurekaPublicSecondary" type="button" onClick={goBack}>Kembali ke portal</button>
     </div></header>
-    <section className="aurekaPublicVerifyWrap" aria-live="polite">
+    <section className="aurekaPublicVerifyWrap" aria-live="polite" aria-busy={loading}>
       <div className="aurekaPublicVerifyCard">
         <div className="aurekaPublicVerificationSymbol" aria-hidden="true">{loading?'…':error?'!':valid?'✓':'!'}</div>
         <p className="aurekaPublicEyebrow">PENGESAHAN SERTIFIKAT · AUREKA</p>
@@ -153,7 +153,7 @@ export default function PublicLandingPage({logoSrc,onLogin,verificationCode}:{lo
   const measured=indicators.filter(item=>number(item.actual)!==null)
   const available=Object.values(feed||{}).filter(Boolean).length
   const updated=Object.values(feed||{}).filter(Boolean).map(x=>x?.published_at).filter((x):x is string=>Boolean(x)).sort().at(-1)
-  if(verificationCode)return <CertificateVerification code={verificationCode} logoSrc={logoSrc}/>
+  if(verificationCode)return <CertificateVerification key={verificationCode} code={verificationCode} logoSrc={logoSrc}/>
   const submitCertificate=()=>{const code=certificateInput.trim().toUpperCase();if(code)window.location.hash='cert/'+encodeURIComponent(code)}
   return <main className="aurekaPublic" id="beranda">
     <a className="aurekaPublicSkip" href="#konten">Lewati ke konten</a>
