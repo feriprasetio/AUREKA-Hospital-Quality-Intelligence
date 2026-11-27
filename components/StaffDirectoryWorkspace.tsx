@@ -486,7 +486,7 @@ export default function StaffDirectoryWorkspace({dataFirst=false}:{dataFirst?:bo
           </section>
         </div>, document.body
       )}
-      {profileStaff && <StaffCrossModuleProfilePanel staff={profileStaff} onClose={() => setProfileStaff(null)} />}
+      {profileStaff && <StaffCrossModuleProfilePanel key={profileStaff.id} staff={profileStaff} onClose={() => setProfileStaff(null)} />}
     </section>
   )
 }

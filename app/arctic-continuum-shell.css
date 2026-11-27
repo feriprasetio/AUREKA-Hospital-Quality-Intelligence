@@ -71,3 +71,14 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme][da
 .arcticDomainSummary { min-width:0; margin:4px 0; }
 .arcticDomainSummary > summary { cursor:pointer; font-size:var(--aureka-canvas-small-size,12px); font-weight:650; padding:8px 4px; color:var(--aureka-color-foreground); }
 .arcticDomainSummary > summary:focus-visible { outline:2px solid var(--aureka-color-primary); outline-offset:2px; }
+
+/* Column visibility is view-only; retain mandatory ID, unit and workflow status. */
+.arcticGridColumnControls { display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap; margin-block:4px; }
+.arcticGridColumns { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; min-width:0; border:1px solid var(--aureka-canvas-divider); border-radius:8px; padding:8px; }
+.arcticGridColumns label { display:inline-flex; align-items:center; gap:6px; min-height:32px; }
+.arcticGridColumns small { flex-basis:100%; color:var(--aureka-canvas-muted); }
+.arcticGridColumns input:focus-visible { outline:2px solid var(--aureka-color-primary); outline-offset:2px; }
+@media(min-width:768px) {
+  [data-arctic-grid="incident"] th[data-column="incident_code"],[data-arctic-grid="incident"] td[data-column="incident_code"] { position:sticky; left:0; z-index:1; background:var(--aureka-dialog-surface); }
+  [data-arctic-grid="incident"] th[data-column="incident_code"] { z-index:3; }
+}

@@ -18,6 +18,7 @@ import SurveyWizard from '@/components/patient-safety/SurveyWizard'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
+import { INCIDENT_GRID_COLUMNS, incidentGridColumns, sortIncidentGrid, incidentGridPage, type IncidentGridColumn, type IncidentGridSort } from '@/lib/aureka/incident-grid-view'
 import { logSensitiveView } from '@/lib/aureka/sensitive-access'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 
@@ -353,7 +354,10 @@ export default function PatientSafetyWorkspace({
   const [statusFilter, setStatusFilter] = useState('all')
   const [registerPage,setRegisterPage]=useState(1)
   const [registerPageSize,setRegisterPageSize]=useState(25)
-  const [registerSort,setRegisterSort]=useState<{key:'incident_code'|'incident_date'|'unit_name'|'incident_type'|'summary'|'status';direction:1|-1}|null>(null)
+  const [registerSort,setRegisterSort]=useState<IncidentGridSort|null>(null)
+  const [hiddenRegisterColumns,setHiddenRegisterColumns]=useState<IncidentGridColumn[]>([])
+  const [columnSettingsOpen,setColumnSettingsOpen]=useState(false)
+  useEffect(()=>{setHiddenRegisterColumns([]);setColumnSettingsOpen(false)},[scopeRoomId,arcticGrid])
   const [unitFilter, setUnitFilter] = useState(scopeUnitName || 'all')
 
   const [incidentId, setIncidentId] = useState('')
@@ -538,11 +542,25 @@ export default function PatientSafetyWorkspace({
     return matchesStatus && matchesUnit && matchesSearch
   }), [incidents, statusFilter, unitFilter, search])
   useEffect(()=>{setRegisterPage(1)},[statusFilter,unitFilter,search,registerPageSize,scopeRoomId,registerSort,arcticGrid])
-  const sortedRegister=useMemo(()=>arcticGrid&&registerSort?[...filteredIncidents].sort((a,b)=>{const av=String(a[registerSort.key]??''),bv=String(b[registerSort.key]??'');return (!av&&!bv?0:!av?1:!bv?-1:av.localeCompare(bv,'id-ID',{numeric:true,sensitivity:'base'})*registerSort.direction)||String(a.id).localeCompare(String(b.id))}):filteredIncidents,[filteredIncidents,arcticGrid,registerSort])
-  const registerPages=Math.max(1,Math.ceil(sortedRegister.length/registerPageSize))
-  const currentRegisterPage=Math.min(registerPage,registerPages)
-  const registerRows=arcticGrid?sortedRegister.slice((currentRegisterPage-1)*registerPageSize,currentRegisterPage*registerPageSize):sortedRegister
-  const registerColumns=[['incident_code','Kode'],['incident_date','Tanggal'],['unit_name','Unit'],['incident_type','Jenis'],['summary','Ringkasan'],['status','Status']] as const
+  const sortedRegister=useMemo(()=>arcticGrid?sortIncidentGrid(filteredIncidents,registerSort):filteredIncidents,[filteredIncidents,arcticGrid,registerSort])
+  const page=incidentGridPage(sortedRegister,registerPage,registerPageSize)
+  const registerPages=page.pages
+  const currentRegisterPage=page.current
+  const registerRows=arcticGrid?page.rows:sortedRegister
+  const registerColumns=incidentGridColumns(arcticGrid?hiddenRegisterColumns:[])
+  const toggleRegisterColumn=(key:IncidentGridColumn)=>{
+    if(INCIDENT_GRID_COLUMNS.some(column=>column[0]===key&&column[2]))return
+    setHiddenRegisterColumns(current=>current.includes(key)?current.filter(value=>value!==key):[...current,key])
+    if(registerSort?.key===key)setRegisterSort(null)
+  }
+  const renderRegisterCell=(row:IncidentRow,key:IncidentGridColumn)=>{
+    switch(key){
+      case 'incident_code': return <span className="psCode">{row.incident_code}</span>
+      case 'incident_type': {const g=gradeIncident(row.form_data||{});return <>{g&&<span className={'psGradeDot '+g.color} title={'Grading '+g.label} aria-label={'Grading '+g.label}/>}{row.incident_type||'-'}</>}
+      case 'status':return <span className={'psPill '+statusClass(row.status)}>{statusLabel(row.status)}</span>
+      default:return row[key]||'-'
+    }
+  }
 
   const openInvestigations = useMemo(() => investigations.filter(row => row.status !== 'closed'), [investigations])
   const responseGroups = useMemo(() => aggregateSafetyCultureResponses(responses), [responses])
@@ -1098,10 +1116,14 @@ export default function PatientSafetyWorkspace({
           
         </div>
 
-        {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table key={arcticGrid?'arctic-register':'legacy-register'} className="psTable" data-ak-sort={arcticGrid?'off':undefined}><thead><tr>{registerColumns.map(([key,label])=><th key={key} aria-sort={arcticGrid&&registerSort?.key===key?(registerSort.direction===1?'ascending':'descending'):undefined}>{arcticGrid?<button type="button" className="arcticGridSort" onClick={()=>setRegisterSort(current=>current?.key===key?(current.direction===1?{key,direction:-1}:null):{key,direction:1})}>{label}<span aria-hidden="true">{registerSort?.key===key?(registerSort.direction===1?'▲':'▼'):'↕'}</span></button>:label}</th>)}<th></th></tr></thead><tbody>
-          {registerRows.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
+        {arcticGrid&&<div className="arcticGridColumnControls">
+          <button type="button" className="psBtn" aria-expanded={columnSettingsOpen} aria-controls={columnSettingsOpen?'ps-grid-columns':undefined} onClick={()=>setColumnSettingsOpen(value=>!value)}>Kolom · {registerColumns.length}/{INCIDENT_GRID_COLUMNS.length}</button>
+          {columnSettingsOpen&&<fieldset id="ps-grid-columns" className="arcticGridColumns"><legend>Kolom register yang ditampilkan</legend>{INCIDENT_GRID_COLUMNS.map(([key,label,required])=><label key={key}><input type="checkbox" checked={!hiddenRegisterColumns.includes(key)} disabled={required} onChange={()=>toggleRegisterColumn(key)}/>{label}{required?' (wajib)':''}</label>)}<button type="button" className="psBtn" onClick={()=>setHiddenRegisterColumns([])}>Reset kolom</button><small>Hanya mengatur tampilan; tidak mengubah data, pencarian, atau ekspor.</small></fieldset>}
+        </div>}
+        {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table key={arcticGrid?'arctic-register':'legacy-register'} className="psTable" data-arctic-grid={arcticGrid?'incident':undefined} data-ak-sort={arcticGrid?'off':undefined}><thead><tr>{registerColumns.map(([key,label])=><th scope="col" data-column={key} key={key} aria-sort={arcticGrid&&registerSort?.key===key?(registerSort.direction===1?'ascending':'descending'):undefined}>{arcticGrid?<button type="button" className="arcticGridSort" onClick={()=>setRegisterSort(current=>current?.key===key?(current.direction===1?{key,direction:-1}:null):{key,direction:1})}>{label}<span aria-hidden="true">{registerSort?.key===key?(registerSort.direction===1?'▲':'▼'):'↕'}</span></button>:label}</th>)}<th></th></tr></thead><tbody>
+          {registerRows.map(row => <tr key={row.id}>{registerColumns.map(([key])=><td key={key} data-column={key}>{renderRegisterCell(row,key)}</td>)}<td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{loading ? 'Memuat register insiden…' : error ? 'Register belum dapat dipastikan lengkap. Muat ulang data.' : incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
-        {arcticGrid&&sortedRegister.length>0&&<div className="arcticGridFooter" aria-label="Paginasi register insiden"><output>{(currentRegisterPage-1)*registerPageSize+1}–{Math.min(currentRegisterPage*registerPageSize,sortedRegister.length)} dari {sortedRegister.length} laporan</output><label>Baris per halaman<select aria-label="Baris per halaman register" value={registerPageSize} onChange={e=>setRegisterPageSize(Number(e.target.value))}>{[25,50,100].map(size=><option key={size} value={size}>{size}</option>)}</select></label><button type="button" disabled={currentRegisterPage===1} onClick={()=>setRegisterPage(currentRegisterPage-1)}>Sebelumnya</button><span>Halaman {currentRegisterPage} / {registerPages}</span><button type="button" disabled={currentRegisterPage===registerPages} onClick={()=>setRegisterPage(currentRegisterPage+1)}>Berikutnya</button></div>}
+        {arcticGrid&&sortedRegister.length>0&&<div className="arcticGridFooter" aria-label="Paginasi register insiden"><output>{page.start}–{page.end} dari {sortedRegister.length} laporan</output><label>Baris per halaman<select aria-label="Baris per halaman register" value={registerPageSize} onChange={e=>setRegisterPageSize(Number(e.target.value))}>{[25,50,100].map(size=><option key={size} value={size}>{size}</option>)}</select></label><button type="button" disabled={currentRegisterPage===1} onClick={()=>setRegisterPage(currentRegisterPage-1)}>Sebelumnya</button><span>Halaman {currentRegisterPage} / {registerPages}</span><button type="button" disabled={currentRegisterPage===registerPages} onClick={()=>setRegisterPage(currentRegisterPage+1)}>Berikutnya</button></div>}
       </LiquidGlass>
       {canManageWorkflow && <div id="ps-register-qr" tabIndex={-1} role="region" aria-label="Laporan dan pengelolaan QR" style={{scrollMarginTop:"calc(var(--aur-header-h, 64px) + 16px)"}}><QrReportsPanel supabase={supabase} rooms={rooms} refreshKey={qrRefresh} onProcess={(r: QrReport, roomName: string) => {
         newIncident()
