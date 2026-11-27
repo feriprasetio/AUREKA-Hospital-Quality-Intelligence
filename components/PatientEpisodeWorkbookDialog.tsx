@@ -1,4 +1,5 @@
 'use client'
+import { readPkrsWorkbookGroups } from '@/lib/aureka/pkrs-workbook'
 import QualityWorkbookStagedPreview from '@/components/quality/QualityWorkbookStagedPreview'
 import QualityWorkbookImportSidebar, { QualityWorkbookLogbookHeading } from '@/components/quality/QualityWorkbookImportSidebar'
 
@@ -310,6 +311,8 @@ export default function PatientEpisodeWorkbookDialog({
   }
 
   const columns = file?.parsed.logbook.columns ?? []
+  const pkrsGroups = file && roomId === 21 && file.parsed.hasLogbook
+    ? readPkrsWorkbookGroups(file.parsed.logbook.sheet, file.parsed.logbook.header) : []
   const selectedCount = mappings.filter(mapping => mapping.column).length
   const labelImport = (preview ? preview.profiles.length > 0 : applyProfiles) ? 'Simpan profil dan impor' : 'Impor episode'
   return <AurekaModal open title="Impor workbook episode pasien" subtitle={roomName + ' · ' + year} size="xl"
@@ -331,6 +334,13 @@ export default function PatientEpisodeWorkbookDialog({
           }}/></label>
           {!file && onLegacyImport && <button type="button" onClick={onLegacyImport}>Buka impor khusus unit</button>}
         </div>
+        {pkrsGroups.length > 0 && <details open>
+          <summary>Topik edukasi per profesi</summary>
+          <ul>{pkrsGroups.map(({ profession, topics }) => <li key={profession}>
+            <strong>{profession}</strong> · {topics.map(topic => topic.address + ' ' + topic.label).join(', ')}
+          </li>)}</ul>
+          <p>Pelaksanaan Edukasi tetap dicatat sebagai satu respons 21.1 per survei.</p>
+        </details>}
         {preview && <QualityWorkbookStagedPreview rows={preview.rows} />}
         {file && <>
           <p className="episodeWorkbookMeta">{file.name} · {file.parsed.hasLogbook
