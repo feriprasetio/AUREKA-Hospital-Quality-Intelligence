@@ -89,7 +89,7 @@ const risks = Array.from({ length: 19 }, (_, index) => ({
   risk_level: 'Sangat Rendah', category: 'Operasional', status: 'Open',
   causes: 'Skenario uji antarmuka', created_at: '2026-10-01T00:00:00Z', created_by: uid,
 }))
-const incidents = [{
+let incidents = [{
   id: '50000000-0000-4000-8000-000000000001', incident_code: 'UI-IKP-001',
   incident_date: '2026-10-15', incident_time: '08:00', unit_name: rooms[0].name,
   incident_type: 'KNC', summary: 'Insiden sintetis untuk pengujian antarmuka', status: 'draft',
@@ -469,6 +469,42 @@ try {
     await clickText('.arcticLayoutExit','Layout lama')
     await wait("document.querySelector('aside.sidebar')&&!document.querySelector('[data-arctic-shell]')")
     assert.equal(await evaluate("new URLSearchParams(location.search).has('arctic')"),false)
+    await wait("document.querySelector('.ccSectionHead')")
+  })
+  await check('Arctic quick navigation and paginated incident grid use real scoped rows', async () => {
+    await click('.arcticPreviewSwitch')
+    await wait("document.querySelector('[data-arctic-shell=continuum]')")
+    await evaluate("document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',ctrlKey:true,bubbles:true,cancelable:true}))")
+    await wait("document.querySelector('#arctic-module-query')")
+    await fill('#arctic-module-query','keselamatan pasien')
+    await wait("document.querySelector('[data-arctic-quick=patient_safety]')")
+    await fill('#arctic-module-query','TidakAdaModul987')
+    await wait("document.querySelector('.arcticQuickBody').textContent.includes('Tidak ditemukan')")
+    await fill('#arctic-module-query','keselamatan pasien')
+    await click('[data-arctic-quick=patient_safety]')
+    await wait("document.querySelector('.moduleEnter')?.dataset.workspaceContainer==='safety'")
+    const original=incidents
+    incidents=Array.from({length:61},(_,i)=>({...original[0],id:'50000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),incident_code:'UI-IKP-'+String(i+1).padStart(3,'0')}))
+    try {
+      await evaluate("location.hash='#keselamatan-pasien/incidents'")
+      await wait("document.querySelector('.arcticGridFooter')")
+      await clickText('.psActions button','Refresh')
+      await wait("document.querySelector('.arcticGridFooter').textContent.includes('dari 61')")
+      assert.equal(await evaluate("document.querySelectorAll('.psTable tbody tr').length"),25)
+      await clickText('.arcticGridFooter button','Berikutnya')
+      await wait("document.querySelector('.arcticGridFooter').textContent.includes('26–50')")
+      await clickText('.arcticGridSort','Kode')
+      await clickText('.arcticGridSort','Kode')
+      await wait("document.querySelector('.psTable tbody tr').textContent.includes('UI-IKP-061')")
+      await fill('#ps-register-search','UI-IKP-060')
+      await wait("document.querySelector('.arcticGridFooter').textContent.includes('dari 1')")
+      assert.equal(await evaluate("document.querySelectorAll('.psTable tbody tr').length"),1)
+      await fill('#ps-register-search','')
+      await screenshot('arctic-incident-grid')
+    } finally { incidents=original }
+    await clickText('.arcticLayoutExit','Layout lama')
+    await wait("document.querySelector('aside.sidebar')")
+    await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
   await check('Arctic category and module visibility matches legacy for all eight roles', async () => {

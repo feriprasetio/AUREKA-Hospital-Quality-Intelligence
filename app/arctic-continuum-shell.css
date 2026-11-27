@@ -49,3 +49,21 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme][da
   .arcticModuleGrid { grid-template-columns:minmax(0,1fr); }
 }
 @media(prefers-reduced-motion:reduce) { .arcticCategoryNav * { scroll-behavior:auto; transition:none; } }
+
+/* Reuse the existing modal controller and semantic theme, including dark mode. */
+.arcticQuickTrigger kbd { font:inherit; opacity:.8; margin-left:4px; }
+.arcticQuickBody { display:grid; gap:10px; padding:12px; color:var(--aureka-color-foreground); }
+.arcticQuickBody input { min-height:44px; width:100%; font:inherit; padding:8px 12px; border:1px solid var(--aureka-control-edge); border-radius:8px; color:inherit; background:var(--aureka-dialog-surface); }
+.arcticQuickResults { display:grid; gap:6px; }
+.arcticQuickResults button { display:grid; gap:4px; text-align:left; min-height:44px; padding:10px; font:inherit; color:inherit; background:var(--aureka-dialog-surface); border:1px solid var(--aureka-dialog-edge); border-radius:8px; cursor:pointer; }
+.arcticQuickResults button:hover { background:var(--aureka-header-hover); }
+.arcticQuickBody :is(button,input):focus-visible { outline:2px solid var(--aureka-color-primary); outline-offset:2px; }
+.arcticQuickResults small { color:var(--aureka-canvas-muted); }
+@media(max-width:767px) { .arcticQuickTrigger kbd { display:none; } .arcticCategoryBar { gap:4px; padding-inline:4px; } }
+.arcticGridFooter { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding-block:8px; color:var(--aureka-color-foreground); }
+.arcticGridFooter label { display:flex; align-items:center; gap:6px; }
+.arcticGridFooter output { margin-inline-end:auto; }
+.arcticGridFooter :is(button,select) { min-height:36px; font:inherit; color:inherit; border:1px solid var(--aureka-control-edge); border-radius:8px; padding:4px 10px; background:var(--aureka-dialog-surface); }
+.arcticGridFooter button:disabled { opacity:.55; cursor:not-allowed; }
+.arcticGridSort { display:inline-flex; gap:4px; background:transparent; color:inherit; border:0; font:inherit; font-weight:inherit; cursor:pointer; padding:4px; text-align:left; }
+.arcticGridSort:focus-visible,.arcticGridFooter :is(button,select):focus-visible { outline:2px solid var(--aureka-color-primary); outline-offset:2px; }

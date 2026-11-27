@@ -762,7 +762,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 onSelectCategory={setCategoryFilter} includeReady={includeReady}
                 onAskNara={onAskNara} roomName={roomNameOf}/>
             </section>}
-            {compareGroups.length > 0 && <section className="qraPanel" aria-label="Perbandingan antar unit">
+            {compareGroups.length > 0 && <details className="qraPanel" aria-label="Perbandingan antar unit" data-arctic-analytics="comparison"><summary>Perbandingan antar unit · {compareGroups.length} indikator</summary>
               <div className="qraPanelHead"><div><h3>Perbandingan antar unit</h3><p className="qraMuted">Indikator yang sama diukur di beberapa unit. Urutan dari capaian terbaik; merah berarti belum memenuhi target.</p></div><span className="qraPill">{compareGroups.length} indikator</span></div>
               <div className="qraCompare">
                 {(compareOpen ? compareGroups : compareGroups.slice(0, 4)).map((group) => {
@@ -778,7 +778,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
                 })}
               </div>
               {compareGroups.length > 4 && <div className="qraCompareMore"><button type="button" className="qraBtn" onClick={() => setCompareOpen((v) => !v)}>{compareOpen ? 'Tampilkan lebih sedikit' : 'Lihat semua ' + compareGroups.length + ' indikator'}</button></div>}
-            </section>}
+            </details>}
             <section className="qraPanel">
               <div className="qraPanelHead"><div><h3>Hasil setiap indikator{groupBy === 'category' && categoryFilter ? ' · ' + categoryFilter : ''}</h3></div><span className="qraPill">{selectedRoomName} · {year}</span></div>
               {visibleIndicatorResults.length === 0
