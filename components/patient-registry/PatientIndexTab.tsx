@@ -179,7 +179,6 @@ export default function PatientIndexTab({ isAdmin, rooms = [], dataFirst = false
         <button type="button" className="prButton" aria-expanded={invalid !== null||invalidLoading||!!invalidError} aria-controls="pi-invalid-rm" onClick={() => { if (invalid !== null||invalidLoading||invalidError) closeInvalid(); else void loadInvalid() }}>{invalid !== null||invalidLoading||invalidError ? 'Tutup No. RM bermasalah' : 'Periksa No. RM bermasalah'}</button>
       </div>
       <div className="piFilters">
-        {dataFirst&&<label className="piSearch"><span className="piSr">Cari pasien</span><input type="search" aria-label="Cari pasien" autoComplete="off" placeholder="Cari No. RM atau nama" value={search} onChange={e=>setSearch(e.target.value)}/></label>}
         <label className="piSelect"><span className="piSr">Unit</span>
           <select value={roomId ?? ''} disabled={v2 === false||lockRoomScope} onChange={(e) => { setRoomId(e.target.value ? Number(e.target.value) : null); setPage(0) }} aria-label="Filter unit">
             <option value="">Semua unit</option>

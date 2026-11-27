@@ -580,12 +580,12 @@ try {
     await clickText('.prFoot button','Berikutnya')
     await wait("document.querySelector('.piTable tbody').textContent.includes('UI-RM-051')")
     assert.equal(await evaluate("document.querySelectorAll('.piTable .piRow').length"),1)
-    await fill('input[aria-label="Cari pasien"]','UI-RM-010')
+    await fill('.workspaceGlobalSearchInput','UI-RM-010')
     await wait("document.querySelector('.piTable tbody').textContent.includes('UI-RM-010')")
     assert.equal(await evaluate("document.querySelectorAll('.piTable .piRow').length"),1)
     failPatientReads=true
     try{
-      await fill('input[aria-label="Cari pasien"]','UI-RM-011')
+      await fill('.workspaceGlobalSearchInput','UI-RM-011')
       await wait("document.querySelector('.piWrap [role=alert]')")
       assert.equal(await evaluate("document.querySelectorAll('.piTable .piRow').length"),0)
       await wait("document.querySelector('.piTable tbody').textContent.includes('belum dapat dipastikan')")
