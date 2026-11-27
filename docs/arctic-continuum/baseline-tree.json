@@ -1,0 +1,4538 @@
+{
+  "baselineCommit": "ca6349f92028de3c89b04973f515236ee34d98c8",
+  "baselineTree": "b2f83a98ada62948b66bf34c770aeaf23aea4be9",
+  "coverage": "All tracked blob paths; no assertion of function/runtime coverage",
+  "count": 755,
+  "files": [
+    {
+      "path": ".env.example",
+      "sha": "3f9a1c86f4adc78b3d6d07b012a5e2dc82625530",
+      "size": 151,
+      "mode": "100644"
+    },
+    {
+      "path": ".figma/make/deploy",
+      "sha": "d963e587ddac4184d230ceabd648bb93a22a3580",
+      "size": 398,
+      "mode": "100755"
+    },
+    {
+      "path": ".figma/make/deploy-preview",
+      "sha": "023b6dd74dc12e27f16345af3bca1eff0e07e064",
+      "size": 406,
+      "mode": "100755"
+    },
+    {
+      "path": ".figma/make/dev",
+      "sha": "5855aaca5985246191f1994de85c3b15c2b2b981",
+      "size": 309,
+      "mode": "100755"
+    },
+    {
+      "path": ".figma/make/dev.json",
+      "sha": "01c59c0a2bacf5ce5db83793c52071df80b6cd01",
+      "size": 93,
+      "mode": "100644"
+    },
+    {
+      "path": ".figma/make/install",
+      "sha": "6ffffe2986fb521fb1bfa9e11debb933da85bc55",
+      "size": 51,
+      "mode": "100755"
+    },
+    {
+      "path": ".figma/make/mise.toml",
+      "sha": "b5baa50804e6c515824c694b8cb182e67f512a0d",
+      "size": 121,
+      "mode": "100644"
+    },
+    {
+      "path": ".figma/make/site.json",
+      "sha": "d73bdf8150a1ba10dddaef7c61ee282e615b6d6e",
+      "size": 281,
+      "mode": "100644"
+    },
+    {
+      "path": ".figma/README.md",
+      "sha": "07dc3e69f2562ac1fa069b8ba2dc46e8004c1714",
+      "size": 664,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/dependabot.yml",
+      "sha": "50eba454f599d1be4047367a825cb66e7d5fbe3d",
+      "size": 391,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/aureka-regression-suite.yml",
+      "sha": "f98a7ca913c6f3a1caae0826470df0dd6eba413d",
+      "size": 839,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/branch-cleanup.yml",
+      "sha": "de09f971638fed5f7e220e78c152d229f5ef25c0",
+      "size": 722,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/ci-pr.yml",
+      "sha": "9d1e3024a6b40c42936cadd9990b521be8ebecb3",
+      "size": 2369,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/dependency-lock-validation.yml",
+      "sha": "9ee0bc82083413b4ffa804bb7acd2936ec7b6f1d",
+      "size": 4941,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/deploy-nara-function.yml",
+      "sha": "f9f445447b13c9a91572b0bd488b2c9142c054b9",
+      "size": 1430,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/deploy-pages.yml",
+      "sha": "52c6c8f1c5a749515bbd6b56bb545c8f93de9ea8",
+      "size": 5375,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/deploy-spo-analyzer.yml",
+      "sha": "a5107db5a187dbeda38561ce55eb0db0d56e75ed",
+      "size": 1536,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/oppe-build-validation.yml",
+      "sha": "b6e160414ade952f366b9615b1381ea5940fea6b",
+      "size": 4435,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/patient-safety-ci.yml",
+      "sha": "793ca8c067d24bd2fa462f901b82bdc273f395da",
+      "size": 575,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/preview-build.yml",
+      "sha": "b090f8e37566b06ec40e88307c68b83959f1451b",
+      "size": 3571,
+      "mode": "100644"
+    },
+    {
+      "path": ".github/workflows/visual-intelligence-check.yml",
+      "sha": "d469a5f49563e016d96418a2f955b541b9a9f3be",
+      "size": 1254,
+      "mode": "100644"
+    },
+    {
+      "path": ".gitignore",
+      "sha": "ca5c9d2fc50f798626052e98de72da6004bde6ec",
+      "size": 135,
+      "mode": "100644"
+    },
+    {
+      "path": ".tmp/workspace-inspection.txt",
+      "sha": "008b133369773d14aca15b7ef6708c1493c5366a",
+      "size": 63330,
+      "mode": "100644"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha": "bb623d283411bd8d627ad67b79f6796a71e4c94a",
+      "size": 2211,
+      "mode": "100644"
+    },
+    {
+      "path": "app/apple-icon.png",
+      "sha": "39569d800cfb556ed386cdc80e6a25979c4298cf",
+      "size": 15470,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-acrylic-navigation-polish.css",
+      "sha": "de529026a31feb2022e449d2cc8f0d13b94ecff5",
+      "size": 71268,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-brand.css",
+      "sha": "c3b6674ed1d85595ef9416fdff312d771837d4d1",
+      "size": 2212,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-canvas-preferences.css",
+      "sha": "1ce99e8ca6a03a4900b20daa577b821c91551f8f",
+      "size": 31652,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-contrast-guardrails.css",
+      "sha": "3e103bed697268df9e59b0aa1d1752e8e84a017f",
+      "size": 7644,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-global-navigation.css",
+      "sha": "6dacc942eefe03615cea6a8d349b420f45115a4a",
+      "size": 22766,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-global.css",
+      "sha": "37e1d382ba356a67dcb3a7059c191bf3dc07a62c",
+      "size": 31631,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-landing.css",
+      "sha": "e50b997d2e49c3d2748e97e179057aeb6c0d318c",
+      "size": 40149,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-layout-integrity.css",
+      "sha": "d18faaba919a1befc5ea007ddf85be60f86b6dda",
+      "size": 40897,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-navigation-consolidated.css",
+      "sha": "45fda7e6250e39da52aed2948b5a8de96e59a1bb",
+      "size": 25637,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-navigation-pill.css",
+      "sha": "da0a94eef8d8e7aa809f300377419f34c3f31e86",
+      "size": 2254,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-navigation-repair.css",
+      "sha": "e04ba1833c9ddaa548067ad4c310f1807d7e7728",
+      "size": 42126,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-navigation-system.css",
+      "sha": "fa355a1142d50723db39b401e3ad65d67452255f",
+      "size": 25368,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-refined.css",
+      "sha": "215cd91e6c2ecd9d7cac59af8f0437b55ab0673e",
+      "size": 41657,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aureka-universal-tabs.css",
+      "sha": "c07cb4906caa3007c8f00f2fb125c4a482c6296b",
+      "size": 23638,
+      "mode": "100644"
+    },
+    {
+      "path": "app/aurora.css",
+      "sha": "3ec083e02f94fc5573f1b4c11ee0854818bf9770",
+      "size": 220392,
+      "mode": "100644"
+    },
+    {
+      "path": "app/dark-mode-mobile-fixes.css",
+      "sha": "d33f1bb6c5637f1f3967254ffa3075c2a264854d",
+      "size": 2007,
+      "mode": "100644"
+    },
+    {
+      "path": "app/design-tokens.css",
+      "sha": "b1bf71a5da57f28df6b020bfcb9e92e9222501e4",
+      "size": 5122,
+      "mode": "100644"
+    },
+    {
+      "path": "app/globals.css",
+      "sha": "60559a59a6e01aa550d2b8c77d962d6223427976",
+      "size": 210222,
+      "mode": "100644"
+    },
+    {
+      "path": "app/icon.png",
+      "sha": "a70d0cc241cf9ac40569bd6e3c0f6689e221c7dd",
+      "size": 40729,
+      "mode": "100644"
+    },
+    {
+      "path": "app/kpi-bento.css",
+      "sha": "d388bb73b445227e78e9a2a0b35d6165ce130d80",
+      "size": 34496,
+      "mode": "100644"
+    },
+    {
+      "path": "app/landing-motion.css",
+      "sha": "4972d5a563f01181df3dd477d279189d33d01668",
+      "size": 15653,
+      "mode": "100644"
+    },
+    {
+      "path": "app/lapor/page.tsx",
+      "sha": "3b8fab9020beaf5d9ff70e18e13b08d909e37812",
+      "size": 281,
+      "mode": "100644"
+    },
+    {
+      "path": "app/layout-responsive.css",
+      "sha": "38ddef540af638e5a9870fca31daf0490a5544fe",
+      "size": 7864,
+      "mode": "100644"
+    },
+    {
+      "path": "app/layout.tsx",
+      "sha": "339f988e9391960c8368d5374cff8004d489d2b2",
+      "size": 5786,
+      "mode": "100644"
+    },
+    {
+      "path": "app/mobile-nav.css",
+      "sha": "dd2baaaae34b9f9e4ae113496973dae04990ef1d",
+      "size": 8179,
+      "mode": "100644"
+    },
+    {
+      "path": "app/modal.css",
+      "sha": "e819994182571e139d79d0d6c2bc0ed5a2621e30",
+      "size": 12023,
+      "mode": "100644"
+    },
+    {
+      "path": "app/modules/metadata-statistics/README.md",
+      "sha": "ac7d40d813c135b85a8e99d79290aa010ca511cb",
+      "size": 2080,
+      "mode": "100644"
+    },
+    {
+      "path": "app/modules/overview/README.md",
+      "sha": "8d7cc949abfba364895fc83cf4b751fee4973734",
+      "size": 136,
+      "mode": "100644"
+    },
+    {
+      "path": "app/modules/patient-safety/README.md",
+      "sha": "ed3735f546f82bcf81207fce015fbc32e48ec77c",
+      "size": 3005,
+      "mode": "100644"
+    },
+    {
+      "path": "app/modules/quality-indicators/README.md",
+      "sha": "1cea68300b3ebea0ce0955a9413f8021df7ab480",
+      "size": 200,
+      "mode": "100644"
+    },
+    {
+      "path": "app/modules/risk-management/README.md",
+      "sha": "2ba5bfb4d6a8cf90ec7961da3594126e013126eb",
+      "size": 2982,
+      "mode": "100644"
+    },
+    {
+      "path": "app/modules/settings/README.md",
+      "sha": "b26bd851f6214386abb2c56253d83ec07c615bca",
+      "size": 711,
+      "mode": "100644"
+    },
+    {
+      "path": "app/motion.css",
+      "sha": "cc1231f04dcafadd543721342bf3dcf8113be74a",
+      "size": 12809,
+      "mode": "100644"
+    },
+    {
+      "path": "app/overview-bento.css",
+      "sha": "be89504f540d9eac4c839a8eb821120404ac0e92",
+      "size": 834,
+      "mode": "100644"
+    },
+    {
+      "path": "app/page.tsx",
+      "sha": "b458aaebd43fa04b733beb5d6751fcdee52af444",
+      "size": 113,
+      "mode": "100644"
+    },
+    {
+      "path": "app/perf.css",
+      "sha": "a41f6fa0bc0dfb538f11d1c0b37dd11378c2487b",
+      "size": 2585,
+      "mode": "100644"
+    },
+    {
+      "path": "app/proportional-ui.css",
+      "sha": "d1ca51d0a3dac10ca33e327da058cbf7a9bcd811",
+      "size": 10206,
+      "mode": "100644"
+    },
+    {
+      "path": "app/public-landing-auth-redesign.css",
+      "sha": "9372700082bad00b73b4edccbff150a71761be4b",
+      "size": 24013,
+      "mode": "100644"
+    },
+    {
+      "path": "app/quality-workbook-preview.css",
+      "sha": "1b836027942d6f6318c9fee97767fd74a0344096",
+      "size": 14832,
+      "mode": "100644"
+    },
+    {
+      "path": "app/settings-modern.css",
+      "sha": "76c2ce8ce889b4221b14a120e54b928a0cf325fe",
+      "size": 6800,
+      "mode": "100644"
+    },
+    {
+      "path": "app/survey-wizard.css",
+      "sha": "cd50b5b004586cb594a63bd1a0ea2bf43fb1d943",
+      "size": 14838,
+      "mode": "100644"
+    },
+    {
+      "path": "app/tanya-aureka.css",
+      "sha": "4c5fde9dab94e2d9e465cedcb4052fe36ab7a458",
+      "size": 11638,
+      "mode": "100644"
+    },
+    {
+      "path": "app/theme-arktik-accents.css",
+      "sha": "384361af2a7b2148b7ca0b758141c0886d33f63b",
+      "size": 115261,
+      "mode": "100644"
+    },
+    {
+      "path": "app/theme-arktik-dark.css",
+      "sha": "c6940d7e59f33400d8b0bc3b90a3d8ea9bdf642a",
+      "size": 212119,
+      "mode": "100644"
+    },
+    {
+      "path": "app/theme-arktik-modern.css",
+      "sha": "f74c5c76b33e411d7e8c8dce55d86e82a2d2d170",
+      "size": 16716,
+      "mode": "100644"
+    },
+    {
+      "path": "app/theme-arktik.css",
+      "sha": "d534b3d5cd889683485f5466e34aebc498752560",
+      "size": 18344,
+      "mode": "100644"
+    },
+    {
+      "path": "app/typography.css",
+      "sha": "c8712d0a11e689d068329b393bd041495369b8fa",
+      "size": 119503,
+      "mode": "100644"
+    },
+    {
+      "path": "app/workspace-desk.css",
+      "sha": "362f1d476edf21e2adf0bbbcb24e3a940b4d26fb",
+      "size": 65259,
+      "mode": "100644"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha": "feb16354048fce88bf207cf35dc5f898d53e2107",
+      "size": 1364,
+      "mode": "100644"
+    },
+    {
+      "path": "components/AmbulanceExcelImportDialog.tsx",
+      "sha": "13ac50bfb5915f220a6e258839451e66621d8898",
+      "size": 28978,
+      "mode": "100644"
+    },
+    {
+      "path": "components/AsyncStatePanel.tsx",
+      "sha": "bc1fa6181905164125be8e72dbb3f9e46bdf0db3",
+      "size": 4181,
+      "mode": "100644"
+    },
+    {
+      "path": "components/CertificateTemplateEditor.tsx",
+      "sha": "2d78e89e6367ce506debd3f658431ba1bbd9b1f5",
+      "size": 19886,
+      "mode": "100644"
+    },
+    {
+      "path": "components/ClinicalDeathAuditWorkspace.tsx",
+      "sha": "4ccc0a824dd32b70b1a5629ae9aa3ce4f4eae074",
+      "size": 54775,
+      "mode": "100644"
+    },
+    {
+      "path": "components/ClinicalPathwayTextMiningPanel.tsx",
+      "sha": "0a49f0744aa954299dc667e6ad0c7344d471572a",
+      "size": 8658,
+      "mode": "100644"
+    },
+    {
+      "path": "components/ClinicalPathwayWorkspace.tsx",
+      "sha": "8721b28b1e8430b03a46f803ce0b635e1eacd18a",
+      "size": 131279,
+      "mode": "100644"
+    },
+    {
+      "path": "components/ComplaintExcelImportDialog.tsx",
+      "sha": "42bc711193d5da6beb67822af2c85ebdacc742ce",
+      "size": 30242,
+      "mode": "100644"
+    },
+    {
+      "path": "components/CountUp.tsx",
+      "sha": "68fe0eaf29fb4bef5c7669d3c22404118a2d00d4",
+      "size": 1040,
+      "mode": "100644"
+    },
+    {
+      "path": "components/FormSpeedEnhancer.tsx",
+      "sha": "c6fe1506f2f149e7a4291a2dd22e2d65fe3b8d26",
+      "size": 1494,
+      "mode": "100644"
+    },
+    {
+      "path": "components/FppeEvaluationWorkspace.tsx",
+      "sha": "21718ee0cfa8de3535283f5f31f837ecc76e86cb",
+      "size": 42251,
+      "mode": "100644"
+    },
+    {
+      "path": "components/GeneralSettings.tsx",
+      "sha": "90c9365d80560a39d146e668d1c2ed4ed1a0cedb",
+      "size": 71875,
+      "mode": "100644"
+    },
+    {
+      "path": "components/GiziExcelImportDialog.tsx",
+      "sha": "f49469bead01c192b3464713d738ede2b329294a",
+      "size": 34529,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/AnnualProgramWorkspace.tsx",
+      "sha": "3be6b569e023988632909c4484f67e8425a22005",
+      "size": 26137,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/AuditLogWorkspace.tsx",
+      "sha": "50419a685eab67e21e9e8c1edb5ae7c01efb5e71",
+      "size": 4756,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/BackupPanel.tsx",
+      "sha": "3c4adc2c04914854aae0fb99f83b6a8b5047b7f7",
+      "size": 2749,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/DocumentVerificationPage.tsx",
+      "sha": "f46a82ca88b445992c4939a7e986be78dc85dbce",
+      "size": 3170,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/GovernanceProgramWorkspace.tsx",
+      "sha": "f1ba1650c6592343bfd644d9661245dd9776c771",
+      "size": 27073,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/InfographicsDashboard.tsx",
+      "sha": "fa1ff0b24d2f685ddd085dc7ee3812d8a0b7b52c",
+      "size": 33377,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/LegalAssetsWorkspace.tsx",
+      "sha": "62256b717ca3f2dce221571a74eb9a13dee8f89b",
+      "size": 8585,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/PresentationMode.tsx",
+      "sha": "267c6a2a6fe10a03c5bdf98a4c6484c8b34d5d04",
+      "size": 8723,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/PublicPublicationDesk.tsx",
+      "sha": "59b9e35b4b09903952186f48d1b53651accf4cae",
+      "size": 14398,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/SecretariatInvitationWorkspace.tsx",
+      "sha": "3e15d02a97af25ac97b6e6466b414dc47073e56e",
+      "size": 15254,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/SecretariatWorkspace.tsx",
+      "sha": "bd99af2766b477184a7d7035fe3723f7f6220f84",
+      "size": 34130,
+      "mode": "100644"
+    },
+    {
+      "path": "components/governance/SettingsGovernancePanels.tsx",
+      "sha": "f2d91f5515fc4fa03a7adea079e525d41cc55c4b",
+      "size": 8794,
+      "mode": "100644"
+    },
+    {
+      "path": "components/HomeClient.tsx",
+      "sha": "75bda47c7e1f11ed328e915c05a1c77534e34e23",
+      "size": 127201,
+      "mode": "100644"
+    },
+    {
+      "path": "components/HomeKpis.tsx",
+      "sha": "0985250ad15ed6a06fc928dd66d02d705bf825bc",
+      "size": 9357,
+      "mode": "100644"
+    },
+    {
+      "path": "components/HomeLandingWorkspace.tsx",
+      "sha": "e43056a75c925f63e4b35ca603a72b8fe292924a",
+      "size": 19420,
+      "mode": "100644"
+    },
+    {
+      "path": "components/IbsExcelImportDialog.tsx",
+      "sha": "4268e5f1a36456af4c8cacfffb9ac8e8bb32ce14",
+      "size": 30357,
+      "mode": "100644"
+    },
+    {
+      "path": "components/IcuExcelImportDialog.tsx",
+      "sha": "0eefff75e9172032182577bfd309563c74263820",
+      "size": 40874,
+      "mode": "100644"
+    },
+    {
+      "path": "components/IgdConsultationAuditPanel.tsx",
+      "sha": "7fb4d57810ac56edc5fe1b2030a0ff86098e844c",
+      "size": 8744,
+      "mode": "100644"
+    },
+    {
+      "path": "components/IgdExcelImportDialog.tsx",
+      "sha": "ff7551c8fb3f4355f73c53726ad027b1189d399e",
+      "size": 64779,
+      "mode": "100644"
+    },
+    {
+      "path": "components/IndicatorProposalWorkspace.tsx",
+      "sha": "8eabd49ff2b46c96f080fe8aa4d4f4334977a5c8",
+      "size": 17772,
+      "mode": "100644"
+    },
+    {
+      "path": "components/InHouseTrainingWorkspace.tsx",
+      "sha": "4d7c4f8d928f5beecf5902816a79e04d2852c7f1",
+      "size": 23679,
+      "mode": "100644"
+    },
+    {
+      "path": "components/IsolasiInpatientExcelImportDialog.tsx",
+      "sha": "154b7f75321defb6fc24b87729f92ae5b6e756f5",
+      "size": 41027,
+      "mode": "100644"
+    },
+    {
+      "path": "components/ItExcelImportDialog.tsx",
+      "sha": "cfdd4a7c8ee2d89b48e861094d6c81620a84a616",
+      "size": 21412,
+      "mode": "100644"
+    },
+    {
+      "path": "components/LaboratoryExcelImportDialog.tsx",
+      "sha": "3e9d6ea6ad45a67959cb1ce3a00e6c86fa57f1b9",
+      "size": 38359,
+      "mode": "100644"
+    },
+    {
+      "path": "components/layout/InstallAppButton.tsx",
+      "sha": "7b33ba2cb5b3b61af97a968b174c4fe7c747e1df",
+      "size": 2101,
+      "mode": "100644"
+    },
+    {
+      "path": "components/layout/ModuleErrorBoundary.tsx",
+      "sha": "5ff4c354ce34661a18127cb6a4e62f03c3bf2803",
+      "size": 2518,
+      "mode": "100644"
+    },
+    {
+      "path": "components/layout/UpdateNotifier.tsx",
+      "sha": "759de714d887bae1174c965a3e660e22685422b2",
+      "size": 3048,
+      "mode": "100644"
+    },
+    {
+      "path": "components/layout/useAccessibleDialog.ts",
+      "sha": "a53c630cf2ec4b0259045f2033510aee23e3e2a4",
+      "size": 4356,
+      "mode": "100644"
+    },
+    {
+      "path": "components/layout/useAccessibleSidebar.ts",
+      "sha": "23735a5d652aa0f6fc0476364720a7015d6b541e",
+      "size": 4544,
+      "mode": "100644"
+    },
+    {
+      "path": "components/layout/useIdleLogout.ts",
+      "sha": "d537e05789f0e69e7f6ca82e9972f34fe02bd6a8",
+      "size": 2216,
+      "mode": "100644"
+    },
+    {
+      "path": "components/LiquidGlass.tsx",
+      "sha": "66620bf7dd5cc8f792bc1449a23363a694b46e0b",
+      "size": 1611,
+      "mode": "100644"
+    },
+    {
+      "path": "components/MetadataStatisticsWorkspace.tsx",
+      "sha": "2d408bb0018cb66d753b9bd6b4a986071bcb22fa",
+      "size": 8529,
+      "mode": "100644"
+    },
+    {
+      "path": "components/NaraAIWorkspace.tsx",
+      "sha": "e31a37e97ff439d391fffab30209f80cad983647",
+      "size": 20460,
+      "mode": "100644"
+    },
+    {
+      "path": "components/NaraIcd10ReviewWorkspace.tsx",
+      "sha": "45009915131fccd079a811422bc092b852744730",
+      "size": 13542,
+      "mode": "100644"
+    },
+    {
+      "path": "components/NaraVisualRenderer.tsx",
+      "sha": "1b3b221b6807a4aa49b518f45edc2bf091ca350f",
+      "size": 10759,
+      "mode": "100644"
+    },
+    {
+      "path": "components/navigation/UnifiedModuleNavigation.tsx",
+      "sha": "5b4dc1a7a44ea0861a8ca439e1a253134b4443b3",
+      "size": 2662,
+      "mode": "100644"
+    },
+    {
+      "path": "components/NicuExcelImportDialog.tsx",
+      "sha": "9352737ee9fe570992e1fd67a9ed3ff58f7a7b7d",
+      "size": 39612,
+      "mode": "100644"
+    },
+    {
+      "path": "components/NifasExcelImportDialog.tsx",
+      "sha": "0bad5a5d405a2b1c631472a28a5f55b50b6a427e",
+      "size": 39560,
+      "mode": "100644"
+    },
+    {
+      "path": "components/OppeAuditWorkspace.tsx",
+      "sha": "488d4c2a0a4cfd166f1aac9c03158cb7362b929c",
+      "size": 117215,
+      "mode": "100644"
+    },
+    {
+      "path": "components/OutpatientExcelImportDialog.tsx",
+      "sha": "b68d757723e729751daf2bd1d6bb6bccdd7827a8",
+      "size": 24081,
+      "mode": "100644"
+    },
+    {
+      "path": "components/patient-registry/PatientIndexTab.tsx",
+      "sha": "13bb5f518b89ad2983a1f05c7e68a0127eb08450",
+      "size": 29484,
+      "mode": "100644"
+    },
+    {
+      "path": "components/patient-registry/PatientMedicalRecordsAnalytics.tsx",
+      "sha": "14310e355201d04f76f14e11533c8d912b810114",
+      "size": 16369,
+      "mode": "100644"
+    },
+    {
+      "path": "components/patient-registry/PatientReadmissionPanel.tsx",
+      "sha": "01c88b629d0ec76b4a63929b7f0e898c12c8be4f",
+      "size": 4269,
+      "mode": "100644"
+    },
+    {
+      "path": "components/patient-safety/IncidentExcelImport.tsx",
+      "sha": "204e6e7554fd850fa1f66e1667d8ba99d74878cc",
+      "size": 17126,
+      "mode": "100644"
+    },
+    {
+      "path": "components/patient-safety/PublicIncidentReport.tsx",
+      "sha": "de7f10dd1f9f1619dfcb344d0353b0de020a732f",
+      "size": 7589,
+      "mode": "100644"
+    },
+    {
+      "path": "components/patient-safety/QrReportsPanel.tsx",
+      "sha": "0174b3590df54f18cd1c2f40ed7bfa1f853a0365",
+      "size": 7591,
+      "mode": "100644"
+    },
+    {
+      "path": "components/patient-safety/SurveyWizard.tsx",
+      "sha": "8ab5467f582a1fe095bea37f6b574c909eb3bdf5",
+      "size": 17610,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PatientEpisodeWorkbookDialog.tsx",
+      "sha": "4f606a96971ce267cd85b20b593b7fdfe1eb2e94",
+      "size": 23822,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PatientRegistryIntelligence.tsx",
+      "sha": "e8dfadc65ea241552f7348436e86f22308b3f5d9",
+      "size": 5771,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PatientRegistryWorkspace.tsx",
+      "sha": "41541f8c4620986e9f173c81c5384865d86ef362",
+      "size": 2395,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PatientSafetyWorkspace.tsx",
+      "sha": "d204b9acab1adf726cc1600a249025843ce6bd5c",
+      "size": 109529,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PediatricInpatientExcelImportDialog.tsx",
+      "sha": "8f6f71d078864526e805a2de59e67c20343ec990",
+      "size": 42363,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PenyakitDalamInpatientExcelImportDialog.tsx",
+      "sha": "f1883d3aba946235be3d94453f074133292dba3d",
+      "size": 41182,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PerinatologyExcelImportDialog.tsx",
+      "sha": "6144b8685879381ea18deedd4520ea3b3667320c",
+      "size": 33170,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PharmacyExcelImportDialog.tsx",
+      "sha": "f394b9099dd6ce15a47ce7fed67e174ca6b00d1d",
+      "size": 31352,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PicPerformanceWorkspace.tsx",
+      "sha": "c96b42ad0387ed74b0bdc88726de94715d2db338",
+      "size": 7953,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PonekExcelImportDialog.tsx",
+      "sha": "127ca0ce290e8ab2a4afb4bf92ec7c498bb27c9e",
+      "size": 36559,
+      "mode": "100644"
+    },
+    {
+      "path": "components/PublicLandingPage.tsx",
+      "sha": "1246a409cced9eebd0359b012d6869f2a876502a",
+      "size": 21356,
+      "mode": "100644"
+    },
+    {
+      "path": "components/quality/IndicatorCoveragePanel.tsx",
+      "sha": "e1cb0f9fc1076fde98628fa75c513ed52213a9a3",
+      "size": 7084,
+      "mode": "100644"
+    },
+    {
+      "path": "components/quality/QualityCategoryIntelligence.tsx",
+      "sha": "fe70f0188be755df39b2d2fba3eefb2352e367c4",
+      "size": 14350,
+      "mode": "100644"
+    },
+    {
+      "path": "components/quality/QualityOptionEditor.tsx",
+      "sha": "7dbb45b755446e0a3fbe8c80998a462439232849",
+      "size": 4298,
+      "mode": "100644"
+    },
+    {
+      "path": "components/quality/QualityWorkbookImportSidebar.tsx",
+      "sha": "95c9e47ae9ab44b3dbfaa01fbf3738ccd2f06312",
+      "size": 10488,
+      "mode": "100644"
+    },
+    {
+      "path": "components/quality/QualityWorkbookInlineColumnMapping.tsx",
+      "sha": "a5b21cc78c75a2fa34350514d59b699173e07439",
+      "size": 8875,
+      "mode": "100644"
+    },
+    {
+      "path": "components/quality/QualityWorkbookPreviewControls.tsx",
+      "sha": "2d32746f9f5eccd61be19a824e5a9e3546741ab4",
+      "size": 3807,
+      "mode": "100644"
+    },
+    {
+      "path": "components/quality/QualityWorkbookStagedPreview.tsx",
+      "sha": "91ea5e616abcdfeca6fdd464c4a1e6e296520e67",
+      "size": 2615,
+      "mode": "100644"
+    },
+    {
+      "path": "components/quality/SpcChart.tsx",
+      "sha": "bf88f268a476ffe7ff771f2004d70bbb05679a82",
+      "size": 5261,
+      "mode": "100644"
+    },
+    {
+      "path": "components/QualityExcelMappingWorkspace.tsx",
+      "sha": "cd3b3ca9556dc366cd094a6d8165c82254c22a81",
+      "size": 57618,
+      "mode": "100644"
+    },
+    {
+      "path": "components/QualityIndicatorWorkspace.tsx",
+      "sha": "0df17810c508b78c995abb3b7fc2cfaa2c4f44a4",
+      "size": 157406,
+      "mode": "100644"
+    },
+    {
+      "path": "components/QualityReconciliationWorkspace.tsx",
+      "sha": "532c1eea868e8b0e99f88f242c86fd86568fbcea",
+      "size": 29797,
+      "mode": "100644"
+    },
+    {
+      "path": "components/QualityReportingMonitor.tsx",
+      "sha": "16a2bb596329f4ea0f83b4ef03b509fecc313e64",
+      "size": 11576,
+      "mode": "100644"
+    },
+    {
+      "path": "components/QualityResultsWorkspace.tsx",
+      "sha": "f81e088cd76e29969a249e53cfc05de9f0ace8ea",
+      "size": 76269,
+      "mode": "100644"
+    },
+    {
+      "path": "components/QualitySettings.tsx",
+      "sha": "a94bc196ff2e9a66f13f24c70903e404e313a4f1",
+      "size": 80763,
+      "mode": "100644"
+    },
+    {
+      "path": "components/QualityWorkbookImportPanel.tsx",
+      "sha": "c05ee1663caa8889f43f526f573d045cbb7c9e41",
+      "size": 79353,
+      "mode": "100644"
+    },
+    {
+      "path": "components/ReactiveFmeaWorkspace.tsx",
+      "sha": "3de4bac451bd4b6a84e575a27a4e4d50076a7b4a",
+      "size": 15804,
+      "mode": "100644"
+    },
+    {
+      "path": "components/RealcostAuditWorkspace.tsx",
+      "sha": "f0725a9bdf2f2ddb68aaabc5ba79da696a5856d0",
+      "size": 46285,
+      "mode": "100644"
+    },
+    {
+      "path": "components/RehabMedikExcelImportDialog.tsx",
+      "sha": "904140f2f609f3b3c685f4937fac9c0405324ac7",
+      "size": 26948,
+      "mode": "100644"
+    },
+    {
+      "path": "components/RekamMedisExcelImportDialog.tsx",
+      "sha": "173a2b9e1cee298b95d7472b50893d9dbddb3816",
+      "size": 23151,
+      "mode": "100644"
+    },
+    {
+      "path": "components/RiskManagementWorkspace.tsx",
+      "sha": "b5e6e1ca82eee4eea911fc9fd32ea2a2b8c16dd1",
+      "size": 130619,
+      "mode": "100644"
+    },
+    {
+      "path": "components/SarafInpatientExcelImportDialog.tsx",
+      "sha": "804688e57862c3cb9169a99c23cf1e6673bcec5c",
+      "size": 41350,
+      "mode": "100644"
+    },
+    {
+      "path": "components/SpmExcelImportDialog.tsx",
+      "sha": "8232a679a3d5bfe7124887996acb1a4d52da6ed6",
+      "size": 16497,
+      "mode": "100644"
+    },
+    {
+      "path": "components/SpmWorkspace.tsx",
+      "sha": "3ff996190097a6a57d57efe0f9ddb5285eb59ad9",
+      "size": 46777,
+      "mode": "100644"
+    },
+    {
+      "path": "components/StaffCrossModuleProfilePanel.tsx",
+      "sha": "85143b09d041de229138b9fca90e29b316e44416",
+      "size": 8143,
+      "mode": "100644"
+    },
+    {
+      "path": "components/StaffDirectoryWorkspace.tsx",
+      "sha": "295e3536fa7a1687f15c0f833f347728253060b0",
+      "size": 34050,
+      "mode": "100644"
+    },
+    {
+      "path": "components/StaffTeamWorkspace.tsx",
+      "sha": "f4c02891908f25c98ff692d5e15f280e07213615",
+      "size": 19172,
+      "mode": "100644"
+    },
+    {
+      "path": "components/StandardsProcedureWorkspace.tsx",
+      "sha": "58b872fc532a3637c8acb4d2fc513516e6a4b773",
+      "size": 24716,
+      "mode": "100644"
+    },
+    {
+      "path": "components/StudentOrientationWorkspace.tsx",
+      "sha": "0cfcfaabf1f1996ac6d7445660ee2f6d770ac15a",
+      "size": 38201,
+      "mode": "100644"
+    },
+    {
+      "path": "components/SurgicalInpatientExcelImportDialog.tsx",
+      "sha": "77974309f8b6bf20ed331216e7467c19bd0c067c",
+      "size": 39591,
+      "mode": "100644"
+    },
+    {
+      "path": "components/TableSortEnhancer.tsx",
+      "sha": "95c3ec7d35bc503d41306b746beb9b19977139c9",
+      "size": 7205,
+      "mode": "100644"
+    },
+    {
+      "path": "components/TanyaAureka.tsx",
+      "sha": "b431a30c015758d071c66aef3e132336f4ec6d02",
+      "size": 22760,
+      "mode": "100644"
+    },
+    {
+      "path": "components/TimkordikExcelImportDialog.tsx",
+      "sha": "91dae75be9f10b65520976b858119692d9128e81",
+      "size": 26391,
+      "mode": "100644"
+    },
+    {
+      "path": "components/ui/aurekaConfirm.tsx",
+      "sha": "e116518aff0c57201f0651742b7937d27dbfd7de",
+      "size": 1703,
+      "mode": "100644"
+    },
+    {
+      "path": "components/ui/AurekaModal.tsx",
+      "sha": "1539a6fa3e3101378f0267d3685d3c20eaf45d5d",
+      "size": 2710,
+      "mode": "100644"
+    },
+    {
+      "path": "components/UnitMappedWorkbookDialog.tsx",
+      "sha": "dc04e9f82a361e18b4296592e47fcacf8f7c450e",
+      "size": 2080,
+      "mode": "100644"
+    },
+    {
+      "path": "components/workspace/AdaptiveWorkspaceShell.tsx",
+      "sha": "ac61b581067341d81a973484818bbe3892b53df0",
+      "size": 1709,
+      "mode": "100644"
+    },
+    {
+      "path": "components/workspace/WorkspaceIntelligence.tsx",
+      "sha": "71fe0926057887fe570e22455502b1212cd7a66f",
+      "size": 1112,
+      "mode": "100644"
+    },
+    {
+      "path": "components/workspace/WorkspaceModuleHeader.tsx",
+      "sha": "6226a74847652433ee216d4badd180acbd4da0ce",
+      "size": 970,
+      "mode": "100644"
+    },
+    {
+      "path": "components/workspace/WorkspaceTableViewport.tsx",
+      "sha": "50cd474690f8b596bdb3f49abdb678bcdc5c2b9b",
+      "size": 4816,
+      "mode": "100644"
+    },
+    {
+      "path": "components/workspace/WorkspaceTabs.tsx",
+      "sha": "4effcdc79a4b8164b7ed2a50d098036af9015b28",
+      "size": 2721,
+      "mode": "100644"
+    },
+    {
+      "path": "components/WorkspaceSkeleton.tsx",
+      "sha": "bf06ca563bf95b3b971a1a7015416ed65a470bd6",
+      "size": 786,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality_indicators_2026.json",
+      "sha": "fe51488c7066f6687ef680d6bfaa4f7768ef205c",
+      "size": 3,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-audit-layout-2026.json",
+      "sha": "07aa312590846cc1637549ca6b864aa4789e1817",
+      "size": 29128,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-audit-profile-aliases-2026.json",
+      "sha": "8ed1b5329f594fb42aed2d957a38ddc6485ffe7d",
+      "size": 6290,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-01.json",
+      "sha": "9d83a2ea1ccb59708c27dcda86ffe4a6d0d32bc7",
+      "size": 20651,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-02.json",
+      "sha": "3c971216b92bd0dcb3b081a4578bebef337bd79b",
+      "size": 21631,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-03.json",
+      "sha": "2efcb63890792e585f3fffebc8fecc7ea229a69a",
+      "size": 21220,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-04.json",
+      "sha": "dd3888b358d000baf75a56990899dc37b054f742",
+      "size": 21448,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-05.json",
+      "sha": "37fbfe061159345bce41dd8f6f5169f25a31d986",
+      "size": 24737,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-06.json",
+      "sha": "a629fc32324eed60244f7f43c95040c1d37ce698",
+      "size": 23849,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-07.json",
+      "sha": "8bd81ef2d2a3499f742466fab3d2cc9f94938ff1",
+      "size": 24134,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-08.json",
+      "sha": "3af8429377bac752559e9107c72d9daf5c1b3735",
+      "size": 22696,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-09.json",
+      "sha": "9de65604662be8079221f881cec08a71f27e648e",
+      "size": 23391,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-10.json",
+      "sha": "c24492197e80a1b13bd9446949e112fc24e29b5e",
+      "size": 26142,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-11.json",
+      "sha": "a524eeaa0a3bba6b6e53ad47aa6855c8a8ee225c",
+      "size": 21153,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/chunk-12.json",
+      "sha": "9edb13d861d77c10b4f08eec3a38c831e5e7c120",
+      "size": 94098,
+      "mode": "100644"
+    },
+    {
+      "path": "data/quality-profile-2026/README.md",
+      "sha": "9770e997f03d29aa54d33b01b0ee8d85b3d84f6b",
+      "size": 1348,
+      "mode": "100644"
+    },
+    {
+      "path": "DESIGN.md",
+      "sha": "1373479a25f2410f8cafa7dab7356c5e383c4eb2",
+      "size": 4210,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha": "06553bb5212976dfc9bb1f6f93ee97cd1c10b44d",
+      "size": 4915,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/AUREKA_STANDARDS_BASELINE_V2.md",
+      "sha": "a7b39a748c8eb71f538027d56e2fc0c4166efa30",
+      "size": 8379,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/BLUEPRINT-ARSITEKTUR-FINAL-V2.md",
+      "sha": "69bd529f075fe1b57f9f5e4433cb19bd55de32dd",
+      "size": 8457,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/migration-reconciliation-and-performance.md",
+      "sha": "99faecfc3548e4d7d4ce1abfe193ff5c3263167e",
+      "size": 3073,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/NARA_AI_Clinical_Intelligence.md",
+      "sha": "2ade719bf8d46c1369da08e88a0297d15a3ded72",
+      "size": 9045,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/NARA_AI_GATEWAY.md",
+      "sha": "4f2b445ce62a7fe63085bb4e30edef8c716ac18f",
+      "size": 8307,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/NARA_SECURITY_RUNBOOK.md",
+      "sha": "ff66cdbdee0d85c0224a8f9ccdbec9a924dcbcd4",
+      "size": 3629,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/PANDUAN-PASTE-INDIKATOR-MUTU.md",
+      "sha": "82b527597ee6c9522583abf963311d1330eec390",
+      "size": 2458,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/PRODUCTION_MIGRATION_LEDGER_RECONCILIATION_2026-11-21.md",
+      "sha": "3d251810e50a853877d9bf7fe7a6092c7310fe4d",
+      "size": 2639,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/QA_ACCEPTANCE_MATRIX.md",
+      "sha": "a6f519919ac2f6e2e0ec8392b6f30110e4fd4f27",
+      "size": 3982,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/QUALITY_MASTER_QA.md",
+      "sha": "004ab3dedf72b4206068414c16e2ad3482e64a7b",
+      "size": 7060,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/SETUP-SUPABASE-FERI.md",
+      "sha": "df9cc6191a6914f79ecca506cb3598ddb6092182",
+      "size": 3514,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/SPEC-BRIDGING-SIMRS.md",
+      "sha": "beba2b1a59bd07c7b25015c920ff04530ec7b2fb",
+      "size": 6574,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/SPM_ANNUAL_WORKSPACE_IMPLEMENTATION.md",
+      "sha": "7be4b32f7964ce292bfbebd129ac007fd5609ee9",
+      "size": 2392,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/TAHAP-1-AKSES-PIC.md",
+      "sha": "32f719415d237ed71205e98facf3a1d6b6b9a9cf",
+      "size": 7607,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/UI_CROSS_VIEWPORT_AUDIT_2026-11-21.md",
+      "sha": "f41f996d7e9207e208cf5b197ff31365928a3b0b",
+      "size": 6693,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/uiux-audit/BASELINE.md",
+      "sha": "6e77e5a9d19650d19c5a3c11f4fa7238abdeb5c8",
+      "size": 3334,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/uiux-audit/CSS_OWNERSHIP.md",
+      "sha": "78a3da1cf5018be206581b8389652ab5bb2a5c22",
+      "size": 1945,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/uiux-audit/ISSUE_REGISTER.json",
+      "sha": "72434f61ab6228f7c3a0cd366f87579416a2eab2",
+      "size": 14616,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/uiux-audit/ROUTE_ROLE_MATRIX.json",
+      "sha": "8697a5f2d7bd02088e52fa676d91eb5c29527605",
+      "size": 68680,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/VISUAL-INTELLIGENCE-IMPLEMENTATION.md",
+      "sha": "3d9bb0dd28dca454d8789058784b1f70a68cfde4",
+      "size": 6900,
+      "mode": "100644"
+    },
+    {
+      "path": "docs/zero-file-storage-rollout.md",
+      "sha": "b31769d70d095f63cf29822d30f3432521cb4d46",
+      "size": 7585,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/adaptive-workspace.ts",
+      "sha": "fcb593df113d0c6006cf567c5650eb5a091403ae",
+      "size": 5770,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/ambulance-logbook.ts",
+      "sha": "5173a03984c68f25c147dd7d216fbbf286710d4b",
+      "size": 12215,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/annual-quality-workbook.ts",
+      "sha": "f817eddfe4c1087bc0fa7dc4f1eff5ac00a2768e",
+      "size": 2036,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/auth-callback.ts",
+      "sha": "19f1b82353de4621c76ae019109ee95ea285f480",
+      "size": 1172,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/certificate-template-layout.ts",
+      "sha": "0317fd48cee8332958dd3dbae301e3219bd6e549",
+      "size": 3610,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/certificate-template.ts",
+      "sha": "353e14e7ba6e7744e532af62b7df9e596c458c2b",
+      "size": 937,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/clinical-pathway-metrics.ts",
+      "sha": "7b3d60d1b91cdb23c56a5e80b7aa5fbc462b4545",
+      "size": 3962,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/complaint-logbook.ts",
+      "sha": "b26505ab2580bad3e66abf9321199b92b517ee55",
+      "size": 3350,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/csv-export.ts",
+      "sha": "b666b2985eadc4d9b8a90bcbe3f1611a4fbacf75",
+      "size": 2038,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/data-backup.ts",
+      "sha": "f5c4757865290992ab797a5922575b7026f2a432",
+      "size": 7673,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/document-signature-stamp.ts",
+      "sha": "731043016a9f18772aa8efb5ef6c7f37143ef0ac",
+      "size": 1709,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/excel-column-picker.ts",
+      "sha": "e1792790dc2929c3cdcc44846557100959d052ba",
+      "size": 2055,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/excel-paste.ts",
+      "sha": "3aad1d71268d70b820b8e1d8e85a55747152a6df",
+      "size": 4836,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/expiring-request-cache.ts",
+      "sha": "3c182f9f17f639980041816384ea6dbc045f6fee",
+      "size": 1124,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/focus.ts",
+      "sha": "39478c4f441180b79d97635f1918102be38f711f",
+      "size": 609,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/gizi-logbook.ts",
+      "sha": "100f3d7b60a03c44d1b014c92f752f20b1d8b8ac",
+      "size": 5220,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/ibs-logbook.ts",
+      "sha": "41a76f640d08ef1be577203e8b5f204d82fad4da",
+      "size": 4525,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/icu-excel-headers.ts",
+      "sha": "27a962320dcf32da49075fab2361339275c45815",
+      "size": 1221,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/icu-logbook.ts",
+      "sha": "5a6c0f1649ef038508b56aef90fe9e48708d2a74",
+      "size": 5571,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/igd-logbook.ts",
+      "sha": "899ca02553323c9c44ba6a6e63f1bd4852cc5dd9",
+      "size": 9984,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/igd-source-review.ts",
+      "sha": "689e56ce9a087f6556cd9a2c0e00d7ce6040e742",
+      "size": 3320,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/import-batching.ts",
+      "sha": "136c8f8f135a75883bcf9eb6140fe0e6e9f22ceb",
+      "size": 1147,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/indicator-dropdown.ts",
+      "sha": "5debd31667919c08e325bcdfd2080e50f89a9c24",
+      "size": 5394,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/indicator-engine.ts",
+      "sha": "386b7f4ceb736d662f5b1a8eb26eac5e5437c7bd",
+      "size": 10831,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/indicator-profile-transfer.ts",
+      "sha": "980f8d214b7a56c9dace12c8dc4210db4a18836e",
+      "size": 19624,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/individual-assessment-export.ts",
+      "sha": "fa401f5d810b9f92079c79700775706f582f9a88",
+      "size": 6026,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/interactive-header-mapping.ts",
+      "sha": "1a092348f0dd7ff7c8b85931f4feb82940546277",
+      "size": 11068,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/isolasi-inpatient-logbook.ts",
+      "sha": "a84bd73ebf69df2f54aeb964a7c7d30f586a59d9",
+      "size": 11032,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/it-logbook-import.ts",
+      "sha": "25d7a90dfa8c39a3743e398726d616f22ab369d2",
+      "size": 5832,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/laboratorium-logbook.ts",
+      "sha": "0d44787d4a00b45617a9b150c6a5c23b459df4ba",
+      "size": 7415,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/local-documents.ts",
+      "sha": "602465288ee2a63988450678a2b5921baa5babc3",
+      "size": 12421,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/metric-contracts.ts",
+      "sha": "0828d664c3c26adbe31092d61910a327773c5d62",
+      "size": 5742,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/module-registry.ts",
+      "sha": "586160540c0e7007a36477cb12550880e72d605f",
+      "size": 10936,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/national-indicators.ts",
+      "sha": "5646f631e38998f8d76bede791038a024b8a12ac",
+      "size": 748,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/navigation-search.ts",
+      "sha": "f093c98fe59c48e9516f920fc3195128641da810",
+      "size": 1420,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/nicu-logbook.ts",
+      "sha": "20194178d95522f3e14f887dd85070fcd8d4deaa",
+      "size": 6087,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/nifas-logbook.ts",
+      "sha": "63edc6ad6c095f8c9fd55795b6bcb6d494493b9f",
+      "size": 10709,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/oppe-engine.ts",
+      "sha": "e3c86ee301926249d71ba7fedfad5a6efb5e8674",
+      "size": 27564,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/outpatient-excel-import.ts",
+      "sha": "39d33a7324ab04e770a20e8a0c6185d49f61308a",
+      "size": 9041,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/outpatient-logbook.ts",
+      "sha": "56e5008da210beb391c6fa4055807fb02c760b62",
+      "size": 8592,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/pagination.ts",
+      "sha": "27b9e3bc3256aae87a2310eb7022f78d40135a5b",
+      "size": 1846,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/patient-episode-workbook.ts",
+      "sha": "45707a52faaa14519af1c70b70ec39b28871d18c",
+      "size": 47795,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/pediatric-inpatient-logbook.ts",
+      "sha": "ad798b9a44b1b32c3a8b4474ef959119680db21a",
+      "size": 12796,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/penyakit-dalam-inpatient-logbook.ts",
+      "sha": "77e51a9e4a2cd4af1a95ee28bc81a5022e320464",
+      "size": 12755,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/perinatology-logbook.ts",
+      "sha": "cf3ad081dbfd5b4dd5a20bbd90aeb4247d2d0b2a",
+      "size": 10824,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/pharmacy-excel-import.ts",
+      "sha": "740845382af73def6e36c01e34ab20401575a673",
+      "size": 6684,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/pharmacy-logbook.ts",
+      "sha": "2da4e84797952a471a6d5e280116d0be04553e6c",
+      "size": 2958,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/pkrs-workbook.ts",
+      "sha": "e02ac28d9ec87ccbdf2a220efd2d78d94c0fe7ea",
+      "size": 1972,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/ponek-logbook.ts",
+      "sha": "2c8a1a39f3ade78e014a6978de990d083e9da4c2",
+      "size": 9496,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/qr-code.ts",
+      "sha": "9774dfc64109d542ae5d862fc02c357ae1f69459",
+      "size": 6206,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/quality-category-engine.ts",
+      "sha": "886a367c5a695303e3a3c6b71ec4290c8defa0c7",
+      "size": 15381,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/quality-import-row-filter.ts",
+      "sha": "e3955b04b55e344f267769493ad8b9b2387c4dd7",
+      "size": 1195,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/quality-logbook-coverage.ts",
+      "sha": "984cb606924d8bd1d018585d05c0ca63d9a2b194",
+      "size": 2365,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/quality-reference-2026.ts",
+      "sha": "6e4ddb2327951e80e772b9ed3808a8bafc8e1d88",
+      "size": 916,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/quality-results-engine.ts",
+      "sha": "1eff8cc39b5f2ddf24ab29823e075674117d80ef",
+      "size": 41091,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/quality-workbook-columns.ts",
+      "sha": "2c4fe059f5343be81047c63a5fe073f0a9fc233f",
+      "size": 2225,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/quality-workbook-mapping-draft.ts",
+      "sha": "dcfe416fdb195aa402fcff117203d5fdf5e0c9e6",
+      "size": 3570,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/quality-workbook-source-audit.ts",
+      "sha": "4b46643476499b1a4a9877b237f670f8193adf00",
+      "size": 7214,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/realcost-engine.ts",
+      "sha": "c28a7a675f192fbf55068c89a2f0e2e58eb0f75e",
+      "size": 12309,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/realcost-xlsx-import.ts",
+      "sha": "cc9dc63f4ef5fac55a1ba6c962a9179e61e32fc3",
+      "size": 16217,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/rehab-medik-excel-import.ts",
+      "sha": "eb8268ae5493f0b04d2fdcfb21e7a98e4e214d5d",
+      "size": 3314,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/rekam-medis-logbook.ts",
+      "sha": "4c7563d41e2ff5f03fc25b37905700d2705086c9",
+      "size": 7128,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/room-overview.ts",
+      "sha": "f98292e0bc4a38054989399d8e59d5621f078e51",
+      "size": 970,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/saraf-inpatient-logbook.ts",
+      "sha": "4ecc6b249e99212b861cdfbe4a955d29fd0cd288",
+      "size": 10971,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/sensitive-access.tsx",
+      "sha": "2d57a3bbe1c7502e0ad4ab5ddcddbe538b9b0dc5",
+      "size": 5793,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/smart-workbook-block.ts",
+      "sha": "176211db20293e2a5c06114d8db07741045b5b59",
+      "size": 6156,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/spc.ts",
+      "sha": "3c7137184982b6c18fb8589179764ee272417200",
+      "size": 5222,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/spm-engine.ts",
+      "sha": "8e91fc2d6b18a696236993c806126905eea450cc",
+      "size": 7945,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/spm-excel-import.ts",
+      "sha": "dae235edf85a21da77ac9d0557bd5bb46f15265d",
+      "size": 14384,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/standard-mapped-quality-workbook.ts",
+      "sha": "a919191ed861ffe86c2c0e7d90884519f6c14b3b",
+      "size": 2775,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/standard-quality-workbook-upload.ts",
+      "sha": "e2a078c93e9bb039c434f0e0b2369cb7596672ac",
+      "size": 620,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/supabase.ts",
+      "sha": "535ad54d5f594a74de60288b013e938ee676bdaa",
+      "size": 2413,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/surgical-inpatient-logbook.ts",
+      "sha": "7d2d38e76821ed4e92bd35930f0d913acf13fced",
+      "size": 10864,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/timkordik-logbook-import.ts",
+      "sha": "ddd0a29fa293ddf82fc320d424b52c717fc4a57f",
+      "size": 9062,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/unit-compare.ts",
+      "sha": "3f844f8bb3bc31ae2713817fdecd31783c3aa688",
+      "size": 4105,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/workspace-route.ts",
+      "sha": "4f4c9c143fdb24d8dbe54b32986a399a1c68ebed",
+      "size": 5446,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/aureka/workspace-scope.ts",
+      "sha": "cd075303240a87dfab24592a9e05dec292e5ad19",
+      "size": 1146,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/clinical-pathway/text-mining.ts",
+      "sha": "6617efdfe0d2b6f5eca1748d270466bcfd6f3ff9",
+      "size": 19650,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/nara-visual.ts",
+      "sha": "4461ab9c5eccb1863bab005d73a98ad9cc46b591",
+      "size": 3624,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/patient-safety/grading.ts",
+      "sha": "50cada8c8333920f74ab5f954d09d51495a37af4",
+      "size": 3349,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/patient-safety/incident-excel-import.ts",
+      "sha": "5d8c7c647c00a1c31ac168e06d341608ffda6e90",
+      "size": 9768,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/patient-safety/survey-aggregation.ts",
+      "sha": "306ebcc6d6ead35007e51ae564242feae4da732d",
+      "size": 1972,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/qr/qr.ts",
+      "sha": "7b2588c848f3e05288500f437d0dc9ed80fcb818",
+      "size": 7898,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/report/monthly-report.ts",
+      "sha": "605da5cee3f75d363ca7b7dc42e3488eff8f9ed8",
+      "size": 10293,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/ui/appearance-preferences.ts",
+      "sha": "11bf3d206800222bef4b8c3fb6e44fd1ef790958",
+      "size": 4243,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/ui/aureka-mode.ts",
+      "sha": "b661bd645ecbd12f56b4abf4d3415b68bdcf2f0b",
+      "size": 1378,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/ui/device-navigation.ts",
+      "sha": "a671b5a8d3dc18bc429ec618c3474047526502f1",
+      "size": 564,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/ui/error-feedback.ts",
+      "sha": "96ed4fffad61f521d9b22ee2a7816fbe8d7990f2",
+      "size": 6549,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/ui/report-client-error.ts",
+      "sha": "8b7a4a5370b88f3a3b9b8b4461eb1fa5e3bcf371",
+      "size": 1066,
+      "mode": "100644"
+    },
+    {
+      "path": "lib/ui/use-latest-workspace-request.ts",
+      "sha": "6893b9f4e2b7328434993767ee419c31d68fdca2",
+      "size": 716,
+      "mode": "100644"
+    },
+    {
+      "path": "next-env.d.ts",
+      "sha": "a419cbe4e3a5e8d4b481b851dbf4ac767de069e6",
+      "size": 296,
+      "mode": "100644"
+    },
+    {
+      "path": "next.config.mjs",
+      "sha": "2880bab4c39dd6af41001ae9086251c5cd3cac51",
+      "size": 349,
+      "mode": "100644"
+    },
+    {
+      "path": "package-lock.json",
+      "sha": "8785336aa4027917c669831a5d4be1319ced69f7",
+      "size": 94307,
+      "mode": "100644"
+    },
+    {
+      "path": "package.json",
+      "sha": "fe5ef6dfae3c379ac6c1448820e70ab881418f1b",
+      "size": 937,
+      "mode": "100644"
+    },
+    {
+      "path": "public/clinical-pathways-2026.json",
+      "sha": "f039bf5b7a0ddf50db956581ebe3b7a56002d730",
+      "size": 547589,
+      "mode": "100644"
+    },
+    {
+      "path": "public/fppe-digital.html",
+      "sha": "53ce3137d9c7b3a148e77220f29e568893dee479",
+      "size": 109607,
+      "mode": "100644"
+    },
+    {
+      "path": "public/images/architecture-joel-filipe.jpg",
+      "sha": "40cf54c21a53e0088afd2d9ac0111005aa9883d8",
+      "size": 133878,
+      "mode": "100644"
+    },
+    {
+      "path": "public/logo-aureka-v2.png",
+      "sha": "b6e33dd7195aa714ad0d6ab9948b6fe5ef5f96fa",
+      "size": 24145,
+      "mode": "100644"
+    },
+    {
+      "path": "public/manifest.webmanifest",
+      "sha": "c8560d0a7f2a0e0fcada6680175a3dbc67b0d6d7",
+      "size": 660,
+      "mode": "100644"
+    },
+    {
+      "path": "public/pwa-192.png",
+      "sha": "6ad8b3477e1bc715814c9424f0c4b29151e38ca6",
+      "size": 17794,
+      "mode": "100644"
+    },
+    {
+      "path": "public/pwa-512.png",
+      "sha": "8897003e09712b0ed626d60a31291a35bcdd441b",
+      "size": 86856,
+      "mode": "100644"
+    },
+    {
+      "path": "public/pwa-maskable-512.png",
+      "sha": "aa062ab4fcf194f1389ef98cde8a9be978636035",
+      "size": 56363,
+      "mode": "100644"
+    },
+    {
+      "path": "README.md",
+      "sha": "76000702599317cdfc796de419b3c694df41d6d6",
+      "size": 4629,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/__pycache__/gen-arktik-accents.cpython-313.pyc",
+      "sha": "48fcdc86fdbbf5e7dcf2c324e6c15d1db0754d96",
+      "size": 12907,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/audit-supabase-migration-ledger.mjs",
+      "sha": "a01f3434f70bf1d940834b3e0a72d427f5c5387d",
+      "size": 4146,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/bersihkan-branch-aureka.sh",
+      "sha": "37f23c6c9af8b9d4952611eae94ad367b0a6c007",
+      "size": 21952,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/check-workspace-ui.mjs",
+      "sha": "216253b7703c39354df06bd10e2e39497c3dcb0c",
+      "size": 52973,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/gen-arktik-accents.py",
+      "sha": "d1165dbe23e9e002ae4aeda1e09aa4848d297617",
+      "size": 7886,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/gen-arktik-dark.py",
+      "sha": "1a0068c6807c487bd785849fda840e6033568be2",
+      "size": 9162,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/reconcile-pmkp-2026-rehab-and-targets.sql",
+      "sha": "b253859a556749f7b6a51135bf7781e97a1b132e",
+      "size": 6367,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/reconcile-pmkp-2026-technical-profiles.sql",
+      "sha": "7f4ff0b040e8672f2eb930750b13e3f6f8d3f6e7",
+      "size": 38865,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/reconcile-pmkp-2026.sql",
+      "sha": "8d95d8acf29dc381056283336b2ca79981e4e800",
+      "size": 6628,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/reconcile-timkordik-capture-2026.sql",
+      "sha": "b3f46f901aea9ec341d331c7e9dfbe31ace7239f",
+      "size": 831,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/repair-pmkp-workbook.py",
+      "sha": "708d2aece4b6cc70e9f8e484d9d38dd41772350e",
+      "size": 10979,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/run-browser-smoke.sh",
+      "sha": "9c6202daf4a3b9aaedd67b6044e29034c2c122cf",
+      "size": 1594,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/validate-aureka-data.mjs",
+      "sha": "5d7d9d21ccc2fe5c51748e1aadb3e83a6f3e2dbb",
+      "size": 3354,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/validate-supabase-build-env.mjs",
+      "sha": "5a7d5530f2bfa233352e040be208e4551cfe10cf",
+      "size": 3735,
+      "mode": "100644"
+    },
+    {
+      "path": "scripts/verify-import-contrast-export.mjs",
+      "sha": "d883258625934d15752fcaed7d455f49516df685",
+      "size": 1779,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/config.toml",
+      "sha": "23d35d0084eb107cc959a461af2a83d4d95b12af",
+      "size": 1098,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/functions/aureka-admin-reset-unit-password/index.ts",
+      "sha": "385ed8f3df7a0363b74a6bb06c92ebef49ff8c35",
+      "size": 5257,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/functions/aureka-document-ingest/index.ts",
+      "sha": "c70d2674d3541b8f5be3fe3b1c68e6c1a09fa510",
+      "size": 13250,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/functions/aureka-provision-unit-accounts/index.ts",
+      "sha": "e36016d555666ec4bf531c66fc35af36dcd87b65",
+      "size": 756,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/functions/aureka-secretariat-parse/index.ts",
+      "sha": "199cccbca09a0ef9d8cab4b58e18e7a7218ea471",
+      "size": 1518,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/functions/aureka-spo-analyze/index.ts",
+      "sha": "9acb1d1f99cb0a340b11acdaa38593db17b249b5",
+      "size": 1510,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/functions/aureka-tanya/index.ts",
+      "sha": "419a600ecf0c4fd5b27345eecfb0f296033b0c0b",
+      "size": 86382,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/functions/aureka-tanya/README.md",
+      "sha": "798be5eaf1d6b98c0f8dff2b16b7d7af801c37ee",
+      "size": 4714,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/functions/aureka-tanya/skill-policy.ts",
+      "sha": "33dae8b55e47f6121034cd349f0876f8695c4b06",
+      "size": 4068,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/functions/aureka-tanya/skills.ts",
+      "sha": "37759f74070dd461cb4f256071d6ebdf22b89f35",
+      "size": 11368,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20260911060211_foundation_clean_rebuild.sql",
+      "sha": "971af65f12136ec860726d4b4c6e702edbcd1ff7",
+      "size": 5749,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20260911060225_foundation_rls.sql",
+      "sha": "491f51be4347f6616792062aef337de719610d87",
+      "size": 1635,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20260911060342_foundation_indexes.sql",
+      "sha": "aa3abda1d3c3cb6bb505fd2f623dc932474e5086",
+      "size": 424,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20260911061700_public_user_profile_compatibility.sql",
+      "sha": "b4d85fa7cb63d9717b77e9ffc9280d8917322abf",
+      "size": 1349,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20260911070000_storage_baseline.sql",
+      "sha": "96c904aa695f11be07f2fa88764e344f59a924ca",
+      "size": 136,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20260911151600_user_profile_bootstrap_and_signup_rooms.sql",
+      "sha": "823debd69119b8eb0da49c6e0810f3a2605b7aec",
+      "size": 2022,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261004080000_global_settings_admin.sql",
+      "sha": "4dd0499ab85480387af0c3ed4b0819e0af700872",
+      "size": 2118,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261007060907_quality_backend_2026_enablement.sql",
+      "sha": "1332bcfefa6a4c0a20db1670ea9c72b0537544c6",
+      "size": 77047,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261007060948_quality_indicator_grain_reconciliation_2026.sql",
+      "sha": "6a38963df31dcc29f2f421be4e49d2c5d3764892",
+      "size": 8189,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261012045336_patient_safety_domain.sql",
+      "sha": "169961df35dfae90ff60f3153b2933b5873c8306",
+      "size": 9761,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261012045431_patient_safety_security_performance_hardening.sql",
+      "sha": "b2a46970ac9e11709c885d2507cd63ea4f33192c",
+      "size": 2207,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261013100000_risk_management_domain.sql",
+      "sha": "4797b36ba48705877593b75471ca8f6541454835",
+      "size": 26708,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261013105000_risk_import_provenance_api_exposure.sql",
+      "sha": "cfa367649ef8514459becabd574fcdc2bc4c5abd",
+      "size": 3531,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261013140000_enforce_very_high_risk_connector_source.sql",
+      "sha": "c3e3c7f9ab3f3c86d182792f3ecdb5741cf0d276",
+      "size": 1981,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261014090000_risk_unit_scoped_read.sql",
+      "sha": "f5c99b3e817eb8251921bf9b07b03140031c03f2",
+      "size": 4976,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261014091000_user_profile_privilege_guard.sql",
+      "sha": "958bca16bb3c3699f4bc9ece2d9a10066172e85b",
+      "size": 1758,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261014092000_admin_delete_user.sql",
+      "sha": "a2c15ccf3ddd5c937468e74cb254b99156b943ff",
+      "size": 2201,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261014093000_user_lifecycle_and_room_admin.sql",
+      "sha": "2957d1a2fc91ad820ccb132ec45af3f694a16835",
+      "size": 4525,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261014094000_admin_password_reset.sql",
+      "sha": "25f93019d12b20cf31d4bf0a03ddac81678813c3",
+      "size": 1517,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261014095000_username_login.sql",
+      "sha": "2248187e61b7ef35d8beb14c76b8d0433f033fc0",
+      "size": 10249,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261020083915_clinical_pathway_domain.sql",
+      "sha": "435dc004599c682b457d37b03863ad72a6a4c252",
+      "size": 12176,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261021015642_clinical_pathway_shared_ppa_updates.sql",
+      "sha": "4e5a3d8776827e1098b486351fce25622946f17f",
+      "size": 777,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261021020028_clinical_pathway_validation_guard.sql",
+      "sha": "a1ca7bd4beb78b63d779ef524501fd859125f0a0",
+      "size": 1296,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261021023233_clinical_pathway_choice_selection_and_ppa_names.sql",
+      "sha": "87e6b277c43b18e9b027f91b73faf9dc07559ed6",
+      "size": 7410,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261021030134_clinical_pathway_complete_master_editor.sql",
+      "sha": "07e0179b13f4bc2ad04260116641a3438efb68d1",
+      "size": 7105,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261021034758_clinical_pathway_optional_phase_columns.sql",
+      "sha": "6a42c9b2b5dd06f3a64cfa9c46d4aee4ba2d872d",
+      "size": 9186,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261021043634_quality_audit_header_master_sync.sql",
+      "sha": "1d655558163074c372bcfc14502c3b6f19c28645",
+      "size": 17400,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261021050000_quality_audit_header_mapping_correction.sql",
+      "sha": "631dcf2c77bfcb847893327b5e99ce0b4af6f79f",
+      "size": 489,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261022080000_unit_accounts_username_validator_first_password.sql",
+      "sha": "f1c7ac708e545ec5e1e287fd476a59f6aa3638a8",
+      "size": 13086,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261022081500_admin_password_reset_force_rotation.sql",
+      "sha": "73885f125a732435d57369dba20551a2b4f7509f",
+      "size": 1401,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261022083000_private_unit_account_provisioning_gate.sql",
+      "sha": "11008236e96d0f735ecf54476e9be467f23df4e5",
+      "size": 772,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261022084000_admin_mint_unit_provisioning_token.sql",
+      "sha": "f83c87ec5b09204049cee7398717b74477bbcab6",
+      "size": 1369,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261022090000_enforce_password_rotation_before_sensitive_data_access.sql",
+      "sha": "4c402588df30c869b5c7ea2143c5ce84d7b9c668",
+      "size": 1861,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261022091000_hide_roles_pending_password_rotation.sql",
+      "sha": "894a35dee6a3cde8e777efd7fcf6158eb8beb7d7",
+      "size": 2293,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261023083000_provisioning_service_role_grants.sql",
+      "sha": "9abdb57fc2383b741f1b1949e14177c7152cc001",
+      "size": 612,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261023100000_clinical_death_audit_workspace.sql",
+      "sha": "118c37269684dfd24ec1826984846755e9018405",
+      "size": 3641,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261023103000_clinical_death_audit_shared_review.sql",
+      "sha": "7941a6e209963cff564335b41f4c9a57b53a41ca",
+      "size": 652,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261026120000_oppe_audit_engine.sql",
+      "sha": "658d500e993ea963f3008502bc70ce0a9f566b4b",
+      "size": 15621,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261027023830_oppe_validation_integrity.sql",
+      "sha": "5dc900799e9a76d1003337723daa81b5b6e637fb",
+      "size": 3429,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261027120000_staff_directory_team_locking.sql",
+      "sha": "cfcfdaefa3005f066f7f31388a791c0ab67520f0",
+      "size": 14705,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261027130000_staff_team_updated_at.sql",
+      "sha": "e4d677fd56fbf1d5eedf1a10759ebd0fb761a4ff",
+      "size": 2789,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261027140000_staff_entity_attributions.sql",
+      "sha": "12c3f595770b7624049f6173560719d2c899fff0",
+      "size": 6691,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261027150000_staff_identity_clinical_modules.sql",
+      "sha": "f7d0bd4cdc47b04cce5777f278d86e4195fb2069",
+      "size": 5430,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261027160000_staff_assignment_picker_rpc.sql",
+      "sha": "80137bcaf14bd835af2be80050638567c7e18b54",
+      "size": 3780,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261027170000_staff_identity_review_resolution.sql",
+      "sha": "b9de1ffb1227b6ae0c0749b7b2eb614f36d046e5",
+      "size": 2102,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261028020000_oppe_fppe_evaluation_workspace.sql",
+      "sha": "7c1d605b230edd53ac47cd16eb52f875c2027523",
+      "size": 12753,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261028030000_oppe_fppe_metadata_identity_guard.sql",
+      "sha": "4d7bc3d782b516535c13390fe82ffbe86003af82",
+      "size": 5042,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261028040000_oppe_fppe_submission_guard.sql",
+      "sha": "bc36a60465f20789cef3a3b1d26481539f17e8b5",
+      "size": 7718,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261029013512_quality_logbook_atomic_save.sql",
+      "sha": "74392423f1c52495867d9925bc60cb6769d848d1",
+      "size": 7976,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261029014335_quality_logbook_require_valid_role.sql",
+      "sha": "b30b6542211a290106226ddd7dfee4024826cae2",
+      "size": 8110,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261029051355_public_landing_aggregate_metrics.sql",
+      "sha": "e2627d02bd39433277336453935087308a6f51c5",
+      "size": 4786,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261029062947_workspace_compact_support_and_quality_archive.sql",
+      "sha": "b37e2cc890985cb69fc7f6b7055e09eecc23a6e1",
+      "size": 5277,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261029071736_secure_quality_logbook_archive_rpc.sql",
+      "sha": "0476a8b6e5d296b3b3cb34143b66013ecd847009",
+      "size": 1653,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261029170000_secure_complaint_logbook_excel_import.sql",
+      "sha": "66a194f7987bb374b9fd95a05061348d45f027f9",
+      "size": 13335,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261029173000_secure_complaint_logbook_excel_import_hardening.sql",
+      "sha": "80d06b7c559479b0fc23c79d143ab8159ed87525",
+      "size": 13298,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261029180000_secure_ambulance_logbook_excel_import.sql",
+      "sha": "f490b6ea7902e7784089b4853c0c5437ac66d7d5",
+      "size": 13927,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261029190000_secure_ibs_logbook_excel_import.sql",
+      "sha": "c5a7f418c03b1f2833fe3e9352eb90b85240c954",
+      "size": 14466,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261030020445_unified_workbook_imports.sql",
+      "sha": "3b80fbeef261b920e4a9168fd8255d6eecd84e20",
+      "size": 13350,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261030024316_fix_pharmacy_jsonb_object_key_count.sql",
+      "sha": "1375ac474f8e7f5b7852fd6dcaa479808f6c9b72",
+      "size": 12760,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261030081000_pharmacy_dual_stream_daily_logbook.sql",
+      "sha": "83cdadf3340dde122caf23e1170c6cdde326b9dc",
+      "size": 3929,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261030114000_secure_gizi_logbook_excel_import.sql",
+      "sha": "f99a553b047a7b8e1a82fd267c84e5fc1b17b185",
+      "size": 16925,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261030125000_secure_laboratorium_logbook_excel_import.sql",
+      "sha": "cfe0db57b97edf9a7858394460232601e9730260",
+      "size": 17551,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261102011500_secure_rehab_medik_workbook_import.sql",
+      "sha": "5f2b14a85a70cdd81beb22bbbdead6c5509e9693",
+      "size": 17226,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261102035953_secure_icu_logbook_excel_import.sql",
+      "sha": "f20fe6a4966ca4d71fda6d548c7c1a8b9ef456de",
+      "size": 15892,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261102042025_secure_perinatology_logbook_excel_import.sql",
+      "sha": "fa0b8c495ddbcc0cc4eaa2f7ecbd5dbef54af121",
+      "size": 25319,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261102080416_secure_nicu_logbook_excel_import.sql",
+      "sha": "4c297f078b733fb28d9d6176d547d5818e13f864",
+      "size": 22701,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261102083600_allow_perinatology_combined_bhp_linen_source_header_alias.sql",
+      "sha": "a235f963c4c390d752db2b17030cce1bd4458bca",
+      "size": 2016,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261102091226_secure_nifas_logbook_excel_import.sql",
+      "sha": "acc81ff80b5c0294dbc4396c1c6bf0a81ce34c4d",
+      "size": 29276,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261102091308_fix_nifas_logbook_source_cell_key_count.sql",
+      "sha": "b62fdaf3c79642ad45e55a33fe223b29df19826e",
+      "size": 770,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261102091330_harden_nifas_import_source_cell_and_review_validation.sql",
+      "sha": "3ffa12d364016793488e56c8d4284b72389f4943",
+      "size": 1266,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261102100417_secure_ponek_logbook_excel_import.sql",
+      "sha": "5036224a6d1ae6f63ef66c38c0cd574c8989221a",
+      "size": 24935,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261103083249_align_pediatric_inpatient_indicator_source_options.sql",
+      "sha": "388dbfeec511de5bded1c617b61f8a4eec7942d8",
+      "size": 5395,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261103083455_secure_pediatric_inpatient_logbook_excel_import.sql",
+      "sha": "e0d7f7f19455c6f3b1732e50d7d4c66a4a066af5",
+      "size": 21234,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261103085405_align_surgical_inpatient_indicator_source_options.sql",
+      "sha": "ddea03b99dffa7e86da0044640877ae1954e859f",
+      "size": 4301,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261103085502_secure_surgical_inpatient_logbook_excel_import.sql",
+      "sha": "2535a631b79c67f6e024558b9fcf0680be0df344",
+      "size": 18816,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261103093738_align_penyakit_dalam_indicator_source_options.sql",
+      "sha": "c39da844063d804674847b27fd25c58e38189717",
+      "size": 12230,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261103094212_secure_penyakit_dalam_inpatient_logbook_excel_import.sql",
+      "sha": "f1a9c5e9cdc46fcf89eec3f6523ae82a5cd6c47d",
+      "size": 21176,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105043348_ponek_universal_code_mapping.sql",
+      "sha": "c3bedea0742a2005786c8c48d0b76ab08ac33d12",
+      "size": 19625,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105043429_atomic_indicator_profile_versioning.sql",
+      "sha": "a1a4fb55784a78c18cfdcaf3b188eeee3ad52f4a",
+      "size": 4462,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105044848_correct_indicator_targets_and_ponek_33_2.sql",
+      "sha": "949fafd76f4bbd91c6bd141626d2f6b75e96b0e0",
+      "size": 6264,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105045753_quality_indicator_metadata_audit_2026.sql",
+      "sha": "9ef2e7e6c9fca87e710741d4ac9527e0d7473a17",
+      "size": 12095,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105045924_fix_static_indicator_directions_2026.sql",
+      "sha": "32e169ff045a974cf3ec586174deeda71aa8a461",
+      "size": 3268,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105050129_reconcile_indicator_numerator_denominator_2026.sql",
+      "sha": "d774b19e82c823a7e9c66951d70ac9e26b0e557c",
+      "size": 12069,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105050353_assign_clear_coded_indicator_directions_2026.sql",
+      "sha": "1cf349575c9a685db858ade27664c97534f3a0d8",
+      "size": 4802,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105051137_fix_quality_measurement_engine_profiles_2026.sql",
+      "sha": "a6c17340478df98f19991b50db6123488f1e9385",
+      "size": 9962,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105051331_correct_remaining_indicator_polarity_2026.sql",
+      "sha": "8bf48e1c465a7216f2d42c4b29cbec733c2df3f2",
+      "size": 5615,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105062949_finalize_quality_metadata_audit_2026.sql",
+      "sha": "2977ae774d21a36df622a3b80f75efbb7e2ea22f",
+      "size": 6525,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105063147_resolve_hemostasis_indicator_25_16.sql",
+      "sha": "0edbc08102d20c2db7e42f5f9e5779434c260aac",
+      "size": 3275,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105063332_reconcile_maternal_neonatal_eligibility.sql",
+      "sha": "08467963564ec418d6d72b7da558b04aad5fcaf7",
+      "size": 4772,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105063437_clear_unapproved_targets_and_complete_definitions.sql",
+      "sha": "926bd88e8458d2df239fa486589a9b4e4a2083c8",
+      "size": 5221,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105063700_separate_clinical_eligibility_from_nd_flags.sql",
+      "sha": "31aafb4d2a4a69dd7bdb99653a9727237bf1befc",
+      "size": 2363,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105063856_complete_safe_clinical_nd_definitions.sql",
+      "sha": "c75dea427a7b3b999bf2a9653a64eae5216d287e",
+      "size": 5394,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105064423_flag_all_unapproved_indicator_targets.sql",
+      "sha": "5f3c36f8db1ff1efe9bd7b3bdd7d8852f52d716f",
+      "size": 2212,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261105073416_repair_quality_master_55_workbook_readiness.sql",
+      "sha": "4996b55ee2d3c63b4d9196a4a6451631e631eace",
+      "size": 15625,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261106024459_standardize_indicator_codes_stockout_and_pediatric_import_2026_11_06.sql",
+      "sha": "fc413bea4519d3f4ad4cb53c977c4f597c2d9d2e",
+      "size": 260,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261106024700_standardize_indicator_codes_stockout_and_pediatric_import_2026_11_06_v3.sql",
+      "sha": "f22c65d0af763bcefd32f2bc01e2d1ff46e641f7",
+      "size": 29492,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261106080000_secure_isolasi_inpatient_logbook_excel_import.sql",
+      "sha": "b1172d966a91cdcf7c83ca46dd3163d2fce82943",
+      "size": 24415,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261106090000_secure_saraf_inpatient_logbook_excel_import.sql",
+      "sha": "f5d12c3d58167ef99b257d5e82e32cf9961b7d97",
+      "size": 24374,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261110123954_support_room_mass_announcements_visibility.sql",
+      "sha": "47a8bd6c3a4e45421e995f3d485aa71a654d16d0",
+      "size": 1441,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261110124016_atomic_mass_room_announcement_rpc.sql",
+      "sha": "15e31bf69fb9e739910a65b1c13cbd00b83c60e6",
+      "size": 1425,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261110130000_secure_igd_workbook_import.sql",
+      "sha": "4dcc241fdac360dd7540a1d83fa9c10628bded93",
+      "size": 27881,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261110170000_expand_igd_consultation_period_months.sql",
+      "sha": "6d2c657913f57a4d1dbd5efded16e8acf07cb76e",
+      "size": 8717,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111032420_admin_cleanup_pic_validator_accounts.sql",
+      "sha": "7563ce696ad9499fa1e9276a431cb5e0530c8ace",
+      "size": 1764,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111033219_index_aureka_auth_user_foreign_keys.sql",
+      "sha": "992025c73b28b6b3a2ec795e1dad7c39b409e248",
+      "size": 1107,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111033407_decommission_pic_validator_bulk_provisioning.sql",
+      "sha": "28fec9571965f51bf13662ef17e0d68511cc06c5",
+      "size": 177,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111033642_remove_unused_bulk_account_cleanup_rpc.sql",
+      "sha": "752f5a56389ec60d487d9f3bd4ef178ed4f0bda8",
+      "size": 100,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111050000_secure_it_logbook_excel_import.sql",
+      "sha": "dc4062013a48a56c6148c240e42f139b086791c1",
+      "size": 11184,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111100000_quality_room_month_counts.sql",
+      "sha": "144f50d36559930c0ce612be46a88268b3f5918d",
+      "size": 1429,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111120000_quality_room_month_counts_fast.sql",
+      "sha": "818aefd74ec51bcfd61fcf36eb1b9a8305ae3b39",
+      "size": 1402,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111123000_patient_episode_stats.sql",
+      "sha": "dacdf3fec3a5250c601d92cce1c2fda1ec78cdf9",
+      "size": 3780,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111140000_patient_index.sql",
+      "sha": "c608e55beb6a7bb8456d8d18c23bd12d8c47fcc8",
+      "size": 15829,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261111150000_patient_episodes_page.sql",
+      "sha": "a2689d33ecc45fd909e4c706e26b02e032909190",
+      "size": 4186,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112010000_named_safety_culture_survey.sql",
+      "sha": "f00665d55a40be6024ddb19908c9576ef059abf0",
+      "size": 5957,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112044800_infographics_permission_guard.sql",
+      "sha": "bb7e97ad4795fe64aa5f939b165fd5a85ee095d8",
+      "size": 2206,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112074628_support_reminder_read_history.sql",
+      "sha": "a5b6d0d366fb2419fb8d7bc28be6269c1ae43206",
+      "size": 3766,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112100000_blueprint_program_regulation_audit.sql",
+      "sha": "cab0ddb83a710e06524700b2282f528ee1e73cdf",
+      "size": 32027,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112110000_blueprint_settings_permissions.sql",
+      "sha": "b5ac8c1d98496fb08c604b4a46f0fb2b911dd7e8",
+      "size": 12813,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112120000_blueprint_permission_policies.sql",
+      "sha": "d89dc4b028a26d7af23bdf42a7048baf20969679",
+      "size": 2636,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112131846_pic_performance_and_indicator_proposals.sql",
+      "sha": "074ad26ec4efb1fafb3b0bd6957709cd5519a977",
+      "size": 19876,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112131952_fix_pic_performance_dashboard_alias.sql",
+      "sha": "ad98be593437820da873f00c6fda0a48525819c5",
+      "size": 3176,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112132415_fix_indicator_proposal_trigger_search_path.sql",
+      "sha": "d28aad74184ecb3df61d514ecfdc0f9ba8716fac",
+      "size": 472,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112132736_scope_pic_dashboard_for_kabid_and_director.sql",
+      "sha": "6dedf28acf4282ad0380ebcaa486ee6269880e73",
+      "size": 3596,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112133038_index_indicator_proposal_audit_foreign_keys.sql",
+      "sha": "b4021fabd8eba4e35b9e49f70ac7a1eb0316a5b3",
+      "size": 609,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112140000_aureka_infographics_aggregate.sql",
+      "sha": "3d097d40d944a60aafb07206139fb9e8a8be6bb7",
+      "size": 12791,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112215016_remove_regulation_feature_and_schema.sql",
+      "sha": "9852e6330d69c20507bcb8543685ab3d5b0d1a95",
+      "size": 1294,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261112235016_infographics_patient_episode_aggregate.sql",
+      "sha": "7133bf8e2ee39b23ba3b3b1872e74351ce69e4ce",
+      "size": 16832,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261113024916_secure_rekam_medis_logbook_import.sql",
+      "sha": "4684a73678023c07dd94abf45dc712ea0704bf46",
+      "size": 13938,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261113030741_secure_timkordik_logbook_excel_import.sql",
+      "sha": "e2e6dcf1ec27d287ac40fb7f3948737ea201bcc0",
+      "size": 15507,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261113060000_program_priority_and_pdsa_pdca.sql",
+      "sha": "298b649bff671255f17e4372878432fff80859f5",
+      "size": 15560,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261113061000_program_indicator_proposal_read_roles.sql",
+      "sha": "60f5758cd9ab9cc4204cf8410c55f34eed83f5d4",
+      "size": 1442,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261113062000_backfill_recommendation_issuer.sql",
+      "sha": "ff85ae7ee4ce038edc1f6eb04fcb31fd6522ba1c",
+      "size": 698,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261113063000_fix_governance_action_edit_fields.sql",
+      "sha": "c8678081b9587d18f228be7806831c0662b556de",
+      "size": 4288,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261113064000_enforce_pdsa_pdca_cycle_completeness.sql",
+      "sha": "e5947c53f9e1e6ca5205d5dfde62d5229de2b21b",
+      "size": 5147,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261113074223_infographics_remove_decommissioned_regulation_dependencies.sql",
+      "sha": "ecc2cce13aefaf5c2f930e2fd60fbcade0a011a2",
+      "size": 13844,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261113190000_quality_room_reporting_status.sql",
+      "sha": "3e7ff97609a9c0961b9981f83c134b850e8e66fb",
+      "size": 1523,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261114080000_indicator_profile_set_transfer.sql",
+      "sha": "07cdc598cac125fe8838abe6a53ce34f40d1e125",
+      "size": 17292,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261115090000_patient_index_v2_filters_readmission.sql",
+      "sha": "6373c3594c847072bf28613410ceac66cfc49fd0",
+      "size": 6719,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261115090200_list_active_roles_all_governance.sql",
+      "sha": "065b03eaef9f3d4ba50ac18beaa0d194b568cc90",
+      "size": 1674,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261115090300_advisor_hardening_search_path_duplicate_index.sql",
+      "sha": "229827bf3aaa342ee059f3510365d2f05e9a20a0",
+      "size": 1436,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261115162942_aureka_advisor_search_path_hardening.sql",
+      "sha": "e33f2eff9c605e4884879658fdfcf166ff965efa",
+      "size": 811,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261115162956_aureka_governance_quality_search_path_hardening.sql",
+      "sha": "4e2485d9a3521628e76d9c8be7a66a81f42fc8dd",
+      "size": 370,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261116090000_client_error_log.sql",
+      "sha": "206a0b73de86dc9ee40aba92209162701716acb2",
+      "size": 2119,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261116120000_public_incident_qr.sql",
+      "sha": "6974283bef3f57ad0efbd54b334e4ade5a38d256",
+      "size": 6095,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261116180000_nara_clinical_intelligence.sql",
+      "sha": "a1b01b1335ad39c8518ce902d55f5aaf0ad41346",
+      "size": 26128,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261117180000_indicator_profile_unit_batch_edit_and_safe_delete.sql",
+      "sha": "2492a7fdd16714465966f05c4f7eb329c3fd920c",
+      "size": 12647,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261117193000_fix_indicator_profile_delete_access.sql",
+      "sha": "18608c2e21a5759164c0a34a7f78323983ceaad7",
+      "size": 1066,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118021000_fix_icu_bhp_linen_backfill_response_selector.sql",
+      "sha": "a6d5a8fd0f712f9d525938031f60d169834310aa",
+      "size": 19887,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118030000_patient_record_analytics.sql",
+      "sha": "9af14e27ca30946a6faf2bccefc6743998592aa2",
+      "size": 8366,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118040000_patient_index_reconciliation.sql",
+      "sha": "2acc7ef0fdd9c03fb7518e731444194e2afe09a4",
+      "size": 6420,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118050000_quality_reconciliation_center.sql",
+      "sha": "b6a919d960b698922c1692b400b38a828295356b",
+      "size": 29390,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118053000_quality_reconciliation_verified_source_warning.sql",
+      "sha": "071ef81421ea3d090cc5f23dfdebcac55f0283f0",
+      "size": 9853,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118100000_icu_categorical_form_and_bhp_linen_backfill.sql",
+      "sha": "229f0df0d0361d4e55f70f5b57ab4db736e037ac",
+      "size": 26404,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118103000_icu_backfill_all_source_headers.sql",
+      "sha": "919fe93ac11e2b80ef752cbe47fd26a7b1f6b296",
+      "size": 9489,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118115000_icu_source_workbook_provenance_storage.sql",
+      "sha": "f9dfdb9dd83303dca918a59c0b889c4a337e4df4",
+      "size": 13657,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118120000_nara_patient_diagnosis_intelligence.sql",
+      "sha": "ae1208f929ad2f96d661c90acee346a325f204d0",
+      "size": 33884,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118130000_nara_diagnosis_completeness_and_patient_index_sync.sql",
+      "sha": "0210aae5102099a334715d7a40563b65d668b352",
+      "size": 25075,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118160000_quality_excel_unit_mapping_center.sql",
+      "sha": "b9aead10d7f0e583e14ce4a8e4a1de03269bf0da",
+      "size": 18331,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118210527_add_missing_aureka_fk_indexes.sql",
+      "sha": "096128095af85e085e38655c852d8289961c5071",
+      "size": 2877,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118210529_restrict_account_rpc_anon_access.sql",
+      "sha": "c0353bc9a7b292206d250c72f7811d6fcd927b9d",
+      "size": 807,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118210531_consolidate_equivalent_rls_policies.sql",
+      "sha": "13be02bb1c4059e6955e0629d5e179573712b790",
+      "size": 3104,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118210533_optimize_rls_auth_initplan.sql",
+      "sha": "7f2897aea0d2f9db870941528d4b57cffe9ae0be",
+      "size": 2617,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261118211321_explicit_default_deny_rls_policies.sql",
+      "sha": "9ddd8178ee6dfef12fd033ed7b94d2864521cbf1",
+      "size": 2359,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261119033452_spm_standalone_workspace_2026.sql",
+      "sha": "4a0be72725a7a6977db20ca5393876db3f67169d",
+      "size": 41421,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261119033500_spm_access_and_measurement_policy.sql",
+      "sha": "fef39f7014eb60514f815fd7d5b952ae85cdda72",
+      "size": 3068,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261119033802_spm_fk_index_coverage.sql",
+      "sha": "d633d0685b1963e3fa8cc5da2f5a088cc1b75ca7",
+      "size": 844,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261119045225_spm_any_year_and_excel_import.sql",
+      "sha": "3d14be5d885f524f14829ffdd32679899782a986",
+      "size": 8791,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261119105824_patient_index_update_no_double_count.sql",
+      "sha": "4cb9ae85b26f5c9dbfc92723a490deba3e8c0d65",
+      "size": 4938,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261119222028_spm_room_scoped_annual_entry.sql",
+      "sha": "d978776b0b113cf8945fe25b0236224b9384cfc0",
+      "size": 3417,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261120142226_anonymous_safety_culture_survey.sql",
+      "sha": "c751c98b7a729604d1bf7d0a0b29707636a37246",
+      "size": 3168,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261120155000_add_public_incident_room_indexes.sql",
+      "sha": "b3e98a22368c5adfc35994d6c891ad5a14ac62e2",
+      "size": 445,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261120164200_fix_patient_index_sync_null_role_guard.sql",
+      "sha": "b90ab0494c2cf32439808147953a7b5b7515ba2b",
+      "size": 3115,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261120233000_aureka_backend_completion.sql",
+      "sha": "9ff709a09d361cc8fb8708cc5fc1f1addb58d749",
+      "size": 71158,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261120234500_aureka_spo_storage_policy_alignment.sql",
+      "sha": "aa0912c496dccf6271e31a8212c518da39ac0f5e",
+      "size": 4306,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261120235500_aureka_document_governance_hardening.sql",
+      "sha": "936b32311650176f3eb043acea56f54070a8fe00",
+      "size": 13215,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121000500_aureka_document_ingestion_worker_policies.sql",
+      "sha": "6e2103c458458eaaaa3661a9135eb4c6a7327836",
+      "size": 1457,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121001000_aureka_crossdomain_rls_guards.sql",
+      "sha": "7d6b0a5854dd21f5eec5529fd74d259b75883b34",
+      "size": 4143,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121001500_aureka_document_ingestion_atomic_claim.sql",
+      "sha": "3f01a2c689b33c565f1176ffea34c5576732c553",
+      "size": 2232,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121002000_aureka_realcost_signature_lifecycle.sql",
+      "sha": "96044edf743c226ddf36fb0cb2dc35dfc46cae10",
+      "size": 2623,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121070000_standard_operating_procedures.sql",
+      "sha": "05242680b4eea9dc1bd8549e90b6e12cdb53778d",
+      "size": 8854,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121073000_standard_operating_procedures_fk_indexes.sql",
+      "sha": "be5ab6b6b6e8d4d78d426a95d0531e20eda2c6c8",
+      "size": 425,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121080000_realcost_audit_domain.sql",
+      "sha": "e8f0e9dff8de8a205b6221c1d62e02608e6ca013",
+      "size": 17211,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121083000_secretariat_document_register_reader.sql",
+      "sha": "2f341e9f4217be5ba078e4f745ff4dcf86d5b995",
+      "size": 2942,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121083500_secretariat_global_storage_scope.sql",
+      "sha": "79c092ac5b0c147e440ee88816c61d7efa4e6f07",
+      "size": 701,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121090000_legal_signature_assets_and_qr.sql",
+      "sha": "9d68e5964e88ddff011a3512ee2465117959aae1",
+      "size": 31309,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121090500_legal_signature_asset_visual_quality.sql",
+      "sha": "d47249faef8b91e138a352487106ca32f56fed88",
+      "size": 9512,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121091000_legal_signature_asset_eva_fix.sql",
+      "sha": "6b21e81080445bdf73c426cff48fa28d317f837a",
+      "size": 4015,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121091500_legal_verification_authenticated_access.sql",
+      "sha": "8cfdd4915bbf6564f00f8b90d3fcc5e397faf392",
+      "size": 90,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121120000_student_orientation_workspace.sql",
+      "sha": "acbf3fff72803ca418df599bac91809fc4541ac1",
+      "size": 14287,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121123000_quality_workbook_import_v2_and_safe_reset.sql",
+      "sha": "a245acf1fccb9c0b27c7b917e579a4d83870ab58",
+      "size": 45837,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121130000_student_orientation_constraint_scope.sql",
+      "sha": "1129e5c6480666c85d7d8e2132278bf2469c5d2e",
+      "size": 493,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121140000_patient_linked_history.sql",
+      "sha": "874086dc013cb8082c44b81f6a6980925c1f82ba",
+      "size": 4734,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121143000_quality_import_restore_and_validation_hardening.sql",
+      "sha": "9c94be0b1d52d02293510b09a403a4b0682861ab",
+      "size": 17234,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121150000_in_house_training_certificates.sql",
+      "sha": "93b9da74e6396cfe0dcd982b4321c0edcfe6b661",
+      "size": 6259,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121150100_quality_import_staging_payload_retention.sql",
+      "sha": "e939d600d3b41a7f96b540d79b3b3c3392c99bf7",
+      "size": 1298,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121153000_quality_reset_restore_long_running.sql",
+      "sha": "963320934cdff02abbf65b687c571b32760f5b2f",
+      "size": 509,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121160000_quality_reset_restore_fk_optimized.sql",
+      "sha": "e1ad406510f2a6481c44d453ed40c06260fbbc86",
+      "size": 8357,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121163000_quality_reset_restore_fk_compatible.sql",
+      "sha": "526adc63dcc354e918d268512019db8c08738b18",
+      "size": 8633,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121163332_worksheet_profile_autofill_missing_only.sql",
+      "sha": "d4f77ea67df358f4aaf1264cc2c7ad29c912b4b3",
+      "size": 6351,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121170000_certificate_template_layout_editor.sql",
+      "sha": "ffa2f86d677886eebff94acf5b8c479ce7ec12e1",
+      "size": 2270,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121171000_quality_domain_restore_exact_snapshot.sql",
+      "sha": "1138ca50cbdf3e98e97e1bed574970f837f5ee18",
+      "size": 18633,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261121173000_quality_restore_verification_scan_optimization.sql",
+      "sha": "9bfcf5649a54a825a0546d5b45c8c745eee47f1b",
+      "size": 4435,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122001000_aureka_public_intelligence_portal.sql",
+      "sha": "3c0fb6aeab95be1baeec16a5e10787874fc46756",
+      "size": 12358,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122002000_aureka_public_portal_strict_grants.sql",
+      "sha": "1fb99974ed89a4356f255d5e985ce292a5513218",
+      "size": 929,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122023253_quality_records_rls_password_rotation_initplan.sql",
+      "sha": "95b011fcb6ee5f268fcec07ac3ee3be26750b92c",
+      "size": 639,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122100000_complete_blueprint_workflows.sql",
+      "sha": "cbb8f87bad85036673bca5e5930927fd09f9394c",
+      "size": 22834,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122130000_complete_workflow_write_guard.sql",
+      "sha": "68eec81268a4e6d783a8bc97081751c49510152f",
+      "size": 7359,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122140000_recommendation_code_sequence_integrity.sql",
+      "sha": "1109e74ff610725bfbf4d1b65611426b52a809c2",
+      "size": 3905,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122150000_signup_active_rooms_column_rls.sql",
+      "sha": "a96f10f75da60b8b4bccfc3570368eb983997c0c",
+      "size": 880,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122160000_admin_password_reset_server_rate_limit.sql",
+      "sha": "9642833d53eb3800714f0bd4e0668a804f3e6c60",
+      "size": 2115,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122170000_quality_records_room_year_sort_performance.sql",
+      "sha": "67e2834640cdb85f21a5cc632fc63460dfc62af3",
+      "size": 653,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122180000_zero_file_archive_schema.sql",
+      "sha": "440ecd1375f6dbe5a6ae6f8c51706684287f5110",
+      "size": 1344,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122180500_zero_file_certificate_snapshots.sql",
+      "sha": "f94f2b8923c6e6aee902a54fef2ad4fbf918bc63",
+      "size": 3237,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122181000_zero_file_storage_policies.sql",
+      "sha": "2fcdbdbe2a9102ee22790e1cf83ee5c4e19099f7",
+      "size": 779,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122183000_icu_data_only_provenance_and_backfill.sql",
+      "sha": "f4ed2d5a67fdc202b67a0ce65d06e134160d529a",
+      "size": 26379,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261122184500_zero_file_storage_legacy_quarantine.sql",
+      "sha": "e6d7bfaa1201a0fc15a901297ec259cfb77cfdfc",
+      "size": 773,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261126110000_repair_pediatric_workbook_indicators.sql",
+      "sha": "c71802b933d9613ba1d28885a67222f7599251d3",
+      "size": 9945,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261126113000_reconcile_isolasi_workbook_choices.sql",
+      "sha": "860062d0decc680775833b93006c853103f2c900",
+      "size": 4018,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261126130000_repair_room_workbook_imports.sql",
+      "sha": "71cfad70f32c35071fa3f521cc42f73746bb1a4c",
+      "size": 13594,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261126131000_align_nifas_workbook_provenance_guard.sql",
+      "sha": "f21769a26adfc149fd7011a605f312036e814eee",
+      "size": 733,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261127090057_save_clinical_audits_atomically.sql",
+      "sha": "7a059ce5d682524c8f346bec97701ad87256acc1",
+      "size": 7358,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/migrations/20261127090337_stage_realcost_batches_atomically.sql",
+      "sha": "75224e83b39b9ae1a1b969aa7126f3eb8938bc4e",
+      "size": 3325,
+      "mode": "100644"
+    },
+    {
+      "path": "supabase/README.md",
+      "sha": "305fe1d784d504087c3a09e2550f794d3950e325",
+      "size": 1018,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/adaptive-workspace.test.mjs",
+      "sha": "6777bbfd57cf8c2b1c6b6980e483604557daa194",
+      "size": 4249,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/additional-workspace-dialog-portals.test.mjs",
+      "sha": "d3f2ac35f76ed19dbdd4c38bf8159f3879ae3a57",
+      "size": 1974,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/ahrq-sops-international-use.test.mjs",
+      "sha": "0ebbbdd37072c0a55420b23c6897c145bb0728e4",
+      "size": 1232,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/ambulance-logbook.test.mjs",
+      "sha": "3d35db0caa4cf46bd4d877d4e24992e2c2a345c9",
+      "size": 4240,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/anonymous-survey-database-policy.test.mjs",
+      "sha": "81df00343c84db797000bfd2ea0c55c40b3d5c45",
+      "size": 1274,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/audit-indicator-all-units-layout.test.mjs",
+      "sha": "f565b3c7bffa252d730b3161274b09acbe941003",
+      "size": 2276,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/audit-indicator-workspace-redesign.test.mjs",
+      "sha": "54ef9f5c8d7e5a330a9bba0fc1e77bfb48485a11",
+      "size": 6858,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-acrylic-navigation-polish.test.mjs",
+      "sha": "ef2a28c4003317f69bd90de591fbcc9daa5f844b",
+      "size": 7146,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-admin-password-reset-limit.test.mjs",
+      "sha": "5bce6663c27a3082d431acfd190aee8bab7e17af",
+      "size": 1625,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-brand-logo.test.mjs",
+      "sha": "e40b392a94e4473f98ddbbeb4d4091177ef241df",
+      "size": 1830,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-browser-spo-parser.test.mjs",
+      "sha": "14a260f3e6b6b03dc7a79e047fdd5a8b5f813157",
+      "size": 1431,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-migration-uniqueness.test.mjs",
+      "sha": "b5f133b832eb600d87aa75af828b0b5bffa4c215",
+      "size": 1237,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-mobile-workspace-navigation.test.mjs",
+      "sha": "77fee378e1ec907a3db51f6d19419262b0c1e957",
+      "size": 879,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-navigation-integrity-2026-11-21.test.mjs",
+      "sha": "91b4668ccda4bf56a5eb50994cc21953949f8f9d",
+      "size": 5491,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-new-password-policy.test.mjs",
+      "sha": "537f97a2260df19465925dbda8218a355b53db84",
+      "size": 1414,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-pagination.test.mjs",
+      "sha": "eb76ceb156f68916682fede96b20c99002fb63ed",
+      "size": 1946,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-quality-records-performance-index.test.mjs",
+      "sha": "c06e43a01d227f66595b62cfa0fa1d11d9ff8f64",
+      "size": 749,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-runtime-integrity.test.mjs",
+      "sha": "956c98a2b00a9f35e8fb596b55e5a2eedf44f689",
+      "size": 3469,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-signup-rooms-rls.test.mjs",
+      "sha": "69555903955c33de330233494ba8f0c954e02405",
+      "size": 1540,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-supabase-backend-completion.test.mjs",
+      "sha": "70328b11cfe6caf92abdf294c6790f266b0c0b56",
+      "size": 4772,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-tablet-overflow-boundary.test.mjs",
+      "sha": "9bd26463641bb4046a84d65ed7a3bef38fedf1be",
+      "size": 1059,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-theme-arktik.test.mjs",
+      "sha": "227a7ca15309bafb47a133153a95841e1ae178ed",
+      "size": 1044,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-ui-contrast-guardrails.test.mjs",
+      "sha": "26c0c2295b37ccd97d905fd8afd5f34d21cf58c9",
+      "size": 4750,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-zero-file-knowledge-ingest.test.mjs",
+      "sha": "69870459c1ec32a4215ec565d9ef31f8adcd61b9",
+      "size": 1250,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-zero-file-storage-quarantine.test.mjs",
+      "sha": "f74d61f78819b9c2d890789a660f434d3fad7663",
+      "size": 1159,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/aureka-zero-file-storage.test.mjs",
+      "sha": "ee38747abdad2b86313a1243b91b6ac3021e57cb",
+      "size": 2992,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/auth-callback.test.mjs",
+      "sha": "bb159c0e2d8f8f5287322527adf518b340ad5574",
+      "size": 1495,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/auth-screen.test.mjs",
+      "sha": "47107a341c3d4d99741e7f6dad37f2f321af77ce",
+      "size": 3900,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/blueprint-cross-module-regression.test.mjs",
+      "sha": "adeb5e26532c941806cc18b0488b6974e71a5f25",
+      "size": 3085,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/blueprint-remaining-workflows.test.mjs",
+      "sha": "c356478c2ec6ddc86a0030f1cff8b81cb8c2c38e",
+      "size": 5560,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/blueprint-v2-governance.test.mjs",
+      "sha": "ecb0648bb9bec6756f2a8b54cd2993aba7683112",
+      "size": 5141,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/blueprint-v2-navigation.test.mjs",
+      "sha": "60db80843c883b7f1c39d04b1921c5a68b311e78",
+      "size": 14700,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/canvas-appearance-preferences.test.mjs",
+      "sha": "a625ba0660edc2b06dfde02db16378005b7b7d60",
+      "size": 5517,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/category-module-navigation-hierarchy.test.mjs",
+      "sha": "97de8d84d24755117315dff1a95467b8b3991a59",
+      "size": 7234,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/certificate-template-layout.test.mjs",
+      "sha": "b23cf22bcd42f12824a8eda145f99d850d12c7a4",
+      "size": 1329,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/clinical-pathway-master-source.test.mjs",
+      "sha": "d9703ed63afee74ee5f5d8af45e88059137f85ca",
+      "size": 2291,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/clinical-pathway-metric-separation.test.mjs",
+      "sha": "37ffc2c7380d26bf0e4e346cb462449bfad39ccb",
+      "size": 3435,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/clinical-pathway-text-mining.test.mjs",
+      "sha": "12bacbc4fd01b80928df36abeb9c08c7fdebd0bf",
+      "size": 4597,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/command-palette.test.mjs",
+      "sha": "7fd3a44e2f9c764412dc3b9002cffc4419ab0912",
+      "size": 1721,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/complaint-excel-reader.test.mjs",
+      "sha": "eec7e811bf5e285c2217fa31307f4a60eb5f370e",
+      "size": 1138,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/complaint-logbook.test.mjs",
+      "sha": "3235ca90a208bb370366829315d397dbad8be3ee",
+      "size": 3287,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/csv-export.test.mjs",
+      "sha": "be31ee2c88172e79faf14925a65ad934e566cb85",
+      "size": 2068,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/data-pagination-usage.test.mjs",
+      "sha": "2dbfc54b2948f1e9f2e1ac6c886e4b3a10952e2f",
+      "size": 2017,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/document-ingest-rate-limit-security.test.mjs",
+      "sha": "a0f0a7a5f724a96e036bc8b334fdc5578e1140a7",
+      "size": 1469,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/error-feedback.test.mjs",
+      "sha": "abed0d0321a7e160af44eeab4da01e5c86478a4d",
+      "size": 3729,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/excel-column-picker.test.mjs",
+      "sha": "4527a3dd6d85616b86c9819802c374dd657607fe",
+      "size": 1552,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/excel-paste.test.mjs",
+      "sha": "8e89613a9395f2e8e9e232346cee5b43e034742d",
+      "size": 2429,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/expiring-request-cache.test.mjs",
+      "sha": "3dd510858b68548665f543db7a6cbda4124abe11",
+      "size": 1560,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/gizi-logbook.test.mjs",
+      "sha": "447f9028970c777c0cf9d4fb0d622b27e62f7b02",
+      "size": 3027,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/global-navigation-visibility.test.mjs",
+      "sha": "9efa13a39ec6e5dbd49fd57c7b4733c568704882",
+      "size": 1619,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/header-sidebar-layout.test.mjs",
+      "sha": "60403f094cbc24cbb394588666062351170150bf",
+      "size": 9767,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/header-sidebar-redesign.test.mjs",
+      "sha": "e8bb1d944c4cff3886b0e449db63af5e4776d244",
+      "size": 1714,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/home-analytics-nara-architecture.test.mjs",
+      "sha": "632dd67e121372c7ee2064e82dc9f697a51a3642",
+      "size": 5157,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/home-reminder-read-history.test.mjs",
+      "sha": "94b9c1680507c91a8b5eba759ee9a799d6c0e548",
+      "size": 2224,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/ibs-import-modal-layout.test.mjs",
+      "sha": "e91248e56ad5a9d153afd6ac2dbb782f50e798d5",
+      "size": 2974,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/ibs-logbook.test.mjs",
+      "sha": "1e363edfbbe1d0f62469c7597e7b70c623243c18",
+      "size": 2771,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/icu-legacy-workbook-and-patient-form.test.mjs",
+      "sha": "dae2ed289478b620a7cbc2594b41c2838377534d",
+      "size": 1611,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/icu-logbook-form-and-provenance.test.mjs",
+      "sha": "0ca30073d2d2cd72b1b0d6e069d42cc71917fcbe",
+      "size": 9179,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/icu-logbook.test.mjs",
+      "sha": "5e43cefd19f4cb6109c117bc2f55947e0a7af07d",
+      "size": 4588,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/igd-import-dialog-ui.test.mjs",
+      "sha": "2e084bd8967053a72df107276d01652bec86470f",
+      "size": 1598,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/igd-logbook.test.mjs",
+      "sha": "cd3bb8cf84a4fc8e535bdb8cdee854b49344c8b8",
+      "size": 6545,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/igd-source-review.test.mjs",
+      "sha": "5599ae82d439f6beb5ed2ec7ff16d8cfa277b793",
+      "size": 2815,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/ikp-grading.test.mjs",
+      "sha": "422fe3bf65df378c7bf4854fe911cddd44d20c84",
+      "size": 1290,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/import-batching.test.mjs",
+      "sha": "7259f5519b4d6ccbf2522ae01b6e0a6b3163b4a8",
+      "size": 1394,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/import-choice-contrast-runtime.test.mjs",
+      "sha": "aa5c33b1dfc6a6cf02c2cf8b2c1f02a2b980b9b4",
+      "size": 2496,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/incident-excel-import.test.mjs",
+      "sha": "5ee94631c83b8caf32d25018dcebea6456159be0",
+      "size": 4226,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/indicator-diagnosis.test.mjs",
+      "sha": "405410b3c166fea4a0c1fc72fa740ff702af897e",
+      "size": 2531,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/indicator-dropdown.test.mjs",
+      "sha": "79b381e735ed30c0c0869a4def72544f8e923724",
+      "size": 5182,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/indicator-engine.test.mjs",
+      "sha": "a2e78196fd25829e79b71578bf1b152b223c14ec",
+      "size": 2698,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/indicator-profile-readiness.test.mjs",
+      "sha": "b4d0b1434eaf997c401f0271be2953c29931cfb3",
+      "size": 1373,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/indicator-profile-transfer.test.mjs",
+      "sha": "a854bc9bf32b97dfc137a894a2448be4b9f1b478",
+      "size": 12496,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/infographic-explorer.test.mjs",
+      "sha": "e45a51c2c176ff840d7f10ad51197069dda3fde7",
+      "size": 2078,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/interactive-excel-header-mapping.test.mjs",
+      "sha": "67f44cb4941c23c082fd86c3c3ac2ffeeeb37209",
+      "size": 4860,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/isolasi-inpatient-logbook.test.mjs",
+      "sha": "beb11df2014308064bab6a4847fed447ba7c2293",
+      "size": 10313,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/it-logbook-import.test.mjs",
+      "sha": "cbd91515ee6da3ff3bb6d6c32196dc758613733f",
+      "size": 4099,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/laboratorium-logbook.test.mjs",
+      "sha": "14f0136ec5c67f282251969b25e527a87e6e6441",
+      "size": 3369,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/legal-signature-assets.test.mjs",
+      "sha": "27a4aafa51a067ecef78468f5dd120cd474a8500",
+      "size": 3018,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/medidash-sidebar-menu.test.mjs",
+      "sha": "730be5af848c5783a5574ba7fb9daea944ce114c",
+      "size": 1608,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/metadata-navigation-consolidation.test.mjs",
+      "sha": "a61993ef07b81bfd6448256c689fb4792c29e2e6",
+      "size": 4114,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/migration-ledger-reconciliation.test.mjs",
+      "sha": "fe2b84b20c216e86cb7fe3b4f6533804c8d1363f",
+      "size": 2969,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/minimatch-compat.test.mjs",
+      "sha": "691ea18dbc10847e4028a60bc00ed5c88bc2f15c",
+      "size": 1665,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/mobile-viewport-accessibility.test.mjs",
+      "sha": "be0526d9f68abd2c9b3067238fcecc653ba666f6",
+      "size": 656,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/motion-regression.test.mjs",
+      "sha": "fd5445d27482df9d68bec19c365e9e30b0b4f69b",
+      "size": 2362,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/nara-clinical-intelligence.test.mjs",
+      "sha": "0dafdc7045afe83a51c2c877e80c420442558f93",
+      "size": 5686,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/nara-gateway-security.test.mjs",
+      "sha": "7387bf84287c2338616dad203a5e72a60bb3fb53",
+      "size": 2656,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/nara-module-integrity.test.mjs",
+      "sha": "82c61872fdea7f736d746487dd4738fa22d6eecb",
+      "size": 1013,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/nara-privacy-boundary.test.mjs",
+      "sha": "886304a92225cbfb7aa249eb95f90f6b36d746e9",
+      "size": 9425,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/nara-skill-orchestration.test.mjs",
+      "sha": "c2959a920d8831d2397ca99d3e611e91fa2f0abe",
+      "size": 7102,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/nara-visual-marker-sanitizer.test.mjs",
+      "sha": "3f4713e60b6f9eec7c95fc9e048fc24662f940b7",
+      "size": 1074,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/nara-visual.test.mjs",
+      "sha": "9a28370810342290f99f0d4185067cf2d374d475",
+      "size": 4110,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/native-adaptive-navigation.test.mjs",
+      "sha": "94f3eb3b43d40d39b323f5ee08e8ce6ddab9ac32",
+      "size": 4467,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/navigation-search.test.mjs",
+      "sha": "051448156bbf6477419deba38a645a27a0881f2f",
+      "size": 3259,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/nicu-logbook.test.mjs",
+      "sha": "f71945ae0263821ca41cb5549df58e63d3c56fab",
+      "size": 4195,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/nifas-logbook.test.mjs",
+      "sha": "2b5151884e09cfc5bc68a8bb12b5a5797b62397f",
+      "size": 9729,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/no-dead-components.test.mjs",
+      "sha": "7f75e53339d7380afcda44058a9fbe7286906358",
+      "size": 2255,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/oppe-engine.test.mjs",
+      "sha": "9a45d58c84182b54051934afce12200cc20e70c3",
+      "size": 6474,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/outpatient-excel-import.test.mjs",
+      "sha": "7e213438ebcc5f3c4f4ee783dd6a073c18fb77f9",
+      "size": 1489,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/outpatient-logbook.test.mjs",
+      "sha": "438f3e3f5bbc8538b750f96e854b0b6a20a382a0",
+      "size": 3477,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/patient-episode-workbook.test.mjs",
+      "sha": "c3f1168113b6e097419167048dee86b9cf826bc3",
+      "size": 11353,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/patient-index-reconciliation.test.mjs",
+      "sha": "f195ed895eb3155d2405026bcb6c5f28877fc362",
+      "size": 1629,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/patient-index-sync-authorization.test.mjs",
+      "sha": "6eceb93ba1643ddb8ca1e3d0f930c39ecd28beac",
+      "size": 1082,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/patient-index-update-no-double-count.test.mjs",
+      "sha": "54b209f62f6a58ed5c22651fe07b7ec66e7fb62a",
+      "size": 2357,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/pdfjs-v6-local-documents.test.mjs",
+      "sha": "8fffadd18c78ef415b4761007c85dabf8d365a31",
+      "size": 2125,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/pediatric-inpatient-logbook.test.mjs",
+      "sha": "2012289620095a31bf72c721770a0e43709597f4",
+      "size": 16020,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/penyakit-dalam-inpatient-logbook.test.mjs",
+      "sha": "fdb82d5a4a8047dfb31cf0b3291194ce69e1a3bf",
+      "size": 9926,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/perinatology-logbook.test.mjs",
+      "sha": "cc0033e830893875ef657887519eb319571b075b",
+      "size": 7524,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/period-report.test.mjs",
+      "sha": "862ae9519aa0f8bc3e1c3cbbd7f6022c0a9e7d0b",
+      "size": 1833,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/pharmacy-excel-import.test.mjs",
+      "sha": "a31dbcb90427ecf32c614706f9fa0836b207d208",
+      "size": 2749,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/pharmacy-logbook.test.mjs",
+      "sha": "750570b24d24ffdc20c73bb4f402a08626f5a643",
+      "size": 3171,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/pkrs-workbook.test.mjs",
+      "sha": "78faf75a68acdaa978de94f594170ad00c957ab9",
+      "size": 1205,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/ponek-logbook.test.mjs",
+      "sha": "84b8e7f314003ebff0cf0cd6508ca75b98a640f6",
+      "size": 7457,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/program-governance-redesign.test.mjs",
+      "sha": "cb5f3bc6d653f6b8deae6e0e09a5e4f8d683ae87",
+      "size": 3468,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/proportional-ui-regression.test.mjs",
+      "sha": "1c16dbd3a878ce9ed649564e4db03a3f973ae17b",
+      "size": 6368,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/public-landing-page.test.mjs",
+      "sha": "73fbb0d43e17b7fd1776e6a96b8393e29043ed6b",
+      "size": 3521,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/public-portal.test.mjs",
+      "sha": "9694e559ad0e72e9b501335bfe2be2c26e7d608d",
+      "size": 1246,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/qr.test.mjs",
+      "sha": "0c4934594cb30761d679fd2db0399c973f25e58e",
+      "size": 1223,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-2026-workbook-source-audit.test.mjs",
+      "sha": "206bff18e0f6f637327b86889e396281e2fa0b76",
+      "size": 4104,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-audit-profile-aliases.test.mjs",
+      "sha": "7217e4ac53889827c483e1abe662162114533280",
+      "size": 3973,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-category-engine.test.mjs",
+      "sha": "a94b911e80a6e9e6ca25558dd4aa03692c9c9da6",
+      "size": 4460,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-category-integration.test.mjs",
+      "sha": "4b1517e3e2dc38d2ddfa1f8a2332b2a24b488c3e",
+      "size": 769,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-excel-importer-key-alignment.test.mjs",
+      "sha": "9b98d9aa51528dba813706fb44418bc06d776f39",
+      "size": 2153,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-excel-mapping.test.mjs",
+      "sha": "38dfbc884089ab68807044d1635db77ff0370d11",
+      "size": 4992,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-generic-import-preview.test.mjs",
+      "sha": "cc78e1cb437bd932d7a23abeaf0388e07dd99108",
+      "size": 1774,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-import-dialog-presentation-contract.test.mjs",
+      "sha": "112212c2db61143a762b1a1534ad9c738bf19854",
+      "size": 3376,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-import-modal-flow-mapping-regression.test.mjs",
+      "sha": "408657ef49fdd4bf5d042831005b1598c1c1ff8b",
+      "size": 5279,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-import-row-filter.test.mjs",
+      "sha": "87b6fa294d6cc3ddb0f65127404bfe2dd222e880",
+      "size": 1602,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-logbook-coverage.test.mjs",
+      "sha": "8179f4659982ed7c88193466902647ab2e42e6db",
+      "size": 1421,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-multiworkbook-inbox.test.mjs",
+      "sha": "c1b95646f2329b6996c898f9109f1b3d0e12e52c",
+      "size": 2082,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-outpatient-mapped-import-layout.test.mjs",
+      "sha": "503812de93067c806de1c792627a84044ea34160",
+      "size": 3635,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-profile-snapshot.test.mjs",
+      "sha": "678a5466460c7a60c7ec5287d0ac354cd7b28f9d",
+      "size": 1396,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-reconciliation.test.mjs",
+      "sha": "370f02623d7057910a3935bd82a795c607703d99",
+      "size": 4427,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-results-engine.test.mjs",
+      "sha": "e28126de86ac6a037f9670a48c8ecbfdf47b58c6",
+      "size": 42120,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-results-navigation-tabs.test.mjs",
+      "sha": "3bd2ef7e7c55d2be9cf5f3ed3d4fe28dfcac30b1",
+      "size": 2448,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-room-overview-performance.test.mjs",
+      "sha": "16f8773428504e923fa9a0ecc33aed90ab014eeb",
+      "size": 2351,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-visual-workbook-mapping.test.mjs",
+      "sha": "cdd7925065eb3826ce5bac279cdfd60f7b4447d1",
+      "size": 3426,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-workbook-coverage-contract.test.mjs",
+      "sha": "8332619480fd8014380f32c93275f24d07045565",
+      "size": 708,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-workbook-mapping-draft.test.mjs",
+      "sha": "2b41204f22539d924cf7a64ac16a6067893da12b",
+      "size": 2087,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-workbook-preview-consistency.test.mjs",
+      "sha": "58b0d6e2200c106253b26847a3e47ccb2d319826",
+      "size": 1980,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-workbook-source-columns.test.mjs",
+      "sha": "aa1199937e5fe192dd73961b09c364d69d60f68d",
+      "size": 6953,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-worksheet-master-isolation.test.mjs",
+      "sha": "339edbdf43076d01a5defd52487f3f729469b7d5",
+      "size": 547,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/quality-workspace-navigation.test.mjs",
+      "sha": "1dbc5cf0fd5106e335f8751479e84cf72634f95e",
+      "size": 10395,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/realcost-engine.test.mjs",
+      "sha": "34f476d54423cd3fda3886217468489a6f012b22",
+      "size": 3466,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/realcost-navigation.test.mjs",
+      "sha": "38a63439cbdee7d3613807323ddd81376d610e56",
+      "size": 2417,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/realcost-xlsx-import.test.mjs",
+      "sha": "48fb267b97dfcf97288641ce7d79b9f19ff0e73a",
+      "size": 3999,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/refined-experience.test.mjs",
+      "sha": "96ee090b5b0de52ff04026e008c128343080dae8",
+      "size": 2621,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/rehab-medik-excel-import.test.mjs",
+      "sha": "45ad375b37f4b1906b6e6199a17034d0ba3d0b32",
+      "size": 3829,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/rekam-medis-logbook-import.test.mjs",
+      "sha": "fdceb80fee2e4596fd40de53625c555fff5228db",
+      "size": 4358,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/release-workflows.test.mjs",
+      "sha": "33493cee850c664026a3f32c98f19bea9822da6a",
+      "size": 8538,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/risk-management-guard.test.mjs",
+      "sha": "6aa5751f3a429b74855d8669fd2eeea9e7f9a2dd",
+      "size": 846,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/saraf-inpatient-logbook.test.mjs",
+      "sha": "86744e4a8af9b5b218df2d09f8e48e3d76a108c2",
+      "size": 9376,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/search-focus-visual.test.mjs",
+      "sha": "5231ca5581314225cf50bf922b0700316c2f5fcf",
+      "size": 994,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/secretariat-document-register-reader.test.mjs",
+      "sha": "ec362f3b2c2b53e8caa3095bd6a9adff5b99797a",
+      "size": 3761,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/secretariat-navigation.test.mjs",
+      "sha": "f1f375da75822285b833b0df97ec8923f9e6ece4",
+      "size": 3796,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/smart-workbook-block.test.mjs",
+      "sha": "c1ec11d2e43a9eae6ea9ba93bc987cad05b4d3b9",
+      "size": 2490,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/solid-enterprise-theme.test.mjs",
+      "sha": "406bcd41a9baab4320c9e77cdc2584eeea87799f",
+      "size": 1280,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/solid-navigation-ui.test.mjs",
+      "sha": "a4c13c4ffe95db262d486abd49e072cca1356b99",
+      "size": 5666,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/spc.test.mjs",
+      "sha": "d8ba9806e6748816a0593c5273ba034ca1e1aa86",
+      "size": 1889,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/spm-engine.test.mjs",
+      "sha": "efad3e57d4925dbafd177cbc9349d4b46f0c2254",
+      "size": 4450,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/spm-excel-import.test.mjs",
+      "sha": "32fadeaee3ba6e7c82ff9269af7909a910e8390f",
+      "size": 10785,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/standard-mapped-quality-workbook.test.mjs",
+      "sha": "df2f9ad2ed8f8668a713f554e0048ef13b4898f0",
+      "size": 1913,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/standards-baseline-terminology.test.mjs",
+      "sha": "5ca75db71a7b0ec15b971084708fc628f72f87b5",
+      "size": 1212,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/standards-procedure-workspace.test.mjs",
+      "sha": "d54658a74b335faaa7c872ae965abc14045431e8",
+      "size": 3882,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/student-orientation.test.mjs",
+      "sha": "09bfd638f8dcf84be3ac72bf4850e2f12f54e1c2",
+      "size": 4689,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/superadmin-workspace-map.test.mjs",
+      "sha": "e4e7de2a4137f52120f8321e51cc85683cff3dc8",
+      "size": 9968,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/surgical-inpatient-logbook.test.mjs",
+      "sha": "a0819e620cbacf70ee9cd74fd8e040e97369ea84",
+      "size": 10075,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/survey-anonymity-aggregation.test.mjs",
+      "sha": "64fd24befe141f61a991b60f66a852388d8897cc",
+      "size": 2822,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/tablet-drawer-header-search-regression.test.mjs",
+      "sha": "db79fdc90c1d40c335475d52f8172c86fbebf36a",
+      "size": 4443,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/timkordik-logbook-import.test.mjs",
+      "sha": "4b962dfd3d1e38662972527428f6140fdeea8d3d",
+      "size": 5281,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/touch-tablet-responsive.test.mjs",
+      "sha": "3061a66f60d7110fcb95f1895578c45dcaa89172",
+      "size": 2334,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/ui-accessibility.test.mjs",
+      "sha": "a2a0224fcc52288e540b426cf1ba67c4df63cdd1",
+      "size": 3720,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/ui-overlay-nara-regression.test.mjs",
+      "sha": "d87418990f029645b763c4c36b3ecb44da8c340f",
+      "size": 2645,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/unified-navigation-all-modules.test.mjs",
+      "sha": "9fe284e8e7c3d6a219e03643e6dde15f705e631e",
+      "size": 7089,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/unit-compare.test.mjs",
+      "sha": "2c56d02045d96ed1a460c88e4fc1c77913dbfc95",
+      "size": 1854,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/universal-indicator-master-import.test.mjs",
+      "sha": "ef35d5a4a337281f7d99f5bc438e0b903268be2e",
+      "size": 2339,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/user-facing-copy.test.mjs",
+      "sha": "52fbcbe474cf6950e1c1cd514fccc90bb3e236f1",
+      "size": 1027,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/workbook-modal-portals.test.mjs",
+      "sha": "9f089db3c38770245ed2ed118dcb284206c6b5ae",
+      "size": 1930,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/workspace-desk.test.mjs",
+      "sha": "20b49068a730146b35d66e16e0f2df5905471808",
+      "size": 18179,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/workspace-performance.test.mjs",
+      "sha": "6d28660ff7e08ded8b2671fbddbc173f2cc03ae9",
+      "size": 6846,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/workspace-scope.test.mjs",
+      "sha": "4646befe7f13c1205a4b5d947aa1eb0db798acc1",
+      "size": 1267,
+      "mode": "100644"
+    },
+    {
+      "path": "tests/zero-file-comprehensive-regression.test.mjs",
+      "sha": "12715410e519db7c3bcbae81756bd1baae9fa310",
+      "size": 4198,
+      "mode": "100644"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha": "d2ed3ac9668e57d5e5463e0e0839ca106b90c8ae",
+      "size": 768,
+      "mode": "100644"
+    }
+  ]
+}
