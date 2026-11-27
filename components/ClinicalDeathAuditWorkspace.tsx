@@ -440,7 +440,6 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         learning_points: draft.learningPoints,
         recommended_actions: draft.actions,
       }
-      let savedAuditId = activeAudit?.id ? String(activeAudit.id) : ''
       const payload: Record<string, any> = {
         room_id: activeEpisode.roomId,
         source_record_id: activeEpisode.sourceRecordId,
@@ -476,51 +475,33 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         contribution_to_outcome: auditType === 'death' ? draft.contribution || null : 'not_applicable',
         avoidability_score: auditType === 'death' ? draft.avoidabilityScore : null,
         status: nextStatus,
-        updated_by: userData.user.id,
       }
-      if (activeAudit?.id) {
-        const { error } = await q().from('clinical_death_audits').update(payload).eq('id', activeAudit.id)
-        if (error) throw error
-      } else {
-        const { data, error } = await q().from('clinical_death_audits').insert({
-          ...payload,
-          created_by: userData.user.id,
-        }).select('*').single()
-        if (error) throw error
-        savedAuditId = String(data.id)
-        setActiveAudit(data as AuditRow)
+      const { error } = await sb.rpc('aureka_save_clinical_audit', {
+        p_kind: 'death',
+        p_id: activeAudit?.id ?? null,
+        p_expected_updated_at: activeAudit?.updated_at ?? null,
+        p_payload: payload,
+        p_staff_changes: dpjpStaffId === savedDpjpStaffId ? {} : { dpjp: dpjpStaffId || null },
+      })
+      if (error?.code === '23505') {
+        setMessage('Telaah untuk episode dan periode ini sudah ada. Muat ulang daftar untuk membukanya.')
+        return
       }
-      let identityWarning = ''
-      if (savedAuditId && dpjpStaffId !== savedDpjpStaffId) {
-        const { error: deleteLinkError } = await q().from('staff_entity_attributions').delete()
-          .eq('entity_type', 'clinical_death_audit').eq('entity_id', savedAuditId).eq('field_key', 'dpjp')
-        if (deleteLinkError) {
-          identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP tidak dapat diperbarui: ' + toUserFacingError(deleteLinkError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' })
-        } else if (dpjpStaffId) {
-          const { error: insertLinkError } = await q().from('staff_entity_attributions').insert({
-            entity_type: 'clinical_death_audit',
-            entity_id: savedAuditId,
-            staff_id: dpjpStaffId,
-            field_key: 'dpjp',
-            attribution_type: 'responsible_provider',
-            created_by: userData.user.id,
-            updated_by: userData.user.id,
-          })
-          if (insertLinkError) identityWarning = 'Telaah tersimpan, tetapi tautan identitas DPJP gagal disimpan: ' + toUserFacingError(insertLinkError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' })
-        }
+      if (error?.code === 'P0001') {
+        setMessage('Telaah tidak dapat diubah atau sudah diperbarui. Buka ulang telaah sebelum menyimpan.')
+        return
       }
+      if (error) throw error
       await load()
       setEditorOpen(false)
       setActiveEpisode(null)
       setActiveAudit(null)
-      setMessage(identityWarning || (nextStatus === 'submitted' ? 'Telaah diajukan dan tersimpan. Identitas DPJP tertaut pada direktori AUREKA.' : 'Draf telaah tersimpan.'))
+      setMessage(nextStatus === 'submitted' ? 'Telaah diajukan dan tersimpan. Identitas DPJP tertaut pada direktori AUREKA.' : 'Draf telaah tersimpan.')
       setDpjpStaffId('')
       setSavedDpjpStaffId('')
     } catch (error) {
-      const detail = error instanceof Error ? error.message : 'Kesalahan yang tidak diketahui.'
-      setMessage(/duplicate key|unique constraint|clinical_death_audits_source/i.test(detail)
-        ? 'Telaah untuk episode dan periode ini sudah ada. Muat ulang daftar untuk membukanya.'
-        : 'Gagal menyimpan telaah: ' + detail)
+      const detail = toUserFacingError(error, { fallback: 'Periksa koneksi atau buka ulang telaah sebelum mencoba kembali.' })
+      setMessage('Gagal menyimpan telaah: ' + detail)
     } finally {
       setSaving(false)
     }
@@ -538,7 +519,6 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
         status: nextStatus,
         validated_by: nextStatus === 'validated' ? userData.user.id : null,
         validated_at: nextStatus === 'validated' ? now : null,
-        updated_by: userData.user.id,
       }).eq('id', audit.id).eq('status', 'submitted').select('id').maybeSingle()
       if (error) throw error
       if (!changed) throw new Error('Status telaah sudah berubah. Muat ulang daftar sebelum melanjutkan.')

@@ -332,16 +332,19 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
       if (createError || !createdImport) throw createError ?? new Error('Metadata impor tidak dapat dibuat.')
       importId = createdImport.id as string
 
-      const episodeRows = prepared.episodes.map(episode => ({ ...episode, import_id: importId }))
+      const episodeRows = prepared.episodes
       const identityRows = prepared.identities
       const batches = Math.ceil(episodeRows.length / BATCH_SIZE)
       for (let start = 0; start < episodeRows.length; start += BATCH_SIZE) {
         const episodeBatch = episodeRows.slice(start, start + BATCH_SIZE)
         const identityBatch = identityRows.slice(start, start + BATCH_SIZE)
-        const { error: episodeError } = await db.from('realcost_episodes').insert(episodeBatch)
-        if (episodeError) throw new Error('Batch episode ' + (Math.floor(start / BATCH_SIZE) + 1) + ' gagal: ' + episodeError.message)
-        const { error: identityError } = await db.from('realcost_patient_identity').insert(identityBatch)
-        if (identityError) throw new Error('Batch pemisahan identitas ' + (Math.floor(start / BATCH_SIZE) + 1) + ' gagal: ' + identityError.message)
+        const { error: batchError } = await sb.rpc('aureka_stage_realcost_batch', {
+          p_import_id: importId,
+          p_offset: start,
+          p_episodes: episodeBatch,
+          p_identities: identityBatch,
+        })
+        if (batchError) throw new Error('Batch ' + (Math.floor(start / BATCH_SIZE) + 1) + ' gagal disimpan.')
         setProgress(Math.min(95, Math.round(((start / BATCH_SIZE + 1) / batches) * 95)))
       }
       const { error: completeError } = await db.from('realcost_imports').update({
@@ -349,7 +352,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
         status: 'completed',
         completed_at: new Date().toISOString(),
         failure_note: '',
-      }).eq('id', importId)
+      }).eq('id', importId).eq('status', 'processing').eq('imported_rows', episodeRows.length).select('id').single()
       if (completeError) throw completeError
       setProgress(100)
       setPrepared(null)
@@ -359,7 +362,19 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
     } catch (error) {
       const note = error instanceof Error ? error.message : 'Impor Realcost gagal.'
       if (importId) {
-        await db.from('realcost_imports').update({ status: 'failed', failure_note: note.slice(0, 500) }).eq('id', importId)
+        const { data: finished } = await db.from('realcost_imports')
+          .select('id').eq('id', importId).eq('status', 'completed').maybeSingle()
+        if (finished) {
+          setProgress(100)
+          setPrepared(null)
+          setFile(null)
+          setMessage('Impor sudah tersimpan. Daftar akan dimuat kembali.')
+          await loadDashboard()
+          return
+        }
+        await db.from('realcost_imports')
+          .update({ status: 'failed', failure_note: note.slice(0, 500) })
+          .eq('id', importId).eq('status', 'processing')
       }
       setMessage(note + ' Data batch yang gagal tidak ditampilkan sebagai sumber analisis aktif.')
     } finally {
