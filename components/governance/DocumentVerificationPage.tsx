@@ -21,6 +21,7 @@ export default function DocumentVerificationPage({verificationCode}:{verificatio
   const [data,setData]=useState<Verification|null>(null)
   const [loading,setLoading]=useState(true)
   const [error,setError]=useState('')
+  const [attempt,setAttempt]=useState(0)
   useEffect(()=>{
     let cancelled=false
     setLoading(true);setError('');setData(null)
@@ -36,13 +37,13 @@ export default function DocumentVerificationPage({verificationCode}:{verificatio
         setLoading(false)
       })
     return()=>{cancelled=true}
-  },[verificationCode])
+  },[verificationCode,attempt])
 
   const valid=data?.valid===true
   return <main className="legalVerifyPage">
-    <section className="legalVerifyCard">
+    <section className="legalVerifyCard" aria-live="polite" aria-busy={loading}>
       <div className="legalVerifyBrand">AUREKA · VERIFIKASI DOKUMEN</div>
-      {loading?<><div className="legalVerifyMark">…</div><h1>Memeriksa dokumen</h1></>:error?<><div className="legalVerifyMark legalVerifyInvalid">!</div><h1>Verifikasi gagal</h1><p>{error}</p></>:!valid?<><div className="legalVerifyMark legalVerifyInvalid">×</div><h1>Kode tidak valid atau telah dicabut</h1></>:<><div className="legalVerifyMark legalVerifyValid">✓</div><h1>Persetujuan terverifikasi</h1>
+      {loading?<><div className="legalVerifyMark">…</div><h1>Memeriksa dokumen</h1></>:error?<><div className="legalVerifyMark legalVerifyInvalid">!</div><h1>Verifikasi gagal</h1><p>{error}</p><button type="button" className="akBtn akBtnPrimary" onClick={()=>{setLoading(true);setAttempt(value=>value+1)}}>Coba lagi</button></>:!valid?<><div className="legalVerifyMark legalVerifyInvalid">×</div><h1>Kode tidak valid atau telah dicabut</h1></>:<><div className="legalVerifyMark legalVerifyValid">✓</div><h1>Persetujuan terverifikasi</h1>
         <dl className="legalVerifyMeta">
           <div><dt>Kode dokumen</dt><dd>{data.artifact_code||'—'}</dd></div>
           <div><dt>Judul dokumen</dt><dd>{data.title||'—'}</dd></div>
