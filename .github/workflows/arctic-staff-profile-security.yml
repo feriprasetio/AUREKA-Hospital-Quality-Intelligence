@@ -1,0 +1,44 @@
+name: Arctic isolated staff profile authorization
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/security/**'
+      - '.github/workflows/arctic-staff-profile-security.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: arctic_test_only
+          POSTGRES_DB: arctic_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d arctic_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: arctic_test_only
+      PGDATABASE: arctic_test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Verify disposable database identity and test baseline/candidate
+        run: |
+          test "$(psql -Atc 'select current_database()')" = arctic_test
+          psql -v ON_ERROR_STOP=1 \
+            -f scripts/security/staff-profile-fixture.sql \
+            -f scripts/security/staff-profile-baseline.sql \
+            -f scripts/security/staff-profile-before.sql \
+            -f scripts/security/staff-profile-candidate.sql \
+            -f scripts/security/staff-profile-after.sql
