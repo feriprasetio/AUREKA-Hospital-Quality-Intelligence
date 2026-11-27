@@ -94,7 +94,7 @@ export default function StaffDirectoryWorkspace({dataFirst=false}:{dataFirst?:bo
   const [draft, setDraft] = useState<StaffDraft | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [shown, setShown] = useState(120)
-  const [listOpen, setListOpen] = useState(dataFirst)
+  const [listOpen, setListOpen] = useState(false)
   useEffect(()=>{setListOpen(dataFirst)},[dataFirst])
 
   const pendingLoad = useRef<AbortController | null>(null)
