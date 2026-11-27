@@ -9,6 +9,7 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import AurekaModal from '@/components/ui/AurekaModal'
 import SpcChart from '@/components/quality/SpcChart'
 import QualityCategoryIntelligence from '@/components/quality/QualityCategoryIntelligence'
+import ValidatedIndicatorBriefing from '@/components/quality/ValidatedIndicatorBriefing'
 import { resolveQualityCategory } from '@/lib/aureka/quality-category-engine'
 import { groupComparable, buildInmRows, isInm, INM_COLUMNS } from '@/lib/aureka/unit-compare'
 import { buildCsv, buildCsvTable, downloadCsv } from '@/lib/aureka/csv-export'
@@ -46,6 +47,7 @@ type Props = {
   /** Blueprint v2 §3: Hasil Capaian — 'unit' (Unit Keseluruhan) atau 'category' (Kategori Indikator) */
   groupBy?: 'unit' | 'category'
   onAskNara?: (prompt: string, source: string) => void
+  arcticBriefing?: boolean
 }
 type IndicatorDataset = { profiles: IndicatorProfileForResults[]; rows: ResultRecord[] }
 type IndicatorResponseReview = { record_id: string; indicator_id: string; review_status: string | null; response_code?: number | null; response_label?: string | null; raw_value?: Record<string, any> | null }
@@ -216,7 +218,7 @@ function Distribution({ summary, minimum, maximum }: { summary: { n: number; dis
 
 const RECORD_LIMIT = 10000
 
-export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false, groupBy = 'unit', onAskNara }: Props) {
+export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, canViewAllRooms, onRoomChange, lockRoomScope = false, groupBy = 'unit', onAskNara, arcticBriefing = false }: Props) {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [roomId, setRoomId] = useState<number | null>(() => defaultRoom(rooms, initialRoomId, canViewAllRooms))
   useEffect(() => {
@@ -755,6 +757,7 @@ export default function QualityResultsWorkspace({ mode, initialRoomId, rooms, ca
               <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}><input type="checkbox" checked={includeReady} onChange={(event) => setIncludeReady(event.target.checked)} /> Hitung juga laporan yang belum divalidasi</label>
               {includeReady ? <span>Pratinjau capaian sementara. Ekspor INM memakai laporan tervalidasi.</span> : rawReadyCount > 0 && rawValidatedCount === 0 && <span>Laporan tersedia untuk pratinjau. Belum ada laporan tervalidasi.</span>}
             </div>
+            {arcticBriefing&&<ValidatedIndicatorBriefing key={scope} results={officialIndicatorResults} year={year} scopeLabel={selectedRoomName} validatedRecords={rawValidatedCount}/>}
             {groupBy === 'category' && <section className="qraPanel" aria-label="Capaian per kategori indikator">
               <QualityCategoryIntelligence
                 results={indicatorResults} records={indicatorData.rows} year={year}
