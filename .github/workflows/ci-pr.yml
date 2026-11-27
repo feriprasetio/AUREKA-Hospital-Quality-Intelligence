@@ -60,3 +60,12 @@ jobs:
 
       - name: Run Chromium smoke checks with synthetic data
         run: bash scripts/run-browser-smoke.sh
+
+      - name: Retain isolated UI evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: arctic-ui-synthetic-evidence
+          path: /tmp/aureka-workspace-ui/
+          if-no-files-found: ignore
+          retention-days: 7
