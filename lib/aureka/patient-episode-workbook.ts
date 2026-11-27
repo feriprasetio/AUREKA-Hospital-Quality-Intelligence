@@ -840,7 +840,7 @@ export async function prepareEpisodeImport({
     if (pkrs) {
       Object.assign(formFields, pkrs.formFields)
       const barrier = matchColumn(columns, ['Hambatan Edukasi'])
-      if (barrier && clean(get(barrier.index))) formFields['Hambatan Edukasi'] = clean(get(barrier.index))
+      if (barrier && clean(get(barrier))) formFields['Hambatan Edukasi'] = clean(get(barrier))
       formFields['Tanggal Masuk'] = date
     }
     const dateColumn = columns.find(column => column.index === fields.date)
