@@ -23,6 +23,7 @@ import type {GeneralSettingsSection} from '@/components/GeneralSettings'
 import { setAurekaMode, useAurekaMode } from '@/lib/ui/aureka-mode'
 import { readWorkspaceHash } from '@/lib/aureka/workspace-route'
 import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'
+import ArcticCategoryNavigation from '@/components/navigation/ArcticCategoryNavigation'
 import ModuleErrorBoundary from '@/components/layout/ModuleErrorBoundary'
 import {useIdleLogout} from '@/components/layout/useIdleLogout'
 const PicPerformanceWorkspace=dynamic(()=>import('@/components/PicPerformanceWorkspace'),{ssr:false,loading:()=>workspaceChunkLoading('Monitoring Kinerja PIC')})
@@ -192,6 +193,9 @@ export default function HomeClient(){
  },[user?.id,role,roomsList,selectedWorkspaceRoomId,selectedQualityRoomId,room?.id,allRoomsScope])
  const mobileSidebar=useAccessibleSidebar()
  const [sidebarIsCollapsed,setSidebarCollapsed]=useState(false)
+ const [arcticPreview,setArcticPreview]=useState(false)
+ useEffect(()=>{setArcticPreview(new URLSearchParams(window.location.search).get('arctic')==='1')},[])
+ const changeArcticPreview=(enabled:boolean)=>{mobileSidebar.close();const url=new URL(window.location.href);if(enabled)url.searchParams.set('arctic','1');else url.searchParams.delete('arctic');window.history.replaceState(window.history.state,'',url);setArcticPreview(enabled)}
  useEffect(()=>{
   if(typeof document==='undefined')return
   document.documentElement.dataset.theme='solid'
@@ -1090,9 +1094,9 @@ export default function HomeClient(){
    </div>
   </main>
  }
- if(view==='workspace')return <main data-aureka-theme="arktik" className={'workspaceRoot workspaceDesk'+(sidebarIsCollapsed&&!mobileSidebar.isMobile?' sidebarIsCollapsed':'')}>
+ if(view==='workspace')return <main data-aureka-theme="arktik" data-arctic-shell={arcticPreview?'continuum':undefined} className={'workspaceRoot workspaceDesk'+(sidebarIsCollapsed&&!mobileSidebar.isMobile&&!arcticPreview?' sidebarIsCollapsed':'')}>
  <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
- {mobileSidebar.isMobile&&<button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>}
+ {!arcticPreview&&<>{mobileSidebar.isMobile&&<button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>}
  {mobileSidebar.isMobile&&typeof document!=='undefined'&&createPortal(
   <nav className="workspaceNativeNavigation" aria-label="Navigasi cepat aplikasi AUREKA" data-drawer-open={mobileSidebar.isOpen?'true':'false'} style={{gridTemplateColumns:`repeat(${nativeNavigationItems.length+1}, minmax(0, 1fr))`}}>
    {nativeNavigationItems.map(item=><button key={item.id} type="button" className="workspaceNativeNavItem" aria-current={activeNavModuleId===item.id?'page':undefined} onClick={()=>{mobileSidebar.close();navigateWorkspace(item.id)}}>
@@ -1133,13 +1137,15 @@ export default function HomeClient(){
    })}
   </nav>
   <div className="sidebarFooter">
+   <button type="button" className="arcticPreviewSwitch" onClick={()=>changeArcticPreview(true)}>Coba Arctic Continuum</button>
    <LiquidGlassButton onClick={()=>void logout()}><svg className="logoutIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5m4-12 4 4-4 4m4-4H9"/></svg><span className="logoutLabel">Keluar</span></LiquidGlassButton>
   </div>
- </aside>
+ </aside></>}
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
-   {mobileSidebar.isMobile&&<button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>mobileSidebar.open(event.currentTarget)} aria-label="Buka menu navigasi" title="Buka menu navigasi" aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>}
-   {!mobileSidebar.isMobile&&<button type="button" className="workspaceHeaderIcon workspaceSidebarToggle"
+   {arcticPreview&&<button type="button" className="arcticHome workspaceSidebarToggle" aria-label="AUREKA — Dashboard" title="Dashboard" onClick={()=>openMainModule('home')}>{logo('workspaceLogo')}</button>}
+   {!arcticPreview&&mobileSidebar.isMobile&&<button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>mobileSidebar.open(event.currentTarget)} aria-label="Buka menu navigasi" title="Buka menu navigasi" aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>}
+   {!arcticPreview&&!mobileSidebar.isMobile&&<button type="button" className="workspaceHeaderIcon workspaceSidebarToggle"
      onClick={()=>setSidebarCollapsed(value=>!value)}
      aria-label={sidebarIsCollapsed?'Bentangkan sidebar':'Ringkas sidebar'}
      title={sidebarIsCollapsed?'Bentangkan sidebar':'Ringkas sidebar'}
@@ -1203,6 +1209,7 @@ export default function HomeClient(){
     <span className="workspaceHeaderProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
    </button>
   </header>
+  {arcticPreview&&<ArcticCategoryNavigation groups={visibleSidebarDomains} activeCategoryId={activeDomainId} isActive={sidebarDestinationActive} onSelect={selectDomainDestination} onExit={()=>changeArcticPreview(false)} onLogout={()=>void logout()} contextKey={String(role)+'|'+String(activeWorkspaceRoomId)+'|'+activeDomainId+'|'+currentContainer}/>}
   {idle.secondsLeft!=null&&typeof document!=='undefined'&&createPortal(<div className="idleWarnBackdrop"><div ref={idleDialogRef} tabIndex={-1} className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
    <strong id="idle-warn-title">Masih di sana?</strong>
    <p id="idle-warn-desc">Demi keamanan data pasien, AUREKA akan keluar otomatis dalam <b>{Math.floor(idle.secondsLeft/60)}:{String(idle.secondsLeft%60).padStart(2,'0')}</b>.</p>
