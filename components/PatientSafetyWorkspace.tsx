@@ -986,6 +986,16 @@ export default function PatientSafetyWorkspace({
   } as Record<string, string>)[status] || status
   const statusClass = (status: string) => status === 'closed' ? 'green' : status === 'submitted' ? 'blue' : status === 'under_review' || status === 'investigation' || status === 'active' || status === 'action_planned' ? 'amber' : ''
 
+  const safetySummary = <details className="workspaceSummary" open={tab === 'overview' ? true : undefined} data-arctic-support="summary">
+      <summary><b>Ringkasan keselamatan</b><span>{incidents.length} laporan · {openInvestigations.length} investigasi aktif</span></summary>
+    <div className="psKpis">
+      <LiquidGlass className="psKpi"><span>Laporan IKP</span><strong>{incidents.length}</strong></LiquidGlass>
+      <LiquidGlass className="psKpi"><span>Belum Closed</span><strong>{incidents.filter(row => row.status !== 'closed').length}</strong><small>Perlu pemantauan</small></LiquidGlass>
+      <LiquidGlass className="psKpi"><span>Investigasi Aktif</span><strong>{openInvestigations.length}</strong><small>RCA belum closed</small></LiquidGlass>
+      <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{canReadResponses ? responses.length : '-'}</strong></LiquidGlass>
+    </div>
+    </details>
+
   return <div className="ps">
     <style dangerouslySetInnerHTML={{ __html: CSS }} />
     <WorkspaceModuleHeader
@@ -1010,15 +1020,7 @@ export default function PatientSafetyWorkspace({
       </div>}
     />
 
-    {(tab === 'overview' || tab === 'incidents') && <details className="workspaceSummary" open={tab === 'overview' ? true : undefined}>
-      <summary><b>Ringkasan keselamatan</b><span>{incidents.length} laporan · {openInvestigations.length} investigasi aktif</span></summary>
-    <div className="psKpis">
-      <LiquidGlass className="psKpi"><span>Laporan IKP</span><strong>{incidents.length}</strong></LiquidGlass>
-      <LiquidGlass className="psKpi"><span>Belum Closed</span><strong>{incidents.filter(row => row.status !== 'closed').length}</strong><small>Perlu pemantauan</small></LiquidGlass>
-      <LiquidGlass className="psKpi"><span>Investigasi Aktif</span><strong>{openInvestigations.length}</strong><small>RCA belum closed</small></LiquidGlass>
-      <LiquidGlass className="psKpi"><span>Respons Survey</span><strong>{canReadResponses ? responses.length : '-'}</strong></LiquidGlass>
-    </div>
-    </details>}
+    {tab === 'overview' && safetySummary}
 
     {showTabs && <div className="psTabs glass">
           {([
@@ -1075,6 +1077,20 @@ export default function PatientSafetyWorkspace({
     </> : null}
 
     {tab === 'incidents' ? <>
+
+      <LiquidGlass className="psPanel">
+        <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill" role="status">{loading ? "Memuat…" : error ? "Periksa status data" : `${filteredIncidents.length} laporan`}</span>{allowExcelImport ? <button type="button" className="psBtn" onClick={() => setExcelImportOpen(true)}>Impor Excel / Template</button> : null}<button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
+        <div className="psFilterGrid">
+          <div className="psFilter psLocalSearch"><label htmlFor="ps-register-search">Cari laporan</label><input id="ps-register-search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
+          <div className="psFilter"><label htmlFor="ps-register-status">Status</label><select id="ps-register-status" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draf</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Selesai</option></select></div>
+          <div className="psFilter">{scopeUnitName ? <span>Unit</span> : <label htmlFor="ps-register-unit">Unit</label>}{scopeUnitName ? <div className="psPill green">{scopeUnitName}</div> : <select id="ps-register-unit" value={unitFilter} onChange={event => setUnitFilter(event.target.value)}><option value="all">Semua unit</option>{Array.from(new Set(incidents.map(row => row.unit_name).filter(Boolean))).sort().map(unit => <option key={unit}>{unit}</option>)}</select>}</div>
+          
+        </div>
+
+        {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
+          {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
+        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{loading ? 'Memuat register insiden…' : error ? 'Register belum dapat dipastikan lengkap. Muat ulang data.' : incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
+      </LiquidGlass>
       {canManageWorkflow && <QrReportsPanel supabase={supabase} rooms={rooms} refreshKey={qrRefresh} onProcess={(r: QrReport, roomName: string) => {
         newIncident()
         const p = r.payload || {}
@@ -1085,23 +1101,13 @@ export default function PatientSafetyWorkspace({
         setIncidentReporterExternal(!!p.reporter_name)
         qrProcessing.current = r.id
       }} />}
-      <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill">{filteredIncidents.length} laporan</span>{allowExcelImport ? <button type="button" className="psBtn" onClick={() => setExcelImportOpen(true)}>Impor Excel / Template</button> : null}<button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
-        <div className="psFilterGrid">
-          <div className="psFilter psLocalSearch"><label>Cari laporan</label><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
-          <div className="psFilter"><label>Status</label><select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draf</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Selesai</option></select></div>
-          <div className="psFilter"><label>Unit</label>{scopeUnitName ? <div className="psPill green">{scopeUnitName}</div> : <select value={unitFilter} onChange={event => setUnitFilter(event.target.value)}><option value="all">Semua unit</option>{Array.from(new Set(incidents.map(row => row.unit_name).filter(Boolean))).sort().map(unit => <option key={unit}>{unit}</option>)}</select>}</div>
-          
-        </div>
-        <div className="psPanel" style={{padding:14,marginTop:12}}>
+      {!loading && !error && safetySummary}
+      {!loading && !error && <details className="workspaceSummary" data-arctic-support="distribution">
+        <summary><b>Distribusi status hasil filter</b></summary>
           <div className="psSectionHead"><div><h4>Distribusi status pada hasil filter</h4><p>Distribusi status laporan sesuai filter yang dipilih.</p></div><span className="psPill">{filteredIncidents.length} laporan</span></div>
           {(['draft','submitted','under_review','investigation','closed'] as const).map(status=>{const count=filteredIncidents.filter(row=>row.status===status).length;const share=filteredIncidents.length?count/filteredIncidents.length*100:0;return <div className="psBarRow" key={status}><span>{statusLabel(status)}</span><div className="psBar"><i style={{width:share+'%'}}/></div><b>{count}</b></div>})}
           <p className="psMuted" style={{fontSize:12,margin:'8px 0 0'}}>Dihitung dari {filteredIncidents.length} laporan hasil filter. Ini merupakan distribusi status laporan, bukan rate insiden.</p>
-        </div>
-        {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
-          {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
-        </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
-      </LiquidGlass>
+      </details>}
       {excelImportOpen && allowExcelImport ? <PsFormModal label="Impor Excel Register Insiden" onClose={() => { if (!excelImportBusy) setExcelImportOpen(false) }}>
         <IncidentExcelImport supabase={supabase} rooms={rooms} fields={INCIDENT_FIELDS} existing={incidents} onDone={loadData} onBusyChange={setExcelImportBusy} onClose={() => setExcelImportOpen(false)} />
       </PsFormModal> : null}
