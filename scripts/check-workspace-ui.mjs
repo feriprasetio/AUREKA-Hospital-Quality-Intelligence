@@ -406,6 +406,7 @@ try {
   await check('Arctic incident register puts data before optional intelligence', async () => {
     await evaluate("location.hash = '#keselamatan-pasien/incidents'")
     await wait("document.querySelector('.psTable tbody')?.textContent.includes('UI-IKP-001')")
+    await wait("document.querySelector('.ps [data-arctic-support=summary]') && document.querySelector('.ps [data-arctic-support=distribution]')")
     const tableBeforeSupport = await evaluate(`(()=>{const table=document.querySelector('.psTable');const panels=[...document.querySelectorAll('.ps [data-arctic-support], .ps .qrPanel')];return panels.length>=2&&panels.every(p=>Boolean(table.compareDocumentPosition(p)&Node.DOCUMENT_POSITION_FOLLOWING))})()`)
     assert.equal(tableBeforeSupport, true)
     assert.equal(await evaluate("document.querySelector('.ps [data-arctic-support=distribution]').open"), false)
