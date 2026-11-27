@@ -48,9 +48,6 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme][da
   .arcticCategoryMobile > span:last-child { flex:none; }
   .arcticLayoutExit { min-height:44px; min-width:44px; padding:4px 6px; }
   .arcticMegaHead button { min-height:44px; min-width:44px; }
-  .arcticGridFooter :is(button,select) { min-height:44px; min-width:44px; }
-  .arcticGridColumns label { min-height:44px; }
-  .arcticDomainSummary > summary { min-height:44px; display:list-item; box-sizing:border-box; }
   .arcticModuleGrid { grid-template-columns:minmax(0,1fr); }
 }
 @media(prefers-reduced-motion:reduce) { .arcticCategoryNav * { scroll-behavior:auto; transition:none; } }
@@ -86,4 +83,10 @@ html[data-skin="arktik"] body .workspaceRoot.workspaceDesk[data-aureka-theme][da
 @media(min-width:768px) {
   [data-arctic-grid="incident"] th[data-column="incident_code"],[data-arctic-grid="incident"] td[data-column="incident_code"] { position:sticky; left:0; z-index:1; background:var(--aureka-dialog-surface); }
   [data-arctic-grid="incident"] th[data-column="incident_code"] { z-index:3; }
+}
+
+@media(max-width:767px) {
+  .arcticGridFooter :is(button,select) { min-height:44px; min-width:44px; }
+  .arcticGridColumns label { min-height:44px; }
+  .arcticDomainSummary > summary { min-height:44px; display:list-item; box-sizing:border-box; }
 }
