@@ -1018,9 +1018,6 @@ function AppearancePanel() {
       <div className="akHelpRow">
         <InstallAppButton />
       </div>
-      <div className="akTrainingRow">
-        <div><b>Mode latihan</b><p>Latihan memerlukan lingkungan terpisah dengan akun dan data uji. Lingkungan latihan belum tersedia dari aplikasi ini.</p></div>
-      </div>
     </LiquidGlass>
   )
 }

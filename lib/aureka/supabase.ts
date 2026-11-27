@@ -1,5 +1,4 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { isLegacyTrainingMode } from '@/lib/aureka/training-mode'
 
 // Satu instance Supabase untuk seluruh aplikasi. Beberapa instance dengan
 // storage sesi yang sama dapat saling berebut refresh token
@@ -21,9 +20,6 @@ const refreshAccessToken = (): Promise<string | null> => {
 }
 const fetchWithSessionRetry: typeof fetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
-  if (isLegacyTrainingMode()) return new Response(JSON.stringify({ message: 'Mode latihan lama aktif.' }), {
-    status: 503, headers: { 'Content-Type': 'application/json' },
-  })
   // Fetch consumes Request bodies; clone before the first attempt so a 401 can
   // be replayed safely, including POST/PATCH requests with JSON payloads.
   const retryInput = input instanceof Request ? input.clone() : input
@@ -34,7 +30,7 @@ const fetchWithSessionRetry: typeof fetch = async (input, init) => {
   // A ReadableStream passed via init cannot be replayed safely after consumption.
   if (init?.body instanceof ReadableStream) return response
   const token = await refreshAccessToken()
-  if (!token || isLegacyTrainingMode()) return response
+  if (!token) return response
   const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined))
   headers.set('Authorization', 'Bearer ' + token)
   return fetch(retryInput, { ...init, headers })
