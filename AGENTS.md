@@ -15,3 +15,6 @@ Baca ini sebelum mengubah repo AUREKA.
 - Pastikan CI hijau sebelum merge: `node --test tests/*.mjs` dan `npx tsc --noEmit`.
 - Perubahan skema/RLS Supabase ditulis sebagai file di `supabase/migrations/` untuk dijalankan Feri; sebutkan urutan menjalankannya.
 - Jangan menaruh API key di kode klien.
+
+## Standar engineering tambahan (Arctic Continuum)
+Baca `docs/engineering/SKILL_GUIDED_ENGINEERING.md` dan `docs/engineering/skill-sources.json` untuk panduan eksternal yang dipatok pada commit. Gunakan prinsipnya, bukan installer atau hook otomatis. Standar AUREKA, kontrak klinis, perlindungan data dan spesifikasi Arctic Continuum yang disetujui tetap lebih tinggi. Uji perilaku pada interface publik, pertahankan rute/izin/rumus/ekspor, dan pisahkan kelulusan CI dari penerimaan produksi. Jangan menyimpan temuan keamanan rinci atau data klinis di repo publik.
