@@ -45,7 +45,7 @@ type Answers = Record<string, Record<string, CellAnswer>>
 type Variation = { id: string; date: string; item_id?: string; variation: string; reason: string; justification: string }
 type VariationState = { reviewed: boolean; items: Variation[] }
 type AuditForm = {
-  id?: string; source_quality_record_id?: string | null; patient_index_id?: string | null; room_id: number | null; template: Template; patient_name: string
+  id?: string; updated_at?: string; source_quality_record_id?: string | null; patient_index_id?: string | null; room_id: number | null; template: Template; patient_name: string
   medical_record_no: string; sex: string; date_of_birth: string; admission_date: string
   discharge_date: string; unit_name: string; dpjp: string; clinical_data: Record<string, string>
   ppa_names: Record<string, string>; selected_items_json: Record<string, boolean>; additional_phases_json: string[]
@@ -217,7 +217,7 @@ function fromDatabase(row: any, fallback: Template | null, roomName: string): Au
   const t = row.template_snapshot && row.template_snapshot.items ? row.template_snapshot as Template : fallback
   if (!t) throw new Error('Snapshot Clinical Pathway pada audit ini tidak tersedia dan master penggantinya belum dimuat.')
   return {
-    id: row.id, source_quality_record_id: row.source_quality_record_id || null, patient_index_id: row.patient_index_id || null, room_id: Number(row.room_id), template: clone(t), patient_name: row.patient_name || '',
+    id: row.id, updated_at: row.updated_at, source_quality_record_id: row.source_quality_record_id || null, patient_index_id: row.patient_index_id || null, room_id: Number(row.room_id), template: clone(t), patient_name: row.patient_name || '',
     medical_record_no: row.medical_record_no || '', sex: row.sex || '', date_of_birth: row.date_of_birth || '',
     admission_date: row.admission_date || '', discharge_date: row.discharge_date || '',
     unit_name: row.unit_name || roomName || '', dpjp: row.dpjp || '',
@@ -719,47 +719,22 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         clinical_data: form.clinical_data || {}, selected_items_json: form.selected_items_json || {}, additional_phases_json: form.additional_phases_json || [],
         inclusion_json: form.inclusion_json || {}, answers_json: form.answers_json || {},
         variations_json: form.variations_json || { reviewed: false, items: [] },
-        status: nextStatus, updated_by: auth.data.user.id,
+        status: nextStatus,
       }
-      let result: any
-      if (form.id) {
-        result = await q().from('clinical_pathway_audits').update(payload).eq('id', form.id).select('*').single()
-      } else {
-        payload.created_by = auth.data.user.id
-        result = await q().from('clinical_pathway_audits').insert(payload).select('*').single()
-      }
+      const result = await sb.rpc('aureka_save_clinical_audit', {
+        p_kind: 'pathway',
+        p_id: form.id ?? null,
+        p_expected_updated_at: form.updated_at ?? null,
+        p_payload: payload,
+        p_staff_changes: Object.fromEntries(changedIdentityKeys.map(field => [field, staffAttributions[field] || null])),
+      })
       if (result.error) throw result.error
-      const auditId = String(result.data.id)
-      let identityWarning = ''
-      for (const fieldKey of changedIdentityKeys) {
-        const { error: deleteLinkError } = await q().from('staff_entity_attributions')
-          .delete().eq('entity_type', 'clinical_pathway_audit').eq('entity_id', auditId).eq('field_key', fieldKey)
-        if (deleteLinkError) {
-          identityWarning = 'Audit CP tersimpan, tetapi tautan identitas tenaga tidak dapat diperbarui: ' + toUserFacingError(deleteLinkError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' })
-          break
-        }
-        const staffId = staffAttributions[fieldKey]
-        if (!staffId) continue
-        const { error: insertLinkError } = await q().from('staff_entity_attributions').insert({
-          entity_type: 'clinical_pathway_audit',
-          entity_id: auditId,
-          staff_id: staffId,
-          field_key: fieldKey,
-          attribution_type: fieldKey.startsWith('ppa:') ? 'responsible_provider' : 'involved_person',
-          created_by: auth.data.user.id,
-          updated_by: auth.data.user.id,
-        })
-        if (insertLinkError) {
-          identityWarning = 'Audit CP tersimpan, tetapi tautan identitas tenaga gagal disimpan: ' + toUserFacingError(insertLinkError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' })
-          break
-        }
-      }
-      if (!identityWarning) setSavedStaffAttributions({ ...staffAttributions })
+      setSavedStaffAttributions({ ...staffAttributions })
       const fallback = templates.find((x) => x.code === result.data.template_code) || form.template
       setForm(fromDatabase(result.data, fallback, roomNames.get(Number(result.data.room_id)) || ''))
       setSelectedCode(result.data.template_code)
-      setMessage(identityWarning || 'Audit Clinical Pathway berhasil disimpan.')
-      setMessageKind(identityWarning ? 'error' : 'info')
+      setMessage('Audit Clinical Pathway berhasil disimpan.')
+      setMessageKind('info')
       if (screen === 'diagnosis') await loadAudits(result.data.template_code)
     } catch (e: any) {
       setMessage('Audit Clinical Pathway belum berhasil disimpan: ' + toUserFacingError(e, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
