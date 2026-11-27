@@ -30,6 +30,7 @@ const requestsStopped = new Promise(resolve => { stopRequests = resolve })
 const isCancelledInterception = error => stopping && /Fetch domain is not enabled|Invalid InterceptionId|Invalid interceptionId|Invalid request id|No resource with given identifier|Target closed|Session closed/.test(error.message)
 let testRole = 'ADMIN'
 let publicReadAttempts = 0
+let documentReadAttempts = 0
 let failQualityReads = false
 let failQualitySave = false
 let failFppeWrites = false
@@ -139,6 +140,10 @@ const handlePausedRequest = async ({ request, requestId }) => {
     if (resource === 'aureka_public_intelligence') {
       if (++publicReadAttempts === 1) return await fulfill(requestId, { message: 'Synthetic temporary failure' }, 503)
       return await fulfill(requestId, {})
+    }
+    if (resource === 'aureka_verify_artifact_signature') {
+      if (++documentReadAttempts === 1) return await fulfill(requestId, { message: 'Synthetic temporary failure' }, 503)
+      return await fulfill(requestId, { valid: true, artifact_code: 'UJI-DOKUMEN' })
     }
     if (resource === 'aureka_get_my_profile') return await fulfill(requestId, [{
       user_id: uid, full_name: user.user_metadata.full_name, email: user.email, username: 'workspace.ui',
@@ -371,6 +376,13 @@ try {
     assert.equal(requests.length, before, 'Legacy training reached the backend mock')
     await clickText('[role=alertdialog] button', 'Keluar dari mode latihan')
     await wait("!document.querySelector('[role=alertdialog]') && localStorage.getItem('aureka-latihan') === null")
+  })
+  await check('public document verification can retry a temporary failure', async () => {
+    await evaluate("location.hash = '#v/fixture'")
+    await wait("document.querySelector('.legalVerifyCard h1')?.textContent === 'Verifikasi gagal'")
+    await clickText('.legalVerifyCard button', 'Coba lagi')
+    await wait("document.querySelector('.legalVerifyCard h1')?.textContent === 'Persetujuan terverifikasi'")
+    assert.equal(documentReadAttempts, 2)
   })
   await login('ADMIN')
   await wait("document.querySelector('.ccSectionHead')")
