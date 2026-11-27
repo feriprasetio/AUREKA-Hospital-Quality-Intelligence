@@ -246,10 +246,12 @@ export default function StudentOrientationWorkspace({
   role,
   userId,
   canManage,
+  dataFirst = false,
 }: {
   role: string | null
   userId: string
   canManage: boolean
+  dataFirst?: boolean
 }) {
   const [selectedYear, setSelectedYear] = useState(2026)
   const [event, setEvent] = useState<EducationEvent | null>(null)
@@ -261,7 +263,8 @@ export default function StudentOrientationWorkspace({
   const [message, setMessage] = useState('')
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [showList, setShowList] = useState(false)
+  const [showList, setShowList] = useState(dataFirst)
+  useEffect(()=>{setShowList(dataFirst)},[dataFirst])
   const [showTemplateEditor, setShowTemplateEditor] = useState(false)
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -592,12 +595,13 @@ export default function StudentOrientationWorkspace({
         </div>
       </section>
 
+      <details className="arcticDomainSummary" open={!dataFirst||!showList}><summary>Ringkasan orientasi mahasiswa</summary>
       <section className="soKpis" aria-label="Ringkasan orientasi mahasiswa">
         <div className="soKpi"><span>Rekam mahasiswa dari logbook</span><strong>{loading ? '…' : rows.length.toLocaleString('id-ID')}</strong></div>
         <div className="soKpi"><span>Mahasiswa unik</span><strong>{loading ? '…' : participantCount.toLocaleString('id-ID')}</strong></div>
         <div className="soKpi"><span>Register tersimpan</span><strong>{savedCount.toLocaleString('id-ID')}</strong></div>
         <div className="soKpi"><span>Sertifikat PDF diterbitkan</span><strong>{certificateCount.toLocaleString('id-ID')}</strong></div>
-      </section>
+      </section></details>
 
       {error && <div className="soMessage soError" role="alert">{error}</div>}
       {message && <div className="soMessage" role="status">{message}</div>}

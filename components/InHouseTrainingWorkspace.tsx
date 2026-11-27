@@ -83,11 +83,12 @@ function makePdf(event:EventRow,p:Participant,num:string,code:string,layout:Cert
  return new Blob([pdf],{type:'application/pdf'})
 }
 
-export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRoomId=null,lockRoomScope=false}:{
- role:string|null;userId:string;rooms?:Room[];initialRoomId?:number|null;lockRoomScope?:boolean
+export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRoomId=null,lockRoomScope=false,dataFirst=false}:{
+ role:string|null;userId:string;rooms?:Room[];initialRoomId?:number|null;lockRoomScope?:boolean;dataFirst?:boolean
 }){
  const canManage=managers.includes(role||'')
- const [view,setView]=useState<'overview'|'list'|'detail'>('overview')
+ const [view,setView]=useState<'overview'|'list'|'detail'>(dataFirst?'list':'overview')
+ useEffect(()=>{setView(previous=>previous==='detail'?previous:dataFirst?'list':'overview')},[dataFirst])
  const [events,setEvents]=useState<EventRow[]>([])
  const [staff,setStaff]=useState<Staff[]>([])
  const [participants,setParticipants]=useState<Participant[]>([])
@@ -238,7 +239,7 @@ export default function InHouseTrainingWorkspace({role,userId,rooms=[],initialRo
   </>}
   {view==='list'&&<>
    <div className="ihtActions"><button type="button" onClick={()=>setView('overview')}>Kembali ke ringkasan</button><input aria-label="Cari kegiatan IHT" placeholder="Cari kegiatan…" value={search} onChange={e=>setSearch(e.target.value)}/>{canManage&&<button type="button" onClick={()=>setShowForm(true)}>＋ Tambah Kegiatan</button>}</div>
-   {loading?<div className="ihtCard">Memuat register…</div>:filtered.length===0?<div className="ihtCard">Belum ada kegiatan In House Training.</div>:<div className="ihtCard"><div className="ihtTableWrap"><table><thead><tr><th>Kode</th><th>Kegiatan</th><th>Jadwal</th><th>Unit</th><th>Status</th><th></th></tr></thead><tbody>{filtered.map(x=><tr key={x.id}><td>{x.event_code}</td><td><b>{x.title}</b><small>{x.topic}</small></td><td>{dateLabel(x.start_at)}</td><td>{rooms.find(y=>y.id===x.room_id)?.name||'Seluruh RS'}</td><td>{x.status}</td><td><button type="button" onClick={()=>void openEvent(x)}>Lihat Detail</button></td></tr>)}</tbody></table></div></div>}
+   {loading?<div className="ihtCard">Memuat register…</div>:filtered.length===0?<div className="ihtCard">{error?'Register belum dapat dipastikan lengkap.':events.length?'Tidak ada kegiatan yang cocok dengan pencarian.':'Belum ada kegiatan In House Training.'}</div>:<div className="ihtCard"><div className="ihtTableWrap"><table><thead><tr><th>Kode</th><th>Kegiatan</th><th>Jadwal</th><th>Unit</th><th>Status</th><th></th></tr></thead><tbody>{filtered.map(x=><tr key={x.id}><td>{x.event_code}</td><td><b>{x.title}</b><small>{x.topic}</small></td><td>{dateLabel(x.start_at)}</td><td>{rooms.find(y=>y.id===x.room_id)?.name||'Seluruh RS'}</td><td>{x.status}</td><td><button type="button" onClick={()=>void openEvent(x)}>Lihat Detail</button></td></tr>)}</tbody></table></div></div>}
   </>}
   {view==='detail'&&active&&<>
    <div className="ihtActions"><button type="button" onClick={()=>setView('list')}>← Kembali ke Register</button><button type="button" disabled={working} onClick={()=>void openEvent(active)}>Muat Ulang</button></div>

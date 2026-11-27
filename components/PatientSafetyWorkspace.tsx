@@ -299,6 +299,7 @@ export default function PatientSafetyWorkspace({
   showTabs = true,
   onTabChange,
   scopeRoomId = null,
+  arcticGrid = false,
   onAskNara,
 
 }: {
@@ -306,6 +307,7 @@ export default function PatientSafetyWorkspace({
   rooms: Room[]
   initialRoomId: number | null
   scopeRoomId?: number | null
+  arcticGrid?: boolean
   isSuperAdmin: boolean
   canManageWorkflow: boolean
   focus?: SafetyFocus | null
@@ -349,6 +351,9 @@ export default function PatientSafetyWorkspace({
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; const query = String(detail?.query ?? ''); setSearch(query) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [statusFilter, setStatusFilter] = useState('all')
+  const [registerPage,setRegisterPage]=useState(1)
+  const [registerPageSize,setRegisterPageSize]=useState(25)
+  const [registerSort,setRegisterSort]=useState<{key:'incident_code'|'incident_date'|'unit_name'|'incident_type'|'summary'|'status';direction:1|-1}|null>(null)
   const [unitFilter, setUnitFilter] = useState(scopeUnitName || 'all')
 
   const [incidentId, setIncidentId] = useState('')
@@ -532,6 +537,12 @@ export default function PatientSafetyWorkspace({
     const matchesSearch = !needle || [row.incident_code, row.unit_name, row.incident_type, row.summary].join(' ').toLowerCase().includes(needle)
     return matchesStatus && matchesUnit && matchesSearch
   }), [incidents, statusFilter, unitFilter, search])
+  useEffect(()=>{setRegisterPage(1)},[statusFilter,unitFilter,search,registerPageSize,scopeRoomId,registerSort,arcticGrid])
+  const sortedRegister=useMemo(()=>arcticGrid&&registerSort?[...filteredIncidents].sort((a,b)=>{const av=String(a[registerSort.key]??''),bv=String(b[registerSort.key]??'');return (!av&&!bv?0:!av?1:!bv?-1:av.localeCompare(bv,'id-ID',{numeric:true,sensitivity:'base'})*registerSort.direction)||String(a.id).localeCompare(String(b.id))}):filteredIncidents,[filteredIncidents,arcticGrid,registerSort])
+  const registerPages=Math.max(1,Math.ceil(sortedRegister.length/registerPageSize))
+  const currentRegisterPage=Math.min(registerPage,registerPages)
+  const registerRows=arcticGrid?sortedRegister.slice((currentRegisterPage-1)*registerPageSize,currentRegisterPage*registerPageSize):sortedRegister
+  const registerColumns=[['incident_code','Kode'],['incident_date','Tanggal'],['unit_name','Unit'],['incident_type','Jenis'],['summary','Ringkasan'],['status','Status']] as const
 
   const openInvestigations = useMemo(() => investigations.filter(row => row.status !== 'closed'), [investigations])
   const responseGroups = useMemo(() => aggregateSafetyCultureResponses(responses), [responses])
@@ -1087,9 +1098,10 @@ export default function PatientSafetyWorkspace({
           
         </div>
 
-        {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table className="psTable"><thead><tr><th>Kode</th><th>Tanggal</th><th>Unit</th><th>Jenis</th><th>Ringkasan</th><th>Status</th><th></th></tr></thead><tbody>
-          {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
+        {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table key={arcticGrid?'arctic-register':'legacy-register'} className="psTable" data-ak-sort={arcticGrid?'off':undefined}><thead><tr>{registerColumns.map(([key,label])=><th key={key} aria-sort={arcticGrid&&registerSort?.key===key?(registerSort.direction===1?'ascending':'descending'):undefined}>{arcticGrid?<button type="button" className="arcticGridSort" onClick={()=>setRegisterSort(current=>current?.key===key?(current.direction===1?{key,direction:-1}:null):{key,direction:1})}>{label}<span aria-hidden="true">{registerSort?.key===key?(registerSort.direction===1?'▲':'▼'):'↕'}</span></button>:label}</th>)}<th></th></tr></thead><tbody>
+          {registerRows.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{loading ? 'Memuat register insiden…' : error ? 'Register belum dapat dipastikan lengkap. Muat ulang data.' : incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
+        {arcticGrid&&sortedRegister.length>0&&<div className="arcticGridFooter" aria-label="Paginasi register insiden"><output>{(currentRegisterPage-1)*registerPageSize+1}–{Math.min(currentRegisterPage*registerPageSize,sortedRegister.length)} dari {sortedRegister.length} laporan</output><label>Baris per halaman<select aria-label="Baris per halaman register" value={registerPageSize} onChange={e=>setRegisterPageSize(Number(e.target.value))}>{[25,50,100].map(size=><option key={size} value={size}>{size}</option>)}</select></label><button type="button" disabled={currentRegisterPage===1} onClick={()=>setRegisterPage(currentRegisterPage-1)}>Sebelumnya</button><span>Halaman {currentRegisterPage} / {registerPages}</span><button type="button" disabled={currentRegisterPage===registerPages} onClick={()=>setRegisterPage(currentRegisterPage+1)}>Berikutnya</button></div>}
       </LiquidGlass>
       {canManageWorkflow && <div id="ps-register-qr" tabIndex={-1} role="region" aria-label="Laporan dan pengelolaan QR" style={{scrollMarginTop:"calc(var(--aur-header-h, 64px) + 16px)"}}><QrReportsPanel supabase={supabase} rooms={rooms} refreshKey={qrRefresh} onProcess={(r: QrReport, roomName: string) => {
         newIncident()

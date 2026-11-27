@@ -89,7 +89,7 @@ const risks = Array.from({ length: 19 }, (_, index) => ({
   risk_level: 'Sangat Rendah', category: 'Operasional', status: 'Open',
   causes: 'Skenario uji antarmuka', created_at: '2026-10-01T00:00:00Z', created_by: uid,
 }))
-const incidents = [{
+let incidents = [{
   id: '50000000-0000-4000-8000-000000000001', incident_code: 'UI-IKP-001',
   incident_date: '2026-10-15', incident_time: '08:00', unit_name: rooms[0].name,
   incident_type: 'KNC', summary: 'Insiden sintetis untuk pengujian antarmuka', status: 'draft',
@@ -150,6 +150,17 @@ const handlePausedRequest = async ({ request, requestId }) => {
       primary_room_id: 1, role_id: testRole.toLowerCase(), role_code: testRole,
       is_active: true, must_change_password: false,
     }])
+    // Explicit boolean fixtures, not a live authorization assertion. The old
+    // fallback [] denied every permission, including directory access for ADMIN.
+    if (resource === 'aureka_has_permission') {
+      const grants = {
+        'hr.read.directory': ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC'],
+        'hr.read.performance': ['DIREKTUR'],
+        'hr.read.pic_performance': ['ADMIN','PMKP','MANAGEMENT','KABID','PIC'],
+        'quality.read.aggregate': ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'],
+      }
+      return await fulfill(requestId, (grants[body.p_permission] || []).includes(testRole))
+    }
     if (resource === 'aureka_get_my_account') return await fulfill(requestId, [{ username: 'workspace.ui', email: user.email }])
     if (resource === 'save_quality_logbook') {
       if (failQualitySave) return await fulfill(requestId, { message: 'Penyimpanan ditolak pada skenario uji', code: '42501' }, 403)
@@ -472,11 +483,81 @@ try {
     assert.equal(await evaluate("new URLSearchParams(location.search).has('arctic')"),false)
     await wait("document.querySelector('.ccSectionHead')")
   })
+  await check('Arctic quick navigation and paginated incident grid use real scoped rows', async () => {
+    await click('.arcticPreviewSwitch')
+    await wait("document.querySelector('[data-arctic-shell=continuum]')")
+    await evaluate("document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',ctrlKey:true,bubbles:true,cancelable:true}))")
+    await wait("document.querySelector('#arctic-module-query')")
+    await fill('#arctic-module-query','keselamatan pasien')
+    await wait("document.querySelector('[data-arctic-quick=patient_safety]')")
+    await fill('#arctic-module-query','TidakAdaModul987')
+    await wait("document.querySelector('.arcticQuickBody').textContent.includes('Tidak ditemukan')")
+    await fill('#arctic-module-query','keselamatan pasien')
+    await click('[data-arctic-quick=patient_safety]')
+    await wait("document.querySelector('.moduleEnter')?.dataset.workspaceContainer==='safety'")
+    const original=incidents
+    incidents=Array.from({length:61},(_,i)=>({...original[0],id:'50000000-0000-4000-8000-'+String(i+1).padStart(12,'0'),incident_code:'UI-IKP-'+String(i+1).padStart(3,'0')}))
+    try {
+      await evaluate("location.hash='#keselamatan-pasien/incidents'")
+      await wait("document.querySelector('.arcticGridFooter')")
+      await wait("Array.from(document.querySelectorAll('.ps button')).some(b=>b.textContent.includes('Refresh')&&!b.disabled)")
+      await clickText('.ps button','Refresh')
+      await wait("document.querySelector('.arcticGridFooter').textContent.includes('dari 61')")
+      assert.equal(await evaluate("document.querySelectorAll('.psTable tbody tr').length"),25)
+      await clickText('.arcticGridFooter button','Berikutnya')
+      await wait("document.querySelector('.arcticGridFooter').textContent.includes('26–50')")
+      await clickText('.arcticGridSort','Kode')
+      await clickText('.arcticGridSort','Kode')
+      await wait("document.querySelector('.psTable tbody tr').textContent.includes('UI-IKP-061')")
+      await fill('#ps-register-search','UI-IKP-060')
+      await wait("document.querySelector('.arcticGridFooter').textContent.includes('dari 1')")
+      assert.equal(await evaluate("document.querySelectorAll('.psTable tbody tr').length"),1)
+      await fill('#ps-register-search','')
+      await screenshot('arctic-incident-grid')
+    } finally { incidents=original }
+    await clickText('.arcticLayoutExit','Layout lama')
+    await wait("document.querySelector('aside.sidebar')")
+    await evaluate("location.hash='#beranda'")
+    await wait("document.querySelector('.ccSectionHead')")
+  })
+  await check('Arctic data-first entry keeps actual domain registers and summary access', async () => {
+    await click('.arcticPreviewSwitch')
+    await wait("document.querySelector('[data-arctic-shell=continuum]')")
+    await evaluate("location.hash='#sekretariat'")
+    await wait("document.querySelector('.secTableToolbar')")
+    assert.equal(await evaluate("document.querySelector('.secWorkspace .arcticDomainSummary').open"),false)
+    await click('.secWorkspace .arcticDomainSummary summary')
+    await wait("document.querySelector('.secWorkspace .arcticDomainSummary').open")
+    await evaluate("location.hash='#sumber-daya-manusia/training'")
+    await wait("document.querySelector('input[aria-label=\"Cari kegiatan IHT\"]')")
+    await evaluate("location.hash='#sumber-daya-manusia/student-orientation'")
+    await wait("document.querySelector('input[aria-label=\"Cari mahasiswa orientasi\"]')")
+    assert.equal(await evaluate("document.querySelector('.studentOrientation .arcticDomainSummary').open"),false)
+    await wait("location.hash==='#sumber-daya-manusia/student-orientation'")
+    await click('[data-arctic-category=hospital_management]')
+    await wait("document.querySelector('[data-arctic-destination=human_resources]')")
+    await click('[data-arctic-destination=human_resources]')
+    await wait("document.querySelector('.moduleEnter')?.dataset.workspaceSubcontainer==='Tenaga Kerja'")
+    try {
+      await wait("document.querySelector('input[aria-label=\"Cari tenaga kerja\"]')")
+    } catch(error) {
+      console.log('Synthetic staff diagnostic:', await evaluate("JSON.stringify({hash:location.hash,container:document.querySelector('.moduleEnter')?.dataset.workspaceSubcontainer,hasDirectory:!!document.querySelector('.sdPanel'),hasSummary:!!document.querySelector('.sdBlueprintVisuals'),hasListAction:!!document.querySelector('.sdBlueprintActions'),hasMetadata:!!document.querySelector('.msw'),mainText:document.querySelector('.moduleEnter')?.innerText.slice(0,350)})"))
+      throw error
+    }
+    assert.equal(await evaluate("document.querySelector('.sdPanel .arcticDomainSummary').open"),false)
+    await screenshot('arctic-staff-data-first')
+    await clickText('.arcticLayoutExit','Layout lama')
+    await wait("document.querySelector('aside.sidebar')")
+    await evaluate("location.hash='#beranda'")
+    await wait("document.querySelector('.ccSectionHead')")
+  })
   await check('Arctic category and module visibility matches legacy for all eight roles', async () => {
     for (const role of ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR']) {
       await viewport(1440)
       await login(role)
       await wait("document.querySelector('.sidebarDomainTrigger button') && document.querySelector('.workspaceHeaderProfile')")
+      await wait("document.querySelector('.moduleEnter') && location.hash==='#beranda'")
+      if (['ADMIN','PMKP','PIC','DIREKTUR'].includes(role)) await wait("Array.from(document.querySelectorAll('.sidebarDomainItem')).some(b=>b.textContent.includes('Sumber Daya Manusia'))")
       const before=await evaluate(`Array.from(document.querySelectorAll('.sidebarDomain')).map(group=>({label:group.querySelector('.sidebarDomainTrigger button').title,items:Array.from(group.querySelectorAll('.sidebarDomainItem')).map(item=>({label:item.querySelector('span').textContent,disabled:item.disabled}))}))`)
       assert.ok(before.length>0,role+' has no legacy navigation')
       await click('.arcticPreviewSwitch')

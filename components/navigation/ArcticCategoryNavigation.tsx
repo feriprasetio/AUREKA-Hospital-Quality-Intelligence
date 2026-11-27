@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import type { AurekaNavigationGroup } from '@/lib/aureka/module-registry'
+import ArcticQuickNavigation from './ArcticQuickNavigation'
 
 type Destination = AurekaNavigationGroup['items'][number]
 // Display abbreviations only; canonical names, IDs, order and role filtering
@@ -61,6 +62,7 @@ export default function ArcticCategoryNavigation({groups,activeCategoryId,isActi
       <div className="arcticCategoryStrip">
         {available.map(group=><button key={group.id} type="button" data-arctic-category={group.id} aria-current={group.id===activeCategoryId?'true':undefined} aria-expanded={open===group.id} aria-controls={open!==null?id:undefined} aria-label={group.label} title={group.label} onClick={event=>{trigger.current=event.currentTarget;setOpen(value=>value===group.id?null:group.id)}}><span className="arcticFullLabel">{group.label}</span><span className="arcticShortLabel" aria-hidden="true">{SHORT_LABELS[group.id]||group.label}</span><span aria-hidden="true">⌄</span></button>)}
       </div>
+      <ArcticQuickNavigation groups={available} contextKey={contextKey} onSelect={(group,item)=>{close(false);onSelect(group,item)}}/>
       <button className="arcticLayoutExit" type="button" onClick={()=>{close(false);onExit()}} title="Kembali ke navigasi lama">Layout lama</button>
       <button className="arcticLayoutExit" type="button" onClick={()=>{close(false);onLogout()}}>Keluar</button>
     </div>

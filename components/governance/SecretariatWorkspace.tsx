@@ -123,7 +123,7 @@ const statusLabel: Record<ExtractionStatus, string> = {
 }
 
 export default function SecretariatWorkspace({
-  section, rooms = [], initialRoomId = null, lockRoomScope = false, role = null, userId = '', userName = 'Pengguna AUREKA',
+  section, rooms = [], initialRoomId = null, lockRoomScope = false, role = null, userId = '', userName = 'Pengguna AUREKA', dataFirst = false,
 }: {
   section: SecretariatSection
   rooms?: Room[]
@@ -132,11 +132,12 @@ export default function SecretariatWorkspace({
   role?: string | null
   userId?: string
   userName?: string
+  dataFirst?: boolean
 }) {
   const canManage = managerRoles.includes(role || '')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [rows, setRows] = useState<MeetingRow[]>([])
-  const [showRegister, setShowRegister] = useState(false)
+  const [showRegister, setShowRegister] = useState(dataFirst)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [search, setSearch] = useState('')
@@ -165,7 +166,7 @@ export default function SecretariatWorkspace({
 
   useEffect(() => { void loadRegister() }, [loadRegister])
 
-  useEffect(() => { setShowRegister(false) }, [section])
+  useEffect(() => { setShowRegister(dataFirst) }, [section, dataFirst])
 
   useEffect(() => {
     if (!createOpen) setDraft({ ...emptyDraft(initialRoomId), meeting_type: section === 'invitations' ? 'Undangan' : 'Kegiatan' })
@@ -410,7 +411,10 @@ export default function SecretariatWorkspace({
         {canManage&&<button type="button" className="secPrimaryButton" onClick={()=>{setDraft({ ...emptyDraft(initialRoomId), meeting_type: section === 'invitations' ? 'Undangan' : 'Kegiatan' });setCreateOpen(true)}}>+ Tambah Register</button>}
       </div>
       {notice&&!activeMeeting&&<div className={'secNotice secNotice-'+notice.kind} role="status">{notice.text}<button type="button" aria-label="Tutup pesan" onClick={()=>setNotice(null)}>×</button></div>}
+      {dataFirst&&<button type="button" className="secSecondaryButton" onClick={()=>setShowRegister(false)}>Ringkasan kegiatan</button>}
+      <details className="arcticDomainSummary" open={!dataFirst}><summary>Ringkasan register sekretariat</summary>
       <div className="secSummary"><div><span>Total Register</span><strong>{filteredRows.length}</strong></div><div><span>Undangan</span><strong>{rows.filter((row)=>/undangan/i.test(row.meeting_type)).length}</strong></div><div><span>Kegiatan / Pelatihan</span><strong>{rows.filter((row)=>!/undangan/i.test(row.meeting_type)).length}</strong></div></div>
+      </details>
       <div className="secTablePanel">
         <div className="secTableToolbar"><div><h3>Daftar Dokumen</h3><span>{section === 'invitations' ? 'Dokumen undangan' : 'Seluruh dokumen kegiatan sekretariat'}</span></div><input aria-label="Cari register sekretariat" type="search" placeholder="Cari judul, nomor atau jenis…" value={search} onChange={(event)=>setSearch(event.target.value)}/></div>
         {loading?<div className="secEmpty">Memuat register Sekretariat…</div>:filteredRows.length===0?<div className="secEmpty"><strong>Belum ada register.</strong><p>Gunakan Tambah Register untuk mulai mencatat dokumen dan kegiatan.</p></div>:<div className="secTableScroll"><table className="secTable"><thead><tr><th>No</th><th>Tanggal Dokumen</th><th>Nomor Dokumen</th><th>Judul Dokumen</th><th>Jenis Dokumen</th><th>Isi Dokumen</th></tr></thead><tbody>

@@ -73,7 +73,7 @@ const requiredFields = [
   'directory_status', 'review_note',
 ] as const
 
-export default function StaffDirectoryWorkspace() {
+export default function StaffDirectoryWorkspace({dataFirst=false}:{dataFirst?:boolean}={}) {
   const [rows, setRows] = useState<Staff[]>([])
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
@@ -95,6 +95,7 @@ export default function StaffDirectoryWorkspace() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [shown, setShown] = useState(120)
   const [listOpen, setListOpen] = useState(false)
+  useEffect(()=>{setListOpen(dataFirst)},[dataFirst])
 
   const pendingLoad = useRef<AbortController | null>(null)
   const load = useCallback(async () => {
@@ -392,6 +393,7 @@ export default function StaffDirectoryWorkspace() {
             <button type="button" className="sdBtn sdIconBtn" title="Segarkan" aria-label="Segarkan" disabled={busy || loading} onClick={() => void load()}>↻</button>
           </div>}
         />
+        <details className="arcticDomainSummary" open={!dataFirst||!listOpen}><summary>Komposisi direktori tenaga kerja</summary>
         <section className="sdBlueprintVisuals" aria-label="Komposisi direktori tenaga kerja">
           <div className="sdBlueprintCard">
             <div className="sdBlueprintHead"><div><h3>Status verifikasi</h3><p>Ringkasan tenaga kerja yang tercatat.</p></div><b>n = {rows.length.toLocaleString('id-ID')}</b></div>
@@ -405,7 +407,7 @@ export default function StaffDirectoryWorkspace() {
             <div className="sdBlueprintHead"><div><h3>Kelompok profesi terbanyak</h3><p>Enam kelompok profesi dengan jumlah terbanyak.</p></div><b>{groups.length} kelompok</b></div>
             {loading ? <p className="sdDesc">Memuat komposisi…</p> : professionDistribution.length ? <div className="sdBlueprintBars">{professionDistribution.map((item) => <div className="sdBlueprintBar" key={item.label}><span>{item.label}</span><div><i style={{width:(item.count/professionMax*100)+'%'}}/></div><b>{item.count.toLocaleString('id-ID')}</b></div>)}</div> : <p className="sdDesc">Belum ada data profesi.</p>}
           </div>
-        </section>
+        </section></details>
         {!listOpen ? <section className="sdBlueprintActions" aria-label="Tindakan direktori tenaga kerja" style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center',marginTop:14}}>
           <button type="button" className="sdBtn primary" onClick={()=>setListOpen(true)}>Lihat Daftar Tenaga Kerja</button>
         </section> : <>

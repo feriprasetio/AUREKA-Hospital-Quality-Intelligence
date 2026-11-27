@@ -37,5 +37,9 @@ chrome_pid=$!
 app_url="http://127.0.0.1:3789/$project/"
 cdp_url=http://127.0.0.1:3790
 curl --retry 15 --retry-connrefused --retry-delay 1 --fail --silent --show-error --output /dev/null "$app_url"
-curl --retry 15 --retry-connrefused --retry-delay 1 --fail --silent --show-error --output /dev/null "$cdp_url/json"
+if ! curl --retry 30 --retry-connrefused --retry-delay 1 --fail --silent --show-error --output /dev/null "$cdp_url/json"; then
+  printf '%s\n' 'Chromium startup failed; browser checks were not executed.' >&2
+  tail -n 80 "$scratch_dir/chrome.log" >&2 || true
+  exit 1
+fi
 AUREKA_UI_URL="$app_url" AUREKA_CDP_URL="$cdp_url" AUREKA_UI_FOCUSED=1 node scripts/check-workspace-ui.mjs
