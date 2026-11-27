@@ -12,7 +12,7 @@ assert.ok(begin >= 0 && end > begin, 'network wrapper must be present')
 // TypeScript annotation is on the const declaration and is stripped here.
 const wrapperCode = source.slice(begin, end).replace('const fetchWithSessionRetry: typeof fetch =', 'const fetchWithSessionRetry =')
 const makeWrapper = new Function(
-  'trainingIntercept', 'fetch', 'refreshAccessToken',
+  'isLegacyTrainingMode', 'fetch', 'refreshAccessToken',
   'Request', 'URL', 'Headers', 'ReadableStream',
   wrapperCode + '\nreturn fetchWithSessionRetry;',
 )
@@ -21,7 +21,7 @@ test('expired-JWT retry replays the entire Request POST body exactly once', asyn
   const calls = []
   let refreshCount = 0
   const wrapped = makeWrapper(
-    () => null,
+    () => false,
     async (input, init) => {
       const request = input instanceof Request ? input : new Request(input, init)
       calls.push({
@@ -52,7 +52,7 @@ test('a non-expired 401 is returned without refresh or repeat', async () => {
   let calls = 0
   let refreshes = 0
   const wrapped = makeWrapper(
-    () => null,
+    () => false,
     async () => { calls++; return new Response('access denied', { status: 401 }) },
     async () => { refreshes++; return 'token' },
     Request, URL, Headers, ReadableStream,
@@ -61,6 +61,19 @@ test('a non-expired 401 is returned without refresh or repeat', async () => {
   assert.equal(response.status, 401)
   assert.equal(calls, 1)
   assert.equal(refreshes, 0)
+})
+
+test('legacy training refuses reads and writes without calling the network', async () => {
+  const wrapped = makeWrapper(
+    () => true,
+    () => assert.fail('must not reach the network'),
+    () => assert.fail('must not refresh the session'),
+    Request, URL, Headers, ReadableStream,
+  )
+  for (const method of ['GET', 'POST', 'PATCH', 'DELETE']) {
+    const response = await wrapped('https://example.invalid/rest/v1/staff_directory', { method })
+    assert.equal(response.status, 503)
+  }
 })
 
 test('migration allocates recommendation codes atomically without wrapping after 999', () => {

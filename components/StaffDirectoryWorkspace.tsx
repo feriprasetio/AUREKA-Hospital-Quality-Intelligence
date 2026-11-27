@@ -96,22 +96,39 @@ export default function StaffDirectoryWorkspace() {
   const [shown, setShown] = useState(120)
   const [listOpen, setListOpen] = useState(false)
 
+  const pendingLoad = useRef<AbortController | null>(null)
   const load = useCallback(async () => {
+    pendingLoad.current?.abort()
+    const controller = new AbortController()
+    pendingLoad.current = controller
     setError('')
-    // Tampilkan salinan terakhir seketika (sesi ini), lalu perbarui dari server di belakang layar.
-    let cached = false
-    try { const c = JSON.parse(sessionStorage.getItem('aureka-staff-dir') || 'null'); if (c && Array.isArray(c.rows) && Date.now() - c.at < 15 * 60 * 1000) { setRows(c.rows); cached = true } } catch { /* abaikan */ }
-    setLoading(!cached)
-    const { data, error: loadError } = await q().from('staff_directory')
-      .select('id,employee_code,display_name,normalized_name,name_prefix,credentials,profession_group,position_title,source_unit,staff_group,source_sheet,source_year,directory_status,review_note,updated_at')
-      .order('display_name', { ascending: true })
-      .limit(5000)
-    if (loadError) setError('Gagal memuat master tenaga kerja: ' + toUserFacingError(loadError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
-    else { setRows((data || []) as Staff[]); try { sessionStorage.setItem('aureka-staff-dir', JSON.stringify({ at: Date.now(), rows: data || [] })) } catch { /* abaikan */ } }
-    setLoading(false)
+    setLoading(true)
+    try {
+      const { data, error: loadError } = await q().from('staff_directory')
+        .select('id,employee_code,display_name,normalized_name,name_prefix,credentials,profession_group,position_title,source_unit,staff_group,source_sheet,source_year,directory_status,review_note,updated_at')
+        .order('display_name', { ascending: true })
+        .limit(5000)
+        .abortSignal(controller.signal)
+      if (controller.signal.aborted) return
+      if (loadError) throw loadError
+      setRows((data || []) as Staff[])
+    } catch (cause) {
+      if (controller.signal.aborted) return
+      setRows([])
+      setEditingStaff(null)
+      setProfileStaff(null)
+      setDraft(null)
+      setError('Gagal memuat master tenaga kerja: ' + toUserFacingError(cause, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
+    } finally {
+      if (!controller.signal.aborted) setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    try { sessionStorage.removeItem('aureka-staff-dir') } catch { /* Storage tidak tersedia. */ }
+    void load()
+    return () => pendingLoad.current?.abort()
+  }, [load])
   useEffect(() => { setShown(120) }, [search, statusFilter, groupFilter])
 
   const groups = useMemo(() => [...new Set(rows.map((row) => row.profession_group).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id')), [rows])

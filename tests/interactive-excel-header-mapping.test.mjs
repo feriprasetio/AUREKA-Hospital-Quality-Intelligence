@@ -4,6 +4,7 @@ import {
   resolveInteractiveExcelHeaderColumn,
   hydrateInteractiveExcelHeaderMappings,
   clearInteractiveExcelHeaderMappingScope,
+  withInteractiveExcelPreviewMapping,
 } from '../lib/aureka/interactive-header-mapping.ts'
 
 test('resolves a unique normalized header without prompting', () => {
@@ -130,4 +131,17 @@ test('a server rule marked for review does not override an exact workbook header
   } finally {
     clearInteractiveExcelHeaderMappingScope()
   }
+})
+
+test('preview choices are discarded after a failed parse', async () => {
+  const columns = new Map([['tanggal', 1], ['tanggal alternatif', 2]])
+  const options = { importerKey: 'preview-test', fieldKey: 'date' }
+  await assert.rejects(withInteractiveExcelPreviewMapping(
+    'preview-test', [{ fieldKey: 'date', header: 'tanggal alternatif', occurrence: 1 }],
+    () => {
+      assert.equal(resolveInteractiveExcelHeaderColumn(columns, ['tanggal'], options), 2)
+      throw new Error('invalid workbook')
+    },
+  ), /invalid workbook/)
+  assert.equal(resolveInteractiveExcelHeaderColumn(columns, ['tanggal'], options), 1)
 })

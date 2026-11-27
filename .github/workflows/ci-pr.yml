@@ -49,3 +49,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.AUREKA_PRODUCTION_SUPABASE_URL || secrets.AUREKA_PRODUCTION_SUPABASE_URL || 'https://ktukmjscopggkzrkgnzp.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || secrets.AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_6NWrr2xGApSApIjQ0irtvA_U05ZQlFX' }}
         run: npm run build
+
+
+      - name: Build isolated browser smoke export
+        env:
+          AUREKA_BASE_PATH: /AUREKA-Hospital-Quality-Intelligence
+          NEXT_PUBLIC_SUPABASE_URL: https://aureka-smoke.invalid
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_aureka_smoke
+        run: npm run build
+
+      - name: Run Chromium smoke checks with synthetic data
+        run: bash scripts/run-browser-smoke.sh

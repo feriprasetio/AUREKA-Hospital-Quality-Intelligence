@@ -2,7 +2,6 @@
 
 import InstallAppButton from '@/components/layout/InstallAppButton'
 import BackupPanel from '@/components/governance/BackupPanel'
-import { isTrainingMode, setTrainingMode } from '@/lib/aureka/training-mode'
 import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useEffect, useMemo, useState } from 'react'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
@@ -1019,18 +1018,11 @@ function AppearancePanel() {
       <div className="akHelpRow">
         <InstallAppButton />
       </div>
-      <TrainingToggle />
+      <div className="akTrainingRow">
+        <div><b>Mode latihan</b><p>Latihan memerlukan lingkungan terpisah dengan akun dan data uji. Lingkungan latihan belum tersedia dari aplikasi ini.</p></div>
+      </div>
     </LiquidGlass>
   )
-}
-
-function TrainingToggle() {
-  const [on, setOn] = useState(false)
-  useEffect(() => { setOn(isTrainingMode()) }, [])
-  return <div className="akTrainingRow">
-    <b>Mode latihan</b>
-    <button type="button" className={'akInstallBtn' + (on ? '' : ' ghost')} onClick={() => { setTrainingMode(!on); window.location.reload() }}>{on ? 'Matikan mode latihan' : 'Mulai mode latihan'}</button>
-  </div>
 }
 
 /** Presentation settings are local to this browser and never modify clinical data. */
