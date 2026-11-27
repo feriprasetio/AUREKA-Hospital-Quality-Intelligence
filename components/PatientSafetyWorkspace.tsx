@@ -1079,7 +1079,7 @@ export default function PatientSafetyWorkspace({
     {tab === 'incidents' ? <>
 
       <LiquidGlass className="psPanel">
-        <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill" role="status">{loading ? "Memuat…" : error ? "Periksa status data" : `${filteredIncidents.length} laporan`}</span>{allowExcelImport ? <button type="button" className="psBtn" onClick={() => setExcelImportOpen(true)}>Impor Excel / Template</button> : null}<button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
+        <div className="psSectionHead"><div><h4>Register Laporan IKP</h4><p>Cari, filter status/unit, dan buka laporan untuk meninjau atau melanjutkan draft.</p></div><div className="psActions"><span className="psPill" role="status">{loading ? "Memuat…" : error ? "Periksa status data" : `${filteredIncidents.length} laporan`}</span>{canManageWorkflow && <button type="button" className="psBtn" aria-controls="ps-register-qr" onClick={() => { const panel = document.getElementById("ps-register-qr"); panel?.focus({ preventScroll: true }); panel?.scrollIntoView({ block: "start" }) }}>Laporan via QR</button>}{allowExcelImport ? <button type="button" className="psBtn" onClick={() => setExcelImportOpen(true)}>Impor Excel / Template</button> : null}<button type="button" className="psBtn primary" onClick={newIncident}>＋ Laporan Baru</button></div></div>
         <div className="psFilterGrid">
           <div className="psFilter psLocalSearch"><label htmlFor="ps-register-search">Cari laporan</label><input id="ps-register-search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Kode, unit, jenis, ringkasan…" /></div>
           <div className="psFilter"><label htmlFor="ps-register-status">Status</label><select id="ps-register-status" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Semua status</option><option value="draft">Draf</option><option value="submitted">Dikirim</option><option value="under_review">Review</option><option value="investigation">Investigasi</option><option value="closed">Selesai</option></select></div>
@@ -1091,7 +1091,7 @@ export default function PatientSafetyWorkspace({
           {filteredIncidents.map(row => <tr key={row.id}><td><span className="psCode">{row.incident_code}</span></td><td>{row.incident_date || '-'}</td><td>{row.unit_name || '-'}</td><td>{(() => { const g = gradeIncident(row.form_data || {}); return g ? <span className={'psGradeDot ' + g.color} title={'Grading ' + g.label} aria-label={'Grading ' + g.label} /> : null })()}{row.incident_type || '-'}</td><td>{row.summary || '-'}</td><td><span className={'psPill ' + statusClass(row.status)}>{statusLabel(row.status)}</span></td><td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{loading ? 'Memuat register insiden…' : error ? 'Register belum dapat dipastikan lengkap. Muat ulang data.' : incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
       </LiquidGlass>
-      {canManageWorkflow && <QrReportsPanel supabase={supabase} rooms={rooms} refreshKey={qrRefresh} onProcess={(r: QrReport, roomName: string) => {
+      {canManageWorkflow && <div id="ps-register-qr" tabIndex={-1} role="region" aria-label="Laporan dan pengelolaan QR" style={{scrollMarginTop:"calc(var(--aur-header-h, 64px) + 16px)"}}><QrReportsPanel supabase={supabase} rooms={rooms} refreshKey={qrRefresh} onProcess={(r: QrReport, roomName: string) => {
         newIncident()
         const p = r.payload || {}
         const prefill: Record<string, string> = { E2: roomName }
@@ -1100,7 +1100,7 @@ export default function PatientSafetyWorkspace({
         setIncidentData(prefill)
         setIncidentReporterExternal(!!p.reporter_name)
         qrProcessing.current = r.id
-      }} />}
+      }} /></div>}
       {!loading && !error && safetySummary}
       {!loading && !error && <details className="workspaceSummary" data-arctic-support="distribution">
         <summary><b>Distribusi status hasil filter</b></summary>
