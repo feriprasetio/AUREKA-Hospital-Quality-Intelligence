@@ -471,6 +471,37 @@ try {
     assert.equal(await evaluate("new URLSearchParams(location.search).has('arctic')"),false)
     await wait("document.querySelector('.ccSectionHead')")
   })
+  await check('Arctic category and module visibility matches legacy for all eight roles', async () => {
+    for (const role of ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR']) {
+      await viewport(1440)
+      await login(role)
+      await wait("document.querySelector('.sidebarDomainTrigger button') && document.querySelector('.workspaceHeaderProfile')")
+      const before=await evaluate(`Array.from(document.querySelectorAll('.sidebarDomain')).map(group=>({label:group.querySelector('.sidebarDomainTrigger button').title,items:Array.from(group.querySelectorAll('.sidebarDomainItem')).map(item=>({label:item.querySelector('span').textContent,disabled:item.disabled}))}))`)
+      assert.ok(before.length>0,role+' has no legacy navigation')
+      await click('.arcticPreviewSwitch')
+      await wait("document.querySelector('[data-arctic-shell=continuum]')")
+      const labels=await evaluate("Array.from(document.querySelectorAll('[data-arctic-category]')).map(b=>b.getAttribute('aria-label'))")
+      assert.deepEqual(labels,before.map(g=>g.label),role+' category ownership')
+      for(const group of before){
+        const selector=await evaluate(`(()=>{const b=Array.from(document.querySelectorAll('[data-arctic-category]')).find(b=>b.getAttribute('aria-label')===${JSON.stringify(group.label)});return b?.dataset.arcticCategory})()`)
+        await click('[data-arctic-category='+selector+']')
+        await wait("document.querySelector('.arcticMegaMenu')")
+        const items=await evaluate("Array.from(document.querySelectorAll('[data-arctic-destination]')).map(b=>({label:b.querySelector('strong').textContent,disabled:b.disabled}))")
+        assert.deepEqual(items,group.items,role+' '+group.label)
+        await key('Escape')
+        await wait("!document.querySelector('.arcticMegaMenu')")
+      }
+      const fits=await evaluate("document.documentElement.scrollWidth<=innerWidth+1")
+      assert.equal(fits,true,role+' desktop shell overflow')
+      await screenshot('arctic-role-'+role.toLowerCase())
+      await clickText('.arcticLayoutExit','Layout lama')
+      await wait("document.querySelector('aside.sidebar')")
+      await click('.sidebarFooter .liquidButton button')
+      await wait("document.querySelector('.aurekaPublic')")
+    }
+    await login('ADMIN')
+    await wait("document.querySelector('.ccSectionHead')")
+  })
   if (process.env.AUREKA_UI_FOCUSED !== '1') {
   await goModule('quality', 'Mutu Klinis')
   await wait("document.querySelector('.aqRoomOverviewCard, .aqHideStatus')")
