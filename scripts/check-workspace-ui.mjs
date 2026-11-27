@@ -521,8 +521,17 @@ try {
     await evaluate("location.hash='#sumber-daya-manusia/student-orientation'")
     await wait("document.querySelector('input[aria-label=\"Cari mahasiswa orientasi\"]')")
     assert.equal(await evaluate("document.querySelector('.studentOrientation .arcticDomainSummary').open"),false)
-    await evaluate("location.hash='#sumber-daya-manusia/directory'")
-    await wait("document.querySelector('input[aria-label=\"Cari tenaga kerja\"]')")
+    await wait("location.hash==='#sumber-daya-manusia/student-orientation'")
+    await click('[data-arctic-category=hospital_management]')
+    await wait("document.querySelector('[data-arctic-destination=human_resources]')")
+    await click('[data-arctic-destination=human_resources]')
+    await wait("document.querySelector('.moduleEnter')?.dataset.workspaceSubcontainer==='Tenaga Kerja'")
+    try {
+      await wait("document.querySelector('input[aria-label=\"Cari tenaga kerja\"]')")
+    } catch(error) {
+      console.log('Synthetic staff diagnostic:', await evaluate("JSON.stringify({hash:location.hash,container:document.querySelector('.moduleEnter')?.dataset.workspaceSubcontainer,hasDirectory:!!document.querySelector('.sdPanel'),hasSummary:!!document.querySelector('.sdBlueprintVisuals'),hasListAction:!!document.querySelector('.sdBlueprintActions'),hasMetadata:!!document.querySelector('.msw'),mainText:document.querySelector('.moduleEnter')?.innerText.slice(0,350)})"))
+      throw error
+    }
     assert.equal(await evaluate("document.querySelector('.sdPanel .arcticDomainSummary').open"),false)
     await screenshot('arctic-staff-data-first')
     await clickText('.arcticLayoutExit','Layout lama')
