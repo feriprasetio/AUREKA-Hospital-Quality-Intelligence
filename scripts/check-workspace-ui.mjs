@@ -363,10 +363,10 @@ try {
     await wait("document.body.textContent.includes('Belum ada dataset yang disetujui')")
   })
   await check('legacy training preference no longer blocks the public feed', async () => {
-    await evaluate("localStorage.setItem('aureka-latihan', '1')")
+    await evaluate("localStorage.setItem('aureka-latihan', '1'); window.legacyTrainingReload = true")
     const before = publicReadAttempts
     await send('Page.reload')
-    await wait("document.body.textContent.includes('Belum ada dataset yang disetujui')")
+    await wait("!window.legacyTrainingReload && document.body?.textContent.includes('Belum ada dataset yang disetujui')")
     assert.ok(publicReadAttempts > before, 'Reload did not reach the backend mock')
     assert.equal(await evaluate("Boolean(document.querySelector('[role=alertdialog]'))"), false)
   })
