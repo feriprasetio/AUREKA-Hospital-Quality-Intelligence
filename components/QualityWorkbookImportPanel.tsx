@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { readPkrsWorkbookGroups, readPkrsEducation } from '@/lib/aureka/pkrs-workbook'
+import auditLayouts from '@/data/quality-audit-layout-2026.json'
 import QualityWorkbookStagedPreview from '@/components/quality/QualityWorkbookStagedPreview'
 import unitAliases from '@/data/quality-audit-profile-aliases-2026.json'
 import { inspectQualityWorkbookRouting, isStandardUnitWorkbook } from '@/lib/aureka/quality-workbook-source-audit'
@@ -625,6 +627,9 @@ export default function QualityWorkbookImportPanel({
 
     const rows: StagedRow[] = []
     const heldRows: ImportIssue[] = []
+    const pkrsSheet = roomId === 21 ? workbookRef.current.getWorksheet(dataSheet) : null
+    const pkrsGroups = pkrsSheet ? readPkrsWorkbookGroups(pkrsSheet, dataHeaderRow) : []
+    const pkrsLayout = pkrsGroups.length ? auditLayouts.find(layout => layout.roomId === 21)?.fields ?? [] : []
     const seenSourceKeys = new Set<string>()
     let skippedTemplateRows = 0
     const excludedIsolasiRows: number[] = []
@@ -775,6 +780,13 @@ export default function QualityWorkbookImportPanel({
             issues.push({ sheet: dataSheet, row: source.rowNumber, field: profile.code, message: cause instanceof Error ? cause.message : 'Respons tidak valid.' })
           }
         }
+        if (pkrsGroups.length && !byGrain.size && pkrsGroups.some(group => group.topics.some(topic => {
+          const column = dataScope?.columns.find(item => item.index === topic.column)
+          return column && clean(source.values[column.key])
+        }))) {
+          heldRows.push({ sheet: dataSheet, row: source.rowNumber, field: '21.1',
+            message: 'Topik profesi terisi, tetapi hasil Pelaksanaan Edukasi masih kosong.' })
+        }
         for (const [grain, responses] of byGrain.entries()) {
           const dateValue = recordDate
           const rowIssues = isStandardMappedLogbook && dataColumns.date ? heldRows : issues
@@ -785,6 +797,11 @@ export default function QualityWorkbookImportPanel({
           const formFields = Object.fromEntries((dataScope?.columns ?? []).flatMap(column =>
             Object.hasOwn(source.values, column.key) ? [[column.occurrence === 1 ? column.header : column.key, source.values[column.key]]] : [],
           ))
+          const pkrs = pkrsGroups.length ? readPkrsEducation(pkrsGroups, index => {
+            const column = dataScope?.columns.find(item => item.index === index)
+            return column ? source.values[column.key] : null
+          }, pkrsLayout) : null
+          if (pkrs) Object.assign(formFields, pkrs.formFields, { 'Tanggal Masuk': recordDate })
           const sourceDiagnosis = dataColumns.diagnosis ? clean(source.values[dataColumns.diagnosis]) : ''
           const applicableProfiles = profiles.filter(profile =>
             grainValue(profile.measurement_grain) === grain &&
@@ -816,7 +833,7 @@ export default function QualityWorkbookImportPanel({
                 dpjp: dpjpHeader ? clean(source.values[dpjpHeader]) : '',
               },
               core_data: {
-                form_fields: formFields, import_source: 'AUREKA Excel Workbook Import V2',
+                form_fields: formFields, ...(pkrs ? { pkrs_education: pkrs.education } : {}), import_source: 'AUREKA Excel Workbook Import V2',
                 record_date: dateValue,
                 indicator_values: Object.fromEntries(responses.map(response => [
                   response.indicator_code,

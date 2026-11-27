@@ -1,3 +1,4 @@
+import { readPkrsWorkbookGroups, readPkrsEducation } from './pkrs-workbook.ts'
 import type { Cell, Workbook, Worksheet } from 'exceljs-hardened'
 import { normalizeIgdDateTime } from './igd-logbook.ts'
 import { getWorkbookRuleColumn, type WorkbookSourceRule } from './quality-workbook-columns.ts'
@@ -736,6 +737,7 @@ export async function prepareEpisodeImport({
   if (profileChanged && activeProfiles.some(profile => profile.status === 'draft')) issues.push({ location: 'Profil', message: 'Selesaikan profil draf di Pengaturan sebelum menerapkan profil workbook.' })
   if (issues.length) return { issues, rowIssues, rows, profiles, codes: [0, 0, 0], heldRows: 0 }
   const { sheet, header, columns } = parsed.logbook
+  const pkrsGroups = roomId === 21 ? readPkrsWorkbookGroups(sheet, header) : []
   const layoutColumns = layoutFields.flatMap(field => {
     const column = matchColumn(columns, [field])
     return column ? [{ field, column }] : []
@@ -776,6 +778,9 @@ export async function prepareEpisodeImport({
       }
       return clean(value) !== ''
     })
+    if (!filled.length && hasIdentity && pkrsGroups.some(group => group.topics.some(topic => clean(get(topic.column))))) {
+      hold(index, location + ' · 21.1', 'Topik profesi terisi, tetapi hasil Pelaksanaan Edukasi masih kosong.')
+    }
     if (!filled.length || unrecoverableFormula) return
     if (fields.mrn && get(fields.mrn) instanceof Date && !episode) {
       hold(index, location, 'No. RM terbaca sebagai tanggal. Perbaiki format nomor atau pilih ID episode.')
@@ -831,6 +836,13 @@ export async function prepareEpisodeImport({
       const text = value instanceof Date ? dateValue(value) : cellDisplay(row.getCell(column))
       return [field, text]
     }).filter(([, value]) => value))
+    const pkrs = pkrsGroups.length ? readPkrsEducation(pkrsGroups, get, layoutFields) : null
+    if (pkrs) {
+      Object.assign(formFields, pkrs.formFields)
+      const barrier = matchColumn(columns, ['Hambatan Edukasi'])
+      if (barrier && clean(get(barrier))) formFields['Hambatan Edukasi'] = clean(get(barrier))
+      formFields['Tanggal Masuk'] = date
+    }
     const dateColumn = columns.find(column => column.index === fields.date)
     if (dateColumn) formFields[dateColumn.name] = date
     if (mrn) formFields['No. Rekam Medis'] = mrn
@@ -842,6 +854,7 @@ export async function prepareEpisodeImport({
     const core = {
       patient_name: name, medical_record_no: mrn, admission_at: date, discharge_at: discharge,
       diagnosis, dpjp, unit_name: roomName, form_fields: formFields, indicator_values: indicatorValues,
+      ...(pkrs ? { pkrs_education: pkrs.education } : {}),
       source_import: { source_sheet: sheet.name, source_header_row: header, source_excel_row: index, import_scope: EPISODE_WORKBOOK_IMPORTER },
     }
     staged.push({
