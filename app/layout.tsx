@@ -1,4 +1,3 @@
-import TrainingBanner from '@/components/layout/TrainingBanner'
 import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import './aureka-global.css'
@@ -49,7 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {/* Tema Arktik: mode "terang" atau "gelap"; pilihan disimpan per perangkat. */}
         <script dangerouslySetInnerHTML={{ __html: "try{for(var i=0;i<localStorage.length;i++){if(/^sb-.+-auth-token$/.test(localStorage.key(i)||'')){document.documentElement.setAttribute('data-ak-booting','1');setTimeout(function(){document.documentElement.removeAttribute('data-ak-booting')},6000);break}}}catch(e){}try{var m=localStorage.getItem('aureka-mode');if(m==='gelap'||m==='terang')document.documentElement.setAttribute('data-mode',m);if(!localStorage.getItem('aureka:appearance:v2')){var ts=localStorage.getItem('aureka-text-size');if(ts==='besar'||ts==='sangat-besar')document.documentElement.setAttribute('data-text-size',ts);if(localStorage.getItem('aureka-motion')==='off')document.documentElement.setAttribute('data-motion','off')}}catch(e){}window.addEventListener('error',function(e){var t=String((e&&e.message)||'')+String(e&&e.error&&e.error.name||'');if(/ChunkLoadError|Loading chunk|Failed to load chunk/i.test(t)){try{if(!sessionStorage.getItem('aureka-chunk-reload')){sessionStorage.setItem('aureka-chunk-reload','1');location.reload()}}catch(x){}}});window.addEventListener('load',function(){setTimeout(function(){try{sessionStorage.removeItem('aureka-chunk-reload')}catch(x){}},10000)});" }} />
       </head>
-      <body>{children}<TrainingBanner /><UpdateNotifier /></body>
+      <body>{children}<UpdateNotifier /></body>
     </html>
   )
 }

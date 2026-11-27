@@ -362,20 +362,13 @@ try {
     await clickText('.aurekaPublicPreview button', 'Coba lagi')
     await wait("document.body.textContent.includes('Belum ada dataset yang disetujui')")
   })
-  await check('legacy training blocks backend traffic until explicit exit', async () => {
+  await check('legacy training preference no longer blocks the public feed', async () => {
     await evaluate("localStorage.setItem('aureka-latihan', '1')")
-    const before = requests.length
+    const before = publicReadAttempts
     await send('Page.reload')
-    await wait("document.querySelector('[role=alertdialog]')?.textContent.includes('Mode latihan lama dihentikan')")
-
-    const status = await evaluate(`(async () => {
-      const button = [...document.querySelectorAll('button')].find(item => item.textContent === 'Keluar dari mode latihan')
-      return Boolean(button) && localStorage.getItem('aureka-latihan') === '1'
-    })()`)
-    assert.equal(status, true)
-    assert.equal(requests.length, before, 'Legacy training reached the backend mock')
-    await clickText('[role=alertdialog] button', 'Keluar dari mode latihan')
-    await wait("!document.querySelector('[role=alertdialog]') && localStorage.getItem('aureka-latihan') === null")
+    await wait("document.body.textContent.includes('Belum ada dataset yang disetujui')")
+    assert.ok(publicReadAttempts > before, 'Reload did not reach the backend mock')
+    assert.equal(await evaluate("Boolean(document.querySelector('[role=alertdialog]'))"), false)
   })
   await check('public document verification can retry a temporary failure', async () => {
     await evaluate("location.hash = '#v/fixture'")

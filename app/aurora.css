@@ -1729,11 +1729,6 @@ html[data-mode="gelap"] body:not(#_) .infographicsDashboard .ifReportBtn.ifPrese
 html body:not(#_) .workspaceRoot .akBackupYear { min-height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid #dfe7f0; background: #fff; color: #1f2430; font: inherit; }
 html[data-mode="gelap"] body:not(#_) .workspaceRoot .akBackupYear { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); color: #eef2f7; }
 
-/* Mode latihan: pita oranye selalu terlihat. */
-html body:not(#_) .workspaceRoot .akTrainingRow { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid #dfe7f0; }
-html body:not(#_) .workspaceRoot .akTrainingRow > div { flex: 1 1 260px; min-width: 0; }
-html body:not(#_) .workspaceRoot .akTrainingRow p { margin: 3px 0 0; }
-html[data-mode="gelap"] body:not(#_) .workspaceRoot .akTrainingRow { border-top-color: rgba(255,255,255,.1); }
 
 /* Halaman publik lapor IKP (QR). */
 .plRoot { min-height: 100dvh; display: grid; place-items: start center; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left)); color: var(--aureka-color-foreground); font-family: var(--aureka-font-sans); }
