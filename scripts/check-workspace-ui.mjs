@@ -150,6 +150,17 @@ const handlePausedRequest = async ({ request, requestId }) => {
       primary_room_id: 1, role_id: testRole.toLowerCase(), role_code: testRole,
       is_active: true, must_change_password: false,
     }])
+    // Explicit boolean fixtures, not a live authorization assertion. The old
+    // fallback [] denied every permission, including directory access for ADMIN.
+    if (resource === 'aureka_has_permission') {
+      const grants = {
+        'hr.read.directory': ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','PIC'],
+        'hr.read.performance': ['DIREKTUR'],
+        'hr.read.pic_performance': ['ADMIN','PMKP','MANAGEMENT','KABID','PIC'],
+        'quality.read.aggregate': ['ADMIN','PMKP','MANAGEMENT','KABID','DIREKTUR','DEWAN_PENGAWAS','PIC','VALIDATOR'],
+      }
+      return await fulfill(requestId, (grants[body.p_permission] || []).includes(testRole))
+    }
     if (resource === 'aureka_get_my_account') return await fulfill(requestId, [{ username: 'workspace.ui', email: user.email }])
     if (resource === 'save_quality_logbook') {
       if (failQualitySave) return await fulfill(requestId, { message: 'Penyimpanan ditolak pada skenario uji', code: '42501' }, 403)
@@ -545,6 +556,8 @@ try {
       await viewport(1440)
       await login(role)
       await wait("document.querySelector('.sidebarDomainTrigger button') && document.querySelector('.workspaceHeaderProfile')")
+      await wait("document.querySelector('.moduleEnter') && location.hash==='#beranda'")
+      if (['ADMIN','PMKP','PIC','DIREKTUR'].includes(role)) await wait("Array.from(document.querySelectorAll('.sidebarDomainItem')).some(b=>b.textContent.includes('Sumber Daya Manusia'))")
       const before=await evaluate(`Array.from(document.querySelectorAll('.sidebarDomain')).map(group=>({label:group.querySelector('.sidebarDomainTrigger button').title,items:Array.from(group.querySelectorAll('.sidebarDomainItem')).map(item=>({label:item.querySelector('span').textContent,disabled:item.disabled}))}))`)
       assert.ok(before.length>0,role+' has no legacy navigation')
       await click('.arcticPreviewSwitch')
