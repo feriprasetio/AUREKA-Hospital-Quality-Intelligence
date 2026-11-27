@@ -32,6 +32,8 @@ let testRole = 'ADMIN'
 let publicReadAttempts = 0
 let documentReadAttempts = 0
 let failQualityReads = false
+let failPatientReads=false
+let failInvalidRm=false
 let failQualitySave = false
 let failFppeWrites = false
 let fppeWriteGate = null
@@ -161,6 +163,13 @@ const handlePausedRequest = async ({ request, requestId }) => {
       }
       return await fulfill(requestId, (grants[body.p_permission] || []).includes(testRole))
     }
+    if (resource === 'aureka_patient_index_search_v2') {
+      if(failPatientReads)return await fulfill(requestId,{message:'Synthetic patient list failure'},503)
+      const all=Array.from({length:51},(_,i)=>({no_rm:'UI-RM-'+String(i+1).padStart(3,'0'),nama_pasien:'Pasien Sintetis '+(i+1),total_episode:1,last_seen:'2026-10-01',unit_terakhir:rooms[0].name,diagnosis_terakhir:'Diagnosis sintetis'})).filter(row=>!body.p_query||row.no_rm.toLowerCase().includes(String(body.p_query).toLowerCase()))
+      return await fulfill(requestId,all.slice(body.p_offset,body.p_offset+body.p_limit).map(row=>({...row,total_count:all.length})))
+    }
+    if(resource==='aureka_patient_index_overview'||resource==='aureka_patient_index_summary')return await fulfill(requestId,{total:51,dengan_nik:0,terhubung_simrs:0})
+    if(resource==='aureka_patient_index_invalid_rm')return failInvalidRm?await fulfill(requestId,{message:'Synthetic invalid RM failure'},503):await fulfill(requestId,[])
     if (resource === 'aureka_get_my_account') return await fulfill(requestId, [{ username: 'workspace.ui', email: user.email }])
     if (resource === 'save_quality_logbook') {
       if (failQualitySave) return await fulfill(requestId, { message: 'Penyimpanan ditolak pada skenario uji', code: '42501' }, 403)
@@ -555,6 +564,43 @@ try {
     }
     assert.equal(await evaluate("document.querySelector('.sdPanel .arcticDomainSummary').open"),false)
     await screenshot('arctic-staff-data-first')
+    await clickText('.arcticLayoutExit','Layout lama')
+    await wait("document.querySelector('aside.sidebar')")
+    await evaluate("location.hash='#beranda'")
+    await wait("document.querySelector('.ccSectionHead')")
+  })
+  await check('Arctic patient directory direct entry, server paging and error recovery', async () => {
+    await click('.arcticPreviewSwitch')
+    await wait("document.querySelector('[data-arctic-shell=continuum]')")
+    await click('[data-arctic-category=patient_registry]')
+    await wait("document.querySelector('[data-arctic-destination=patient_directory]')")
+    await click('[data-arctic-destination=patient_directory]')
+    await wait("document.querySelector('.piTable tbody .piRow')")
+    assert.equal(await evaluate("document.querySelectorAll('.piTable .piRow').length"),50)
+    await clickText('.prFoot button','Berikutnya')
+    await wait("document.querySelector('.piTable tbody').textContent.includes('UI-RM-051')")
+    assert.equal(await evaluate("document.querySelectorAll('.piTable .piRow').length"),1)
+    await fill('input[aria-label="Cari pasien"]','UI-RM-010')
+    await wait("document.querySelector('.piTable tbody').textContent.includes('UI-RM-010')")
+    assert.equal(await evaluate("document.querySelectorAll('.piTable .piRow').length"),1)
+    failPatientReads=true
+    try{
+      await fill('input[aria-label="Cari pasien"]','UI-RM-011')
+      await wait("document.querySelector('.piWrap [role=alert]')")
+      assert.equal(await evaluate("document.querySelectorAll('.piTable .piRow').length"),0)
+      await wait("document.querySelector('.piTable tbody').textContent.includes('belum dapat dipastikan')")
+    }finally{failPatientReads=false}
+    await clickText('.piWrap [role=alert] button','Muat ulang')
+    await wait("document.querySelector('.piTable tbody').textContent.includes('UI-RM-011')")
+    failInvalidRm=true
+    try {
+      await clickText('.piToolbar button','Periksa No. RM bermasalah')
+      await wait("document.querySelector('#pi-invalid-rm[role=alert]')")
+      assert.equal(await evaluate("document.querySelector('#pi-invalid-rm').textContent.includes('Semua episode')"),false)
+    }finally{failInvalidRm=false}
+    await clickText('#pi-invalid-rm button','Coba lagi')
+    await wait("document.querySelector('#pi-invalid-rm').textContent.includes('Semua episode')")
+    await screenshot('arctic-patient-directory')
     await clickText('.arcticLayoutExit','Layout lama')
     await wait("document.querySelector('aside.sidebar')")
     await evaluate("location.hash='#beranda'")

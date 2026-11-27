@@ -1,6 +1,7 @@
 'use client'
 import { WorkspaceIntelligenceMetrics } from '@/components/workspace/WorkspaceIntelligence'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { createPortal } from 'react-dom'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -60,60 +61,96 @@ const maskName = (v: string | null) => (v || '').split(/\s+/).filter(Boolean).ma
 const maskNik = (v: string | null) => v ? v.slice(0, 4) + '••••••••' + v.slice(-4) : '-'
 const isMissingFn = (e: { code?: string; message?: string } | null) => Boolean(e && (e.code === 'PGRST202' || /Could not find the function|schema cache/i.test(e.message || '')))
 
-export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: boolean; rooms?: Room[] }) {
+export default function PatientIndexTab({ isAdmin, rooms = [], dataFirst = false, initialRoomId = null, lockRoomScope = false }: { isAdmin: boolean; rooms?: Room[]; dataFirst?: boolean; initialRoomId?: number|null; lockRoomScope?: boolean }) {
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(0)
-  const [roomId, setRoomId] = useState<number | null>(null)
+  const [selectedRoomId, setRoomId] = useState<number | null>(null)
+  const roomId = lockRoomScope ? initialRoomId : selectedRoomId
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [rows, setRows] = useState<PatientRow[]>([])
   const [summary, setSummary] = useState<Summary | null>(null)
   const [v2, setV2] = useState<boolean | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [reading, setLoading] = useState(true)
+  const [finishedScope,setFinishedScope]=useState('')
+  const scope=JSON.stringify([page,query,roomId,from,to,v2,lockRoomScope])
+  const loading=reading||finishedScope!==scope||search.trim()!==query
+  const pendingRead=useRef<AbortController|null>(null)
   const [error, setError] = useState('')
   const [notReady, setNotReady] = useState(false)
   const [showIdentity, setShowIdentity] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [note, setNote] = useState('')
   const [invalid, setInvalid] = useState<InvalidRm[] | null>(null)
+  const [invalidError,setInvalidError]=useState('')
+  const [invalidLoading,setInvalidLoading]=useState(false)
+  const invalidRead=useRef<AbortController|null>(null)
   const [detail, setDetail] = useState<PatientRow | null>(null)
 
   useEffect(() => { const t = window.setTimeout(() => { setQuery(search.trim()); setPage(0) }, 400); return () => window.clearTimeout(t) }, [search])
 
   const load = useCallback(async () => {
-    setLoading(true)
-    setError('')
-    const useV2 = v2 !== false
-    const [list, sum] = await Promise.all([
-      useV2
-        ? aurekaSupabase.rpc('aureka_patient_index_search_v2', { p_query: query || null, p_filter: 'semua', p_room: roomId, p_from: from || null, p_to: to || null, p_limit: PAGE, p_offset: page * PAGE })
-        : aurekaSupabase.rpc('aureka_patient_index_search', { p_query: query || null, p_limit: PAGE, p_offset: page * PAGE }),
-      useV2 ? aurekaSupabase.rpc('aureka_patient_index_overview') : aurekaSupabase.rpc('aureka_patient_index_summary'),
-    ])
-    if (useV2 && (isMissingFn(list.error) || isMissingFn(sum.error))) { setV2(false); return } // muat ulang lewat v1
-    if (useV2 && v2 === null) setV2(true)
-    setLoading(false)
-    if (isMissingFn(list.error) || isMissingFn(sum.error)) { setNotReady(true); setRows([]); return }
-    setNotReady(false)
-    if (list.error) { setError(toUserFacingError(list.error, { fallback: 'Database pasien belum dapat dimuat.' })); setRows([]); return }
-    setRows((list.data ?? []) as PatientRow[])
-    if (!sum.error) setSummary(sum.data as Summary)
-  }, [page, query, roomId, from, to, v2])
-  useEffect(() => { void load() }, [load])
+    pendingRead.current?.abort()
+    const controller=new AbortController()
+    pendingRead.current=controller
+    setLoading(true);setError('');setNotReady(false);setRows([]);setSummary(null)
+    try {
+      // A legacy unfiltered RPC must never silently replace a requested scoped search.
+      if(lockRoomScope&&roomId==null)throw new Error('Unit kerja belum dapat ditentukan. Pilih unit yang diizinkan.')
+      if(v2===false&&(roomId!=null||from||to))throw new Error('Versi direktori lama tidak mendukung filter unit atau periode. Reset filter atau hubungi administrator jika cakupan unit dikunci.')
+      const useV2 = v2 !== false
+      const [list, sum] = await Promise.all([
+        (useV2
+          ? aurekaSupabase.rpc('aureka_patient_index_search_v2', { p_query: query || null, p_filter: 'semua', p_room: roomId, p_from: from || null, p_to: to || null, p_limit: PAGE, p_offset: page * PAGE })
+          : aurekaSupabase.rpc('aureka_patient_index_search', { p_query: query || null, p_limit: PAGE, p_offset: page * PAGE })).abortSignal(controller.signal),
+        (useV2 ? aurekaSupabase.rpc('aureka_patient_index_overview') : aurekaSupabase.rpc('aureka_patient_index_summary')).abortSignal(controller.signal),
+      ])
+      if(controller.signal.aborted)return
+      if (useV2 && (isMissingFn(list.error) || isMissingFn(sum.error))) { setV2(false); return }
+      if (useV2 && v2 === null) setV2(true)
+      if (isMissingFn(list.error) || isMissingFn(sum.error)) { setNotReady(true); return }
+      if (list.error) throw list.error
+      const next=(list.data??[]) as PatientRow[]
+      if(!Array.isArray(next))throw new Error('Respons direktori tidak lengkap.')
+      if(!next.length&&page>0){setPage(0);return}
+      setRows(next)
+      if (!sum.error) setSummary(sum.data as Summary)
+    } catch(e) {
+      if(!controller.signal.aborted)setError(toUserFacingError(e,{fallback:'Database pasien belum dapat dimuat.'}))
+    } finally {
+      if(!controller.signal.aborted){setFinishedScope(scope);setLoading(false)}
+    }
+  }, [page, query, roomId, from, to, v2, lockRoomScope, scope])
+  useEffect(() => { void load(); return()=>pendingRead.current?.abort() }, [load])
+  const latestLoad=useRef(load)
+  useEffect(()=>{latestLoad.current=load},[load])
+  useEffect(()=>()=>invalidRead.current?.abort(),[])
+  useEffect(()=>{setDetail(null);setShowIdentity(false);setPage(0);invalidRead.current?.abort();setInvalid(null);setInvalidError('');setInvalidLoading(false)},[roomId,lockRoomScope])
 
-  const total = rows[0]?.total_count ?? 0
+  const total = loading||error ? 0 : rows[0]?.total_count ?? 0
   const sync = async () => {
     setSyncing(true); setNote('')
     const { data, error: e } = await aurekaSupabase.rpc('aureka_patient_index_sync')
     setSyncing(false)
     setNote(e ? toUserFacingError(e, { fallback: 'Sinkronisasi gagal.' }) : `Sinkron selesai: ${Number(data ?? 0).toLocaleString('id-ID')} pasien diperbarui dari Logbook.`)
-    if (!e) void load()
+    if (!e) void latestLoad.current()
   }
+  const closeInvalid=()=>{invalidRead.current?.abort();setInvalid(null);setInvalidError('');setInvalidLoading(false)}
   const loadInvalid = async () => {
-    const { data, error: e } = await aurekaSupabase.rpc('aureka_patient_index_invalid_rm', { p_limit: 100 })
-    setInvalid(e ? [] : (data ?? []) as InvalidRm[])
+    invalidRead.current?.abort()
+    const controller=new AbortController()
+    invalidRead.current=controller
+    setInvalid(null);setInvalidLoading(true);setInvalidError('')
+    try {
+      const { data, error: e } = await aurekaSupabase.rpc('aureka_patient_index_invalid_rm', { p_limit: 100 }).abortSignal(controller.signal)
+      if(controller.signal.aborted)return
+      if(e)throw e
+      if(!Array.isArray(data))throw new Error('Respons pemeriksaan No. RM tidak lengkap.')
+      setInvalid(data as InvalidRm[])
+    }catch(e){if(!controller.signal.aborted)setInvalidError(toUserFacingError(e,{fallback:'Pemeriksaan No. RM belum dapat dimuat.'}))}
+    finally{if(!controller.signal.aborted)setInvalidLoading(false)}
   }
   const toggleIdentity = async () => {
     if (showIdentity) { setShowIdentity(false); return }
@@ -128,7 +165,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
   if (notReady) return <AsyncStatePanel state="error" title="Direktori pasien belum tersedia" description="Jika kendala berlanjut, hubungi administrator." retrying={loading} onRetry={() => void load()} compact />
 
   return <section className="piWrap">
-    <WorkspaceIntelligenceMetrics loading={loading} unavailable={!!error} metrics={[{ label: 'Hasil pencarian pasien', value: total }]} />
+    {!dataFirst&&<WorkspaceIntelligenceMetrics loading={loading} unavailable={!!error} metrics={[{ label: 'Hasil pencarian pasien', value: total }]} />}
     <header className="piHead">
       <div className="piActions">
         <button type="button" className="prButton" onClick={() => void toggleIdentity()}>{showIdentity ? 'Samarkan identitas' : 'Tampilkan identitas'}</button>
@@ -139,11 +176,12 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
 
     <div className="piToolbar">
       <div className="piActions">
-        <button type="button" className="prButton" aria-expanded={invalid !== null} aria-controls="pi-invalid-rm" onClick={() => { if (invalid !== null) setInvalid(null); else void loadInvalid() }}>{invalid !== null ? 'Tutup No. RM bermasalah' : 'Periksa No. RM bermasalah'}</button>
+        <button type="button" className="prButton" aria-expanded={invalid !== null||invalidLoading||!!invalidError} aria-controls="pi-invalid-rm" onClick={() => { if (invalid !== null||invalidLoading||invalidError) closeInvalid(); else void loadInvalid() }}>{invalid !== null||invalidLoading||invalidError ? 'Tutup No. RM bermasalah' : 'Periksa No. RM bermasalah'}</button>
       </div>
       <div className="piFilters">
+        {dataFirst&&<label className="piSearch"><span className="piSr">Cari pasien</span><input type="search" aria-label="Cari pasien" autoComplete="off" placeholder="Cari No. RM atau nama" value={search} onChange={e=>setSearch(e.target.value)}/></label>}
         <label className="piSelect"><span className="piSr">Unit</span>
-          <select value={roomId ?? ''} disabled={v2 === false} onChange={(e) => { setRoomId(e.target.value ? Number(e.target.value) : null); setPage(0) }} aria-label="Filter unit">
+          <select value={roomId ?? ''} disabled={v2 === false||lockRoomScope} onChange={(e) => { setRoomId(e.target.value ? Number(e.target.value) : null); setPage(0) }} aria-label="Filter unit">
             <option value="">Semua unit</option>
             {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
@@ -152,21 +190,22 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
           <input type="date" value={from} max={to || undefined} disabled={v2 === false} onChange={(e) => { setFrom(e.target.value); setPage(0) }} aria-label="Kunjungan terakhir dari tanggal" />
           <input type="date" value={to} min={from || undefined} disabled={v2 === false} onChange={(e) => { setTo(e.target.value); setPage(0) }} aria-label="Kunjungan terakhir sampai tanggal" />
         </div>
-        {(roomId != null || from || to) && <button type="button" className="piReset" onClick={() => { setRoomId(null); setFrom(''); setTo(''); setPage(0) }}>Reset filter</button>}
+        {((!lockRoomScope&&roomId != null) || from || to) && <button type="button" className="piReset" onClick={() => { setRoomId(null); setFrom(''); setTo(''); setPage(0) }}>Reset filter</button>}
       </div>
     </div>
 
+    {(invalidLoading||invalidError)&&<div className="piPanel" id="pi-invalid-rm" role={invalidError?'alert':'status'}>{invalidLoading?'Memeriksa No. RM…':<>{invalidError} <button type="button" className="prButton" onClick={()=>void loadInvalid()}>Coba lagi</button></>}</div>}
     {invalid && <div className="piPanel" id="pi-invalid-rm">
-      <div className="piPanelHead"><h4>Episode dengan No. RM kosong / tidak valid ({invalid.length}{invalid.length >= 100 ? '+' : ''})</h4><button type="button" className="prButton" onClick={() => setInvalid(null)} aria-label="Tutup daftar No. RM bermasalah">Tutup</button></div>
+      <div className="piPanelHead"><h4>Episode dengan No. RM kosong / tidak valid ({invalid.length}{invalid.length >= 100 ? '+' : ''})</h4><button type="button" className="prButton" onClick={closeInvalid} aria-label="Tutup daftar No. RM bermasalah">Tutup</button></div>
       {invalid.length ? <div className="prTableWrap"><table className="prTable"><thead><tr><th>Unit</th><th>Tanggal</th><th>Isi No. RM</th></tr></thead>
         <tbody>{invalid.map((r) => <tr key={r.record_id}><td>{r.room_name}</td><td>{fmt(r.record_date)}</td><td><code>{r.no_rm_asli || '(kosong)'}</code></td></tr>)}</tbody></table></div>
         : <p className="prMuted">Tidak ada. Semua episode punya No. RM yang valid.</p>}
       <p className="prMuted">Perbaiki di Logbook unit terkait; indeks pasien ikut diperbarui otomatis.</p>
     </div>}
 
-    {error && <div className="prAlert" role="alert">{error}</div>}
+    {error && <div className="prAlert" role="alert">{error} <button type="button" className="prButton" onClick={()=>void load()}>Muat ulang</button></div>}
     <div className="prPanel">
-      <div className="prTableWrap">
+      <WorkspaceTableViewport className="prTableWrap" label="Direktori pasien">
         <table className="prTable piTable" data-ak-sort="off">
           <thead><tr><th>No. RM</th><th>Nama Pasien</th>{showNik && <th>NIK</th>}<th>Kunjungan</th><th>Unit terakhir</th><th>Diagnosis terakhir</th>{showBridge && <th>Bridging SIMRS</th>}</tr></thead>
           <tbody>
@@ -183,10 +222,10 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
                 <td>{r.unit_terakhir || '-'}</td>
                 <td><span className="piDiag" title={r.diagnosis_terakhir || undefined}>{r.diagnosis_terakhir || '-'}</span></td>
                 {showBridge && <td><span className={'piBridge ' + r.bridging_status}>{BRIDGING_LABEL[r.bridging_status] || r.bridging_status}</span></td>}
-              </tr>) : <tr><td colSpan={colCount}><div className="prEmpty">{query || roomId || from || to ? 'Tidak ada pasien yang cocok dengan filter ini.' : 'Belum ada pasien di direktori.'}</div></td></tr>}
+              </tr>) : <tr><td colSpan={colCount}><div className="prEmpty">{error?'Hasil pencarian belum dapat dipastikan.':query || roomId || from || to ? 'Tidak ada pasien yang cocok dengan filter ini.' : 'Belum ada pasien di direktori.'}</div></td></tr>}
           </tbody>
         </table>
-      </div>
+      </WorkspaceTableViewport>
       <footer className="prFoot">
         <span className="prMuted">{total ? `Menampilkan ${page * PAGE + 1}–${page * PAGE + rows.length} dari ${total.toLocaleString('id-ID')} pasien · klik baris untuk melihat riwayat` : ''}</span>
         <div className="prActions">
@@ -197,7 +236,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       </footer>
     </div>
 
-    {detail && <PatientTimeline patient={detail} showIdentity={showIdentity} onToggleIdentity={() => void toggleIdentity()} onClose={() => setDetail(null)} />}
+    {detail && <PatientTimeline key={detail.no_rm} patient={detail} showIdentity={showIdentity} onToggleIdentity={() => void toggleIdentity()} onClose={() => setDetail(null)} />}
 
     <style>{`
       .piWrap{display:grid;gap:16px}.piHead{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start}
@@ -212,7 +251,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       .piBridge.gagal,.piBridge.konflik{background:#fde8e8;color:#9b2c2c}
       .piToolbar{display:grid;gap:10px;padding:14px 16px;border-radius:12px;border:1px solid var(--aureka-color-border-strong);background:var(--aureka-color-surface)}
       .piFilters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start}
-      .piSearch{flex:1 1 260px;min-width:0}.piSelect select,.piDate input{width:100%;min-height:40px;padding:0 12px;border-radius:12px;border:1.5px solid #d9e4ef;background:#f5f8fc;font:inherit;font-size:13px;color:#1f2430}
+      .piSearch{flex:1 1 260px;min-width:0}.piSearch input,.piSelect select,.piDate input{width:100%;min-height:40px;padding:0 12px;border-radius:12px;border:1.5px solid #d9e4ef;background:#f5f8fc;font:inherit;font-size:13px;color:#1f2430}
       .piSelect{flex:0 1 220px;min-width:160px}
       .piDate{display:grid;grid-template-columns:auto repeat(2,minmax(0,144px));align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--aureka-color-foreground-secondary)}
       .piDate input{box-sizing:border-box;min-width:0;width:100%}
@@ -222,7 +261,7 @@ export default function PatientIndexTab({ isAdmin, rooms = [] }: { isAdmin: bool
       .piRow{cursor:pointer;transition:background-color .12s ease}.piRow:hover td,.piRow:focus-visible td{background:rgba(94,196,207,.09)}.piRow:focus-visible{outline:2px solid rgba(34,211,238,.6);outline-offset:-2px}
       .piVisits{white-space:nowrap}.piVisits b{font-variant-numeric:tabular-nums}.piVisits span{color:#4b5565}
       .piDiag{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;max-width:420px}
-      html[data-mode="gelap"] :is(.piSelect select,.piDate input){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
+      html[data-mode="gelap"] :is(.piSearch input,.piSelect select,.piDate input){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#eef2f7}
       html[data-mode="gelap"] .piVisits span{color:#aab6c6}
       html[data-mode="gelap"] .piPanel{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}
       html[data-mode="gelap"] .piHead p{color:#9fb3c8}
@@ -242,6 +281,7 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
   type LinkedHistory = { episodes: Array<{ id:string; record_date:string; profile_year:number; unit:string|null; status:string; review_required:boolean; validated_at:string|null; validation_note:string|null; indicators:Array<{ code:string; title:string; category:string|null; answer:string|null; review_required:boolean }> }>; incidents: Array<{ id:string; incident_code:string; incident_date:string; unit_name:string; incident_type:string; status:string; summary:string }>; incidents_visible:boolean }
   const [linkedHistory, setLinkedHistory] = useState<LinkedHistory | null>(null)
   const [linkedHistoryError, setLinkedHistoryError] = useState('')
+  const [partialHistory,setPartialHistory]=useState(false)
   const drawerRef = useAccessibleDialog<HTMLElement>({ open: true, onClose })
 
   useEffect(() => {
@@ -270,6 +310,7 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
       const results = await Promise.all(years.map((y) => aurekaSupabase.rpc('aureka_patient_episodes_page', { p_room: null, p_year: y, p_query: patient.no_rm, p_limit: 200, p_offset: 0 })))
       if (cancelled) return
       const failed = results.find((r) => r.error)
+      setPartialHistory(!!failed||results.some(r=>(r.data??[]).length>=200)||firstYear<lastYear-5)
       if (failed && results.every((r) => r.error)) { setError(toUserFacingError(failed.error, { fallback: 'Riwayat kunjungan belum dapat dimuat.' })); setEpisodes([]); return }
       const all = results.flatMap((r) => (r.data ?? []) as Episode[]).filter((e) => e.no_rm_norm === patient.no_rm)
       all.sort((a, b) => String(b.record_date ?? '').localeCompare(String(a.record_date ?? '')))
@@ -308,6 +349,7 @@ function PatientTimeline({ patient, showIdentity, onToggleIdentity, onClose }: {
             </div>
           </>}
         </section>
+        {partialHistory&&!error&&<p className="ptEmpty" role="status">Riwayat kunjungan mungkin belum lengkap: sebagian periode gagal dimuat atau batas tampilan enam tahun/200 episode per tahun tercapai.</p>}
         {episodes === null ? <div className="ptLoading" role="status"><i /><i /><i /></div>
           : error ? <p className="ptEmpty">{error}</p>
           : episodes.length === 0 ? <p className="ptEmpty">Belum ada episode yang dapat ditampilkan untuk No. RM ini di unit yang boleh Anda akses.</p>
