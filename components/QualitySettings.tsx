@@ -5,6 +5,7 @@ import { prepareAnnualQualityCatalog, type AnnualCatalogPlan } from '@/lib/aurek
 import { readQualityReference2026 } from '@/lib/aureka/quality-reference-2026'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
+import { aurekaConfirm } from '@/components/ui/aurekaConfirm'
 import { useCallback, useEffect, useMemo, useRef, useState, useId, type CSSProperties } from 'react'
 import dynamic from 'next/dynamic'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -473,6 +474,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const beginLoad = useLatestWorkspaceRequest(scope)
   const [snapshot, setSnapshot] = useState<{ scope: string; profiles: Model[] } | null>(null)
   const profiles = snapshot?.scope === scope ? snapshot.profiles : EMPTY_MODELS
+  const editorInitialValue = useRef('')
   const [edit, setEdit] = useState<Model | null>(null)
   const [newOne, setNewOne] = useState<Model | null>(null)
   const [profileGrouping, setProfileGrouping] = useState<'all'|'category'|'unit'>('all')
@@ -611,7 +613,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     const selectedRoom = rooms.find((item) => String(item.id) === room)
     setEdit(null)
     setMsg('')
-    setNewOne(empty(selectedRoom, year, programName))
+    const draft = empty(selectedRoom, year, programName)
+    editorInitialValue.current = JSON.stringify(draft)
+    setNewOne(draft)
     setTab('profiles')
     onTabChange?.('profiles')
   }
@@ -957,7 +961,17 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
 
   const selectedRoomForEditor = rooms.find((item) => String(item.id) === room) ?? null
 
-  const closeEditor = () => { setEdit(null); setNewOne(null); setMsg('') }
+  const closeEditor = async () => {
+    const draft = edit ?? newOne
+    if (saving || !draft) return
+    if (JSON.stringify(draft) !== editorInitialValue.current && !await aurekaConfirm(
+      'Perubahan profil indikator belum disimpan.',
+      { title: 'Buang perubahan?', confirmLabel: 'Buang perubahan', cancelLabel: 'Lanjut edit', danger: true },
+    )) return
+    setEdit(null)
+    setNewOne(null)
+    setMsg('')
+  }
   const editor = (model: Model, setModel: (value: Model) => void, onSave: () => void) => (
     <form id={editorFormId} className="qualityProfileForm" onSubmit={event => { event.preventDefault(); if (!saving) onSave() }}>
       <fieldset className="qualityProfileFields" disabled={saving}>
@@ -1270,7 +1284,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     {!needsMetadataReview(profile) && !needsTargetApproval(profile) && hasNeutralTargetStatus(profile) && <div style={{ marginTop: 5, padding: '7px 9px', borderRadius: 8, background: 'rgba(100,116,139,.08)', color: '#526170', fontSize: 12, lineHeight: 1.5 }}>{neutralTargetExplanation(profile)}</div>}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {canManageCatalog && (profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { setEdit(editModel(profile)); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
+                    {canManageCatalog && (profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { const draft = editModel(profile); editorInitialValue.current = JSON.stringify(draft); setEdit(draft); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
                     {canManageCatalog && isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
                     {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 12, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
                     {canManageCatalog && profile.is_active === false && (profile.status === 'retired' || profile.status === 'draft') && <button type="button" className="textButton" disabled={saving} onClick={() => { setMsg(''); setPendingDelete(profile) }} style={{ color: '#a23b31', fontWeight: 800 }}>Hapus permanen</button>}

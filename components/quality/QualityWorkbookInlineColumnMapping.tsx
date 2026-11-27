@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { normalizeExactHeader } from '@/lib/aureka/excel-paste'
 import {
   readInteractiveExcelHeaderMapping,
-  saveInteractiveExcelHeaderMapping,
+  withInteractiveExcelPreviewMapping,
 } from '@/lib/aureka/interactive-header-mapping'
 
 export type InlineWorkbookField = {
@@ -76,7 +76,6 @@ export default function QualityWorkbookInlineColumnMapping({
   const [selections, setSelections] = useState<Record<string, string>>({})
   const [reading, setReading] = useState(false)
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
   const activeSheet = sheets.find(item => item.name === sheetName)
   const columns = activeSheet?.headers.find(item => item.rowNumber === headerRow)?.columns ?? []
   const locked = useMemo(() => new Set(fields.filter(item => readInteractiveExcelHeaderMapping(importerKey, item.fieldKey)?.locked).map(item => item.fieldKey)), [fields, importerKey, columns])
@@ -87,7 +86,6 @@ export default function QualityWorkbookInlineColumnMapping({
     setHeaderRow(1)
     setSelections({})
     setError('')
-    setNotice('')
   }, [file])
 
   const hydrateSelections = (nextColumns: HeaderColumn[]) => {
@@ -104,7 +102,7 @@ export default function QualityWorkbookInlineColumnMapping({
 
   const inspect = async () => {
     if (!file || reading || disabled) return
-    setReading(true); setError(''); setNotice('')
+    setReading(true); setError('')
     try {
       if (!/\.xlsx$/i.test(file.name) || file.size <= 0 || file.size > 25 * 1024 * 1024) throw new Error('Pilih workbook .xlsx valid, maksimal 25 MB.')
       const module = await import('exceljs-hardened')
@@ -133,19 +131,20 @@ export default function QualityWorkbookInlineColumnMapping({
 
   const apply = async () => {
     if (disabled || reading || !columns.length) return
-    setError('');setNotice('')
+    setError('')
     try {
       const picks = fields.map(field => ({field, chosen: columns.find(item => String(item.index) === (selections[field.fieldKey] ?? ''))}))
       const absent = picks.filter(({field, chosen}) => field.required !== false && !chosen)
       if (absent.length) throw new Error('Lengkapi tautan kolom: ' + absent.map(item => item.field.label).join(', '))
       const used = picks.filter(item => !!item.chosen).map(item => item.chosen!.index)
       if (!allowSharedColumns && new Set(used).size !== used.length) throw new Error('Satu kolom Excel tidak boleh ditautkan ke lebih dari satu field.')
-      for (const {field,chosen} of picks) if (chosen && !locked.has(field.fieldKey)) {
-        saveInteractiveExcelHeaderMapping(importerKey, field.fieldKey, chosen.header, chosen.occurrence)
-      }
-      setNotice('Pemetaan kolom tersimpan di browser. Pratinjau diperiksa kembali menggunakan pilihan baru.')
-      await onApply()
+      const draft = picks.flatMap(({field, chosen}) => chosen && !locked.has(field.fieldKey)
+        ? [{fieldKey: field.fieldKey, header: chosen.header, occurrence: chosen.occurrence}]
+        : [])
+      setReading(true)
+      await withInteractiveExcelPreviewMapping(importerKey, draft, onApply)
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Kolom belum berhasil ditautkan.') }
+    finally { setReading(false) }
   }
 
   return <div className="qiuInlineMapping qiuMappingFields">
@@ -160,7 +159,7 @@ export default function QualityWorkbookInlineColumnMapping({
               disabled={disabled || locked.has(field.fieldKey)}
               aria-label={'Kolom sumber untuk ' + field.label}
               value={selections[field.fieldKey] ?? ''}
-              onChange={event => {setSelections(current => ({...current, [field.fieldKey]: event.target.value}));setNotice('')}}
+              onChange={event => {setSelections(current => ({...current, [field.fieldKey]: event.target.value}))}}
             >
               <option value="">— Pilih kolom —</option>
               {columns.map(column => <option key={column.index} value={column.index}>{column.letter}: {column.header}</option>)}
@@ -172,6 +171,5 @@ export default function QualityWorkbookInlineColumnMapping({
       </>}
     </>}
     {error && <p className="qiuMappingError" role="alert">{error}</p>}
-    {notice && <p className="qiuMappingNotice" role="status">{notice}</p>}
   </div>
 }

@@ -62,7 +62,7 @@ test('supported header-based importers expose in-dialog mapping and reparse thei
     assert.ok(src.includes('onApply={()=>file ? parseWorkbook(file) : undefined}'),name)
   }
   const ui=read('components/quality/QualityWorkbookInlineColumnMapping.tsx')
-  assert.ok(ui.includes('saveInteractiveExcelHeaderMapping('))
+  assert.ok(ui.includes('withInteractiveExcelPreviewMapping('))
   assert.ok(ui.includes('readInteractiveExcelHeaderMapping('))
   assert.ok(ui.includes('Pilih kolom'))
   assert.ok(ui.includes('Terapkan & periksa ulang'))
@@ -72,7 +72,7 @@ test('supported header-based importers expose in-dialog mapping and reparse thei
 test('server-governed mappings cannot be overwritten in the popup', () => {
   const store=read('lib/aureka/interactive-header-mapping.ts')
   assert.ok(store.includes('export function readInteractiveExcelHeaderMapping'))
-  assert.ok(store.includes('export function saveInteractiveExcelHeaderMapping'))
+  assert.ok(store.includes('export async function withInteractiveExcelPreviewMapping'))
   assert.ok(store.includes('serverMappings[importerKey]?.[fieldKey]'))
   assert.ok(store.includes('tidak dapat ditimpa dari popup'))
 })

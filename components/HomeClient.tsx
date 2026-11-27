@@ -1,6 +1,5 @@
 'use client'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
-import TrainingBanner from '@/components/layout/TrainingBanner'
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import type {ReactNode} from 'react'
 import dynamic from 'next/dynamic'
@@ -334,7 +333,7 @@ export default function HomeClient(){
    setBusy(false);setMessage(toUserFacingError(e,{fallback:'Password berubah, tetapi profil belum dapat dimuat ulang. Muat ulang halaman dan masuk kembali.'}))
   }
  }
- const logout=async(scope:'global'|'local'='local')=>{intentionalLogoutRef.current=true;try{Object.keys(localStorage).filter(k=>k.startsWith('aureka-tanya')||k.startsWith('aureka-nara-convos')||k.startsWith('aureka-ikp-draft')).forEach(k=>localStorage.removeItem(k));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>sessionStorage.removeItem(k));if(user?.id){sessionStorage.removeItem('aureka-quality-room:'+String(user.id));sessionStorage.removeItem('aureka-workspace-room:'+String(user.id))}Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut({scope});setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);setSelectedWorkspaceRoomId(null);setSelectedQualityRoomId(null);setAllRoomsScope(true);}
+ const logout=async(scope:'global'|'local'='local')=>{intentionalLogoutRef.current=true;try{sessionStorage.removeItem('aureka-staff-dir');Object.keys(localStorage).filter(k=>k.startsWith('aureka-tanya')||k.startsWith('aureka-nara-convos')||k.startsWith('aureka-ikp-draft')).forEach(k=>localStorage.removeItem(k));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>sessionStorage.removeItem(k));if(user?.id){sessionStorage.removeItem('aureka-quality-room:'+String(user.id));sessionStorage.removeItem('aureka-workspace-room:'+String(user.id))}Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut({scope});setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);setSelectedWorkspaceRoomId(null);setSelectedQualityRoomId(null);setAllRoomsScope(true);}
  // Keluar otomatis hanya di perangkat ini (scope local): sesi di HP/PC lain yang sedang dipakai tidak ikut dicabut.
  // Keluar otomatis setelah 30 menit tidak dipakai (peringatan 2 menit sebelumnya) — melindungi data pasien di komputer bersama.
  const idle=useIdleLogout({enabled:view==='workspace',timeoutMs:30*60_000,warnMs:2*60_000,onTimeout:()=>{void logout('local').then(()=>{setView('login');setAuthInfo('Anda keluar otomatis karena AUREKA tidak dipakai selama 30 menit. Silakan masuk kembali.')})}})
@@ -1204,7 +1203,6 @@ export default function HomeClient(){
     <span className="workspaceHeaderProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
    </button>
   </header>
-  {view==='workspace'&&<TrainingBanner/>}
   {idle.secondsLeft!=null&&typeof document!=='undefined'&&createPortal(<div className="idleWarnBackdrop"><div ref={idleDialogRef} tabIndex={-1} className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
    <strong id="idle-warn-title">Masih di sana?</strong>
    <p id="idle-warn-desc">Demi keamanan data pasien, AUREKA akan keluar otomatis dalam <b>{Math.floor(idle.secondsLeft/60)}:{String(idle.secondsLeft%60).padStart(2,'0')}</b>.</p>
@@ -1294,7 +1292,7 @@ export default function HomeClient(){
     :active==='staff'&&staffTab==='training'?<InHouseTrainingWorkspace role={role} userId={user?.id||''} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={admin&&!allRoomsScope}/>
    :active==='staff'&&staffTab==='student-orientation'?<StudentOrientationWorkspace role={role} userId={user?.id||''} canManage={['ADMIN','PMKP','MANAGEMENT','KABID'].includes(role||'')}/>
    :active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace key={'staff-'+staffTab} initialScreen={staffTab==='fppe'?'fppe':'overview'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>
-   :active==='staff'?<MetadataStatisticsWorkspace key={'staff-directory-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin&&!allRoomsScope} initialContainer="directory" initialDirectoryTab={analyticsDirectoryTab} showTabs={false}/>
+   :active==='staff'?<MetadataStatisticsWorkspace key={'staff-directory-'+user?.id+'-'+role+'-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin&&!allRoomsScope} initialContainer="directory" initialDirectoryTab={analyticsDirectoryTab} showTabs={false}/>
    :active==='secretariat'&&secretariatSection==='invitations'?<SecretariatInvitationWorkspace role={role} userId={user?.id||''} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={!admin&&!manager}/>
    :active==='secretariat'?<SecretariatWorkspace section={secretariatSection} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={admin&&!allRoomsScope} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'}/>
    :active==='settings'&&settingsSection==='legal'?<LegalAssetsWorkspace role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||''}/>

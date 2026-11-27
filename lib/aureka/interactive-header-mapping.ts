@@ -57,7 +57,12 @@ export function clearInteractiveExcelHeaderMappingScope(): void {
   serverMappings = {}
 }
 
-const STORAGE_PREFIX = 'aureka:excel-header-mapping:v1:'
+const STORAGE_PREFIX = 'aureka:excel-header-mapping:v2:'
+const previewMappings = new Map<string, Map<string, StoredMapping>>()
+
+function mappingStorageKey(importerKey: string): string {
+  return STORAGE_PREFIX + activeMappingScope + ':' + importerKey
+}
 
 function getPositions(columns: InteractiveHeaderColumns): Map<string, number[]> {
   const positions = new Map<string, number[]>()
@@ -77,9 +82,9 @@ function getPositions(columns: InteractiveHeaderColumns): Map<string, number[]> 
 }
 
 function readMappings(importerKey: string): StoredMappings {
-  if (typeof window === 'undefined') return {}
+  if (typeof window === 'undefined' || !activeMappingScope) return {}
   try {
-    const raw = window.localStorage.getItem(STORAGE_PREFIX + importerKey)
+    const raw = window.localStorage.getItem(mappingStorageKey(importerKey))
     if (!raw) return {}
     const parsed: unknown = JSON.parse(raw)
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
@@ -90,11 +95,11 @@ function readMappings(importerKey: string): StoredMappings {
 }
 
 function writeMapping(importerKey: string, fieldKey: string, mapping: StoredMapping): void {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined' || !activeMappingScope || previewMappings.has(importerKey)) return
   try {
     const mappings = readMappings(importerKey)
     mappings[fieldKey] = mapping
-    window.localStorage.setItem(STORAGE_PREFIX + importerKey, JSON.stringify(mappings))
+    window.localStorage.setItem(mappingStorageKey(importerKey), JSON.stringify(mappings))
   } catch {
     // Storage can be unavailable in private/restricted browser contexts.
     // The current import still succeeds; only reuse on later uploads is lost.
@@ -155,7 +160,8 @@ export function resolveInteractiveExcelHeaderColumn(
       '", tetapi header tersebut tidak ditemukan. Perbarui Pusat Pemetaan Excel untuk unit ini sebelum melanjutkan.'
     )
   }
-  const saved = readMappings(options.importerKey)[options.fieldKey]
+  const preview = previewMappings.get(options.importerKey)
+  const saved = preview ? preview.get(options.fieldKey) : readMappings(options.importerKey)[options.fieldKey]
   const savedPositions = saved ? positions.get(normalizeExactHeader(saved.normalizedHeader)) ?? [] : []
   if (saved && savedPositions.length >= saved.occurrence) {
     return savedPositions[saved.occurrence - 1]
@@ -188,9 +194,10 @@ export function resolveInteractiveExcelHeaderColumn(
     choiceLines,
     '',
     'Masukkan huruf kolom (mis. H) atau nomor kolom (mis. 8).',
-    'Pilihan ini akan disimpan untuk unggahan berikutnya pada modul yang sama.',
+    'Jika unit dan tahun aktif tersedia, pilihan disimpan untuk konteks tersebut.',
   ].join('\n')
 
+  if (preview) throw new Error('Periksa kembali pilihan kolom untuk "' + fieldLabel + '" pada pratinjau ini.')
   const chooser = options.chooseColumn ?? (typeof window !== 'undefined' ? window.prompt.bind(window) : undefined)
   if (!chooser) {
     throw new Error('Header "' + fieldLabel + '" perlu pemetaan manual, tetapi dialog pemetaan tidak tersedia pada lingkungan ini.')
@@ -224,32 +231,42 @@ export function readInteractiveExcelHeaderMapping(importerKey: string, fieldKey:
   { normalizedHeader: string; occurrence: number; locked: boolean } | null {
   const configured = activeMappingScope ? serverMappings[importerKey]?.[fieldKey] : undefined
   if (configured) return { ...configured, locked: true }
-  const saved = readMappings(importerKey)[fieldKey]
+  const preview = previewMappings.get(importerKey)
+  const saved = preview ? preview.get(fieldKey) : readMappings(importerKey)[fieldKey]
   return saved ? { ...saved, locked: false } : null
 }
 
-/** Persist an explicit user's column choice; never override server-governed mappings. */
-export function saveInteractiveExcelHeaderMapping(
+/** Apply manual choices only while reparsing the current workbook preview. */
+export async function withInteractiveExcelPreviewMapping(
   importerKey: string,
-  fieldKey: string,
-  header: string,
-  occurrence: number,
-): void {
-  if (activeMappingScope && serverMappings[importerKey]?.[fieldKey]) {
-    throw new Error('Tautan kolom ini dikelola Pusat Pemetaan Excel dan tidak dapat ditimpa dari popup.')
+  choices: readonly { fieldKey: string; header: string; occurrence: number }[],
+  parse: () => void | Promise<void>,
+): Promise<void> {
+  if (previewMappings.has(importerKey)) throw new Error('Pratinjau sebelumnya masih diproses.')
+  const draft = new Map<string, StoredMapping>()
+  for (const { fieldKey, header, occurrence } of choices) {
+    if (activeMappingScope && serverMappings[importerKey]?.[fieldKey]) {
+      throw new Error('Tautan kolom ini dikelola Pusat Pemetaan Excel dan tidak dapat ditimpa dari popup.')
+    }
+    const normalizedHeader = normalizeExactHeader(header)
+    if (!normalizedHeader || !Number.isInteger(occurrence) || occurrence < 1) {
+      throw new Error('Pilih kolom header yang valid.')
+    }
+    draft.set(fieldKey, { normalizedHeader, occurrence })
   }
-  const normalizedHeader = normalizeExactHeader(header)
-  if (!normalizedHeader || !Number.isInteger(occurrence) || occurrence < 1) {
-    throw new Error('Pilih kolom header yang valid.')
+  previewMappings.set(importerKey, draft)
+  try {
+    await parse()
+  } finally {
+    previewMappings.delete(importerKey)
   }
-  writeMapping(importerKey, fieldKey, { normalizedHeader, occurrence })
 }
 
 /** Remove saved manual mappings for one importer; useful when the source template changes. */
 export function clearInteractiveExcelHeaderMappings(importerKey: string): void {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.removeItem(STORAGE_PREFIX + importerKey)
+    window.localStorage.removeItem(mappingStorageKey(importerKey))
   } catch {
     // Ignore unavailable storage.
   }
