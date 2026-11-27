@@ -35,6 +35,7 @@
 @import './aureka-navigation-system.css';
 @import './quality-workbook-preview.css';
 @import './aureka-canvas-preferences.css';
+@import './arctic-continuum-shell.css';
 /* Final global contrast contract: after all legacy themes and density styles. */
 @import './aureka-contrast-guardrails.css';
 
