@@ -18,7 +18,11 @@ cleanup() {
     kill "$server_pid" 2>/dev/null || true
     wait "$server_pid" 2>/dev/null || true
   fi
-  rm -rf "$scratch_dir"
+  # Chromium helpers can flush profile files just after the main process exits.
+  if ! rm -rf "$scratch_dir" 2>/dev/null; then
+    sleep 1
+    rm -rf "$scratch_dir" || printf '%s\n' 'Temporary Chromium profile cleanup was incomplete.' >&2
+  fi
 }
 trap cleanup EXIT
 
