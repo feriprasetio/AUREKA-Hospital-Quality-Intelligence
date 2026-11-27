@@ -23,6 +23,7 @@ const requests = []
 const checks = []
 const measurements = []
 const interceptions = new Set()
+const cancelledNetworkRequests = new Set()
 let stopping = false
 let stopRequests
 const requestsStopped = new Promise(resolve => { stopRequests = resolve })
@@ -116,13 +117,15 @@ const fulfill = (requestId, data, code = 200, extra = []) => send('Fetch.fulfill
   body: Buffer.from(JSON.stringify(data)).toString('base64'),
 })
 
+const isBackendRequest = url => url.origin !== new URL(appUrl).origin && /^\/(auth|rest|storage)\/v1(?:\/|$)/.test(url.pathname)
+
 const handlePausedRequest = async ({ request, requestId }) => {
   const url = new URL(request.url)
   if (url.origin === new URL(appUrl).origin) {
     await send('Fetch.continueRequest', { requestId })
     return
   }
-  if (!/^\/(auth|rest|storage)\/v1(?:\/|$)/.test(url.pathname)) {
+  if (!isBackendRequest(url)) {
     await send('Fetch.failRequest', { requestId, errorReason: 'BlockedByClient' })
     return
   }
@@ -211,9 +214,18 @@ socket.addEventListener('message', event => {
   if (message.method === 'Runtime.exceptionThrown' && !stopping) {
     exceptions.push(message.params.exceptionDetails.exception?.description || message.params.exceptionDetails.text)
   }
+  if (message.method === 'Network.loadingFailed' && message.params.canceled) {
+    cancelledNetworkRequests.add(message.params.requestId)
+  }
   if (message.method !== 'Fetch.requestPaused' || stopping) return
+  const { networkId, request } = message.params
   const operation = handlePausedRequest(message.params)
-    .catch(error => { if (!isCancelledInterception(error)) exceptions.push('Request interception: ' + error.message) })
+    .catch(error => {
+      if (isCancelledInterception(error)) return
+      if (/Invalid InterceptionId/i.test(error.message) &&
+          (!isBackendRequest(new URL(request.url)) || cancelledNetworkRequests.has(networkId))) return
+      exceptions.push('Request interception: ' + error.message)
+    })
     .finally(() => interceptions.delete(operation))
   interceptions.add(operation)
 })
