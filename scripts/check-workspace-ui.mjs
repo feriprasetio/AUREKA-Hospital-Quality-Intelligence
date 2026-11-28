@@ -726,6 +726,26 @@ try {
     await wait("document.querySelector('[data-risk-review-result]')")
     assert.equal(await evaluate("document.querySelector('[data-review-metric=\"Total risiko\"]').textContent"),'19')
     assert.equal(await evaluate("Boolean(document.querySelector('[data-risk-review-export]'))"),true)
+    await click('[data-arctic-report-studio] summary')
+    await wait("document.querySelector('[data-report-html]:disabled')")
+    await click('[data-report-review]')
+    await wait("document.querySelector('[data-report-html]:not(:disabled)')")
+    const reportHtml=await evaluate(`(async()=>{
+      const create=URL.createObjectURL,click=HTMLAnchorElement.prototype.click
+      let content
+      try{
+       URL.createObjectURL=blob=>{content=blob.text();return 'blob:synthetic-draft-report'}
+       HTMLAnchorElement.prototype.click=function(){}
+       document.querySelector('[data-report-html]').click()
+       return await content
+      }finally{URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click}
+    })()`)
+    assert.ok(reportHtml.includes('DRAF, BELUM DISAHKAN'))
+    assert.ok(reportHtml.includes('aureka_risk.risk_register'))
+    assert.ok(!reportHtml.includes('Risiko sintetis 1'))
+    await wait("document.querySelector('.arcticReportOperations').textContent.includes('Unduhan diminta')")
+    await evaluate("document.querySelector('.arcticReportStudio fieldset input').click()")
+    await wait("document.querySelector('[data-report-html]:disabled')")
     await screenshot('arctic-risk-review-skill')
     await key('Escape')
     await wait("!document.querySelector('.akModal')")

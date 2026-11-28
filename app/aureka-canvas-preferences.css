@@ -712,3 +712,18 @@ html[data-skin="arktik"][data-mode="gelap"] body [aria-modal="true"] > :is(.aqDH
 .continuumInspectorLinks { padding-left:18px; }
 .continuumInspectorLinks li { margin-bottom:8px; }
 .continuumInspectorLinks small { display:block; }
+
+/* Shared aggregate document composer; only open on demand. */
+.arcticReportStudio { margin-block:12px; border:1px solid var(--aureka-canvas-divider); border-radius:12px; padding:10px; }
+.arcticReportStudio summary { cursor:pointer; font-weight:650; padding:5px 0; }
+.arcticReportStudio fieldset { display:flex; flex-wrap:wrap; gap:12px; padding:10px; border:1px solid var(--aureka-canvas-divider); border-radius:8px; }
+.arcticReportStudio label { display:flex; align-items:flex-start; gap:8px; }
+.arcticReportPreview { margin:12px 0; padding:16px; background:var(--aureka-dialog-surface); border:1px solid var(--aureka-canvas-divider); border-radius:8px; color:var(--aureka-color-foreground); overflow-wrap:anywhere; }
+.arcticReportPreview dl { display:grid; grid-template-columns:minmax(80px,1fr) minmax(0,3fr); gap:6px 12px; }
+.arcticReportPreview dd { margin:0; }
+.arcticReportPreview table { width:100%; border-collapse:collapse; margin-block:12px; }
+.arcticReportPreview :is(th,td) { padding:6px 8px; border-bottom:1px solid var(--aureka-canvas-divider); text-align:left; }
+.arcticReportPreview td { text-align:right; font-variant-numeric:tabular-nums; }
+.arcticReportActions { display:flex; flex-wrap:wrap; gap:8px; margin-block:10px; }
+.arcticReportOperations { margin-top:8px; }
+@media(max-width:480px){.arcticReportPreview{padding:10px}.arcticReportPreview dl{grid-template-columns:1fr}.arcticReportActions button{min-height:44px}}
