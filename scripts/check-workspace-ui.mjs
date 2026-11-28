@@ -1042,8 +1042,9 @@ try {
     await click('[data-arctic-category=patient_registry]')
     await wait("document.querySelector('[data-arctic-destination=patient_patterns]')")
     await click('[data-arctic-destination=patient_patterns]')
-    await wait("document.querySelector('.workspaceContextNav')")
-    await goSection('los', 'Length of Stay')
+    const navigation = '.workspacePillNavigation[aria-label="Navigasi Pola Perawatan"] button'
+    await wait(() => evaluate(`Boolean(document.querySelector(${JSON.stringify(navigation)}))`))
+    await clickText(navigation, 'Length of Stay')
     await wait("document.querySelector('.patientRecordAnalytics h2')?.textContent==='Lama Rawat (LOS)'")
     await wait("document.querySelector('.pmaKpis strong')?.textContent==='4'")
     assert.equal(await evaluate("document.querySelector('.pmaKpis article:nth-child(5) small').textContent"), '0%')
@@ -1055,7 +1056,7 @@ try {
     await fill(yearFilter, '2027', 'HTMLSelectElement')
     await wait("document.querySelector('.pmaKpis strong')?.textContent==='0'")
     await wait("document.querySelector('.patientRecordAnalytics').textContent.includes('Belum dapat dihitung')")
-    await goSection('readmisi', 'Readmisi')
+    await clickText(navigation, 'Readmisi')
     await wait("document.querySelector('.pmaReadmit .prTable tbody tr')")
     failPatientReads = true
     try {
