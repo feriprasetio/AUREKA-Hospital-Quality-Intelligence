@@ -1,0 +1,4 @@
+# S063 incremental grid density and pagination
+Pilot data-first now opens 25 rows per page and provides 15/25/50/100 page-size choices. Legacy stays at 15. Pagination uses a shared pure helper on already-authorized rows; export, selection preflight, filter, calculation and RPC behavior remain unchanged. Desktop viewport grows without forcing fixed-height truncation of risk names or hiding workflow controls. Full visible-row target remains subject to geometry measurement at actual viewport, text length and density. Added synthetic Chromium parity checks across page sizes, page boundaries and CSV. No database migrations. Full v2 acceptance is still open.
+
+First Chromium run caught zero fully visible rows at mobile width 390px after adding a second toolbar. The page-size control is now placed in the existing footer, avoiding new above-grid chrome. Re-run all checks; do not claim the fix passed before new CI evidence.

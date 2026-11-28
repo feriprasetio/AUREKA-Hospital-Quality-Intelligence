@@ -4,6 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
@@ -28,7 +33,8 @@ type Dashboard = { role: string; window_days: number; generated_at: string; rows
 const fmtDate = (value?: string | null) => value ? new Date(value).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Pontianak' }) : 'Belum ada input'
 const number = (value: number) => Number(value || 0).toLocaleString('id-ID')
 
-export default function PicPerformanceWorkspace() {
+const PIC_COLUMNS:readonly ReadGridColumn<PicRow>[]=[{id:'name',label:'PIC',value:r=>r.pic_name},{id:'room',label:'Unit',value:r=>r.room_name},{id:'total',label:'Total logbook',value:r=>r.records_total},{id:'window',label:'Logbook periode',value:r=>r.records_window},{id:'validated',label:'Tervalidasi',value:r=>r.records_validated},{id:'last',label:'Data terakhir dibuat',value:r=>r.last_created_at}]
+export default function PicPerformanceWorkspace({dataFirst=false}:{dataFirst?:boolean}={}) {
   const [days, setDays] = useState(30)
   const [data, setData] = useState<Dashboard | null>(null)
   const [reading, setLoading] = useState(true)
@@ -66,6 +72,15 @@ export default function PicPerformanceWorkspace() {
     if (message) window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message, type: 'error', module: 'Kinerja PIC' } }))
   }, [error])
 
+  const display:readonly ReadTableColumn<PicRow>[]=[
+ {id:'name',label:'PIC',required:true,cell:row=><><strong>{row.pic_name}</strong><span className="ppSub">{row.email||row.user_id}</span></>},
+ {id:'room',label:'Unit',required:true,cell:row=>row.room_name},
+ {id:'total',label:'Total logbook',cell:row=>number(row.records_total)},
+ {id:'window',label:days+' hari',cell:row=>number(row.records_window)},
+ {id:'validated',label:'Draft / siap / tervalidasi / arsip',cell:row=><>{number(row.records_draft)} / {number(row.records_ready)} / {number(row.records_validated)} / {number(row.records_archived)}</>},
+ {id:'last',label:'Data terakhir dibuat',cell:row=><><strong>{fmtDate(row.last_created_at)}</strong><span className="ppSub">{row.last_record_date?'Tanggal data: '+new Date(row.last_record_date+'T00:00:00').toLocaleDateString('id-ID'):'Tanggal data belum tersedia'}{row.last_status?' · Status: '+row.last_status:''}</span></>}
+ ]
+ const table=(page:readonly PicRow[],filtered=false,keys?:readonly string[])=><WorkspaceTableViewport dataFirst={dataFirst} label="Daftar kinerja PIC" className="ppTableWrap"><ContinuumReadTable rows={page} columns={display} keys={keys} rowKey={row=>row.user_id+'-'+row.room_id} className="ppTable" disableDomSort={dataFirst} empty={<div className="ppEmpty">{filtered?'Tidak ada PIC sesuai pencarian.':'Belum ada akun PIC dengan penugasan aktif yang dapat ditampilkan.'}</div>}/></WorkspaceTableViewport>
   return <section className="picPerf">
     <style>{`
       .picPerf{display:grid;gap:14px;min-width:0;color:var(--text,#20372d)}
@@ -97,18 +112,15 @@ export default function PicPerformanceWorkspace() {
     {loading && <AsyncStatePanel state="loading" title="Memuat aktivitas PIC" description="Mengambil data penugasan dan logbook dari server." compact/>}
     {!loading && error && <AsyncStatePanel state="error" title="Data monitoring belum tersedia" description={error} onRetry={()=>void load()} compact/>}
     {!loading && !error && <>
-      <div className="ppKpis">
+      <ContinuumSummary enabled={dataFirst} label="Ringkasan aktivitas PIC"><div className="ppKpis">
         <div className="ppKpi"><span>PIC dengan penugasan aktif</span><strong>{number(totals.pic)}</strong></div>
         <div className="ppKpi"><span>Logbook dibuat (seluruh periode)</span><strong>{number(totals.total)}</strong></div>
         <div className="ppKpi"><span>Logbook {days} hari terakhir</span><strong>{number(totals.window)}</strong></div>
         <div className="ppKpi"><span>Sudah tervalidasi</span><strong>{number(totals.validated)}</strong></div>
-      </div>
+      </div></ContinuumSummary>
       <div className="ppPanel">
         <div className="ppHead"><div><strong>Daftar PIC dan aktivitas terakhir</strong></div><span className="ppBadge">Diperbarui {fmtDate(data?.generated_at)}</span></div>
-        <div className="ppTableWrap"><table className="ppTable"><thead><tr><th>PIC</th><th>Unit</th><th>Total logbook</th><th>{days} hari</th><th>Draft / siap / tervalidasi / arsip</th><th>Data terakhir dibuat</th></tr></thead><tbody>
-          {rows.map(row=><tr key={row.user_id+'-'+row.room_id}><td><strong>{row.pic_name}</strong><span className="ppSub">{row.email || row.user_id}</span></td><td>{row.room_name}</td><td>{number(row.records_total)}</td><td>{number(row.records_window)}</td><td>{number(row.records_draft)} / {number(row.records_ready)} / {number(row.records_validated)} / {number(row.records_archived)}</td><td><strong>{fmtDate(row.last_created_at)}</strong><span className="ppSub">{row.last_record_date ? 'Tanggal data: '+new Date(row.last_record_date+'T00:00:00').toLocaleDateString('id-ID') : 'Tanggal data belum tersedia'}{row.last_status ? ' · Status: '+row.last_status : ''}</span></td></tr>)}
-          {rows.length===0&&<tr><td colSpan={6}><div className="ppEmpty">Belum ada akun PIC dengan penugasan aktif yang dapat ditampilkan.</div></td></tr>}
-        </tbody></table></div>
+        {dataFirst?<ContinuumReadGrid key={days} rows={rows} columns={PIC_COLUMNS} display={display} label="Kontrol kinerja PIC">{table}</ContinuumReadGrid>:table(rows)}
       </div>
     </>}
   </section>

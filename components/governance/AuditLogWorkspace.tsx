@@ -5,6 +5,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
+import {useLatestWorkspaceRequest} from '@/lib/ui/use-latest-workspace-request'
 
 /** Pengaturan › Audit Log (Blueprint v2 §10/§13): catatan append-only, hanya Super Admin, Direktur, Komite PMKP. */
 type Row = { id: number; actor_name: string | null; actor_role: string | null; action: string; object_type: string; object_id: string | null; detail: Record<string, unknown>; created_at: string }
@@ -13,19 +18,35 @@ const OBJECT_LABEL: Record<string, string> = { recommendation: 'Rekomendasi', ac
 const ACTION_LABEL: Record<string, string> = { view_sensitive: 'Melihat data sensitif', create: 'Membuat', update: 'Mengubah', submit: 'Mengajukan', publish: 'Menerbitkan', save_draft: 'Menyimpan draf', evaluate: 'Mengevaluasi', setting_update: 'Mengubah pengaturan', client_error: 'Error tampilan' }
 const actionLabel = (a: string) => ACTION_LABEL[a] || (a?.startsWith('decision_') ? 'Keputusan: ' + a.slice(9).replace(/_/g, ' ') : a?.startsWith('permission_') ? 'Hak akses: ' + a.slice(11).replace(/_/g, ' ') : (a || '-').replace(/_/g, ' '))
 
-export default function AuditLogWorkspace() {
+const AUDIT_COLUMNS:readonly ReadGridColumn<Row>[]=[{id:'time',label:'Waktu',value:r=>r.created_at},{id:'actor',label:'Pengguna',value:r=>r.actor_name},{id:'role',label:'Role',value:r=>r.actor_role},{id:'action',label:'Tindakan',value:r=>actionLabel(r.action)},{id:'object',label:'Objek',value:r=>OBJECT_LABEL[r.object_type]||r.object_type}]
+export default function AuditLogWorkspace({dataFirst=false}:{dataFirst?:boolean}={}) {
   const [rows, setRows] = useState<Row[]>([])
   const [type, setType] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const beginLoad=useLatestWorkspaceRequest(type)
+  const [loadedType,setLoadedType]=useState<string|null>(null)
+  const pending=loading||loadedType!==type
   const load = useCallback(async () => {
-    setLoading(true); setError('')
+    const isCurrent=beginLoad()
+    if(!isCurrent)return
+    setLoading(true); setError('');setRows([])
     const { data, error: e } = await aurekaSupabase.rpc('aureka_gov_audit_log', { p_limit: 500, p_object_type: type || null })
+    if(!isCurrent())return
     if (e) setError(/function .* does not exist|Could not find the function/i.test(e.message) ? 'Audit Log aktif setelah Super Admin menjalankan migrasi 20261112100000_blueprint_program_regulation_audit.sql di Supabase.' : toUserFacingError(e, { fallback: 'Audit log belum dapat dimuat.' }))
     else setRows((data as Row[]) || [])
-    setLoading(false)
-  }, [type])
+    setLoadedType(type);setLoading(false)
+  }, [type,beginLoad])
   useEffect(() => { void load() }, [load])
+  const display:readonly ReadTableColumn<Row>[]=[
+ {id:'time',label:'Waktu',required:true,cell:r=>new Date(r.created_at).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'})},
+ {id:'actor',label:'Pengguna',required:true,cell:r=>r.actor_name||'-'},
+ {id:'role',label:'Role',cell:r=>r.actor_role||'-'},
+ {id:'action',label:'Tindakan',required:true,cell:r=><span title={r.action}>{actionLabel(r.action)}</span>},
+ {id:'object',label:'Objek',cell:r=><>{OBJECT_LABEL[r.object_type]||r.object_type}<small className="rmCellSmall">{r.object_id?.slice(0,8)}</small></>},
+ {id:'detail',label:'Rincian',cell:r=><small className="rmCellSmall govDetail">{Object.entries(r.detail||{}).filter(([,v])=>v!=null&&v!=='').slice(0,4).map(([k,v])=>k+': '+(typeof v==='string'?v:JSON.stringify(v))).join(' · ').slice(0,220)}</small>}
+ ]
+ const table=(page:readonly Row[],filtered=false,keys?:readonly string[])=><WorkspaceTableViewport dataFirst={dataFirst} label="Audit log" className="rmTableWrap"><ContinuumReadTable rows={page} columns={display} keys={keys} rowKey={r=>r.id} className="rmTable" disableDomSort={dataFirst} empty={<div className="rmEmptySmall">{filtered?'Tidak ada catatan sesuai pencarian.':'Belum ada catatan.'}</div>}/></WorkspaceTableViewport>
   return (
     <section className="rmPanel govWorkspace" aria-label="Audit log">
       <div className="rmSectionHead">
@@ -35,20 +56,13 @@ export default function AuditLogWorkspace() {
           <button type="button" className="rmButton" onClick={() => void load()}>↻ Muat ulang</button>
         </div>
       </div>
-      <WorkspaceIntelligenceMetrics loading={loading} unavailable={!!error} metrics={[
+      <ContinuumSummary enabled={dataFirst} label="Ringkasan audit log"><WorkspaceIntelligenceMetrics loading={pending} unavailable={!!error} metrics={[
         { label: 'Peristiwa dimuat', value: rows.length },
         { label: 'Jenis objek dalam hasil', value: new Set(rows.map(row => row.object_type)).size },
-      ]} />
+      ]} /></ContinuumSummary>
       {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
-      {loading ? <div className="rmLoading"><span className="rmSpinner" />Memuat…</div> : !error && (
-        <WorkspaceTableViewport label="Audit log" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Waktu</th><th>Pengguna</th><th>Role</th><th>Tindakan</th><th>Objek</th><th>Rincian</th></tr></thead><tbody>
-          {rows.length ? rows.map((r) => <tr key={r.id}>
-            <td>{new Date(r.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
-            <td>{r.actor_name || '-'}</td><td>{r.actor_role || '-'}</td><td title={r.action}>{actionLabel(r.action)}</td>
-            <td>{OBJECT_LABEL[r.object_type] || r.object_type}<small className="rmCellSmall">{r.object_id?.slice(0, 8)}</small></td>
-            <td><small className="rmCellSmall govDetail">{Object.entries(r.detail || {}).filter(([, v]) => v != null && v !== '').slice(0, 4).map(([k, v]) => k + ': ' + (typeof v === 'string' ? v : JSON.stringify(v))).join(' · ').slice(0, 220)}</small></td>
-          </tr>) : <tr><td colSpan={6}><div className="rmEmptySmall">Belum ada catatan.</div></td></tr>}
-        </tbody></table></WorkspaceTableViewport>
+      {pending ? <div className="rmLoading"><span className="rmSpinner" />Memuat…</div> : !error && (
+        dataFirst?<><p>Menampilkan maksimal 500 catatan dari RPC existing. Pencarian tidak mencakup rincian sensitif atau data di luar hasil yang dimuat.</p><ContinuumReadGrid key={type} rows={rows} columns={AUDIT_COLUMNS} display={display} label="Kontrol audit log">{table}</ContinuumReadGrid></>:table(rows)
       )}
     </section>
   )

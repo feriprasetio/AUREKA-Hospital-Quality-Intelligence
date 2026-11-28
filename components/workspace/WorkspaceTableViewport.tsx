@@ -7,6 +7,7 @@ type WorkspaceTableViewportProps = {
   className?: string
   label: string
   style?: CSSProperties
+  dataFirst?: boolean
 }
 
 /** A keyboard-scrollable data region; controls appear only when columns overflow. */
@@ -15,6 +16,7 @@ export default function WorkspaceTableViewport({
   className = '',
   label,
   style,
+  dataFirst = false,
 }: WorkspaceTableViewportProps) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const [edges, setEdges] = useState({ left: false, right: false })
@@ -75,13 +77,13 @@ export default function WorkspaceTableViewport({
     if (!viewport) return
     viewport.scrollBy({
       left: direction * Math.max(180, viewport.clientWidth * .65),
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.aurekaMotion==='off' ? 'instant' : 'smooth',
     })
   }
 
   const overflows = edges.left || edges.right
   return (
-    <div className="workspaceTableFrame">
+    <div className="workspaceTableFrame" data-continuum-table-frame={dataFirst||undefined}>
       {overflows && (
         <div className="workspaceTableHint" role="group" aria-label="Geser kolom">
           <div>
@@ -101,6 +103,8 @@ export default function WorkspaceTableViewport({
         role="region"
         aria-label={label}
         tabIndex={0}
+        data-continuum-table={dataFirst||undefined}
+        onKeyDown={event=>{if(!dataFirst||event.target!==event.currentTarget||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;if(event.key==='ArrowLeft'&&edges.left){event.preventDefault();scrollColumns(-1)}else if(event.key==='ArrowRight'&&edges.right){event.preventDefault();scrollColumns(1)}}}
       >
         {children}
       </div>

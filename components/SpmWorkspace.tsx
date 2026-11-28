@@ -4,6 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import SpmExcelImportDialog from '@/components/SpmExcelImportDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { readAllPages } from '@/lib/aureka/pagination'
@@ -115,7 +120,7 @@ function inputKeys(indicator: Indicator) {
   return ['numerator', 'denominator']
 }
 
-export default function SpmWorkspace({ role, currentRoomId }: { role: string | null; currentRoomId: number | null }) {
+export default function SpmWorkspace({ role, currentRoomId, dataFirst=false }: { role: string | null; currentRoomId: number | null; dataFirst?:boolean }) {
   const initialYear = new Date().getFullYear()
   const [year, setYear] = useState(initialYear)
   const [yearDraft, setYearDraft] = useState(String(initialYear))
@@ -537,6 +542,24 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
   if (loading) return <AsyncStatePanel state="loading" title="Memuat Standar Pelayanan Minimal" description="Mengambil master indikator, pengukuran, dan sumber data mutu." compact />
   if (error) return <AsyncStatePanel state="error" title="Modul SPM belum siap" description={error} retrying={loading} onRetry={() => void load()} compact />
 
+  const monthlyStatus=(indicator:Indicator)=>{
+    const linkedUnsupported=indicator.source_mode!=='standalone'&&indicator.group_name==='Instalasi Rawat Inap'&&activeRoomId!=null
+    return linkedUnsupported?'Belum dapat dinilai':statusText(calculations.monthly.get(indicator.id+':'+month)?.status??'no_data')
+  }
+  // Do not compare unlike numerical units (percentage, duration, count) in a single sort.
+  const monthlyColumns:readonly ReadGridColumn<Indicator>[]=[
+    {id:'code',label:'Kode',value:r=>r.code},{id:'title',label:'Indikator',value:r=>r.title},
+    {id:'group',label:'Kelompok',value:r=>r.group_name},{id:'status',label:'Status',value:monthlyStatus},
+    {id:'source',label:'Sumber',value:sourceText}
+  ]
+  const monthlyDisplay:readonly ReadTableColumn<Indicator>[]=[
+    {id:'code',label:'Kode',required:true,cell:r=><code>{r.code}</code>},
+    {id:'title',label:'Indikator / kelompok',required:true,cell:r=><><strong>{r.title}</strong><small>{r.group_name}</small></>},
+    {id:'achievement',label:'Capaian',required:true,cell:indicator=>{const linkedUnsupported=indicator.source_mode!=='standalone'&&indicator.group_name==='Instalasi Rawat Inap'&&activeRoomId!=null;return linkedUnsupported?'Sumber per unit belum dipetakan':formatResult(indicator,calculations.monthly.get(indicator.id+':'+month)?.value)}},
+    {id:'target',label:'Target',required:true,cell:formatTarget},
+    {id:'status',label:'Status',required:true,cell:monthlyStatus},
+    {id:'source',label:'Sumber',cell:sourceText}
+  ]
   return (
     <section className="spmWorkspace">
       <header className="spmHero">
@@ -573,12 +596,12 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       {sourceWarning && <div className="spmNotice warning">{sourceWarning}</div>}
       {notice && <div className="spmNotice" role="status">{notice}</div>}
 
-      <div className="spmKpis">
+      <ContinuumSummary enabled={dataFirst} label="Ringkasan capaian SPM"><div className="spmKpis">
         <article><span>Total indikator</span><strong>{displayStats.total}</strong><small>Master SPM {year}</small></article>
         <article className="positive"><span>Memenuhi standar</span><strong>{displayStats.met}</strong><small>{tab === 'entry' ? 'Agregat Januari–Desember' : MONTHS[month-1]}</small></article>
         <article className="negative"><span>Belum memenuhi</span><strong>{displayStats.notMet}</strong><small>Perlu tindak lanjut</small></article>
         <article><span>Belum ada data</span><strong>{displayStats.noData}</strong><small>{displayStats.invalid} perlu koreksi · {displayStats.unassessed} tanpa target</small></article>
-      </div>
+      </div></ContinuumSummary>
 
       <nav className="spmTabs" aria-label="Navigasi Standar Pelayanan Minimal">
         {([
@@ -620,7 +643,8 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
             <button type="button" className="spmPrimary" onClick={() => {setGroupFilter('all');setTab('entry')}}>Lihat Rekapan SPM</button>
             {canConfigure && <button type="button" className="spmSecondary" onClick={() => setTab('config')}>Lihat Konfigurasi Perhitungan</button>}
           </div>
-          <div className="spmGroupGrid">
+          {dataFirst&&<ContinuumReadGrid key={JSON.stringify([year,month,activeRoomId,groupFilter])} rows={visibleIndicators} columns={monthlyColumns} display={monthlyDisplay} label="Kontrol capaian SPM" showSearch={false}>{(page,_filtered,keys)=><WorkspaceTableViewport dataFirst label="Capaian SPM bulanan" className="spmTableScroll"><ContinuumReadTable rows={page} columns={monthlyDisplay} keys={keys} rowKey={r=>r.id} marker disableDomSort empty="Tidak ada indikator sesuai filter."/></WorkspaceTableViewport>}</ContinuumReadGrid>}
+          <ContinuumSummary enabled={dataFirst} label="Ringkasan kelompok pelayanan"><div className="spmGroupGrid">
             {groups.filter(name => groupFilter==='all' || name===groupFilter).map(name => {
               const items = indicators.filter(item => item.group_name === name)
               const met = items.filter(item => calculations.monthly.get(item.id+':'+month)?.status==='met').length
@@ -630,7 +654,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                 <span className="spmMiniTrack"><i style={{width:(items.length ? met/items.length*100 : 0)+'%'}} /></span>
               </button>
             })}
-          </div>
+          </div></ContinuumSummary>
         </div>
       )}
 

@@ -62,7 +62,9 @@ test('stale ICU BHP/Linen warning can close only after every affected episode ha
 test('reconciliation is available only to Admin/PMKP inside the Indikator Mutu module', () => {
   assert.match(home, /qualityReconciliationOpen/)
   assert.match(home, /role==='ADMIN'\|\|role==='PMKP'\?\[\{id:'quality-reconciliation',label:'Validasi dan Rekonsiliasi'\}\]/)
-  assert.match(home, /if\(section==='quality-reconciliation'&&!admin&&role!=='PMKP'\)return false/)
+  assert.match(home, /if\(section==='quality-reconciliation'&&!admin&&role!=='PMKP'\)return null/)
+  assert.match(home, /const accepted=authorizedWorkspaceSection\(moduleId,section\)\s+if\(accepted===null\)return false/)
+  assert.match(home, /authorizedWorkspaceSection\(destination.module,destination.section\)===destination.section/)
   assert.match(home, /QualityReconciliationWorkspace/)
   assert.match(workspace, /role === 'ADMIN' \|\| role === 'PMKP'/)
 })

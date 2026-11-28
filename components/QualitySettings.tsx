@@ -15,6 +15,12 @@ import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import WorkspaceTabs from '@/components/workspace/WorkspaceTabs'
 import AurekaModal from '@/components/ui/AurekaModal'
 import IndicatorCoveragePanel from '@/components/quality/IndicatorCoveragePanel'
+import ProfileVersionReview from '@/components/quality/ProfileVersionReview'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
 import OptionsEditor from '@/components/quality/QualityOptionEditor'
 const QualityExcelMappingWorkspace = dynamic(() => import('@/components/QualityExcelMappingWorkspace'), { ssr: false })
 import { buildIndicatorProfileBackup, buildIndicatorProfileXlsx, parseIndicatorProfileXlsx, type IndicatorProfileBackup } from '@/lib/aureka/indicator-profile-transfer'
@@ -466,7 +472,7 @@ function UnitLiveProfileEditor({
 
 const EMPTY_MODELS: Model[] = []
 
-export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true, onTabChange, initialRoomId = null, lockRoomScope = false, role = null }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean; onTabChange?: (tab: MetadataTab) => void; initialRoomId?: number | null; lockRoomScope?: boolean; role?: string | null }) {
+export default function QualitySettings({ rooms, initialTab = 'programs', showTabs = true, onTabChange, initialRoomId = null, lockRoomScope = false, role = null, dataFirst=false }: { rooms: Room[]; initialTab?: MetadataTab; showTabs?: boolean; onTabChange?: (tab: MetadataTab) => void; initialRoomId?: number | null; lockRoomScope?: boolean; role?: string | null; dataFirst?:boolean }) {
   const [year, setYear] = useState(2026)
   const [room, setRoom] = useState(lockRoomScope && initialRoomId != null ? String(initialRoomId) : '')
   useEffect(() => { if (lockRoomScope && initialRoomId != null) setRoom(String(initialRoomId)) }, [lockRoomScope, initialRoomId])
@@ -479,7 +485,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   const [newOne, setNewOne] = useState<Model | null>(null)
   const [profileGrouping, setProfileGrouping] = useState<'all'|'category'|'unit'>('all')
   const [tab, setTab] = useState<MetadataTab>(initialTab)
-  const [profileWorkspaceOpen, setProfileWorkspaceOpen] = useState(false)
+  const [profileWorkspaceOpen, setProfileWorkspaceOpen] = useState(dataFirst&&initialTab==='profiles')
+  const [versionAnchor,setVersionAnchor]=useState<{id:string;scope:string;rows:Model[]}|null>(null)
   const [search, setSearch] = useState('')
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [programFilter, setProgramFilter] = useState('')
@@ -531,10 +538,10 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
   useEffect(() => { void load() }, [load])
   useEffect(() => {
     setEdit(null); setNewOne(null); setUnitBatchOpen(false); setPendingDelete(null)
-    setImportPreview(null); setAnnualImport(null); setReplaceConfirmed(false); setExcelMappingOpen(false)
+    setImportPreview(null); setAnnualImport(null); setReplaceConfirmed(false); setExcelMappingOpen(false);setVersionAnchor(null)
   }, [scope])
 
-  useEffect(() => { setTab(initialTab); setProfileWorkspaceOpen(false) }, [initialTab])
+  useEffect(() => { setTab(initialTab); setProfileWorkspaceOpen(dataFirst&&initialTab==='profiles');setVersionAnchor(null) }, [initialTab,dataFirst])
   useEffect(() => { if (tab !== 'profiles') { setProfileWorkspaceOpen(false); setExcelMappingOpen(false) } }, [tab])
 
   const programs = useMemo(() => {
@@ -595,6 +602,9 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     })
   }, [profiles, search, programFilter, profileViewFilter])
 
+  const currentVersionAnchor=dataFirst&&tab==='profiles'&&profileWorkspaceOpen&&!excelMappingOpen&&!loading&&!loadError&&!saving&&versionAnchor?.scope===scope&&versionAnchor.rows===profiles?filteredProfiles.find(p=>p.id===versionAnchor.id):null
+  useEffect(()=>{if(versionAnchor&&!currentVersionAnchor)setVersionAnchor(null)},[versionAnchor,currentVersionAnchor])
+  const openVersionReview=(profile:Model)=>{if(dataFirst&&!loading&&!loadError&&!saving&&filteredProfiles.includes(profile))setVersionAnchor({id:String(profile.id),scope,rows:profiles})}
   const profileGroups = useMemo(() => {
     if (profileGrouping === 'all') return [['', filteredProfiles] as const]
     const groups = new Map<string, typeof filteredProfiles>()
@@ -1013,6 +1023,26 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
     </form>
   )
 
+  const profileActions=(profile:Model)=><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {dataFirst&&<button type="button" className="textButton" data-profile-version-open disabled={saving||loading||!!loadError} onClick={()=>openVersionReview(profile)}>Bandingkan versi</button>}
+                    {canManageCatalog && (profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { const draft = editModel(profile); editorInitialValue.current = JSON.stringify(draft); setEdit(draft); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
+                    {canManageCatalog && isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
+                    {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 12, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
+                    {canManageCatalog && profile.is_active === false && (profile.status === 'retired' || profile.status === 'draft') && <button type="button" className="textButton" disabled={saving} onClick={() => { setMsg(''); setPendingDelete(profile) }} style={{ color: '#a23b31', fontWeight: 800 }}>Hapus permanen</button>}
+                  </div>
+  const profileDisplay:readonly ReadTableColumn<Model>[]=[
+    {id:'code',label:'Kode',required:true,cell:p=><code>{p.code}</code>},
+    {id:'title',label:'Nama indikator',required:true,cell:p=><><strong>{p.title||'(Tanpa nama)'}</strong><small className="rmCellSmall">{p.category||'Kategori belum diisi'}</small></>},
+    {id:'unit',label:'Unit pemilik',required:true,cell:p=>p.unit_name||'Unit belum ditentukan'},
+    {id:'program',label:'Program',cell:p=>p.indicator_type||'Tanpa program'},
+    {id:'target',label:'Target dan satuan',required:true,cell:p=><>{p.target_text||'Belum tercatat'}<small className="rmCellSmall">{p.unit_of_measure||'-'} · {p.measurement_grain||'-'}</small></>},
+    {id:'version',label:'Versi / status',required:true,cell:p=><>v{p.version??'?'} · {p.status||'-'}<small className="rmCellSmall">{p.is_active?'Aktif':'Nonaktif'}</small></>},
+    {id:'review',label:'Kesiapan metadata',required:true,cell:p=>needsMetadataReview(p)?'Perlu perbaikan teknis: '+metadataReviewReasons(p).join(', '):needsTargetApproval(p)?'Perlu pengesahan: '+targetApprovalReasons(p).join(', '):hasNeutralTargetStatus(p)?neutralTargetExplanation(p):'Tidak ada tanda peringatan metadata pada pemeriksaan existing'},
+    {id:'actions',label:'Tindakan',required:true,cell:profileActions}
+  ]
+  const profileSort:readonly ReadGridColumn<Model>[]=[
+    {id:'code',label:'Kode',value:p=>p.code},{id:'title',label:'Nama indikator',value:p=>p.title},{id:'unit',label:'Unit',value:p=>p.unit_name},{id:'program',label:'Program',value:p=>p.indicator_type},{id:'version',label:'Versi',value:p=>typeof p.version==='number'?p.version:null}
+  ]
   return (
     <div className="qualitySettingsWorkspace" style={{ display: 'grid', gap: 14 }}>
       {loadError && <AsyncStatePanel state="error" title="Profil indikator belum dapat dimuat" description={loadError} onRetry={() => void load()} compact />}
@@ -1048,7 +1078,7 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
           <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--muted)' }}>{loading ? 'Memuat profil indikator…' : loadError ? 'Profil belum tersedia' : `${activeProfileCount.toLocaleString('id-ID')} indikator aktif · ${profiles.length.toLocaleString('id-ID')} versi tersimpan`}</div>
         </div>
 
-        {!lockRoomScope && room === '' && <div style={{ marginTop: 12 }}><IndicatorCoveragePanel rooms={rooms} year={year} onCopied={() => void load()} onStarterTemplate={() => void downloadStarterTemplate()} onImport={() => { if (importFileRef.current) importFileRef.current.click(); else { setTab('profiles'); onTabChange?.('profiles'); window.setTimeout(() => importFileRef.current?.click(), 60) } }} /></div>}
+        {!lockRoomScope && room === '' && <ContinuumSummary enabled={dataFirst&&tab==='profiles'} label="Ringkasan cakupan indikator"><div style={{ marginTop: 12 }}><IndicatorCoveragePanel rooms={rooms} year={year} onCopied={() => void load()} onStarterTemplate={() => void downloadStarterTemplate()} onImport={() => { if (importFileRef.current) importFileRef.current.click(); else { setTab('profiles'); onTabChange?.('profiles'); window.setTimeout(() => importFileRef.current?.click(), 60) } }} /></div></ContinuumSummary>}
 
         <div id="metadata-active-panel" className="workspaceActivePanel" role="tabpanel" aria-labelledby={'metadata-tab-' + tab} tabIndex={0}>
         {tab === 'programs' && (
@@ -1257,7 +1287,8 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
             >
               {edit ? editor(edit, setEdit, () => void publish()) : newOne ? editor(newOne, setNewOne, () => void add()) : null}
             </AurekaModal>
-            <div style={{ display: 'grid', gap: 7 }}>
+            {currentVersionAnchor&&<ProfileVersionReview key={String(currentVersionAnchor.id)} profiles={profiles} anchor={currentVersionAnchor} onClose={()=>setVersionAnchor(null)}/>}
+            {dataFirst&&profileGrouping==='all'?loading?<AsyncStatePanel state="loading" title="Memuat profil indikator" compact/>:loadError?<AsyncStatePanel state="error" title="Profil indikator belum tersedia" description={loadError} onRetry={()=>void load()} compact/>:<ContinuumReadGrid key={scope} rows={filteredProfiles} columns={profileSort} display={profileDisplay} label="Daftar profil indikator" showSearch={false}>{(page,_filtered,keys)=><WorkspaceTableViewport dataFirst label="Profil indikator"><ContinuumReadTable rows={page} columns={profileDisplay} keys={keys} rowKey={p=>String(p.id)} className="rmTable continuumProfileTable" disableDomSort empty="Tidak ada indikator yang cocok dengan filter ini."/></WorkspaceTableViewport>}</ContinuumReadGrid>:<div style={{ display: 'grid', gap: 7 }}>
               {profileGroups.map(([label, group]) => <section key={label} style={{ display: 'grid', gap: 7 }}>
                 {label && <h3>{label} ({group.length})</h3>}
                 {group.map((profile) => (
@@ -1283,17 +1314,12 @@ export default function QualitySettings({ rooms, initialTab = 'programs', showTa
                     {!needsMetadataReview(profile) && needsTargetApproval(profile) && <div style={{ marginTop: 5, color: '#9a6700', fontSize: 12, fontWeight: 750 }}>Perlu pengesahan pemilik indikator: {targetApprovalReasons(profile).join(', ')}. Indikator tetap dapat dipetakan dan dicatat; target belum dihitung sebagai target resmi.</div>}
                     {!needsMetadataReview(profile) && !needsTargetApproval(profile) && hasNeutralTargetStatus(profile) && <div style={{ marginTop: 5, padding: '7px 9px', borderRadius: 8, background: 'rgba(100,116,139,.08)', color: '#526170', fontSize: 12, lineHeight: 1.5 }}>{neutralTargetExplanation(profile)}</div>}
                   </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {canManageCatalog && (profile.status === 'draft' || isActivePublished(profile)) && <button type="button" className="textButton" disabled={saving} onClick={() => { const draft = editModel(profile); editorInitialValue.current = JSON.stringify(draft); setEdit(draft); setNewOne(null); setMsg('') }}>{profile.status === 'draft' ? 'Tinjau / terbitkan' : 'Edit indikator'}</button>}
-                    {canManageCatalog && isActivePublished(profile) && <button type="button" className="textButton" disabled={saving} onClick={() => void retire(profile)}>Pensiunkan</button>}
-                    {(profile.status === 'retired' || profile.is_active === false) && <span style={{ alignSelf: 'center', color: 'var(--muted)', fontSize: 12, fontWeight: 700 }}>Riwayat versi · baca saja</span>}
-                    {canManageCatalog && profile.is_active === false && (profile.status === 'retired' || profile.status === 'draft') && <button type="button" className="textButton" disabled={saving} onClick={() => { setMsg(''); setPendingDelete(profile) }} style={{ color: '#a23b31', fontWeight: 800 }}>Hapus permanen</button>}
-                  </div>
+                  {profileActions(profile)}
                 </div>
               ))}
               </section>)}
               {!filteredProfiles.length && <div style={{ padding: 16, textAlign: 'center', color: 'var(--muted)', fontSize: 12 }}>Tidak ada indikator yang cocok dengan filter ini.</div>}
-            </div>
+            </div>}
           </div>
         )}
 

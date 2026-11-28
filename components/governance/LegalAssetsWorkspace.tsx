@@ -92,6 +92,25 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
     finally{setBusy('')}
   }
 
+  const replaceQuarantined=async(asset:SignatureAsset,file:File)=>{
+    if(!isOwner(asset)||asset.status!=='revoked'||busy)return
+    if(!['image/png','image/webp'].includes(file.type)||file.size>262144||file.size<16){setError('Gunakan gambar PNG atau WebP maksimal 256 KB.');return}
+    setBusy(asset.asset_code);setError('');setNotice('')
+    try{
+      const bytes=new Uint8Array(await file.arrayBuffer())
+      let binary=''
+      for(const byte of bytes)binary+=String.fromCharCode(byte)
+      const {data,error}=await aurekaSupabase.rpc('aureka_replace_quarantined_signature_asset',{
+        p_asset_code:asset.asset_code,p_mime:file.type,p_image_base64:btoa(binary),p_file_name:file.name
+      })
+      if(error)throw error
+      if(!data?.success)throw new Error('Aset pengganti belum terkonfirmasi.')
+      setNotice('Aset pengganti disimpan secara privat. Otorisasi pemilik diperlukan sebelum digunakan.')
+      await load()
+    }catch(e){setError(e instanceof Error?e.message:'Aset pengganti gagal disimpan. Gunakan gambar baru yang belum pernah dipublikasikan.')}
+    finally{setBusy('')}
+  }
+
   const activeCount=useMemo(()=>assets.filter(a=>a.status==='active').length,[assets])
   const signedCount=useMemo(()=>artifacts.reduce((n,a)=>n+a.signatures.filter(s=>s.signature_type==='AUREKA_APPROVAL_RECORD').length,0),[artifacts])
 
@@ -117,13 +136,13 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
       {loading?<p className="legalMuted">Memuat register aset...</p>:assets.length===0?<p className="legalMuted">Belum ada aset tanda tangan yang terdaftar.</p>:<div className="legalAssetGrid">
         {assets.map(asset=><article className="legalAssetCard" key={asset.asset_id}>
           <div className="legalAssetTop"><div><span className="legalAssetCode">{asset.asset_code}</span><h3>{asset.signer_name}</h3><p>{asset.signer_position}</p></div><span className={'legalStatus legalStatus-'+asset.status}>{statusLabels[asset.status]}</span></div>
-          <div className="legalSignaturePreview"><img src={'data:'+asset.image_mime_type+';base64,'+asset.image_data_base64} alt={'Aset tanda tangan '+asset.signer_name}/></div>
+          <div className="legalSignaturePreview">{asset.image_data_base64?<img src={'data:'+asset.image_mime_type+';base64,'+asset.image_data_base64} alt={'Aset tanda tangan '+asset.signer_name}/>:<p className="legalMuted">Pratinjau gambar dibatasi untuk pemilik aset yang berwenang.</p>}</div>
           <dl className="legalAssetMeta"><div><dt>Role persyaratan</dt><dd>{asset.required_role}</dd></div><div><dt>Hash SHA-256 aset</dt><dd>{asset.image_sha256.slice(0,18)}…</dd></div><div><dt>Waktu otorisasi</dt><dd>{fmt(asset.authorized_at)}</dd></div></dl>
           {asset.status==='pending_authorization'&&<div className="legalOwnerAction">
             {isOwner(asset)?<><p>Akun Anda cocok dengan identitas dan role pejabat pada register. Aktivasi akan dicatat dalam audit trail.</p><button type="button" onClick={()=>void activate(asset)} disabled={busy!==''}>{busy===asset.asset_code?'Memproses...':'Otorisasi sebagai pemilik'}</button></>:<p>Menunggu otorisasi oleh akun AUREKA milik pejabat yang tercantum. Akun pengguna harus aktif, menyelesaikan perubahan password awal, dan memiliki nama serta role yang cocok persis.</p>}
           </div>}
           {asset.status==='active'&&<div className="legalActiveNote">Diotorisasi pemilik.</div>}
-          {asset.status==='revoked'&&<div className="legalRevokedNote">Aset dicabut.</div>}
+          {asset.status==='revoked'&&<div className="legalRevokedNote">Aset dicabut. {isOwner(asset)&&['SIG-PMKP-CHAIR','SIG-HOSPITAL-DIRECTOR'].includes(asset.asset_code)&&!assets.some(a=>a.required_role===asset.required_role&&normalize(a.signer_name)===normalize(asset.signer_name)&&a.status!=='revoked')&&<div className="legalOwnerAction"><p>Gunakan sumber gambar baru yang belum pernah dipublikasikan. Berkas hanya dikirim ke penyimpanan privat AUREKA.</p><label>Unggah aset pengganti <input type="file" accept="image/png,image/webp" disabled={busy!==''} onChange={e=>{const file=e.currentTarget.files?.[0];e.currentTarget.value='';if(file)void replaceQuarantined(asset,file)}}/></label></div>}</div>}
         </article>)}
       </div>}
     </div>
@@ -134,7 +153,7 @@ export default function LegalAssetsWorkspace({role,userId,userName}:Props){
         {artifacts.map(artifact=><article className="legalArtifact" key={artifact.artifact_id}>
           <div className="legalArtifactHead"><div><span>{artifact.artifact_code}</span><h3>{artifact.title}</h3><p>{artifact.artifact_type} · {fmt(artifact.created_at)}</p><small>SHA-256: {artifact.sha256}</small></div></div>
           {artifact.signatures.length>0?<div className="legalSignatureRows">{artifact.signatures.map(sig=><div className="legalSignatureRow" key={sig.verification_code}>
-            <div className="legalSignerIdentity">{(()=>{const visual=assets.find(a=>a.asset_id===sig.signature_asset_id&&a.status==='active');return visual?<img src={'data:'+visual.image_mime_type+';base64,'+visual.image_data_base64} alt={'Tanda tangan '+sig.signer}/>:null})()}<div><strong>{sig.signer}</strong><span>{sig.role} · {fmt(sig.signed_at)}</span><small>{sig.verification_code}</small></div></div>
+            <div className="legalSignerIdentity">{(()=>{const visual=assets.find(a=>a.asset_id===sig.signature_asset_id&&a.status==='active'&&!!a.image_data_base64);return visual?<img src={'data:'+visual.image_mime_type+';base64,'+visual.image_data_base64} alt={'Tanda tangan '+sig.signer}/>:null})()}<div><strong>{sig.signer}</strong><span>{sig.role} · {fmt(sig.signed_at)}</span><small>{sig.verification_code}</small></div></div>
             <div className="legalQrBox"><img src={qrUrl(sig.verification_code)} alt={'QR verifikasi '+sig.verification_code}/><a href={verificationUrl(sig.verification_code)} target="_blank" rel="noreferrer">Verifikasi</a></div>
           </div>)}</div>:<p className="legalMuted">Belum ada rekam persetujuan dan kode verifikasi aktif.</p>}
         </article>)}

@@ -13,6 +13,7 @@ import {parseAuthCallbackError} from '@/lib/aureka/auth-callback'
 import {resolveAdminWorkspaceRoomId} from '@/lib/aureka/workspace-scope'
 import {type SupabaseClient} from '@supabase/supabase-js'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
+import {requestUsernameAuth} from '@/lib/aureka/username-auth'
 import type {RiskFocus,SafetyFocus} from '@/lib/aureka/focus'
 import {LiquidGlass,LiquidGlassButton} from '@/components/LiquidGlass'
 import PublicLandingPage from '@/components/PublicLandingPage'
@@ -22,6 +23,8 @@ import FormSpeedEnhancer from '@/components/FormSpeedEnhancer'
 import type {GeneralSettingsSection} from '@/components/GeneralSettings'
 import { setAurekaMode, useAurekaMode } from '@/lib/ui/aureka-mode'
 import { readWorkspaceHash } from '@/lib/aureka/workspace-route'
+import { resolveContinuumWorkspace } from '@/lib/aureka/continuum-workspace'
+import { clearContinuumSession } from '@/lib/aureka/continuum-session'
 import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'
 import ArcticCategoryNavigation from '@/components/navigation/ArcticCategoryNavigation'
 import ModuleErrorBoundary from '@/components/layout/ModuleErrorBoundary'
@@ -195,7 +198,11 @@ export default function HomeClient(){
  const [sidebarIsCollapsed,setSidebarCollapsed]=useState(false)
  const [arcticPreview,setArcticPreview]=useState(false)
  useEffect(()=>{setArcticPreview(new URLSearchParams(window.location.search).get('arctic')==='1')},[])
- const changeArcticPreview=(enabled:boolean)=>{mobileSidebar.close();const url=new URL(window.location.href);if(enabled)url.searchParams.set('arctic','1');else url.searchParams.delete('arctic');window.history.replaceState(window.history.state,'',url);setArcticPreview(enabled)}
+ // Capsule navigation is the default; experimental data layouts remain opt-in.
+ const [arcticNavigation,setArcticNavigation]=useState(true)
+ useEffect(()=>{setArcticNavigation(new URLSearchParams(window.location.search).get('nav')!=='legacy')},[])
+ const changeArcticNavigation=(enabled:boolean)=>{mobileSidebar.close();const url=new URL(window.location.href);if(enabled)url.searchParams.delete('nav');else{url.searchParams.set('nav','legacy');url.searchParams.delete('arctic');clearContinuumSession();setArcticPreview(false)}window.history.replaceState(window.history.state,'',url);setArcticNavigation(enabled)}
+ const changeArcticDataPreview=(enabled:boolean)=>{const url=new URL(window.location.href);if(enabled)url.searchParams.set('arctic','1');else{url.searchParams.delete('arctic');clearContinuumSession()}window.history.replaceState(window.history.state,'',url);setArcticPreview(enabled)}
  useEffect(()=>{
   if(typeof document==='undefined')return
   document.documentElement.dataset.theme='solid'
@@ -256,7 +263,7 @@ export default function HomeClient(){
   })
   return()=>{active=false}
  },[view,roomOptionsLoaded])
- useEffect(()=>{const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}syncMyEmail();if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null);if(currentRole==='ADMIN'&&r)setSelectedWorkspaceRoomId(Number(r.id))}setActive('home');setQualityOpen(false);setView(p.must_change_password?'force-password':'workspace')}}).finally(()=>{requestAnimationFrame(()=>document.documentElement.removeAttribute('data-ak-booting'))})},[])
+ useEffect(()=>{const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery){clearContinuumSession();return;}let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}syncMyEmail();if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null);if(currentRole==='ADMIN'&&r)setSelectedWorkspaceRoomId(Number(r.id))}setActive('home');setQualityOpen(false);setView(p.must_change_password?'force-password':'workspace')}}).finally(()=>{requestAnimationFrame(()=>document.documentElement.removeAttribute('data-ak-booting'))})},[])
  const lastAppliedHash=useRef<string|null>(null)
  const [incomingHash,setIncomingHash]=useState<string|null>(null)
  useEffect(()=>{
@@ -305,19 +312,18 @@ export default function HomeClient(){
   if(incomingHash!==null)setIncomingHash(null)
  },[view,routeReady,incomingHash,permissionsReady,active,patientsRegistryTab,patientPatternTab,pathwayInput,settingsSection,qualityOpen,clinicalPathwayOpen,realcostAuditOpen,clinicalAuditType,qualityResultsView,qualityResultsGroup,qualityReconciliationOpen,qualityMonitorOpen,qualityMonitorTab,safetyTab,riskTab,programTab,staffTab,qualityProfileOpen,analyticsDirectoryTab,spmOpen,spoOpen,secretariatSection,publicVerificationCode])
 
- const resolveLoginEmail=async(input:string)=>{const v=input.trim();if(!v)throw new Error('Isi username atau email.');if(v.includes('@'))return v;const {data,error}=await sb.rpc('aureka_login_email',{p_username:v});if(error){if(error.code==='PGRST202'||/Could not find the function|schema cache/i.test(error.message))throw new Error('Login dengan username belum aktif. Silakan masuk memakai email.');throw error}if(!data)throw new Error('Username tidak ditemukan. Periksa ejaan atau masuk memakai email.');return String(data)}
  const authError=(e:any,em?:string)=>{const m=e instanceof Error?e.message:String(e?.message||e||'');if(/email not confirmed/i.test(m)){if(em)setNeedVerify(em);return 'Email akun belum diverifikasi. Buka email Anda dan klik tautan verifikasi, atau kirim ulang di bawah.'}if(/invalid login credentials/i.test(m))return 'Username/email atau password salah.';if(/rate limit|too many/i.test(m))return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';if(/already registered|already been registered/i.test(m))return 'Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.';return toUserFacingError(e,{fallback:'Autentikasi belum berhasil. Periksa informasi akun, lalu coba lagi.'})}
- const resendVerify=async()=>{if(busy||!needVerify)return;setBusy(true);const {error}=await sb.auth.resend({type:'signup',email:needVerify,options:{emailRedirectTo:`${window.location.origin}${BASE_PATH}/`}});setBusy(false);setAuthInfo('');setMessage(error?authError(error):`Email verifikasi dikirim ulang ke ${needVerify}. Cek juga folder Spam.`)}
- const login=async()=>{if(busy)return;if(!email.trim()||!password){setAuthInfo('');setMessage('Lengkapi username/email dan password untuk melanjutkan.');return}setBusy(true);setMessage('');setNeedVerify('');setAuthInfo('');let em='';try{em=await resolveLoginEmail(email);const {data,error}=await sb.auth.signInWithPassword({email:em,password});if(error)throw error;syncMyEmail();const p=await prof(data.user.id);if(!p){await sb.auth.signOut();throw new Error('Profil AUREKA belum tersedia.')}if(!p.is_active){await sb.auth.signOut();throw new Error('Akun belum aktif. Hubungi Super Admin/Komite PMKP untuk aktivasi.')}setUser(data.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null);if(currentRole==='ADMIN'&&r)setSelectedWorkspaceRoomId(Number(r.id))}setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);if(p.must_change_password){setPassword('');setPassword2('');setView('force-password')}else{setView('workspace')}}catch(e){setMessage(authError(e,em))}finally{setBusy(false)}}
+ const resendVerify=async()=>{if(busy||!needVerify)return;setBusy(true);try{if(needVerify.includes('@')){const {error}=await sb.auth.resend({type:'signup',email:needVerify,options:{emailRedirectTo:`${window.location.origin}${BASE_PATH}/`}});if(error)throw error}else await requestUsernameAuth('resend',needVerify);setAuthInfo('');setMessage('Jika akun memenuhi syarat, email verifikasi dikirim ulang. Cek juga folder Spam.')}catch(e){setMessage(authError(e))}finally{setBusy(false)}}
+ const login=async()=>{if(busy)return;if(!email.trim()||!password){setAuthInfo('');setMessage('Lengkapi username/email dan password untuk melanjutkan.');return}setBusy(true);setMessage('');setNeedVerify('');setAuthInfo('');let em='';try{em=email.trim();const result=em.includes('@')?await sb.auth.signInWithPassword({email:em,password}):await sb.auth.setSession(await requestUsernameAuth('login',em,password));if(result.error)throw result.error;const data=result.data;if(!data.user)throw new Error('Invalid login credentials');syncMyEmail();const p=await prof(data.user.id);if(!p){await sb.auth.signOut();throw new Error('Profil AUREKA belum tersedia.')}if(!p.is_active){await sb.auth.signOut();throw new Error('Akun belum aktif. Hubungi Super Admin/Komite PMKP untuk aktivasi.')}setUser(data.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null);if(currentRole==='ADMIN'&&r)setSelectedWorkspaceRoomId(Number(r.id))}setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);if(p.must_change_password){setPassword('');setPassword2('');setView('force-password')}else{setView('workspace')}}catch(e){setMessage(authError(e,em))}finally{setBusy(false)}}
  const signup=async()=>{if(busy)return;setBusy(true);setMessage('');try{const un=username.trim().toLowerCase();if(!fullName.trim()||!signupRoom||(password.length<12||password.length>128))throw new Error('Nama, unit utama, dan password 12–128 karakter wajib diisi.');if(!roomsList.some(room=>String(room.id)===signupRoom))throw new Error('Unit kerja tidak tersedia atau belum dapat dimuat. Muat ulang daftar unit dan pilih unit aktif.');if(!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(un))throw new Error('Username 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau strip. Contoh: pic.isolasi');if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()))throw new Error('Email wajib diisi dengan benar (dipakai untuk verifikasi dan reset password).');const av=await sb.rpc('aureka_username_available',{p_username:un});if(!av.error&&av.data===false)throw new Error(`Username “${un}” sudah dipakai. Coba yang lain, misalnya ${un}2.`);const {data:su,error}=await sb.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:`${window.location.origin}${BASE_PATH}/`,data:{full_name:fullName.trim(),primary_room_id:signupRoom,username:un}}});if(error)throw error;if(su?.user&&Array.isArray((su.user as any).identities)&&(su.user as any).identities.length===0)throw new Error('Email ini sudah terdaftar. Silakan masuk atau gunakan Lupa password.');if(su?.session)await sb.auth.signOut();setUsername(un);setMessage('');setSignupDone(true)}catch(e){setMessage(authError(e))}finally{setBusy(false)}}
  const intentionalLogoutRef=useRef(false)
  // Sesi hilang tanpa logout (refresh token gagal/kedaluwarsa): jangan biarkan modul memuat data sebagai tamu.
  const viewRef=useRef(view)
  useEffect(()=>{viewRef.current=view},[view])
- useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event!=='SIGNED_OUT')return;if(intentionalLogoutRef.current){intentionalLogoutRef.current=false;return}if(viewRef.current!=='workspace')return;setUser(null);setProfile(null);setRoom(null);setRole(null);setActive('home');setNotifications([]);setActiveToast(null);setAuthMode('normal');setMessage('');setAuthInfo('Sesi login Anda berakhir. Silakan masuk kembali, data Anda tetap aman.');setView('login')});return()=>{sub.subscription.unsubscribe()}},[])
+ useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event!=='SIGNED_OUT')return;clearContinuumSession();if(intentionalLogoutRef.current){intentionalLogoutRef.current=false;return}if(viewRef.current!=='workspace')return;setUser(null);setProfile(null);setRoom(null);setRole(null);setActive('home');setNotifications([]);setActiveToast(null);setAuthMode('normal');setMessage('');setAuthInfo('Sesi login Anda berakhir. Silakan masuk kembali, data Anda tetap aman.');setView('login')});return()=>{sub.subscription.unsubscribe()}},[])
  useEffect(()=>{if(typeof window==='undefined')return;const callbackError=parseAuthCallbackError(window.location.hash,window.location.search);if(!callbackError)return;history.replaceState(null,'',window.location.pathname);setAuthMode('normal');setAuthInfo('');setMessage(callbackError.message);setView('login')},[])
  useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){setAuthMode('recovery');setMessage('');setPassword('');setPassword2('');setView('login')}});if(typeof window!=='undefined'&&/type=recovery/.test(window.location.hash)){setAuthMode('recovery');setView('login')}return()=>{sub.subscription.unsubscribe()}},[])
- const sendReset=async()=>{if(busy)return;setBusy(true);setMessage('');let em='';try{em=await resolveLoginEmail(email)}catch(e){setBusy(false);setMessage(authError(e));return}if(!/^\S+@\S+\.\S+$/.test(em)){setBusy(false);setMessage('Masukkan username atau email akun yang valid.');return}if(em.toLowerCase().endsWith('@aureka.invalid')){setBusy(false);setMessage('Akun unit ini tidak memakai email untuk pemulihan password. Hubungi Super Admin untuk menyetel password sementara; akun akan wajib menggantinya saat login berikutnya.');return}const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:`${window.location.origin}${BASE_PATH}/`});setBusy(false);if(error){setMessage(/rate limit|too many/i.test(error.message)?'Terlalu banyak permintaan. Coba lagi beberapa menit lagi, atau minta Super Admin menyetel password sementara.':`Gagal mengirim email: ${toUserFacingError(error,{fallback:'Email pemulihan belum dapat dikirim. Coba kembali beberapa saat lagi.'})}`);return}setResetSent(true)}
+ const sendReset=async()=>{if(busy)return;setBusy(true);setMessage('');try{const em=email.trim();if(!em)throw new Error('Masukkan username atau email akun yang valid.');if(!em.includes('@')){await requestUsernameAuth('recover',em);setResetSent(true);return}if(!/^\S+@\S+\.\S+$/.test(em))throw new Error('Masukkan username atau email akun yang valid.');if(em.toLowerCase().endsWith('@aureka.invalid'))throw new Error('Akun unit ini tidak memakai email untuk pemulihan password. Hubungi Super Admin untuk menyetel password sementara.');const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:`${window.location.origin}${BASE_PATH}/`});if(error)throw error;setResetSent(true)}catch(e){setMessage(authError(e))}finally{setBusy(false)}}
  const saveNewPassword=async()=>{if(busy)return;if(password.length<12||password.length>128){setMessage('Password baru harus terdiri dari 12–128 karakter.');return}if(password!==password2){setMessage('Konfirmasi password tidak sama.');return}setBusy(true);setMessage('');const {error}=await sb.auth.updateUser({password});if(error){setBusy(false);setMessage(`Gagal menyimpan password: ${toUserFacingError(error,{fallback:'Password belum dapat diperbarui. Periksa koneksi dan coba kembali.'})}`);return}await sb.auth.signOut();setBusy(false);if(typeof window!=='undefined'&&window.location.hash)history.replaceState(null,'',window.location.pathname+window.location.search);setPassword('');setPassword2('');setAuthMode('normal');setMessage('');setResetSent(false);setView('login');setMessage('Password baru tersimpan. Silakan masuk dengan password baru.')}
  const saveFirstPassword=async()=>{
   if(busy)return
@@ -337,7 +343,7 @@ export default function HomeClient(){
    setBusy(false);setMessage(toUserFacingError(e,{fallback:'Password berubah, tetapi profil belum dapat dimuat ulang. Muat ulang halaman dan masuk kembali.'}))
   }
  }
- const logout=async(scope:'global'|'local'='local')=>{intentionalLogoutRef.current=true;try{sessionStorage.removeItem('aureka-staff-dir');Object.keys(localStorage).filter(k=>k.startsWith('aureka-tanya')||k.startsWith('aureka-nara-convos')||k.startsWith('aureka-ikp-draft')).forEach(k=>localStorage.removeItem(k));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>sessionStorage.removeItem(k));if(user?.id){sessionStorage.removeItem('aureka-quality-room:'+String(user.id));sessionStorage.removeItem('aureka-workspace-room:'+String(user.id))}Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut({scope});setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);setSelectedWorkspaceRoomId(null);setSelectedQualityRoomId(null);setAllRoomsScope(true);}
+ const logout=async(scope:'global'|'local'='local')=>{clearContinuumSession();intentionalLogoutRef.current=true;try{sessionStorage.removeItem('aureka-staff-dir');Object.keys(localStorage).filter(k=>k.startsWith('aureka-tanya')||k.startsWith('aureka-nara-convos')||k.startsWith('aureka-ikp-draft')).forEach(k=>localStorage.removeItem(k));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>sessionStorage.removeItem(k));if(user?.id){sessionStorage.removeItem('aureka-quality-room:'+String(user.id));sessionStorage.removeItem('aureka-workspace-room:'+String(user.id))}Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut({scope});setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);setSelectedWorkspaceRoomId(null);setSelectedQualityRoomId(null);setAllRoomsScope(true);}
  // Keluar otomatis hanya di perangkat ini (scope local): sesi di HP/PC lain yang sedang dipakai tidak ikut dicabut.
  // Keluar otomatis setelah 30 menit tidak dipakai (peringatan 2 menit sebelumnya) — melindungi data pasien di komputer bersama.
  const idle=useIdleLogout({enabled:view==='workspace',timeoutMs:30*60_000,warnMs:2*60_000,onTimeout:()=>{void logout('local').then(()=>{setView('login');setAuthInfo('Anda keluar otomatis karena AUREKA tidak dipakai selama 30 menit. Silakan masuk kembali.')})}})
@@ -536,24 +542,48 @@ export default function HomeClient(){
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  })()
  const effectiveQualityRoomId=admin?activeWorkspaceRoomId:(selectedQualityRoomId??room?.id??null)
+ // Resolve from actual selected domain state, never from translated labels or arbitrary hash text.
+ const continuumSection=active==='patients'?(patientsRegistryTab==='analysis'?patientPatternTab:patientsRegistryTab):active==='clinical'?(realcostAuditOpen?'realcost':qualityResultsView==='pathway'?'pathway-analysis':qualityResultsView==='clinical-death'?'result-clinical-death':clinicalPathwayOpen?(pathwayInput==='manual'?'pathway-manual':'audit-pathway'):clinicalAuditType==='death'?'audit-death':'audit-clinical'):active==='quality'?(qualityProfileOpen?'profile-indicators':spoOpen?'sop':spmOpen?'spm':qualityReconciliationOpen?'quality-reconciliation':qualityMonitorOpen?(qualityMonitorTab==='pic'?'pic-performance':'quality-reporting'):qualityResultsView?(qualityResultsGroup==='category'?'result-category':'result-unit'):qualityOpen?'audit-indicators':'quality-overview'):active==='safety'?safetyTab:active==='risk'?riskTab:active==='staff'?(staffTab==='oppe'?'oppe-fppe':staffTab==='directory'?analyticsDirectoryTab:staffTab):active==='secretariat'?secretariatSection:active==='analytics'?programTab:active==='settings'?settingsSection:''
+ const continuumWorkspace=resolveContinuumWorkspace(active,continuumSection)
+ const continuumScopeKey=JSON.stringify([user?.id,role,activeWorkspaceRoomId,effectiveQualityRoomId,permissionsReady,permissionFlags,visibleSidebarDomains.map(g=>[g.id,g.items.map(i=>i.id)])])
 
  // Sidebar, shortcuts, contextual tabs and bookmarks enter through the same access checks.
- const navigateWorkspace=(moduleId:string,section='',focus?:RiskFocus|SafetyFocus|null):boolean=>{
+ const authorizedWorkspaceSection=(moduleId:string,section=''):string|null=>{
   const module=AUREKA_PRIMARY_NAV.find(item=>item.id===moduleId)
   const allowed=module?.requiredRoles.includes((role||'') as AurekaRole)
-  if(moduleId!=='home'&&!(moduleId==='clinical'&&section==='realcost'?canAccessRealcost:allowed))return false
-
+  if(moduleId!=='home'&&!(moduleId==='clinical'&&section==='realcost'?canAccessRealcost:allowed))return null
   if(moduleId==='staff'){
    if(!section)section=canAccessDirectory?'directory':canAccessTeam?'team':permissionFlags.readPerformance?'oppe-fppe':canAccessInHouseTraining?'training':''
    const canOpen={directory:canAccessDirectory,team:canAccessTeam,'oppe-fppe':permissionFlags.readPerformance,fppe:permissionFlags.readPerformance,training:canAccessInHouseTraining,'student-orientation':canAccessStudentOrientation}
-   if(!Object.hasOwn(canOpen,section)||!canOpen[section as keyof typeof canOpen])return false
+   if(!Object.hasOwn(canOpen,section)||!canOpen[section as keyof typeof canOpen])return null
+  }
+  if(moduleId==='settings'){
+   const requested=(section||'profile') as SettingsSection
+   if((['users','units','system'].includes(requested)&&!admin)||(requested==='permissions'&&!canAccessSettingsAudit)||(requested==='audit'&&!canAccessSettingsAudit)||(requested==='legal'&&!canAccessLegal)||(requested==='mydata'&&admin))return null
+   section=requested
+  }
+  if(moduleId==='quality'){
+   if(section==='quality-reconciliation'&&!admin&&role!=='PMKP')return null
+   if(section==='pic-performance'&&!permissionFlags.readPicPerformance)return null
+   if(role==='DEWAN_PENGAWAS'&&!['spm','sop'].includes(section)){
+    if(!permissionFlags.readQualityAggregate||['profile-indicators','quality-reconciliation','quality-reporting','pic-performance'].includes(section))return null
+    section='quality-overview'
+   }
+  }
+  if(moduleId==='safety'&&(section==='fmea-reactive'&&!canManageSafety||section==='responses'&&!admin))return null
+  return section
+ }
+ const canOpenContinuumWorkspace=(destination:{module:string;section:string})=>Boolean(user?.id&&role&&permissionsReady&&authorizedWorkspaceSection(destination.module,destination.section)===destination.section)
+ const navigateWorkspace=(moduleId:string,section='',focus?:RiskFocus|SafetyFocus|null):boolean=>{
+  const accepted=authorizedWorkspaceSection(moduleId,section)
+  if(accepted===null)return false
+  section=accepted
+  if(moduleId==='staff'){
    setStaffTab(section==='team'?'directory':section==='oppe-fppe'?'oppe':section as StaffWorkspaceTab)
    setAnalyticsDirectoryTab(section==='team'?'team':'directory')
   }
   if(moduleId==='settings'){
-   const requested=(section||'profile') as SettingsSection
-   if((['users','units','system'].includes(requested)&&!admin)||(requested==='permissions'&&!canAccessSettingsAudit)||(requested==='audit'&&!canAccessSettingsAudit)||(requested==='legal'&&!canAccessLegal)||(requested==='mydata'&&admin))return false
-   setSettingsSection(requested)
+   setSettingsSection(section as SettingsSection)
    setSettingsTab(null)
   }
   if(moduleId==='patients'){
@@ -577,12 +607,6 @@ export default function HomeClient(){
    setQualityResultsView(target==='pathway-analysis'?'pathway':target==='result-clinical-death'?'clinical-death':null)
   }
   if(moduleId==='quality'){
-   if(section==='quality-reconciliation'&&!admin&&role!=='PMKP')return false
-   if(section==='pic-performance'&&!permissionFlags.readPicPerformance)return false
-   if(role==='DEWAN_PENGAWAS'&&!['spm','sop'].includes(section)){
-    if(!permissionFlags.readQualityAggregate||['profile-indicators','quality-reconciliation','quality-reporting','pic-performance'].includes(section))return false
-    section='quality-overview'
-   }
    setSpmOpen(section==='spm')
    setSpoOpen(section==='sop')
    setQualityProfileOpen(section==='profile-indicators')
@@ -595,7 +619,6 @@ export default function HomeClient(){
    setClinicalPathwayOpen(false)
   }
   if(moduleId==='safety'){
-   if(section==='fmea-reactive'&&!canManageSafety||section==='responses'&&!admin)return false
    setSafetyTab((section||'overview') as SafetyWorkspaceTab)
    setSafetyFocus((focus as SafetyFocus|null)??null)
   }
@@ -1094,9 +1117,9 @@ export default function HomeClient(){
    </div>
   </main>
  }
- if(view==='workspace')return <main data-aureka-theme="arktik" data-arctic-shell={arcticPreview?'continuum':undefined} className={'workspaceRoot workspaceDesk'+(sidebarIsCollapsed&&!mobileSidebar.isMobile&&!arcticPreview?' sidebarIsCollapsed':'')}>
+ if(view==='workspace')return <main data-aureka-theme="arktik" data-arctic-shell={arcticNavigation?'continuum':undefined} data-arctic-preview={arcticPreview?'true':undefined} className={'workspaceRoot workspaceDesk'+(sidebarIsCollapsed&&!mobileSidebar.isMobile&&!arcticNavigation?' sidebarIsCollapsed':'')}>
  <button type="button" className="workspaceSkipLink" onClick={()=>{const content=document.getElementById('workspace-main-content');content?.focus();content?.scrollIntoView({block:'start'})}}>Lewati navigasi ke area kerja</button>
- {!arcticPreview&&<>{mobileSidebar.isMobile&&<button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>}
+ {!arcticNavigation&&<>{mobileSidebar.isMobile&&<button type="button" className="workspaceScrim" onClick={mobileSidebar.close} data-open={mobileSidebar.isOpen} aria-label="Tutup navigasi" aria-hidden="true" tabIndex={-1}/>}
  {mobileSidebar.isMobile&&typeof document!=='undefined'&&createPortal(
   <nav className="workspaceNativeNavigation" aria-label="Navigasi cepat aplikasi AUREKA" data-drawer-open={mobileSidebar.isOpen?'true':'false'} style={{gridTemplateColumns:`repeat(${nativeNavigationItems.length+1}, minmax(0, 1fr))`}}>
    {nativeNavigationItems.map(item=><button key={item.id} type="button" className="workspaceNativeNavItem" aria-current={activeNavModuleId===item.id?'page':undefined} onClick={()=>{mobileSidebar.close();navigateWorkspace(item.id)}}>
@@ -1137,15 +1160,15 @@ export default function HomeClient(){
    })}
   </nav>
   <div className="sidebarFooter">
-   <button type="button" className="arcticPreviewSwitch" onClick={()=>changeArcticPreview(true)}>Coba Arctic Continuum</button>
+   <button type="button" className="arcticPreviewSwitch" onClick={()=>changeArcticNavigation(true)}>Navigasi kapsul</button>
    <LiquidGlassButton onClick={()=>void logout()}><svg className="logoutIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5m4-12 4 4-4 4m4-4H9"/></svg><span className="logoutLabel">Keluar</span></LiquidGlassButton>
   </div>
  </aside></>}
  <section className="workspaceContent">
   <header className="workspaceHeaderBar">
-   {arcticPreview&&<button type="button" className="arcticHome workspaceSidebarToggle" aria-label="AUREKA — Dashboard" title="Dashboard" onClick={()=>openMainModule('home')}>{logo('workspaceLogo')}</button>}
-   {!arcticPreview&&mobileSidebar.isMobile&&<button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>mobileSidebar.open(event.currentTarget)} aria-label="Buka menu navigasi" title="Buka menu navigasi" aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>}
-   {!arcticPreview&&!mobileSidebar.isMobile&&<button type="button" className="workspaceHeaderIcon workspaceSidebarToggle"
+   {arcticNavigation&&<button type="button" className="arcticHome workspaceSidebarToggle" aria-label="AUREKA — Dashboard" title="Dashboard" onClick={()=>openMainModule('home')}>{logo('workspaceLogo')}</button>}
+   {!arcticNavigation&&mobileSidebar.isMobile&&<button type="button" ref={mobileSidebar.triggerRef} className="mobileMenuButton workspaceSidebarMenuButton" onClick={event=>mobileSidebar.open(event.currentTarget)} aria-label="Buka menu navigasi" title="Buka menu navigasi" aria-controls="aureka-primary-sidebar" aria-expanded={mobileSidebar.isOpen}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>}
+   {!arcticNavigation&&!mobileSidebar.isMobile&&<button type="button" className="workspaceHeaderIcon workspaceSidebarToggle"
      onClick={()=>setSidebarCollapsed(value=>!value)}
      aria-label={sidebarIsCollapsed?'Bentangkan sidebar':'Ringkas sidebar'}
      title={sidebarIsCollapsed?'Bentangkan sidebar':'Ringkas sidebar'}
@@ -1209,7 +1232,7 @@ export default function HomeClient(){
     <span className="workspaceHeaderProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
    </button>
   </header>
-  {arcticPreview&&<ArcticCategoryNavigation groups={visibleSidebarDomains} activeCategoryId={activeDomainId} isActive={sidebarDestinationActive} onSelect={selectDomainDestination} onExit={()=>changeArcticPreview(false)} onLogout={()=>void logout()} contextKey={String(role)+'|'+String(activeWorkspaceRoomId)+'|'+activeDomainId+'|'+currentContainer}/>}
+  {arcticNavigation&&<ArcticCategoryNavigation groups={visibleSidebarDomains} key={continuumScopeKey} currentWorkspace={permissionsReady?continuumWorkspace:null} storageScope={permissionsReady&&user?.id&&role?continuumScopeKey:null} canOpenWorkspace={canOpenContinuumWorkspace} onOpenWorkspace={destination=>canOpenContinuumWorkspace(destination)&&navigateWorkspace(destination.module,destination.section)} activeCategoryId={activeDomainId} isActive={sidebarDestinationActive} onSelect={selectDomainDestination} onExit={()=>changeArcticNavigation(false)} previewEnabled={arcticPreview} onTogglePreview={changeArcticDataPreview} onLogout={()=>void logout()} contextKey={String(role)+'|'+String(activeWorkspaceRoomId)+'|'+activeDomainId+'|'+currentContainer}/>}
   {idle.secondsLeft!=null&&typeof document!=='undefined'&&createPortal(<div className="idleWarnBackdrop"><div ref={idleDialogRef} tabIndex={-1} className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
    <strong id="idle-warn-title">Masih di sana?</strong>
    <p id="idle-warn-desc">Demi keamanan data pasien, AUREKA akan keluar otomatis dalam <b>{Math.floor(idle.secondsLeft/60)}:{String(idle.secondsLeft%60).padStart(2,'0')}</b>.</p>
@@ -1266,7 +1289,7 @@ export default function HomeClient(){
    onSelect={id=>selectContextualTab(id,true)}
    onSubSelect={selectContextualTab}
   />}
-   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><AdaptiveWorkspaceShell moduleId={activeNavModuleId} containerLabel={currentContainer} userId={user?.id||''}><ModuleErrorBoundary resetKey={currentContainer} moduleLabel={currentContainer} onHome={()=>openMainModule('home')}>
+   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><AdaptiveWorkspaceShell moduleId={activeNavModuleId} containerLabel={currentContainer} userId={user?.id||''} continuumArchetype={arcticPreview?continuumWorkspace?.archetype:undefined}><ModuleErrorBoundary resetKey={currentContainer} moduleLabel={currentContainer} onHome={()=>openMainModule('home')}>
    {!routeReady?<WorkspaceSkeleton label="AUREKA"/>:active==='home'?<>
     <HomeLandingWorkspace availableModules={[...visibleModuleIds]} supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} isAdmin={admin} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'||(manager&&!admin)?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??null} roomName={role==='DEWAN_PENGAWAS'||(manager&&!admin)||admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??room?.name??'Unit aktif'} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} onAskNara={openNaraWithContext} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){if(id==='clinicalPathway')navigateWorkspace('clinical','audit-pathway');else if(id==='rtl')navigateWorkspace('analytics','recommendations');else if(id==='logbook')navigateWorkspace('quality','audit-indicators');else navigateWorkspace(id,f&&'tab' in f?f.tab:'',f?{...f,nonce:Date.now()}:null)}}}/>
     {['ADMIN','PMKP','DIREKTUR','MANAGEMENT'].includes(role||'')&&<details className="aurekaPublishDisclosure"><summary>Kelola publikasi landing page Aureka <span>Verifikasi, persetujuan dan transparansi data</span></summary><PublicPublicationDesk role={role} userId={user?.id||''}/></details>}
@@ -1280,11 +1303,11 @@ export default function HomeClient(){
    :active==='clinical'&&clinicalPathwayOpen?<ClinicalPathwayWorkspace key={'clinical-pathway-'+String(activeWorkspaceRoomId??'profile')} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} lockRoomScope={admin&&!allRoomsScope} inputMode={pathwayInput}/>
    :active==='clinical'&&qualityOpen?<ClinicalDeathAuditWorkspace key={'clinical-death-'+clinicalAuditType+'-'+String(activeWorkspaceRoomId??'profile')} initialAuditType={clinicalAuditType} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isAdmin={admin} isValidator={validator} lockRoomScope={admin&&!allRoomsScope} onAskNara={openNaraWithContext}/>
    :active==='quality'&&spoOpen?<StandardsProcedureWorkspace role={role} userId={user?.id||''}/>
-   :active==='quality'&&spmOpen?<SpmWorkspace role={role} currentRoomId={activeWorkspaceRoomId??room?.id??null}/>
-   :active==='quality'&&qualityReconciliationOpen?<QualityReconciliationWorkspace key={'quality-reconciliation-'+String(admin&&!allRoomsScope?activeWorkspaceRoomId??'none':'all')} rooms={roomsList} initialRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} role={role}/>
-   :active==='quality'&&qualityProfileOpen?<QualitySettingsWorkspace rooms={roomsList} initialTab="profiles" showTabs={false} initialRoomId={effectiveQualityRoomId} lockRoomScope={admin&&!allRoomsScope} role={role}/>
+   :active==='quality'&&spmOpen?<SpmWorkspace dataFirst={arcticPreview} role={role} currentRoomId={activeWorkspaceRoomId??room?.id??null}/>
+   :active==='quality'&&qualityReconciliationOpen?<QualityReconciliationWorkspace key={JSON.stringify([user?.id,role,admin&&!allRoomsScope?activeWorkspaceRoomId??'none':'all'])} dataFirst={arcticPreview} rooms={roomsList} initialRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} role={role}/>
+   :active==='quality'&&qualityProfileOpen?<QualitySettingsWorkspace rooms={roomsList} initialTab="profiles" showTabs={false} key={JSON.stringify([user?.id,role,effectiveQualityRoomId,admin&&!allRoomsScope])} dataFirst={arcticPreview} initialRoomId={effectiveQualityRoomId} lockRoomScope={admin&&!allRoomsScope} role={role}/>
    :active==='quality'&&qualityMonitorOpen?<section className="qualityMonitorWorkspace" aria-label="Monitoring Pelaporan dan Kinerja PIC">
-     {qualityMonitorTab==='pic'&&permissionFlags.readPicPerformance?<PicPerformanceWorkspace/>:<QualityReportingMonitor supabase={sb} rooms={roomsList} isAdmin={admin} roomId={admin&&allRoomsScope?null:activeWorkspaceRoomId} roomName={activeWorkspaceRoom?.name??null}/>}
+     {qualityMonitorTab==='pic'&&permissionFlags.readPicPerformance?<PicPerformanceWorkspace key={JSON.stringify([user?.id,role,activeWorkspaceRoomId])} dataFirst={arcticPreview}/>:<QualityReportingMonitor dataFirst={arcticPreview} supabase={sb} rooms={roomsList} isAdmin={admin} roomId={admin&&allRoomsScope?null:activeWorkspaceRoomId} roomName={activeWorkspaceRoom?.name??null}/>}
     </section>
    :active==='quality'&&role==='DEWAN_PENGAWAS'?<InfographicsDashboard mode="quality" role={role} rooms={roomsList} initialRoomId={null} unitLocked={false}/>
    :active==='quality'&&qualityResultsView?<QualityResultsWorkspace key={qualityResultsView+'-'+String(activeWorkspaceRoomId??'profile')} groupBy={qualityResultsGroup} onAskNara={openNaraWithContext} arcticBriefing={arcticPreview} mode={qualityResultsView} initialRoomId={effectiveQualityRoomId} rooms={roomsList} canViewAllRooms={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope} onRoomChange={updateSelectedQualityRoom}/>
@@ -1292,18 +1315,18 @@ export default function HomeClient(){
    :active==='quality'?<InfographicsDashboard mode="quality" onOpenLogbook={()=>navigateWorkspace('quality','audit-indicators')} role={role} rooms={roomsList} initialRoomId={admin?(allRoomsScope?null:activeWorkspaceRoomId):activeWorkspaceRoomId} unitLocked={!['ADMIN','PMKP','MANAGEMENT','DIREKTUR','DEWAN_PENGAWAS'].includes(role||'')} onNavigate={(id)=>openMainModule(id)} onRoomChange={admin?updateWorkspaceRoom:undefined} onAskNara={({period,scope})=>openNaraWithContext('Analisis indikator mutu untuk periode '+period+' dan cakupan '+scope+'. Identifikasi indikator yang tidak memenuhi target, tren, variasi, keterbatasan data, dan prioritas tindak lanjut. Jangan mengubah data.','Indikator Mutu · Ikhtisar · '+period+' · '+scope)}/>
    :active==='safety'&&safetyTab==='fmea-reactive'?<ReactiveFmeaWorkspace role={role} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={!admin&&!manager}/>
    :active==='safety'?<PatientSafetyWorkspace key={'safety-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} scopeRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} isSuperAdmin={admin} canManageWorkflow={canManageSafety} arcticGrid={arcticPreview&&!globalSearch.trim()} focus={safetyFocus} activeTab={safetyTab==='fmea-reactive'?'incidents':safetyTab} showTabs={false} onTabChange={setSafetyTab} onAskNara={openNaraWithContext}/>
-   :active==='risk'?<RiskManagementWorkspace key={'risk-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={admin&&!allRoomsScope} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} activeTab={riskTab} showTabs={false} onTabChange={setRiskTab} onAskNara={openNaraWithContext}/>
-   :active==='analytics'&&programTab==='recommendations'?<GovernanceProgramWorkspace rooms={roomsList}/>
+   :active==='risk'?<RiskManagementWorkspace key={'risk-'+String(activeWorkspaceRoomId??'profile')} supabase={sb} rooms={roomsList} initialRoomId={effectiveQualityRoomId} lockRoomScope={admin&&!allRoomsScope} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} focus={riskFocus} activeTab={riskTab} showTabs={false} onTabChange={setRiskTab} onAskNara={openNaraWithContext} dataFirst={arcticPreview}/>
+   :active==='analytics'&&programTab==='recommendations'?<GovernanceProgramWorkspace key={JSON.stringify([user?.id,role,activeWorkspaceRoomId])} dataFirst={arcticPreview} rooms={roomsList}/>
    :active==='analytics'&&programTab==='proposals'?<IndicatorProposalWorkspace rooms={roomsList} role={role} currentRoomId={activeWorkspaceRoomId}/>
    :active==='analytics'?<AnnualProgramWorkspace rooms={roomsList} role={role} currentRoomId={activeWorkspaceRoomId} screen={programTab==='timeline'||programTab==='priorities'?programTab:'home'} onScreenChange={screen=>navigateWorkspace('analytics',screen==='home'?'programs':screen)}/>
     :active==='staff'&&staffTab==='training'?<InHouseTrainingWorkspace role={role} userId={user?.id||''} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={admin&&!allRoomsScope} dataFirst={arcticPreview}/>
    :active==='staff'&&staffTab==='student-orientation'?<StudentOrientationWorkspace role={role} userId={user?.id||''} canManage={['ADMIN','PMKP','MANAGEMENT','KABID'].includes(role||'')} dataFirst={arcticPreview}/>
    :active==='staff'&&(staffTab==='oppe'||staffTab==='fppe')?<OppeAuditWorkspace key={'staff-'+staffTab} initialScreen={staffTab==='fppe'?'fppe':'overview'} initialRoomId={effectiveQualityRoomId} rooms={roomsList} isSuperAdmin={admin} canManage={admin||role==='PMKP'} lockRoomScope={admin&&!allRoomsScope}/>
    :active==='staff'?<MetadataStatisticsWorkspace key={'staff-directory-'+user?.id+'-'+role+'-'+String(activeWorkspaceRoomId??'profile')} rooms={roomsList} isSuperAdmin={admin} role={role} initialRoomId={activeWorkspaceRoomId??null} lockRoomScope={admin&&!allRoomsScope} initialContainer="directory" initialDirectoryTab={analyticsDirectoryTab} showTabs={false} dataFirst={arcticPreview}/>
-   :active==='secretariat'&&secretariatSection==='invitations'?<SecretariatInvitationWorkspace role={role} userId={user?.id||''} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={!admin&&!manager}/>
+   :active==='secretariat'&&secretariatSection==='invitations'?<SecretariatInvitationWorkspace key={JSON.stringify([user?.id,role,activeWorkspaceRoomId??room?.id??null,!admin&&!manager])} role={role} userId={user?.id||''} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={!admin&&!manager}/>
    :active==='secretariat'?<SecretariatWorkspace section={secretariatSection} rooms={roomsList} initialRoomId={activeWorkspaceRoomId??room?.id??null} lockRoomScope={admin&&!allRoomsScope} role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||'Pengguna AUREKA'} dataFirst={arcticPreview}/>
    :active==='settings'&&settingsSection==='legal'?<LegalAssetsWorkspace role={role} userId={user?.id||''} userName={profile?.full_name||user?.email||''}/>
-   :active==='settings'&&settingsSection==='audit'?<AuditLogWorkspace/>
+   :active==='settings'&&settingsSection==='audit'?<AuditLogWorkspace key={JSON.stringify([user?.id,role,activeWorkspaceRoomId])} dataFirst={arcticPreview}/>
    :active==='settings'?<GeneralSettings key={profileFocus+(settingsTab||'')} onSettingsNavigate={section=>navigateWorkspace('settings',section)} startAt={settingsSection==='audit'||settingsSection==='legal'?'profile':settingsSection} openProfile={profileFocus>0} initialTab={settingsTab||undefined} profile={profile} role={role} rooms={roomsList} onNavigate={(id)=>openMainModule(id)} onRoomsChanged={()=>{setRoomOptionsLoaded(false);rooms().then(rows=>{setRoomsList(rows);setRoomOptionsLoaded(true)})}}/>
    :<AsyncStatePanel state="error" title="Bagian workspace tidak tersedia" description="Kembali ke ringkasan untuk memilih modul sesuai hak akses Anda." onRetry={()=>openMainModule('home')} compact/>}
   </ModuleErrorBoundary></AdaptiveWorkspaceShell></div>
