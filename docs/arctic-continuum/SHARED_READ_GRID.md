@@ -1,0 +1,2 @@
+# Shared read-only grid extension
+Audit Log and PIC use a typed presentation grid, with allowlisted searchable columns, three sort keys and paging of all loaded results, not DOM reordering. Legacy retained outside data-first mode. No data or searches stored, no exports or writes, no new RPCs; audit cap clearly stated. Not universal server-side grid. Tests cover nulls, order, search allowlist and no mutation; synthetic browser acceptance is not production RLS/UAT.
