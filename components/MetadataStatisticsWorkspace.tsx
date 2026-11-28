@@ -168,6 +168,7 @@ export default function MetadataStatisticsWorkspace({
           {activeDirectoryTab === 'team' && canOpenTeam && (
             <div className="mswContent" role="tabpanel" aria-label="Tim dan Penugasan">
               <StaffTeamWorkspace
+                dataFirst={dataFirst}
                 initialRoomId={initialRoomId}
                 rooms={rooms}
                 isSuperAdmin={isSuperAdmin}

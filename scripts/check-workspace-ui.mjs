@@ -175,6 +175,7 @@ const handlePausedRequest = async ({ request, requestId }) => {
     if(resource==='aureka_gov_program_list')return await fulfill(requestId,{role:testRole,can_manage:testRole==='ADMIN',can_evaluate:testRole==='ADMIN',recommendations:[{id:'rec-fixture',code:'UI-REC',source:'audit',issued_by_level:'DIREKTUR',title:'Rekomendasi sintetis',description:'Uji UI',priority:'sedang',program_year:body.p_year,given_at:'2026-11-01',status:'aktif'}],actions:[{id:'act-fixture',recommendation_id:'rec-fixture',title:'RTL sintetis',description:'Uji UI',responsible_level:'UNIT',assigned_room_id:1,room_name:rooms[0].name,due_date:'2026-12-30',status:'berjalan',improvement_method:'PDSA',cycle_plan:'Plan fixture',cycle_do:'Do fixture',cycle_study_check:'Study fixture',cycle_act:'Act fixture',last_evaluation:null}]})
     if(resource==='aureka_gov_audit_log')return await fulfill(requestId,[{id:1,actor_name:'Auditor sintetis',actor_role:'ADMIN',action:'update',object_type:'recommendation',object_id:'rec-fixture',detail:{test:'fixture'},created_at:'2026-11-28T00:00:00Z'}])
     if(resource==='quality_reconciliation_list_v2')return await fulfill(requestId,{profile_year:body.p_profile_year,response_groups:[{room_id:1,room_name:rooms[0].name,profile_year:2026,indicator_id:profiles[0].id,indicator_code:'1.1',indicator_title:'Respon Komplain',source_label:'Sesuai',source_code:'1',mapping_status:'pending',affected_count:3,auto_fixable:true,suggested_target_label:'Sesuai',suggested_target_code:1,options:[{label:'Sesuai',code:1}]}],warning_groups:[],recent_audit:[],summary:{response_group_count:1,response_record_count:3,auto_fixable_group_count:1,auto_fixable_record_count:3,warning_group_count:0,warning_record_count:0}})
+    if(resource==='list_assignable_staff')return await fulfill(requestId,Number(body.p_room_id)===1?staff.map(r=>({...r,already_locked_here:true})):[])
     if (resource === 'aureka_get_my_account') return await fulfill(requestId, [{ username: 'workspace.ui', email: user.email }])
     if (resource === 'save_quality_logbook') {
       if (failQualitySave) return await fulfill(requestId, { message: 'Penyimpanan ditolak pada skenario uji', code: '42501' }, 403)
@@ -218,7 +219,8 @@ const handlePausedRequest = async ({ request, requestId }) => {
       master_rooms: rooms, indicator_profiles: profiles, quality_records: qualityRecords,
       risk_register: risks, incidents, staff_directory: staff, oppe_fppe_evaluations: fppeRecords,
       clinical_pathway_templates: pathwayTemplates,
-      staff_team_assignments: [{ staff_id: staff[0].id, room_id: 1, assignment_status: 'active', is_locked: true }],
+      staff_team_assignments: [{ id:'assignment-fixture',staff_id: staff[0].id, room_id: 1, assignment_status: 'active', is_locked: true,assigned_at:'2026-11-01T00:00:00Z' }],
+      standard_operating_procedures:[{id:'spo-fixture',title:'SPO Sintetis',document_number:'UI-SPO-01',revision_number:'01',issue_date:'2026-11-01',status:'approved',related_units:['Unit Uji'],procedure_steps:[{step_number:1,content:'Langkah sintetis'}],updated_at:'2026-11-01T00:00:00Z'}],
     }
     let rows = sources[resource] || []
     for (const [key, value] of url.searchParams) {
@@ -693,13 +695,15 @@ try {
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
-  await check('Shared data-first surfaces keep real rows and on-demand summaries across five domains', async () => {
+  await check('Shared data-first surfaces keep real rows and on-demand summaries across seven domains', async () => {
     await enterArctic()
     const views=[
       ['#indikator-mutu/monitoring','.hlReportingPanel','.hlReportingTable','Informasi dan Pengaduan'],
       ['#indikator-mutu/monitoring/kinerja-pic','.picPerf','.ppTable','PIC Sintetis'],
       ['#indikator-mutu/spm','.spmWorkspace','[data-continuum-spm-monthly]','Tidak ada indikator'],
       ['#program/recommendations','.govWorkspace','.govRecList','RTL sintetis'],
+      ['#indikator-mutu/spo','.spoWorkspace','.rmTable','SPO Sintetis'],
+      ['#sumber-daya-manusia/team','.staffTeam','.rmTable','Tenaga Uji Antarmuka'],
       ['#pengaturan/audit-log','.govWorkspace','.rmTable','Auditor sintetis'],
     ]
     for(const [hash,root,table,expected] of views){
