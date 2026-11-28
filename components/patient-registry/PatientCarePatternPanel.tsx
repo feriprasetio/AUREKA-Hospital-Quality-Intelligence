@@ -1,7 +1,7 @@
 'use client'
 import { useEffect,useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
-import { parseCarePattern,type CarePattern } from '@/lib/aureka/care-pattern-engine'
+import { parseCarePattern,doctorsForCarePattern,type CarePattern } from '@/lib/aureka/care-pattern-engine'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 const dayNames=['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu']
 const fmt=(x:number|null)=>x===null?'—':x.toLocaleString('id-ID')
@@ -16,6 +16,7 @@ export default function PatientCarePatternPanel({room,year,mode}:{room:string;ye
   const data=state?.request===request?state.data:undefined
   const error=state?.request===request?state.error:undefined
   const loading=state?.request!==request
+  const doctors=data?doctorsForCarePattern(data,mode):[]
   useEffect(()=>{
     const controller=new AbortController()
     const scope={room:room?Number(room):null,year:Number(year),ready}
@@ -52,7 +53,7 @@ export default function PatientCarePatternPanel({room,year,mode}:{room:string;ye
       <section className="prPanel"><h3>Profil menurut DPJP</h3>
         {!data.named_allowed?<p className="prEmpty">Rincian per dokter memerlukan hak akses kinerja SDM.</p>:<>
           <p>{fmt(data.attributed_records)} catatan memiliki atribusi DPJP kanonik tunggal. Hanya kelompok dengan sekurang-kurangnya lima observasi relevan ditampilkan. Nama bebas pada logbook tidak digunakan untuk mencocokkan tenaga medis.</p>
-          {data.doctors.length?<div className="prTableWrap"><table className="prTable"><thead><tr><th>DPJP</th>{mode==='visite'?<><th>Observasi visite</th><th>06.00–14.00</th><th>Setelah 14.00</th></>:<><th>Tanggal keluar</th><th>Jam keluar tercatat</th></>}</tr></thead><tbody>{data.doctors.map(d=><tr key={d.staff_id}><td>{d.name}</td>{mode==='visite'?<><td>{fmt(d.visite_n)}</td><td>{fmt(d.visit_regular)}</td><td>{fmt(d.visit_late)}</td></>:<><td>{fmt(d.discharge_n)}</td><td>{fmt(d.clock_n)}</td></>}</tr>)}</tbody></table></div>:<p className="prEmpty">Belum ada atribusi dokter yang memenuhi syarat.</p>}
+          {doctors.length?<div className="prTableWrap"><table className="prTable"><thead><tr><th>DPJP</th>{mode==='visite'?<><th>Observasi visite</th><th>06.00–14.00</th><th>Setelah 14.00</th></>:<><th>Tanggal keluar</th><th>Jam keluar tercatat</th></>}</tr></thead><tbody>{doctors.map(d=><tr key={d.staff_id}><td>{d.name}</td>{mode==='visite'?<><td>{fmt(d.visite_n)}</td><td>{fmt(d.visit_regular)}</td><td>{fmt(d.visit_late)}</td></>:<><td>{fmt(d.discharge_n)}</td><td>{fmt(d.clock_n)}</td></>}</tr>)}</tbody></table></div>:<p className="prEmpty">Belum ada atribusi dokter yang memenuhi syarat.</p>}
         </>}
       </section>
       <div className="pmaNote">Unit analisis adalah record logbook, bukan pasien unik. Waktu keluar tercatat bukan waktu keputusan pulang. Distribusi ini bukan ranking dokter dan tidak membuktikan hubungan sebab akibat.</div>
