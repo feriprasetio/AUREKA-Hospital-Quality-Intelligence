@@ -170,6 +170,10 @@ const handlePausedRequest = async ({ request, requestId }) => {
     }
     if(resource==='aureka_patient_index_overview'||resource==='aureka_patient_index_summary')return await fulfill(requestId,{total:51,dengan_nik:0,terhubung_simrs:0})
     if(resource==='aureka_patient_index_invalid_rm')return failInvalidRm?await fulfill(requestId,{message:'Synthetic invalid RM failure'},503):await fulfill(requestId,[])
+    if(resource==='aureka_quality_room_reporting_status')return await fulfill(requestId,[{room_id:1,month:10,total:4,latest_report_at:'2026-10-15T00:00:00Z',latest_period:'2026-10-01'}])
+    if(resource==='aureka_pic_performance_dashboard')return await fulfill(requestId,{role:testRole,window_days:body.p_days,generated_at:'2026-11-28T00:00:00Z',rows:[{user_id:uid,pic_name:'PIC Sintetis',email:user.email,room_id:1,room_name:rooms[0].name,records_total:12,records_window:4,records_draft:1,records_ready:2,records_validated:9,records_archived:0,last_created_at:'2026-11-27T00:00:00Z',last_record_date:'2026-11-27',last_status:'validated'}]})
+    if(resource==='aureka_gov_program_list')return await fulfill(requestId,{role:testRole,can_manage:testRole==='ADMIN',can_evaluate:testRole==='ADMIN',recommendations:[{id:'rec-fixture',code:'UI-REC',source:'audit',issued_by_level:'DIREKTUR',title:'Rekomendasi sintetis',description:'Uji UI',priority:'sedang',program_year:body.p_year,given_at:'2026-11-01',status:'aktif'}],actions:[{id:'act-fixture',recommendation_id:'rec-fixture',title:'RTL sintetis',description:'Uji UI',responsible_level:'UNIT',assigned_room_id:1,room_name:rooms[0].name,due_date:'2026-12-30',status:'berjalan',improvement_method:'PDSA',cycle_plan:'Plan fixture',cycle_do:'Do fixture',cycle_study_check:'Study fixture',cycle_act:'Act fixture',last_evaluation:null}]})
+    if(resource==='aureka_gov_audit_log')return await fulfill(requestId,[{id:1,actor_name:'Auditor sintetis',actor_role:'ADMIN',action:'update',object_type:'recommendation',object_id:'rec-fixture',detail:{test:'fixture'},created_at:'2026-11-28T00:00:00Z'}])
     if (resource === 'aureka_get_my_account') return await fulfill(requestId, [{ username: 'workspace.ui', email: user.email }])
     if (resource === 'save_quality_logbook') {
       if (failQualitySave) return await fulfill(requestId, { message: 'Penyimpanan ditolak pada skenario uji', code: '42501' }, 403)
@@ -675,6 +679,32 @@ try {
     await screenshot('arctic-staff-data-first')
     await leaveArctic()
     await wait("document.querySelector('aside.sidebar')")
+    await evaluate("location.hash='#beranda'")
+    await wait("document.querySelector('.ccSectionHead')")
+  })
+  await check('Shared data-first surfaces keep real rows and on-demand summaries across five domains', async () => {
+    await enterArctic()
+    const views=[
+      ['#indikator-mutu/monitoring','.hlReportingPanel','.hlReportingTable','Informasi dan Pengaduan'],
+      ['#indikator-mutu/monitoring/kinerja-pic','.picPerf','.ppTable','PIC Sintetis'],
+      ['#indikator-mutu/spm','.spmWorkspace','[data-continuum-spm-monthly]','Tidak ada indikator'],
+      ['#program/recommendations','.govWorkspace','.govRecList','RTL sintetis'],
+      ['#pengaturan/audit-log','.govWorkspace','.rmTable','Auditor sintetis'],
+    ]
+    for(const [hash,root,table,expected] of views){
+      await evaluate('location.hash='+JSON.stringify(hash))
+      await wait('document.querySelector('+JSON.stringify(root+' '+table)+')?.textContent.includes('+JSON.stringify(expected)+')')
+      assert.equal(await evaluate('document.querySelector('+JSON.stringify(root+' [data-continuum-summary]')+').open'),false,hash)
+      await click(root+' [data-continuum-summary] summary')
+      await wait('document.querySelector('+JSON.stringify(root+' [data-continuum-summary]')+').open')
+      assert.ok(await evaluate('document.querySelector('+JSON.stringify(root+' '+table)+')?.textContent.includes('+JSON.stringify(expected)+')'))
+      await click(root+' [data-continuum-summary] summary')
+    }
+    await screenshot('arctic-shared-audit-table')
+    await leaveArctic()
+    await evaluate("location.hash='#indikator-mutu/monitoring'")
+    await wait("document.querySelector('.hlReportingMatrix')")
+    assert.equal(await evaluate("Boolean(document.querySelector('.hlReportingPanel [data-continuum-summary]'))"),false)
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
