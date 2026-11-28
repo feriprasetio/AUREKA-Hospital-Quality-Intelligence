@@ -56,7 +56,8 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
   const refresh=useCallback(async()=>{
     const {data,error}=await aurekaSupabase.rpc('aureka_manage_public_portal_snapshots')
     if(error)throw error
-    setSnapshots(Array.isArray(data)?data as Snapshot[]:[])
+    if(!Array.isArray(data))throw new Error('Register publikasi belum dapat dibaca.')
+    setSnapshots(data as Snapshot[])
   },[])
   useEffect(()=>{
     let mounted=true
@@ -136,9 +137,14 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
     setNotice('');setError('');setBusy(true)
     try{
       const name=action==='approve'?'aureka_approve_public_portal_snapshot':'aureka_withdraw_public_portal_snapshot'
-      const {error}=await aurekaSupabase.rpc(name,{p_snapshot_id:item.id})
+      const {data,error}=await aurekaSupabase.rpc(name,{p_snapshot_id:item.id})
       if(error)throw error
-      await refresh()
+      if(data!==true){
+        await refresh()
+        setError('Status snapshot sudah berubah atau tindakan belum dikonfirmasi. Periksa register publikasi.')
+        return
+      }
+      await refresh().catch(()=>setError('Tindakan berhasil. Muat ulang register untuk melihat status terbaru.'))
       setNotice(action==='approve'?'Snapshot berhasil dipublikasikan.':'Snapshot berhasil ditarik dari portal.')
     }catch(e){setError(e instanceof Error?e.message:'Tindakan belum berhasil.')}
     finally{setBusy(false)}

@@ -17,6 +17,12 @@ Audit baca-saja membandingkan `main` pada `065f453e2f4729221465974149e18eaf0a3ed
 - Validasi kontrak berada di `lib/aureka/patient-record-analytics.ts`. Jalankan `node --test tests/patient-record-analytics.test.mjs` dan `npm test`. Smoke Chromium pada `scripts/check-workspace-ui.mjs` menggunakan respons sintetis untuk variasi periode, LOS parsial, sumber gagal, dan readmisi pulih.
 - Rilis ini memakai RPC dan hak akses yang ada. Rollback frontend dilakukan dengan revert PR melalui pipeline Pages. Data historis dan snapshot publik berada di Supabase.
 
+## Validasi pelaporan dan publikasi
+
+- Pembaca status pelaporan bersama memvalidasi ID unit, bulan, jumlah positif dan keunikan per unit dan bulan. Respons cacat ditampilkan sebagai sumber tidak tersedia. Daftar kosong dari RPC tetap merupakan hasil yang sah.
+- Konsol publikasi menunggu konfirmasi dari RPC sebelum menampilkan keberhasilan persetujuan atau penarikan. Register yang gagal dimuat menampilkan pesan kesalahan.
+- Bukti kontrak pelaporan dapat diulang dengan `node --test tests/reporting-status-contract.test.mjs`. Validasi ini mencakup satu sumber Dashboard dan Infografis. Otomatisasi draf serta penerimaan lintas domain masih terbuka.
+
 ## Penerimaan integrasi
 
 Status di bawah berlaku untuk pekerjaan ini. Kolom baseline berasal dari blueprint dan masih memerlukan validasi masing-masing. `Diuji parsial` mencakup kontrak dan antarmuka dengan data sintetis. Penerimaan penuh memerlukan UAT pemilik domain, uji akses per peran dan unit, rekonsiliasi sumber dan bukti rilis. Penerimaan penuh pada tahap ini **0/100**.
@@ -111,12 +117,12 @@ Status di bawah berlaku untuk pekerjaan ini. Kolom baseline berasal dari bluepri
 | I086 | E12/E13 | Usulan | Belum diverifikasi |
 | I087 | E06/E13 | Usulan | Belum diverifikasi |
 | I088 | E13 | Parsial | Belum diverifikasi |
-| I089 | E02/E15 | Parsial | Belum diverifikasi |
+| I089 | E02/E15 | Parsial | Diuji parsial · kontrak status pelaporan; penerimaan lintas domain masih terbuka |
 | I090 | E16 | Parsial | Tertahan · persetujuan kebijakan pemrosesan dan akses lintas domain |
 | I091 | E14/E16 | Usulan | Belum diverifikasi |
 | I092 | E16 | Parsial | Belum diverifikasi |
 | I093 | E14/E15 | Parsial | Belum diverifikasi |
-| I094 | E02/E15 | Parsial | Belum diverifikasi |
+| I094 | E02/E15 | Parsial | Diuji parsial · kontrak status pelaporan; penerimaan lintas domain masih terbuka |
 | I095 | E15/E16 | Parsial | Belum diverifikasi |
 | I096 | E10/E15 | Parsial | Belum diverifikasi |
 | I097 | E15 | Parsial | Belum diverifikasi |
