@@ -5,6 +5,12 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import AurekaModal from '@/components/ui/AurekaModal'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
+import {useLatestWorkspaceRequest} from '@/lib/ui/use-latest-workspace-request'
 
 type Room = { id: number; name: string }
 type PriorityArea = {
@@ -28,64 +34,86 @@ const STATUS:Record<PriorityArea['status'],string>={aktif:'Aktif',berjalan:'Berj
 const PRIORITY:Record<PriorityArea['priority'],string>={tinggi:'Tinggi',sedang:'Sedang',rendah:'Rendah'}
 const fmtDate=(v?:string|null)=>v?new Date(v+'T12:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'Belum ditetapkan'
 
-export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,onScreenChange}:{
-  rooms:Room[];role:string|null;currentRoomId:number|null;screen:Screen;onScreenChange:(screen:Screen)=>void
+export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,onScreenChange,dataFirst=false}:{
+  rooms:Room[];role:string|null;currentRoomId:number|null;screen:Screen;onScreenChange:(screen:Screen)=>void;dataFirst?:boolean
 }) {
   const [year,setYear]=useState(new Date().getFullYear())
   const [rows,setRows]=useState<PriorityArea[]>([])
   const [draft,setDraft]=useState<Draft|null>(null)
-  const [loading,setLoading]=useState(true)
+  const [reading,setLoading]=useState(true)
+  const [loadedYear,setLoadedYear]=useState<number|null>(null)
+  const loading=reading||loadedYear!==year
+  const beginLoad=useLatestWorkspaceRequest(String(year))
   const [busy,setBusy]=useState(false)
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
   const [activityRows,setActivityRows]=useState<ProgramActivity[]>([])
   const [activityDraft,setActivityDraft]=useState<ActivityDraft|null>(null)
-  const [activityLoading,setActivityLoading]=useState(false)
+  const [activityReading,setActivityLoading]=useState(true)
+  const [activityYear,setActivityYear]=useState<number|null>(null)
+  const activityLoading=activityReading||activityYear!==year
+  const beginActivityLoad=useLatestWorkspaceRequest(String(year))
   const [activityBusy,setActivityBusy]=useState(false)
   const [activityError,setActivityError]=useState('')
   const canManage=role==='ADMIN'||role==='PMKP'
 
   const loadActivities=useCallback(async()=>{
-    setActivityLoading(true);setActivityError('')
-    const {data,error:rpcError}=await aurekaSupabase.rpc('aureka_gov_program_activity_list',{p_year:year})
-    if(rpcError){setActivityRows([]);setActivityError(toUserFacingError(rpcError,{fallback:'Timeline program belum dapat dimuat.'}))}
-    else setActivityRows((data?.activities||[]) as ProgramActivity[])
-    setActivityLoading(false)
-  },[year])
+    const isCurrent=beginActivityLoad()
+    if(!isCurrent)return
+    setActivityLoading(true);setActivityError('');setActivityRows([])
+    try{
+      const {data,error:rpcError}=await aurekaSupabase.rpc('aureka_gov_program_activity_list',{p_year:year})
+      if(!isCurrent())return
+      if(rpcError)throw rpcError
+      if(!Array.isArray(data?.activities))throw new Error('Kontrak timeline belum lengkap.')
+      setActivityRows(data.activities as ProgramActivity[])
+    }catch(cause){if(isCurrent())setActivityError(toUserFacingError(cause,{fallback:'Timeline program belum dapat dimuat.'}))}
+    finally{if(isCurrent()){setActivityYear(year);setActivityLoading(false)}}
+  },[year,beginActivityLoad])
   useEffect(()=>{void loadActivities()},[loadActivities])
 
   const startActivity=()=>{
     setActivityDraft({program_year:year,title:'',description:'',expected_output:'',owner_room_id:currentRoomId,responsible_person:'',start_date:year+'-01-01',end_date:year+'-01-07',status:'planned',progress_percent:0})
   }
   const saveActivity=async()=>{
-    if(!activityDraft||activityBusy)return
+    if(!canManage||!activityDraft||activityBusy||activityLoading)return
     if(String(activityDraft.title||'').trim().length<5){setActivityError('Nama kegiatan minimal lima karakter.');return}
     if(!activityDraft.start_date||!activityDraft.end_date||activityDraft.end_date<activityDraft.start_date){setActivityError('Tanggal kegiatan wajib benar dan tanggal selesai tidak boleh mendahului tanggal mulai.');return}
     setActivityBusy(true);setActivityError('')
     const payload={...activityDraft,program_year:year,progress_percent:Number(activityDraft.progress_percent||0)}
-    const {error:rpcError}=await aurekaSupabase.rpc('aureka_gov_program_activity_save',{p:payload})
-    setActivityBusy(false)
-    if(rpcError){setActivityError(toUserFacingError(rpcError,{fallback:'Kegiatan timeline belum dapat disimpan.'}));return}
-    setActivityDraft(null);setNotice('Kegiatan timeline berhasil disimpan.');await loadActivities()
+    try{
+      const {error:rpcError}=await aurekaSupabase.rpc('aureka_gov_program_activity_save',{p:payload})
+      if(rpcError){setActivityError(toUserFacingError(rpcError,{fallback:'Kegiatan timeline belum dapat disimpan.'}));return}
+      setActivityDraft(null);setNotice('Kegiatan timeline berhasil disimpan.');await loadActivities()
+    }catch{setActivityError('Status penyimpanan belum dapat dipastikan. Periksa data server sebelum mengirim ulang.')}
+    finally{setActivityBusy(false)}
   }
   const editActivity=(activity:ProgramActivity)=>setActivityDraft({...activity})
 
   const load=useCallback(async()=>{
-    setLoading(true);setError('')
-    const {data,error:rpcError}=await aurekaSupabase.rpc('aureka_gov_program_list',{p_year:year})
-    if(rpcError){setError(toUserFacingError(rpcError,{fallback:'Data program tahunan belum dapat dimuat.'}));setLoading(false);return}
-    setRows((data?.priority_areas||[]) as PriorityArea[])
-    setLoading(false)
-  },[year])
+    const isCurrent=beginLoad()
+    if(!isCurrent)return
+    setLoading(true);setError('');setRows([])
+    try{
+      const {data,error:rpcError}=await aurekaSupabase.rpc('aureka_gov_program_list',{p_year:year})
+      if(!isCurrent())return
+      if(rpcError)throw rpcError
+      if(!Array.isArray(data?.priority_areas))throw new Error('Kontrak area prioritas belum lengkap.')
+      setRows(data.priority_areas as PriorityArea[])
+    }catch(cause){if(isCurrent())setError(toUserFacingError(cause,{fallback:'Data program tahunan belum dapat dimuat.'}))}
+    finally{if(isCurrent()){setLoadedYear(year);setLoading(false)}}
+  },[year,beginLoad])
   useEffect(()=>{void load()},[load])
 
   const save=async()=>{
-    if(!draft)return
+    if(!canManage||!draft||busy||loading)return
     setBusy(true);setError('');setNotice('')
-    const {error:rpcError}=await aurekaSupabase.rpc('aureka_gov_save_priority_area',{p:draft})
-    setBusy(false)
-    if(rpcError){setError(toUserFacingError(rpcError,{fallback:'Area prioritas belum dapat disimpan.'}));return}
-    setDraft(null);setNotice('Area prioritas berhasil disimpan.');await load()
+    try{
+      const {error:rpcError}=await aurekaSupabase.rpc('aureka_gov_save_priority_area',{p:draft})
+      if(rpcError){setError(toUserFacingError(rpcError,{fallback:'Area prioritas belum dapat disimpan.'}));return}
+      setDraft(null);setNotice('Area prioritas berhasil disimpan.');await load()
+    }catch{setError('Status penyimpanan belum dapat dipastikan. Periksa data server sebelum mengirim ulang.')}
+    finally{setBusy(false)}
   }
   const startNew=()=>setDraft({program_year:year,priority:'tinggi',status:'aktif',owner_room_id:null,responsible_person:''})
   const activeCount=useMemo(()=>rows.filter(x=>!['tercapai','dibatalkan'].includes(x.status)).length,[rows])
@@ -100,6 +128,30 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,
   const quarterDeadlines=useMemo(()=>[1,2,3,4].map(q=>({quarter:'TW '+q,count:rows.filter(x=>{if(!x.due_date)return false;const month=Number(x.due_date.slice(5,7));return Math.ceil(month/3)===q}).length})),[rows])
   const roomLabel=(id:number|null)=>id==null?'Rumah Sakit':rooms.find(x=>Number(x.id)===Number(id))?.name||'Unit tidak ditemukan'
 
+  const priorityDisplay:readonly ReadTableColumn<PriorityArea>[]=[
+   {id:'title',label:'Area prioritas',required:true,cell:r=><><b>{r.title}</b><small className="rmCellSmall">{r.code||'Kode belum dicantumkan'}</small><details><summary>Masalah dan sasaran</summary><p>{r.problem_statement}</p><p>{r.rationale}</p><p>{r.target_outcome}</p></details></>},
+   {id:'priority',label:'Prioritas',cell:r=>PRIORITY[r.priority]||r.priority},
+   {id:'owner',label:'Unit / penanggung jawab',required:true,cell:r=><>{roomLabel(r.owner_room_id)}<small className="rmCellSmall">{r.responsible_person||'PIC belum ditetapkan'}</small></>},
+   {id:'due',label:'Tenggat',cell:r=>fmtDate(r.due_date)},
+   {id:'status',label:'Status',required:true,cell:r=><span className={'govStatus '+r.status}>{STATUS[r.status]||r.status}</span>},
+   {id:'actions',label:'Aksi',required:true,cell:r=>canManage?<button type="button" className="rmIconButton" disabled={busy} onClick={()=>setDraft({...r})}>Edit</button>:'Baca-saja'}
+  ]
+  const priorityColumns:readonly ReadGridColumn<PriorityArea>[]=[
+   {id:'title',label:'Area prioritas',value:r=>r.title},{id:'priority',label:'Prioritas',value:r=>r.priority==='tinggi'?1:r.priority==='sedang'?2:3},{id:'owner',label:'Unit / penanggung jawab',value:r=>roomLabel(r.owner_room_id)+' · '+(r.responsible_person||'')},{id:'due',label:'Tenggat',value:r=>r.due_date},{id:'status',label:'Status',value:r=>STATUS[r.status]||r.status}
+  ]
+  const activityStatus:Record<ProgramActivity['status'],string>={planned:'Direncanakan',in_progress:'Berjalan',completed:'Selesai',on_hold:'Ditunda',cancelled:'Dibatalkan'}
+  const activityDisplay:readonly ReadTableColumn<ProgramActivity>[]=[
+   {id:'title',label:'Kegiatan',required:true,cell:r=><><b>{r.title}</b><details><summary>Ruang lingkup dan output</summary><p>{r.description}</p><p>{r.expected_output}</p></details></>},
+   {id:'owner',label:'Unit / penanggung jawab',required:true,cell:r=><>{roomLabel(r.owner_room_id)}<small className="rmCellSmall">{r.responsible_person||'PIC belum ditetapkan'}</small></>},
+   {id:'start',label:'Mulai',cell:r=>fmtDate(r.start_date)},
+   {id:'end',label:'Selesai',cell:r=>fmtDate(r.end_date)},
+   {id:'status',label:'Status',required:true,cell:r=>activityStatus[r.status]||r.status},
+   {id:'progress',label:'Progres (%)',cell:r=>Number.isFinite(r.progress_percent)?r.progress_percent:'Belum tersedia'},
+   {id:'actions',label:'Aksi',required:true,cell:r=>canManage?<button type="button" className="rmIconButton" disabled={activityBusy} onClick={()=>editActivity(r)}>Edit</button>:'Baca-saja'}
+  ]
+  const activityColumns:readonly ReadGridColumn<ProgramActivity>[]=[
+   {id:'title',label:'Kegiatan',value:r=>r.title},{id:'owner',label:'Unit / penanggung jawab',value:r=>roomLabel(r.owner_room_id)+' · '+(r.responsible_person||'')},{id:'start',label:'Mulai',value:r=>r.start_date},{id:'end',label:'Selesai',value:r=>r.end_date},{id:'status',label:'Status',value:r=>activityStatus[r.status]||r.status},{id:'progress',label:'Progres',value:r=>r.progress_percent}
+  ]
   return <section className="rmPanel govWorkspace annualProgramWorkspace" aria-label="Program kerja tahunan">
     <div className="rmSectionHead">
       <div><h3>{screen==='priorities'?'Area Prioritas':screen==='timeline'?'Rencana Kegiatan dan Timeline':'Program Kerja Tahunan'}</h3>
@@ -107,14 +159,14 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,
       </div>
       <div className="govHeadTools">
         {screen!=='home'&&<button type="button" className="rmButton" onClick={()=>onScreenChange('home')}>← Kembali ke Program</button>}
-        <label className="govYear">Tahun <select value={year} onChange={e=>setYear(Number(e.target.value))}>{[0,1,2].map(d=>new Date().getFullYear()+1-d).map(y=><option key={y} value={y}>{y}</option>)}</select></label>
+        <label className="govYear">Tahun <select value={year} disabled={busy||activityBusy||!!draft||!!activityDraft} onChange={e=>{setNotice('');setYear(Number(e.target.value))}}>{[0,1,2].map(d=>new Date().getFullYear()+1-d).map(y=><option key={y} value={y}>{y}</option>)}</select></label>
       </div>
     </div>
 
-    {error&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
+    {error&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p><button type="button" className="rmButton" onClick={()=>void load()}>Muat ulang area</button></div>}
     {notice&&<div className="rmNotice" role="status"><span>Informasi</span><p>{notice}</p></div>}
 
-    {screen==='home'&&<div className="annualProgramHome">
+    {screen==='home'&&!error&&<div className="annualProgramHome">
     <section className="annualProgramVisual" aria-label="Ringkasan status program tahunan">
       <div className="annualProgramVisualHead"><div><span className="rmEyebrow">Ikhtisar program</span><h4>Pelaksanaan area prioritas · {year}</h4><p>Status berdasarkan data area prioritas yang tersimpan, bukan estimasi progres.</p></div><strong>{loading?'…':rows.length.toLocaleString('id-ID')} area</strong></div>
       <div className="annualProgramVisualKpis"><div><span>Masih aktif / berjalan</span><b>{loading?'…':activeCount.toLocaleString('id-ID')}</b></div><div><span>Tercapai</span><b>{loading?'…':(statusSummary.find(x=>x.key==='tercapai')?.count||0).toLocaleString('id-ID')}</b></div><div><span>Lewat tenggat</span><b>{loading?'…':overdueCount.toLocaleString('id-ID')}</b></div></div>
@@ -131,8 +183,9 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,
           {screen==='home'?<button type="button" className="rmButton primary" onClick={()=>onScreenChange('timeline')}>Lihat Program Kerja</button>:canManage&&<button type="button" className="rmButton primary" onClick={startActivity}>+ Tambah Kegiatan Timeline</button>}
         </div>
         {activityError&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{activityError}</p></div>}
-        {activityLoading?<div className="rmLoading">Memuat timeline kegiatan…</div>:activityRows.length===0?<AsyncStatePanel state="empty" title="Belum ada kegiatan pada timeline" description={canManage?'Tambahkan aktivitas dengan tanggal mulai, selesai, unit pemilik, dan penanggung jawab untuk membentuk Gantt tahunan.':'Belum ada aktivitas tahunan yang dicatat untuk periode ini.'} compact/>:
-        <div className="annualTimelineScroll">
+        {activityLoading?<div className="rmLoading">Memuat timeline kegiatan…</div>:activityError?<button type="button" className="rmButton" onClick={()=>void loadActivities()}>Muat ulang timeline</button>:activityRows.length===0?<AsyncStatePanel state="empty" title="Belum ada kegiatan pada timeline" description={canManage?'Tambahkan aktivitas dengan tanggal mulai, selesai, unit pemilik, dan penanggung jawab untuk membentuk Gantt tahunan.':'Belum ada aktivitas tahunan yang dicatat untuk periode ini.'} compact/>:
+        <>{dataFirst&&screen==='timeline'&&<ContinuumReadGrid key={year} rows={activityRows} columns={activityColumns} display={activityDisplay} label="Register kegiatan tahunan">{(page,filtered,keys)=><WorkspaceTableViewport dataFirst label="Register kegiatan"><ContinuumReadTable rows={page} columns={activityDisplay} keys={keys} rowKey={r=>r.id} className="rmTable" disableDomSort empty={filtered?'Tidak ada kegiatan sesuai pencarian.':'Belum ada kegiatan.'}/></WorkspaceTableViewport>}</ContinuumReadGrid>}
+        <ContinuumSummary enabled={dataFirst&&screen==='timeline'} label="Lihat Gantt tahunan"><div className="annualTimelineScroll">
           <div className="annualTimelineMonthHead">{['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'].map((m,i)=><span key={i}>{m}</span>)}</div>
           <div className="annualTimelineRows">{activityRows.map(activity=>{
             const startMonth=Math.max(1,Math.min(12,Number(activity.start_date.slice(5,7))))
@@ -146,20 +199,20 @@ export default function AnnualProgramWorkspace({rooms,role,currentRoomId,screen,
               {activity.expected_output&&<p className="annualTimelineOutput">Output: {activity.expected_output}</p>}
             </article>
           })}</div>
-        </div>}
+        </div></ContinuumSummary></>}
       </section>
     </div>}
 
     {screen==='priorities'&&<div className="annualPriorityContent">
       <div className="govHeadTools annualPriorityToolbar">
-        <span className="rmCellSmall">Area prioritas tahun {year} · {rows.length} entri</span>
+        <span className="rmCellSmall">Area prioritas tahun {year} · {loading?'Memuat':error?'Belum tersedia':rows.length+' entri'}</span>
         {canManage&&<button type="button" className="rmButton primary" onClick={startNew}>+ Tambah Area Prioritas</button>}
       </div>
-      <section className="annualProgramVisual annualProgramVisualCompact" aria-label="Ringkasan area prioritas">
+      {!loading&&!error&&<ContinuumSummary enabled={dataFirst} label="Ringkasan area prioritas"><section className="annualProgramVisual annualProgramVisualCompact" aria-label="Ringkasan area prioritas">
         <div className="annualProgramVisualKpis"><div><span>Aktif / berjalan</span><b>{activeCount}</b></div><div><span>Tercapai</span><b>{statusSummary.find(x=>x.key==='tercapai')?.count||0}</b></div><div><span>Lewat tenggat</span><b>{overdueCount}</b></div></div>
         <div className="annualProgramStatusStrip">{statusSummary.map(item=><span key={item.key}>{item.label}<b>{item.count}</b></span>)}</div>
-      </section>
-      {loading?<div className="rmLoading"><span className="rmSpinner"/>Memuat area prioritas…</div>:rows.length===0?<AsyncStatePanel state="empty" title="Belum ada area prioritas" description={canManage?'Tambahkan masalah prioritas rumah sakit untuk mulai menyusun program kerja tahunan.':'Belum ada area prioritas yang ditetapkan untuk tahun ini.'} compact/>:
+      </section></ContinuumSummary>}
+      {loading?<div className="rmLoading"><span className="rmSpinner"/>Memuat area prioritas…</div>:error?null:dataFirst?<ContinuumReadGrid key={year} rows={rows} columns={priorityColumns} display={priorityDisplay} label="Register area prioritas">{(page,filtered,keys)=><WorkspaceTableViewport dataFirst label="Area prioritas"><ContinuumReadTable rows={page} columns={priorityDisplay} keys={keys} rowKey={r=>r.id} className="rmTable" disableDomSort empty={filtered?'Tidak ada area sesuai pencarian.':'Belum ada area prioritas.'}/></WorkspaceTableViewport>}</ContinuumReadGrid>:rows.length===0?<AsyncStatePanel state="empty" title="Belum ada area prioritas" description={canManage?'Tambahkan masalah prioritas rumah sakit untuk mulai menyusun program kerja tahunan.':'Belum ada area prioritas yang ditetapkan untuk tahun ini.'} compact/>:
       <div className="annualPriorityGrid">{rows.map(row=><article key={row.id} className="annualPriorityCard">
         <header><div><span className="govCode">{row.code||'AREA PRIORITAS'}</span><h4>{row.title}</h4></div>{canManage&&<button type="button" className="rmIconButton" onClick={()=>setDraft({...row})}>Edit</button>}</header>
         <p className="annualPriorityProblem">{row.problem_statement}</p>

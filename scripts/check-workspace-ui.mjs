@@ -188,7 +188,8 @@ const handlePausedRequest = async ({ request, requestId }) => {
     if(resource==='aureka_patient_index_invalid_rm')return failInvalidRm?await fulfill(requestId,{message:'Synthetic invalid RM failure'},503):await fulfill(requestId,[])
     if(resource==='aureka_quality_room_reporting_status')return await fulfill(requestId,[{room_id:1,month:10,total:4,latest_report_at:'2026-10-15T00:00:00Z',latest_period:'2026-10-01'}])
     if(resource==='aureka_pic_performance_dashboard')return await fulfill(requestId,{role:testRole,window_days:body.p_days,generated_at:'2026-11-28T00:00:00Z',rows:[{user_id:uid,pic_name:'PIC Sintetis',email:user.email,room_id:1,room_name:rooms[0].name,records_total:12,records_window:4,records_draft:1,records_ready:2,records_validated:9,records_archived:0,last_created_at:'2026-11-27T00:00:00Z',last_record_date:'2026-11-27',last_status:'validated'}]})
-    if(resource==='aureka_gov_program_list')return await fulfill(requestId,{role:testRole,can_manage:testRole==='ADMIN',can_evaluate:testRole==='ADMIN',recommendations:[{id:'rec-fixture',code:'UI-REC',source:'audit',issued_by_level:'DIREKTUR',title:'Rekomendasi sintetis',description:'Uji UI',priority:'sedang',program_year:body.p_year,given_at:'2026-11-01',status:'aktif'}],actions:[{id:'act-fixture',recommendation_id:'rec-fixture',title:'RTL sintetis',description:'Uji UI',responsible_level:'UNIT',assigned_room_id:1,room_name:rooms[0].name,due_date:'2026-12-30',status:'berjalan',improvement_method:'PDSA',cycle_plan:'Plan fixture',cycle_do:'Do fixture',cycle_study_check:'Study fixture',cycle_act:'Act fixture',last_evaluation:null}]})
+    if(resource==='aureka_gov_program_activity_list')return await fulfill(requestId,{activities:[{id:'activity-fixture',program_year:body.p_year,title:'Kegiatan sintetis',description:'Uji UI',expected_output:'Output uji',owner_room_id:1,responsible_person:'PIC Uji',start_date:body.p_year+'-01-01',end_date:body.p_year+'-03-01',status:'in_progress',progress_percent:30}]})
+    if(resource==='aureka_gov_program_list')return await fulfill(requestId,{priority_areas:[{id:'priority-fixture',program_year:body.p_year,code:'AP-UI',title:'Area sintetis',problem_statement:'Masalah uji',rationale:'Dasar uji',target_outcome:'Sasaran uji',priority:'tinggi',owner_room_id:1,responsible_person:'PIC Uji',due_date:body.p_year+'-12-01',status:'berjalan'}],role:testRole,can_manage:testRole==='ADMIN',can_evaluate:testRole==='ADMIN',recommendations:[{id:'rec-fixture',code:'UI-REC',source:'audit',issued_by_level:'DIREKTUR',title:'Rekomendasi sintetis',description:'Uji UI',priority:'sedang',program_year:body.p_year,given_at:'2026-11-01',status:'aktif'}],actions:[{id:'act-fixture',recommendation_id:'rec-fixture',title:'RTL sintetis',description:'Uji UI',responsible_level:'UNIT',assigned_room_id:1,room_name:rooms[0].name,due_date:'2026-12-30',status:'berjalan',improvement_method:'PDSA',cycle_plan:'Plan fixture',cycle_do:'Do fixture',cycle_study_check:'Study fixture',cycle_act:'Act fixture',last_evaluation:null}]})
     if(resource==='aureka_gov_audit_log')return await fulfill(requestId,[{id:1,actor_name:'Auditor sintetis',actor_role:'ADMIN',action:'update',object_type:'recommendation',object_id:'rec-fixture',detail:{test:'fixture'},created_at:'2026-11-28T00:00:00Z'}])
     if(resource==='quality_reconciliation_list_v2')return await fulfill(requestId,{profile_year:body.p_profile_year,response_groups:[{room_id:1,room_name:rooms[0].name,profile_year:2026,indicator_id:profiles[0].id,indicator_code:'1.1',indicator_title:'Respon Komplain',source_label:'Sesuai',source_code:'1',mapping_status:'pending',affected_count:3,auto_fixable:true,suggested_target_label:'Sesuai',suggested_target_code:1,options:[{label:'Sesuai',code:1}]}],warning_groups:[],recent_audit:[],summary:{response_group_count:1,response_record_count:3,auto_fixable_group_count:1,auto_fixable_record_count:3,warning_group_count:0,warning_record_count:0}})
     if(resource==='list_assignable_staff')return await fulfill(requestId,Number(body.p_room_id)===1?staff.map(r=>({...r,already_locked_here:true})):[])
@@ -724,7 +725,7 @@ try {
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
-  await check('Shared data-first surfaces keep real rows and on-demand summaries across seven domains', async () => {
+  await check('Shared data-first surfaces keep real rows and on-demand summaries across nine domains', async () => {
     await enterArctic()
     const views=[
       ['#indikator-mutu/monitoring','.hlReportingPanel','.hlReportingTable','Informasi dan Pengaduan'],
@@ -733,6 +734,8 @@ try {
       ['#program/recommendations','.govWorkspace','.govRecList','RTL sintetis'],
       ['#indikator-mutu/spo','.spoWorkspace','.rmTable','SPO Sintetis'],
       ['#sumber-daya-manusia/team','.staffTeam','.rmTable','Tenaga Uji Antarmuka'],
+      ['#sekretariat/program-kerja/area-prioritas','.annualProgramWorkspace','.rmTable','Area sintetis'],
+      ['#sekretariat/program-kerja/timeline','.annualProgramWorkspace','.rmTable','Kegiatan sintetis'],
       ['#pengaturan/audit-log','.govWorkspace','.rmTable','Auditor sintetis'],
     ]
     for(const [hash,root,table,expected] of views){

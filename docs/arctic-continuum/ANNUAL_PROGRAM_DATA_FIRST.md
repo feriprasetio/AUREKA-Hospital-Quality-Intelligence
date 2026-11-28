@@ -1,0 +1,2 @@
+# Annual program data-first
+S071 and S073 adopt the shared register with existing editor actions. Timeline keeps the existing Gantt as an on-demand view. Separate scope-aware loads reject stale responses, distinguish malformed/failed responses from empty lists and expose retry. Main overview retains its visual summary. Audit log also handles rejected requests and invalid payloads without treating them as empty. No database, permission or formula changes. No claim of complete runtime acceptance.

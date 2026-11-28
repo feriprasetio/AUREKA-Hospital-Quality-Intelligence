@@ -31,11 +31,14 @@ export default function AuditLogWorkspace({dataFirst=false}:{dataFirst?:boolean}
     const isCurrent=beginLoad()
     if(!isCurrent)return
     setLoading(true); setError('');setRows([])
-    const { data, error: e } = await aurekaSupabase.rpc('aureka_gov_audit_log', { p_limit: 500, p_object_type: type || null })
-    if(!isCurrent())return
-    if (e) setError(/function .* does not exist|Could not find the function/i.test(e.message) ? 'Audit Log aktif setelah Super Admin menjalankan migrasi 20261112100000_blueprint_program_regulation_audit.sql di Supabase.' : toUserFacingError(e, { fallback: 'Audit log belum dapat dimuat.' }))
-    else setRows((data as Row[]) || [])
-    setLoadedType(type);setLoading(false)
+    try{
+      const { data, error: e } = await aurekaSupabase.rpc('aureka_gov_audit_log', { p_limit: 500, p_object_type: type || null })
+      if(!isCurrent())return
+      if(e)throw e
+      if(!Array.isArray(data))throw new Error('Hasil audit belum lengkap.')
+      setRows(data as Row[])
+    }catch(cause){if(isCurrent())setError(toUserFacingError(cause,{fallback:'Audit log belum dapat dimuat.'}))}
+    finally{if(isCurrent()){setLoadedType(type);setLoading(false)}}
   }, [type,beginLoad])
   useEffect(() => { void load() }, [load])
   const display:readonly ReadTableColumn<Row>[]=[
