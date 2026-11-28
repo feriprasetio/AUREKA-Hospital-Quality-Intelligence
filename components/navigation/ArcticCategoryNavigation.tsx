@@ -3,6 +3,9 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { AurekaNavigationGroup } from '@/lib/aureka/module-registry'
 import ArcticQuickNavigation from './ArcticQuickNavigation'
+import { pinContinuumWorkspace, resolveContinuumPin, WORKSPACE_PIN_LIMIT, type ContinuumWorkspace } from '@/lib/aureka/continuum-workspace'
+
+import { CONTINUUM_SESSION_KEY, continuumScopeDigest, allowedContinuumPins, encodeContinuumSession, decodeContinuumSession, clearContinuumSession, moveContinuumPin } from '@/lib/aureka/continuum-session'
 
 type Destination = AurekaNavigationGroup['items'][number]
 // Display abbreviations only; canonical names, IDs, order and role filtering
@@ -20,19 +23,80 @@ type Props = {
   isActive: (item: Destination) => boolean
   onSelect: (category: string, item: Destination) => void
   onExit: () => void
+  previewEnabled: boolean
+  onTogglePreview: (enabled: boolean) => void
   onLogout: () => void
   contextKey: string
+  currentWorkspace: ContinuumWorkspace|null
+  onOpenWorkspace: (destination:ContinuumWorkspace)=>boolean
+  storageScope: string|null
+  canOpenWorkspace: (destination:ContinuumWorkspace)=>boolean
 }
 
 // Only presentation: consume the existing filtered navigation and dispatch,
 // never derive permissions or routes independently of HomeClient.
-export default function ArcticCategoryNavigation({groups,activeCategoryId,isActive,onSelect,onExit,onLogout,contextKey}:Props) {
+export default function ArcticCategoryNavigation({groups,activeCategoryId,isActive,onSelect,onExit,onLogout,contextKey,previewEnabled,onTogglePreview,currentWorkspace,onOpenWorkspace,storageScope,canOpenWorkspace}:Props) {
   const id=useId()
   const root=useRef<HTMLElement>(null)
   const trigger=useRef<HTMLButtonElement|null>(null)
   const [open,setOpen]=useState<string|null>(null)
+  // Explicit opt-in; the component key isolates account, role, scope and permissions.
+  const [pins,setPins]=useState<string[]>([])
+  const [pinNotice,setPinNotice]=useState('')
+  const [scopeDigest,setScopeDigest]=useState<string|null>(null)
+  const [restoreCandidate,setRestoreCandidate]=useState<string[]|null>(null)
+  const [remember,setRemember]=useState(false)
+  const [focusMode,setFocusMode]=useState(false)
+  const authRef=useRef(canOpenWorkspace)
+  authRef.current=canOpenWorkspace
+  const focusExit=useRef<HTMLButtonElement>(null)
+  const focusReturn=useRef(false)
+  useEffect(()=>{
+    if(!previewEnabled){setPins([]);setPinNotice('');setFocusMode(false);setRemember(false);setRestoreCandidate(null);setScopeDigest(null);return}
+    if(!storageScope)return
+    let cancelled=false
+    void continuumScopeDigest(storageScope).then(digest=>{
+      if(cancelled||!digest)return
+      setScopeDigest(digest)
+      try{
+        const raw=sessionStorage.getItem(CONTINUUM_SESSION_KEY)
+        const restored=decodeContinuumSession(raw,digest,authRef.current)
+        if(restored===null){if(raw)clearContinuumSession();return}
+        if(restored.length)setRestoreCandidate(restored)
+      }catch{}
+    })
+    return()=>{cancelled=true}
+  },[previewEnabled,storageScope])
+  const savePins=(next:string[])=>{
+    const safe=allowedContinuumPins(next,canOpenWorkspace)
+    setPins(safe)
+    if(remember&&scopeDigest){
+      try{
+        const encoded=encodeContinuumSession(scopeDigest,safe,canOpenWorkspace)
+        if(encoded)sessionStorage.setItem(CONTINUUM_SESSION_KEY,encoded)
+      }catch{setRemember(false);setPinNotice('Penyimpanan sesi tidak tersedia.')}
+    }
+  }
+  const enableRemember=(next:string[])=>{
+    if(!scopeDigest)return
+    const safe=allowedContinuumPins(next,canOpenWorkspace)
+    try{
+      const encoded=encodeContinuumSession(scopeDigest,safe,canOpenWorkspace)
+      if(!encoded)return
+      sessionStorage.setItem(CONTINUUM_SESSION_KEY,encoded)
+      setPins(safe);setRemember(true);setRestoreCandidate(null);setPinNotice('Sematan sesi dapat dipulihkan setelah memuat ulang.')
+    }catch{setPinNotice('Penyimpanan sesi tidak tersedia.')}
+  }
+  useEffect(()=>{
+    if(!focusReturn.current)return
+    focusReturn.current=false
+    if(focusMode)focusExit.current?.focus()
+    else root.current?.querySelector<HTMLButtonElement>('.arcticActionsTrigger')?.focus()
+  },[focusMode])
+  const visiblePins=previewEnabled&&currentWorkspace?allowedContinuumPins(pins,canOpenWorkspace).map(resolveContinuumPin).filter((item):item is ContinuumWorkspace=>item!==null):[]
   const available=groups.filter(group=>group.items.length>0)
   const category=available.find(group=>group.id===open)
+  const actionsOpen=open==='actions'
   const current=available.find(group=>group.id===activeCategoryId)
   const close=(restore:boolean)=>{setOpen(null);if(restore)trigger.current?.focus()}
   useEffect(()=>{setOpen(null)},[contextKey])
@@ -57,20 +121,23 @@ export default function ArcticCategoryNavigation({groups,activeCategoryId,isActi
     return()=>{document.removeEventListener('pointerdown',pointer);document.removeEventListener('keydown',key)}
   },[open])
   return <nav ref={root} className="arcticCategoryNav" aria-label="Kategori utama AUREKA" onBlur={event=>{if(event.relatedTarget instanceof Node&&!event.currentTarget.contains(event.relatedTarget))setOpen(null)}}>
+    {focusMode&&previewEnabled?<div className="arcticFocusBar" data-arctic-focus="true"><span><strong>Mode fokus</strong> · {currentWorkspace?.label||current?.label||'Ruang kerja'}</span><button type="button" ref={focusExit} data-arctic-focus-exit onClick={()=>{focusReturn.current=true;setFocusMode(false)}}>Tampilkan navigasi</button></div>:<>
     <div className="arcticCategoryBar">
-      <button type="button" className="arcticCategoryMobile" aria-expanded={open!==null} aria-controls={open!==null?id:undefined} onClick={event=>{trigger.current=event.currentTarget;setOpen(value=>value===null?'all':null)}}>Kategori <span>{current?.label||'AUREKA'}</span> <span aria-hidden="true">⌄</span></button>
+      <button type="button" className="arcticCategoryMobile" aria-expanded={open!==null&&!actionsOpen} aria-controls={open!==null&&!actionsOpen?id:undefined} onClick={event=>{trigger.current=event.currentTarget;setOpen(value=>value===null||value==='actions'?'all':null)}}><span className="arcticMobileCaption">Kategori</span><strong>{current?.label||'AUREKA'}</strong><span aria-hidden="true">⌄</span></button>
       <div className="arcticCategoryStrip">
-        {available.map(group=><button key={group.id} type="button" data-arctic-category={group.id} aria-current={group.id===activeCategoryId?'true':undefined} aria-expanded={open===group.id} aria-controls={open!==null?id:undefined} aria-label={group.label} title={group.label} onClick={event=>{trigger.current=event.currentTarget;setOpen(value=>value===group.id?null:group.id)}}><span className="arcticFullLabel">{group.label}</span><span className="arcticShortLabel" aria-hidden="true">{SHORT_LABELS[group.id]||group.label}</span><span aria-hidden="true">⌄</span></button>)}
+        {available.map(group=><button key={group.id} type="button" data-arctic-category={group.id} aria-current={group.id===activeCategoryId?'true':undefined} aria-expanded={open===group.id} aria-controls={open===group.id?id:undefined} aria-label={group.label} title={group.label} onClick={event=>{trigger.current=event.currentTarget;setOpen(value=>value===group.id?null:group.id)}}><span className="arcticFullLabel">{group.label}</span><span className="arcticShortLabel" aria-hidden="true">{SHORT_LABELS[group.id]||group.label}</span><span aria-hidden="true">⌄</span></button>)}
       </div>
       <ArcticQuickNavigation groups={available} contextKey={contextKey} onSelect={(group,item)=>{close(false);onSelect(group,item)}}/>
-      <button className="arcticLayoutExit" type="button" onClick={()=>{close(false);onExit()}} title="Kembali ke navigasi lama">Layout lama</button>
-      <button className="arcticLayoutExit" type="button" onClick={()=>{close(false);onLogout()}}>Keluar</button>
+      <button className="arcticLayoutExit arcticActionsTrigger" type="button" aria-label="Opsi navigasi dan akun" title="Opsi navigasi dan akun" aria-expanded={actionsOpen} aria-controls={actionsOpen?id:undefined} onClick={event=>{trigger.current=event.currentTarget;setOpen(value=>value==='actions'?null:'actions')}}>⋯</button>
     </div>
-    {open!==null&&<section id={id} className="arcticMegaMenu" aria-label={category?.label||'Pilih kategori'}>
-      <div className="arcticMegaHead"><strong tabIndex={-1}>{category?.label||'Pilih kategori'}</strong><button type="button" onClick={()=>close(true)} aria-label="Tutup menu kategori">×</button></div>
-      {category?<><button type="button" className="arcticBackCategories" onClick={()=>setOpen('all')}>← Semua kategori</button>
+    {visiblePins.length>0&&<div className="arcticWorkspacePins" role="group" aria-label="Tab halaman sematan sesi ini">{visiblePins.map(item=><div key={item.id} className="arcticWorkspacePin"><button type="button" data-arctic-pin={item.id} aria-current={currentWorkspace?.id===item.id?'page':undefined} onClick={()=>{if(currentWorkspace?.id===item.id)return;if(!onOpenWorkspace(item)){savePins(pins.filter(id=>id!==item.id));setPinNotice('Halaman tidak tersedia bagi akses saat ini.')}else setPinNotice('')}}>{item.label}</button><button type="button" className="arcticPinClose" aria-label={'Lepas sematan '+item.label} onClick={()=>{savePins(pins.filter(id=>id!==item.id));root.current?.querySelector<HTMLButtonElement>('.arcticActionsTrigger')?.focus()}}>×</button></div>)}</div>}
+    {pinNotice&&<p role="status" className="arcticPinNotice">{pinNotice}</p>}
+    {open!==null&&<section id={id} className="arcticMegaMenu" data-actions={actionsOpen||undefined} aria-label={actionsOpen?'Opsi navigasi dan akun':category?.label||'Pilih kategori'}>
+      <div className="arcticMegaHead"><strong tabIndex={-1}>{actionsOpen?'Opsi navigasi dan akun':category?.label||'Pilih kategori'}</strong><button type="button" onClick={()=>close(true)} aria-label="Tutup menu kategori">×</button></div>
+      {actionsOpen?<div className="arcticModuleGrid">{previewEnabled&&currentWorkspace&&<button type="button" data-arctic-pin-current disabled={pins.includes(currentWorkspace.id)||pins.length>=WORKSPACE_PIN_LIMIT} onClick={()=>{savePins(pinContinuumWorkspace(pins,currentWorkspace.id));setPinNotice('');close(true)}}><strong>{pins.includes(currentWorkspace.id)?'Halaman sudah disematkan':pins.length>=WORKSPACE_PIN_LIMIT?'Batas enam halaman tercapai':'Sematkan halaman aktif'}</strong><small>Shortcut sesi ini; formulir dan filter tidak disimpan.</small></button>}{previewEnabled&&<><button type="button" data-arctic-focus-enter onClick={()=>{close(false);focusReturn.current=true;setFocusMode(true)}}><strong>Mode fokus</strong><small>Sembunyikan kategori dan sematan. Kontrol akun dan halaman tetap tersedia.</small></button>{scopeDigest&&<button type="button" data-arctic-remember aria-pressed={remember} onClick={()=>{if(remember){clearContinuumSession();setRemember(false);setRestoreCandidate(null);setPinNotice('Penyimpanan sematan dinonaktifkan.')}else enableRemember(pins)}}><strong>{remember?'Hentikan pemulihan sematan':'Ingat sematan saat muat ulang'}</strong><small>Hanya ID halaman pada tab browser dan cakupan akses ini.</small></button>}{restoreCandidate&&<button type="button" data-arctic-restore onClick={()=>{enableRemember(restoreCandidate);close(true)}}><strong>Pulihkan {restoreCandidate.length} sematan</strong><small>Disaring ulang menurut kewenangan. Draft tidak dipulihkan.</small></button>}{currentWorkspace&&pins.includes(currentWorkspace.id)&&pins.length>1&&<><button type="button" data-arctic-pin-left disabled={pins.indexOf(currentWorkspace.id)===0} onClick={()=>savePins(moveContinuumPin(pins,currentWorkspace.id,-1))}><strong>Geser sematan aktif ke kiri</strong></button><button type="button" data-arctic-pin-right disabled={pins.indexOf(currentWorkspace.id)===pins.length-1} onClick={()=>savePins(moveContinuumPin(pins,currentWorkspace.id,1))}><strong>Geser sematan aktif ke kanan</strong></button></>}</>}<button type="button" data-arctic-data-preview aria-pressed={previewEnabled} onClick={()=>{close(true);onTogglePreview(!previewEnabled)}}><strong>{previewEnabled?'Nonaktifkan uji coba data-first':'Coba workspace data-first'}</strong><small>{previewEnabled?'Kembali ke tata letak data stabil':'Pilot Arctic Continuum; dapat dikembalikan kapan saja'}</small></button><button type="button" onClick={()=>{close(false);onExit()}}><strong>Layout lama</strong><small>Kembali ke navigasi sidebar</small></button><button type="button" onClick={()=>{close(false);onLogout()}}><strong>Keluar</strong><small>Keluar dari akun AUREKA</small></button></div>:category?<><button type="button" className="arcticBackCategories" onClick={()=>setOpen('all')}>← Semua kategori</button>
         <div className="arcticModuleGrid">{category.items.map(item=><button key={item.id} type="button" data-arctic-destination={item.id} aria-current={isActive(item)?'page':undefined} disabled={item.status==='planned'} onClick={()=>{close(true);onSelect(category.id,item)}}><strong>{item.label}</strong>{item.note&&<small>{item.note}</small>}{item.status==='planned'&&<small>Belum aktif</small>}</button>)}</div></>
-      :<div className="arcticModuleGrid">{available.map(group=><button key={group.id} type="button" onClick={()=>setOpen(group.id)}><strong>{group.label}</strong><small>{group.items.length} modul</small></button>)}</div>}
+      :<div className="arcticModuleGrid">{available.map(group=><button key={group.id} type="button" onClick={()=>setOpen(group.id)}><strong>{group.label}</strong><small>{group.items.length} modul{group.id===activeCategoryId?' · Kategori aktif':''}</small></button>)}</div>}
     </section>}
+    </>}
   </nav>
 }

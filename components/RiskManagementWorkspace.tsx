@@ -1,4 +1,8 @@
 'use client'
+
+import { GRID_PAGE_SIZES, normalizeGridPageSize, paginateGrid } from '@/lib/aureka/grid-pagination'
+import AurekaModal from '@/components/ui/AurekaModal'
+import RiskReviewSkill from '@/components/workspace/RiskReviewSkill'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
@@ -196,7 +200,7 @@ const roleLabel = (role: string | null) => ({
 type RiskTab = 'overview' | 'register' | 'mitigation' | 'connections' | 'fmea' | 'profile' | 'evaluation' | 'fmea-overview'
 
 export default function RiskManagementWorkspace({
-  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', activeTab, showTabs = true, onTabChange, lockRoomScope = false, onAskNara,
+  supabase, rooms, initialRoomId, role, userId, userName, focus, initialTab = 'overview', activeTab, showTabs = true, onTabChange, lockRoomScope = false, onAskNara, dataFirst = false,
 }: {
   supabase: SupabaseClient
   rooms: Room[]
@@ -209,6 +213,7 @@ export default function RiskManagementWorkspace({
   initialTab?: RiskTab
   activeTab?: RiskTab
   showTabs?: boolean
+  dataFirst?: boolean
   onTabChange?: (tab: RiskTab) => void
   onAskNara?: (prompt: string, pageContext: string) => void
 }) {
@@ -227,6 +232,8 @@ export default function RiskManagementWorkspace({
   const [fmeas, setFmeas] = useState<FmeaRow[]>([])
   const [events, setEvents] = useState<WorkflowEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [reviewSnapshot,setReviewSnapshot]=useState<{scope:string;at:string}|null>(null)
+  const loadSequence=useRef(0)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -240,6 +247,8 @@ export default function RiskManagementWorkspace({
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')); setPage(0) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [unitFilter, setUnitFilter] = useState('all')
   const [registerListOpen, setRegisterListOpen] = useState(tab === 'register')
+  const [registerMapOpen, setRegisterMapOpen] = useState(false)
+  useEffect(() => { setRegisterMapOpen(false) }, [tab, dataFirst])
   useEffect(() => { if (tab === 'register') setRegisterListOpen(true) }, [tab])
   useEffect(() => { if (tab !== 'register') setRegisterListOpen(false) }, [tab])
   const [levelFilter, setLevelFilter] = useState('all')
@@ -335,8 +344,11 @@ export default function RiskManagementWorkspace({
       setSelectedPlanId(current => incomingPlans.some(p => p.id === current) ? current : (incomingPlans[0]?.id || ''))
     }
   }, [currentRoom?.name, scopedToUnit, belongsToMyUnit, initialRoomId])
+  const riskScopeKey=JSON.stringify([userId,role,scopedToUnit,initialRoomId,currentRoom?.name])
   const loadData = useCallback(async () => {
-    const cacheKey = userId + '|' + (scopedToUnit ? 'unit:' + String(initialRoomId) : 'all')
+    const sequence=++loadSequence.current
+    setReviewSnapshot(null)
+    const cacheKey = riskScopeKey
     const cached = rmQueryCache.get(cacheKey)
     if (cached) { applyQueries(cached); setLoading(false) }
     else setLoading(true)
@@ -348,13 +360,14 @@ export default function RiskManagementWorkspace({
       fetchAllPages((from, to) => db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).order('id', { ascending: true }).range(from, to)),
       fetchAllPages((from, to) => db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
     ])
-    if (!queries.some(q => q.error)) rmQueryCache.set(cacheKey, queries)
+    if(sequence!==loadSequence.current)return
+    if (!queries.some(q => q.error)) {rmQueryCache.set(cacheKey, queries);setReviewSnapshot({scope:riskScopeKey,at:new Date().toISOString()})}
     applyQueries(queries)
     setLoading(false)
-  }, [db, scopedToUnit, initialRoomId, applyQueries, userId])
+  }, [db, riskScopeKey, applyQueries])
 
 
-  useEffect(() => { void loadData() }, [loadData])
+  useEffect(() => { void loadData();return()=>{loadSequence.current++} }, [loadData])
   useEffect(() => {
     setRiskForm(current => current.unit_id ? current : { ...current, unit_id: initialRoomId == null ? '' : String(initialRoomId) })
     setFmeaForm(current => ({ ...current, unit_name: current.unit_name || currentRoom?.name || '' }))
@@ -370,7 +383,9 @@ export default function RiskManagementWorkspace({
       (statusFilter === 'all' || risk.status === statusFilter) &&
       (!matrixFilter || (risk.likelihood === matrixFilter.likelihood && risk.impact === matrixFilter.impact))
   }), [risks, search, unitFilter, levelFilter, categoryFilter, statusFilter, matrixFilter])
-  const pageSize = 15
+  const [arcticPageSize, setArcticPageSize] = useState(25)
+  const pageSize = dataFirst ? arcticPageSize : 15
+  useEffect(() => { setPage(0) }, [dataFirst])
   // Basis hitungan chip level: semua filter kecuali level.
   const levelBaseRisks = useMemo(() => risks.filter(risk => {
     const q = search.trim().toLowerCase()
@@ -414,8 +429,9 @@ export default function RiskManagementWorkspace({
   }, [filteredRisks, sortBy])
   const toggleSort = (key: 'risk' | 'unit' | 'score' | 'level' | 'status') => { setSortBy(cur => cur?.key === key ? (cur.dir === 1 ? { key, dir: -1 } : null) : { key, dir: key === 'score' || key === 'level' ? -1 : 1 }); setPage(0) }
   const sortHead = (key: 'risk' | 'unit' | 'score' | 'level' | 'status', label: string) => <th aria-sort={sortBy?.key === key ? (sortBy.dir === 1 ? 'ascending' : 'descending') : 'none'}><button type="button" className={'rmSortBtn' + (sortBy?.key === key ? ' on' : '')} onClick={() => toggleSort(key)}>{label}<span aria-hidden="true">{sortBy?.key === key ? (sortBy.dir === 1 ? '▲' : '▼') : '↕'}</span></button></th>
-  const pageCount = Math.max(1, Math.ceil(filteredRisks.length / pageSize))
-  const pageRisks = sortedRisks.slice(page * pageSize, (page + 1) * pageSize)
+  const gridPage = paginateGrid(sortedRisks, page + 1, pageSize)
+  const pageCount = gridPage.pages
+  const pageRisks = gridPage.rows
   useEffect(() => { if (page >= pageCount) setPage(Math.max(0, pageCount - 1)) }, [page, pageCount])
   useEffect(() => {
     const id = pendingFocusRisk.current
@@ -426,7 +442,7 @@ export default function RiskManagementWorkspace({
     if (page !== targetPage) { setPage(targetPage); return }
     pendingFocusRisk.current = ''
     window.setTimeout(() => document.querySelector(`[data-risk-id="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120)
-  }, [sortedRisks, page])
+  }, [sortedRisks, page, pageSize])
 
   const counts = useMemo(() => ({
     total: risks.length,
@@ -570,27 +586,76 @@ export default function RiskManagementWorkspace({
       setError('Risiko belum tersimpan. Periksa hak akses, koneksi, dan kelengkapan data. ' + toUserFacingError(e, { fallback: 'Risiko belum dapat disimpan. Periksa koneksi, hak akses, dan kelengkapan data.' }))
     } finally { setSaving(false) }
   }
-  // Ubah status banyak risiko sekaligus (hanya risiko yang boleh diubah akun ini).
   const [bulkStatus, setBulkStatus] = useState('')
+  const [bulkReview, setBulkReview] = useState<{ status: string; rows: RiskRow[]; skipped: number } | null>(null)
+  useEffect(() => { setBulkReview(null) }, [tab, userId, role, initialRoomId, lockRoomScope])
   // Form risiko di ponsel dipecah 3 langkah (desktop tetap satu halaman).
   const [riskStep, setRiskStep] = useState(1)
   useEffect(() => { if (riskEditorOpen) setRiskStep(1) }, [riskEditorOpen])
-  const applyBulkStatus = async () => {
+
+  const reviewBulkStatus = () => {
     if (saving || !bulkStatus) return
-    const ids = risks.filter(r => selectedRiskIds.includes(r.id) && canEditRisk(r) && r.status !== bulkStatus).map(r => r.id)
-    if (!ids.length) { setMessage('Tidak ada risiko terpilih yang perlu diubah atau boleh diubah akun ini.'); return }
-    setSaving(true); clearMessages()
+    const selected = new Set(selectedRiskIds)
+    const rows = filteredRisks.filter(r => selected.has(r.id) && canEditRisk(r) && r.status !== bulkStatus)
+    if (!rows.length) {
+      setMessage('Tidak ada risiko pada hasil filter yang perlu diubah dan dapat diedit.')
+      return
+    }
+    clearMessages()
+    setBulkReview({ status: bulkStatus, rows, skipped: selected.size - rows.length })
+  }
+
+  const applyBulkStatus = async () => {
+    if (saving || !bulkReview) return
+    const currentRows = new Map(filteredRisks.map(row => [row.id, row]))
+    if (bulkReview.rows.some(before => {
+      const current = currentRows.get(before.id)
+      return !current || !canEditRisk(current) || current.status !== before.status
+    })) {
+      setBulkReview(null)
+      setError('Cakupan atau status risiko berubah. Tinjau ulang pilihan sebelum menyimpan.')
+      return
+    }
+
+    setSaving(true)
+    clearMessages()
+    const groups = new Map<RiskStatus, string[]>()
+    for (const row of bulkReview.rows) {
+      const group = groups.get(row.status) ?? []
+      group.push(row.id)
+      groups.set(row.status, group)
+    }
+    let outcomeError = ''
+    let confirmed = 0
     try {
-      for (let i = 0; i < ids.length; i += 100) {
-        const result = await db.from('risk_register').update({ status: bulkStatus }).in('id', ids.slice(i, i + 100))
-        if (result.error) throw result.error
+      for (const [previous, ids] of groups) {
+        for (let i = 0; i < ids.length; i += 100) {
+          const result = await db.from('risk_register').update({ status: bulkReview.status })
+            .in('id', ids.slice(i, i + 100)).eq('status', previous).select('id')
+          if (result.error) throw result.error
+          confirmed += result.data?.length ?? 0
+        }
       }
-      setMessage(ids.length + ' risiko diubah menjadi status ' + bulkStatus + '.')
-      setSelectedRiskIds([]); setBulkStatus('')
-      await loadData()
-    } catch (e) {
-      setError(toUserFacingError(e, { fallback: 'Status risiko belum dapat diubah. Periksa koneksi dan hak akses.' }))
-    } finally { setSaving(false) }
+      if (confirmed < bulkReview.rows.length) {
+        outcomeError = confirmed + ' dari ' + bulkReview.rows.length + ' perubahan terkonfirmasi. Status atau akses sebagian risiko mungkin sudah berubah.'
+      } else {
+        setMessage(confirmed + ' risiko diubah menjadi status ' + bulkReview.status + '.')
+      }
+    } catch {
+      outcomeError = confirmed + ' dari ' + bulkReview.rows.length + ' perubahan terkonfirmasi. Hasil sisanya belum dapat dipastikan. Periksa daftar sebelum mencoba lagi.'
+    } finally {
+      setBulkReview(null)
+      setSelectedRiskIds([])
+      setBulkStatus('')
+      try {
+        await loadData()
+      } catch {
+        setError('Daftar risiko belum dapat dimuat ulang.')
+      } finally {
+        if (outcomeError) setError(refreshError => [outcomeError, refreshError].filter(Boolean).join(' '))
+        setSaving(false)
+      }
+    }
   }
   const deleteRisk = async (id: string) => {
     setSaving(true); clearMessages()
@@ -826,6 +891,31 @@ export default function RiskManagementWorkspace({
     </div>
   )
 
+  const riskMap = tab === 'register' && (dataFirst ? registerMapOpen : !registerListOpen) && (
+    <LiquidGlass className="rmPanel rmMatrixLanding">
+      <div className="rmLandHead">
+        <div><span className="rmEyebrow">Pemetaan risiko · Matriks 5 × 5</span><h3>Peta Risiko Rumah Sakit</h3><p>Klik sel matriks, angka ringkasan, atau risiko teratas untuk menelusuri. Cakupan mengikuti hak akses akun.</p></div>
+        {!dataFirst && <button type="button" className="rmButton primary" onClick={() => openRegisterList()}>Lihat daftar lengkap <span aria-hidden="true">→</span></button>}
+      </div>
+      <div className="rmLandKpis" role="group" aria-label="Ringkasan risiko">
+        <button type="button" className="rmLandKpi" onClick={() => openRegisterList()}><span>Total risiko</span><b>{scopeRisks.length.toLocaleString('id-ID')}</b><small>{unitFilter === 'all' ? 'semua unit' : unitFilter}</small></button>
+        <button type="button" className="rmLandKpi very-high" onClick={() => openRegisterList({ level: 'Sangat Tinggi' })}><span>Sangat Tinggi</span><b>{scopeRisks.filter(r => r.risk_level === 'Sangat Tinggi').length.toLocaleString('id-ID')}</b><small>skor 20–25</small></button>
+        <button type="button" className="rmLandKpi high" onClick={() => openRegisterList({ level: 'Tinggi' })}><span>Tinggi</span><b>{scopeRisks.filter(r => r.risk_level === 'Tinggi').length.toLocaleString('id-ID')}</b><small>perlu pengendalian</small></button>
+        <button type="button" className="rmLandKpi open" onClick={() => openRegisterList({ status: 'Open' })}><span>Masih Open</span><b>{scopeRisks.filter(r => r.status === 'Open').length.toLocaleString('id-ID')}</b><small>belum ditangani</small></button>
+      </div>
+      <div className="rmLandGrid">
+        <div className="rmLandMatrix">{renderMatrix(true)}</div>
+        <aside className="rmTopRisks" aria-label="Risiko skor tertinggi">
+          <h4>Skor tertinggi</h4>
+          {topRisks.length ? <ol>{topRisks.map(r => <li key={r.id}><button type="button" onClick={() => { setSelectedRiskId(r.id); setRegisterDetailExpanded(true); clearMessages() }}>
+            <span className={'rmTopScore ' + scoreBand(r.risk_level)}>{r.risk_score}</span>
+            <span className="rmTopText"><b>{r.risk_event}</b><small>{r.unit_name || '-'}{r.is_priority ? ' · Prioritas #' + (r.priority_rank ?? '-') : ''}</small></span>
+          </button></li>)}</ol> : <p className="rmEmptySmall">Belum ada risiko pada cakupan ini.</p>}
+        </aside>
+      </div>
+    </LiquidGlass>
+  )
+
   return (
     <div className="rmWorkspace">
       <WorkspaceModuleHeader
@@ -838,7 +928,7 @@ export default function RiskManagementWorkspace({
         }[tab]}
         loading={loading}
         unavailable={unitMissing || error.startsWith('Data Manajemen Risiko')}
-        metrics={tab === 'register' ? [{ label: 'Risiko dalam hasil filter', value: filteredRisks.length }]
+        metrics={tab === 'register' && !dataFirst ? [{ label: 'Risiko dalam hasil filter', value: filteredRisks.length }]
           : tab === 'connections' ? [{ label: 'Relasi pada risiko terpilih', value: selectedRiskId ? activeLinks.length : null }]
           : undefined}
         actions={tab === 'overview' && <div className="rmHeroActions">
@@ -925,31 +1015,10 @@ export default function RiskManagementWorkspace({
       </>}
 
       {!loading && !error.startsWith('Data Manajemen Risiko') && tab === 'register' && <>
-        {!registerListOpen && <LiquidGlass className="rmPanel rmMatrixLanding">
-          <div className="rmLandHead">
-            <div><span className="rmEyebrow">Pemetaan risiko · Matriks 5 × 5</span><h3>Peta Risiko Rumah Sakit</h3><p>Klik sel matriks, angka ringkasan, atau risiko teratas untuk menelusuri. Cakupan mengikuti hak akses akun.</p></div>
-            <button type="button" className="rmButton primary" onClick={() => openRegisterList()}>Lihat daftar lengkap <span aria-hidden="true">→</span></button>
-          </div>
-          <div className="rmLandKpis" role="group" aria-label="Ringkasan risiko">
-            <button type="button" className="rmLandKpi" onClick={() => openRegisterList()}><span>Total risiko</span><b>{scopeRisks.length.toLocaleString('id-ID')}</b><small>{unitFilter === 'all' ? 'semua unit' : unitFilter}</small></button>
-            <button type="button" className="rmLandKpi very-high" onClick={() => openRegisterList({ level: 'Sangat Tinggi' })}><span>Sangat Tinggi</span><b>{scopeRisks.filter(r => r.risk_level === 'Sangat Tinggi').length.toLocaleString('id-ID')}</b><small>skor 20–25</small></button>
-            <button type="button" className="rmLandKpi high" onClick={() => openRegisterList({ level: 'Tinggi' })}><span>Tinggi</span><b>{scopeRisks.filter(r => r.risk_level === 'Tinggi').length.toLocaleString('id-ID')}</b><small>perlu pengendalian</small></button>
-            <button type="button" className="rmLandKpi open" onClick={() => openRegisterList({ status: 'Open' })}><span>Masih Open</span><b>{scopeRisks.filter(r => r.status === 'Open').length.toLocaleString('id-ID')}</b><small>belum ditangani</small></button>
-          </div>
-          <div className="rmLandGrid">
-            <div className="rmLandMatrix">{renderMatrix(true)}</div>
-            <aside className="rmTopRisks" aria-label="Risiko skor tertinggi">
-              <h4>Skor tertinggi</h4>
-              {topRisks.length ? <ol>{topRisks.map(r => <li key={r.id}><button type="button" onClick={() => { setSelectedRiskId(r.id); setRegisterDetailExpanded(true); clearMessages() }}>
-                <span className={'rmTopScore ' + scoreBand(r.risk_level)}>{r.risk_score}</span>
-                <span className="rmTopText"><b>{r.risk_event}</b><small>{r.unit_name || '-'}{r.is_priority ? ' · Prioritas #' + (r.priority_rank ?? '-') : ''}</small></span>
-              </button></li>)}</ol> : <p className="rmEmptySmall">Belum ada risiko pada cakupan ini.</p>}
-            </aside>
-          </div>
-        </LiquidGlass>}
-        {registerListOpen && <LiquidGlass className="rmPanel">
+        {!dataFirst && !registerListOpen && riskMap}
+        {(dataFirst || registerListOpen) && <LiquidGlass className="rmPanel">
           <div className="rmListHead">
-            <button type="button" className="rmBackLink" onClick={() => { setRegisterListOpen(false); setMatrixFilter(null) }}>← Peta risiko</button>
+            {!dataFirst && <button type="button" className="rmBackLink" onClick={() => { setRegisterListOpen(false); setMatrixFilter(null) }}>← Peta risiko</button>}
             <div className="rmLevelChips" role="group" aria-label="Saring level risiko">
               {(['all', 'Sangat Tinggi', 'Tinggi', 'Sedang', 'Rendah', 'Sangat Rendah'] as const).map(lv => {
                 const n = lv === 'all' ? levelBaseRisks.length : levelBaseRisks.filter(r => r.risk_level === lv).length
@@ -967,8 +1036,8 @@ export default function RiskManagementWorkspace({
             <div className="rmActions rmBarActions"><button type="button" className="rmButton subtle" onClick={exportCsv}>Ekspor CSV</button><button type="button" className="rmButton primary" onClick={openNewRisk} disabled={unitMissing}>＋ Tambah risiko</button></div>
           </div>
           {matrixFilter && <div className="rmSelectionBar"><div><b>Filter matriks aktif · P{matrixFilter.likelihood} × D{matrixFilter.impact}</b><span>Register hanya menampilkan risiko pada kombinasi ini.</span></div><button type="button" className="rmButton subtle" onClick={() => setMatrixFilter(null)}>Hapus filter matriks</button></div>}
-          {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><div className="rmBulkStatus"><select aria-label="Ubah status risiko terpilih" value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}><option value="">Ubah status ke…</option>{['Open', 'In Progress', 'Controlled', 'Accepted'].map(x => <option key={x} value={x}>{x === 'Open' ? 'Open (belum ditangani)' : x === 'In Progress' ? 'In Progress (sedang ditangani)' : x === 'Controlled' ? 'Controlled (terkendali)' : 'Accepted (diterima)'}</option>)}</select><button type="button" className="rmButton" disabled={!bulkStatus || saving} onClick={() => void applyBulkStatus()}>{saving ? 'Menyimpan…' : 'Terapkan'}</button></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
-          <WorkspaceTableViewport label="Register dan pengendalian risiko" className="rmTableWrap"><table className="rmTable" data-ak-sort="off" data-ak-cards="off"><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th>{sortHead('risk', 'Risiko')}{sortHead('unit', 'Unit')}{sortHead('score', 'Skor & level')}{sortHead('status', 'Status')}<th>Aksi</th></tr></thead>
+          {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><div className="rmBulkStatus"><select aria-label="Ubah status risiko terpilih" value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}><option value="">Ubah status ke…</option>{['Open', 'In Progress', 'Controlled', 'Accepted'].map(x => <option key={x} value={x}>{x === 'Open' ? 'Open (belum ditangani)' : x === 'In Progress' ? 'In Progress (sedang ditangani)' : x === 'Controlled' ? 'Controlled (terkendali)' : 'Accepted (diterima)'}</option>)}</select><button type="button" className="rmButton" disabled={!bulkStatus || saving} onClick={reviewBulkStatus}>Tinjau perubahan</button></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
+          <WorkspaceTableViewport label="Register dan pengendalian risiko" className="rmTableWrap"><table className="rmTable" data-ak-sort="off" data-ak-cards="off" data-arctic-risk-table={dataFirst || undefined}><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th>{sortHead('risk', 'Risiko')}{sortHead('unit', 'Unit')}{sortHead('score', 'Skor & level')}{sortHead('status', 'Status')}<th>Aksi</th></tr></thead>
               <tbody>{pageRisks.map(risk => <tr key={risk.id} data-risk-id={risk.id} className={selectedRiskId === risk.id ? 'selected' : ''}>
                 <td><input type="checkbox" checked={selectedRiskIds.includes(risk.id)} aria-label={'Pilih risiko: ' + risk.risk_event} onChange={e => setSelectedRiskIds(current => e.target.checked ? [...current, risk.id] : current.filter(id => id !== risk.id))} /></td>
                 <td><button type="button" className="rmRiskName" onClick={() => { setSelectedRiskId(risk.id); setRegisterDetailExpanded(true); clearMessages(); }}><b>{risk.risk_event}</b><small title={risk.source_sheet ? 'Sumber: ' + risk.source_sheet + (risk.source_row_number ? ' baris ' + risk.source_row_number : '') : undefined}>{risk.category}{risk.is_priority ? <em className="rmPrio">Prioritas #{risk.priority_rank ?? '-'}</em> : null}</small></button></td>
@@ -977,8 +1046,31 @@ export default function RiskManagementWorkspace({
               </tr>)}
                 {!pageRisks.length && <tr><td colSpan={6}><div className="rmEmptySmall">Tidak ada risiko yang sesuai filter. Ubah filter atau tambahkan risiko baru.</div></td></tr>}
               </tbody></table></WorkspaceTableViewport>
-          <div className="rmTableFooter"><span>Menampilkan {filteredRisks.length ? page * pageSize + 1 : 0}–{Math.min((page + 1) * pageSize, filteredRisks.length)} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span><div className="rmActions"><button type="button" className="rmButton subtle" disabled={page === 0} onClick={() => setPage(v => Math.max(0, v - 1))}>← Sebelumnya</button><span className="rmPage">Halaman {page + 1} / {pageCount}</span><button type="button" className="rmButton subtle" disabled={page + 1 >= pageCount} onClick={() => setPage(v => Math.min(pageCount - 1, v + 1))}>Berikutnya →</button></div></div>
+          <div className="rmTableFooter"><span>Menampilkan {gridPage.start}–{gridPage.end} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span>{dataFirst && <label className="rmArcticGridControls">Baris per halaman <select aria-label="Baris per halaman register risiko" value={arcticPageSize} onChange={e => { setArcticPageSize(normalizeGridPageSize(Number(e.target.value))); setPage(0) }}>{GRID_PAGE_SIZES.map(size => <option key={size} value={size}>{size}</option>)}</select></label>}{dataFirst&&<RiskReviewSkill key={riskScopeKey} rows={filteredRisks} scope={(unitFilter==='all'?'Semua unit yang tersedia':unitFilter||'Unit belum dipilih')+' · level '+levelFilter+' · kategori '+categoryFilter+' · status '+statusFilter+(search.trim()?' · pencarian aktif':'')+(matrixFilter?' · matriks P'+matrixFilter.likelihood+' D'+matrixFilter.impact:'')} scopeKey={JSON.stringify([riskScopeKey,unitFilter,levelFilter,categoryFilter,statusFilter,search,matrixFilter])} refreshedAt={reviewSnapshot?.scope===riskScopeKey?reviewSnapshot.at:null} ready={Boolean(reviewSnapshot?.scope===riskScopeKey&&!loading&&!unitMissing&&!saving)} onRefresh={()=>void loadData()} score={riskScore} level={levelFor}/>}<div className="rmActions"><button type="button" className="rmButton subtle" disabled={page === 0} onClick={() => setPage(v => Math.max(0, v - 1))}>← Sebelumnya</button><span className="rmPage">Halaman {page + 1} / {pageCount}</span><button type="button" className="rmButton subtle" disabled={page + 1 >= pageCount} onClick={() => setPage(v => Math.min(pageCount - 1, v + 1))}>Berikutnya →</button></div></div>
         </LiquidGlass>}
+
+        {dataFirst && <details className="arcticDomainSummary" id="risk-register-map" open={registerMapOpen} onToggle={event => setRegisterMapOpen(event.currentTarget.open)}>
+          <summary>Peta risiko dan ringkasan</summary>
+          {riskMap}
+        </details>}
+
+        {bulkReview && <AurekaModal
+          open
+          title="Tinjau perubahan status risiko"
+          subtitle={bulkReview.rows.length + ' risiko akan diubah ke ' + bulkReview.status + '.'}
+          closeDisabled={saving}
+          closeOnBackdrop={false}
+          onClose={() => setBulkReview(null)}
+          footer={<>
+            <button type="button" className="akBtn akBtnGhost" data-dialog-autofocus disabled={saving} onClick={() => setBulkReview(null)}>Batal</button>
+            <button type="button" className="akBtn akBtnPrimary" disabled={saving} onClick={() => void applyBulkStatus()}>{saving ? 'Menyimpan…' : 'Konfirmasi perubahan'}</button>
+          </>}
+        >
+          {bulkReview.skipped > 0 && <p>{bulkReview.skipped} pilihan di luar hasil filter, berstatus sama, atau tidak dapat diedit.</p>}
+          <ul>{bulkReview.rows.map(row => <li key={row.id}>
+            <strong>{row.risk_event}</strong> · {row.unit_name || 'Unit tidak tercatat'} · {row.status} → {bulkReview.status}
+          </li>)}</ul>
+        </AurekaModal>}
 
         {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className={'rmPanel rmEditor rmStep' + riskStep}>
           <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit risiko' : 'Risiko baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>

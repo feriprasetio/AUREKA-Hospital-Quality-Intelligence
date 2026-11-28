@@ -15,6 +15,7 @@ type Props = {
   canViewAllRooms: boolean
   lockRoomScope?: boolean
   registryTab?: PatientRegistryTab
+  dataFirst?: boolean
   patternTab?: 'icd' | 'los' | 'readmisi'
   onRegistryTabChange?: (tab: PatientRegistryTab) => void
   onAskNara?: (prompt: string, pageContext: string) => void
@@ -33,6 +34,7 @@ export default function PatientRegistryWorkspace({
   canViewAllRooms,
   lockRoomScope = false,
   registryTab = 'overview',
+  dataFirst = false,
   onRegistryTabChange,
   patternTab = 'icd',
 }: Props) {
@@ -45,7 +47,7 @@ export default function PatientRegistryWorkspace({
           <WorkspaceModuleHeader title="Daftar Pasien" actions={
             <button type="button" className="prButton" onClick={() => onRegistryTabChange?.('overview')}>Kembali ke Direktori Pasien</button>
           } />
-          <PatientIndexTab isAdmin={isAdmin} rooms={rooms} />
+          <PatientIndexTab isAdmin={isAdmin} rooms={rooms} dataFirst={dataFirst} initialRoomId={initialRoomId} lockRoomScope={lockRoomScope} />
         </>
       ) : registryTab === 'patterns' || registryTab === 'analysis' ? (
         <PatientMedicalRecordsAnalytics

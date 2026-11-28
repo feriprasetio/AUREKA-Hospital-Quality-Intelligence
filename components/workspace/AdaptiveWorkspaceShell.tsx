@@ -2,12 +2,14 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { resolveAdaptiveWorkspace, type AdaptiveWorkspaceDensity } from '@/lib/aureka/adaptive-workspace'
+import type { ContinuumArchetype } from '@/lib/aureka/continuum-workspace'
 import { APPEARANCE_EVENT, APPEARANCE_KEY, readAppearancePreferences } from '@/lib/ui/appearance-preferences'
 
 type AdaptiveWorkspaceShellProps = {
   moduleId: string
   containerLabel: string
   userId?: string
+  continuumArchetype?: ContinuumArchetype
   children: ReactNode
 }
 
@@ -17,6 +19,7 @@ type AdaptiveWorkspaceShellProps = {
 export default function AdaptiveWorkspaceShell({
   moduleId,
   containerLabel,
+  continuumArchetype,
   children,
 }: AdaptiveWorkspaceShellProps) {
   const definition = resolveAdaptiveWorkspace(moduleId, containerLabel)
@@ -41,6 +44,7 @@ export default function AdaptiveWorkspaceShell({
       className="adaptiveWorkspaceShell"
       data-adaptive-workspace={definition.workspaceId}
       data-adaptive-layout={definition.layout.id}
+      data-continuum-archetype={continuumArchetype}
       data-adaptive-density={density}
       aria-label={definition.containerLabel}
     >

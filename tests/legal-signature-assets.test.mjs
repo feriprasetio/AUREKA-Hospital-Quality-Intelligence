@@ -13,13 +13,19 @@ test('Legal signature images are versioned, pending owner authorization, and lin
  has(sql,"aureka_system.attach_legal_signature_asset")
 })
 
-test('Transparent signature assets are immutable and verified by source image SHA-256',async()=>{
- const sql=await read('supabase/migrations/20261121091000_legal_signature_asset_eva_fix.sql')
- has(sql,'SIG-HOSPITAL-DIRECTOR')
- has(sql,'image/webp')
- has(sql,'1ef6d5d293a428b8d70317985bd8528016d64c34520566d2a0b7580f3f666fe7')
- const verify=await read('supabase/migrations/20261121090500_legal_signature_asset_visual_quality.sql')
- has(verify,'fbdcb1291bf4e214777550f78db3ba77e5720b7f8490175f8a7399c2bdb8152d')
+test('public migration history contains no embedded signature image payload and replacements stay private',async()=>{
+ for(const path of ['20261121090000_legal_signature_assets_and_qr.sql','20261121090500_legal_signature_asset_visual_quality.sql','20261121091000_legal_signature_asset_eva_fix.sql']){
+  const source=await read('supabase/migrations/'+path)
+  assert.doesNotMatch(source,/(?:UklGR|iVBORw0KGgo|\/9j\/)[A-Za-z0-9+/]{100,}/)
+ }
+ const sql=await read('supabase/migrations/20261128133628_quarantine_exposed_signature_assets_and_private_replacement.sql')
+ has(sql,'security_quarantine_public_source')
+ has(sql,'aureka_replace_quarantined_signature_asset')
+ has(sql,'sha256(v_bytes)')
+ has(sql,'pending_authorization')
+ const ui=await read('components/governance/LegalAssetsWorkspace.tsx')
+ has(ui,'replaceQuarantined')
+ has(ui,'Pratinjau gambar dibatasi')
 })
 
 test('Legal and Asset UI requires exact matching signer role/name for owner activation',async()=>{

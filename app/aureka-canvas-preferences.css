@@ -214,6 +214,25 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   background: color-mix(in srgb, var(--aureka-color-primary) 5%, transparent) !important;
 }
 
+/* S063: a legible reading surface with the same native table on narrow screens. */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] :is(th, td) {
+  color: var(--aureka-color-foreground) !important;
+  background: var(--aureka-dialog-surface) !important;
+  padding-block: max(4px, calc(var(--aureka-canvas-table-y) - 4px)) !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] :is(thead th, tbody tr:nth-child(even) td) {
+  background: var(--aureka-dialog-muted) !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] .rmRiskName {
+  color: var(--aureka-color-foreground);
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] .rmRiskName small {
+  color: var(--aureka-canvas-muted);
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] .selected td {
+  border-block-end-color: var(--aureka-color-primary) !important;
+}
+
 /* Scalable typography: consistent on primary reading surfaces without flattening KPI numbers. */
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] :is(
   .moduleEnter p, .moduleEnter li, .moduleEnter label,
@@ -654,3 +673,24 @@ html[data-skin="arktik"][data-mode="gelap"] body [aria-modal="true"] > :is(.aqDH
   background: var(--aureka-dialog-muted) !important;
   border-color: var(--aureka-dialog-edge) !important;
 }
+
+/* S063: allow a larger desktop data viewport without hiding risk text or controls. */
+.rmArcticGridControls { display:inline-flex; align-items:center; gap:8px; color:var(--aureka-color-foreground); flex-wrap:wrap; }
+.rmArcticGridControls select { min-height:36px; padding:4px 10px; border:1px solid var(--aureka-control-edge); border-radius:8px; background:var(--aureka-dialog-surface); color:inherit; font:inherit; }
+.rmArcticGridControls select:focus-visible { outline:2px solid var(--aureka-color-primary); outline-offset:2px; }
+@media(min-width:768px) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .rmWorkspace .rmTableWrap:has(table[data-arctic-risk-table]) { max-height:max(280px, calc(100dvh - 260px)) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] tbody td { padding-block:max(3px, calc(var(--aureka-canvas-table-y) - 6px)) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] .rmRiskName { padding-block:2px !important; min-height:0 !important; }
+}
+@media(max-width:767px) { .rmArcticGridControls select { min-height:44px; } }
+
+/* Read-only risk skill: report surface, not permanent dashboard chrome. */
+.arcticRiskReview dl { display:grid; grid-template-columns:minmax(120px,1fr) minmax(0,2fr); gap:6px 14px; margin:0 0 12px; }
+.arcticRiskReview dt { font-weight:650; color:var(--aureka-color-foreground); }
+.arcticRiskReview dd { margin:0; overflow-wrap:anywhere; }
+.arcticRiskReview table { width:100%; border-collapse:collapse; margin-block:8px 16px; background:var(--aureka-dialog-surface); color:var(--aureka-color-foreground); }
+.arcticRiskReview :is(th,td) { padding:6px 8px; border-bottom:1px solid var(--aureka-canvas-divider); text-align:left; }
+.arcticRiskReview :is(th,td):not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+.arcticRiskReview h4 { margin:12px 0 4px; }
+@media(max-width:480px){.arcticRiskReview dl{grid-template-columns:minmax(0,1fr)}.arcticRiskReview dd{margin-bottom:5px}}
