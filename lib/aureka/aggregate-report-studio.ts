@@ -29,3 +29,17 @@ export type ReportOperation={id:number;action:'review'|'html'|'csv';status:'revi
 export function appendReportOperation(log:readonly ReportOperation[],action:ReportOperation['action'],status:ReportOperation['status']):ReportOperation[]{
  return [...log,{id:(log.at(-1)?.id??0)+1,action,status}].slice(-20)
 }
+
+// The workflow is intentionally a versioned, read-only template, not arbitrary code or a mutation engine.
+export const REPORT_WORKFLOW_TEMPLATE=Object.freeze({id:'aggregate-report-review',version:1,effect:'read-only',nodes:['preflight','preview','review','export-request'] as const})
+export function reportWorkflowState(report:AggregateReport,options:ReportOptions,reviewed:string|null){
+ const valid=reportPreflight(report),accepted=valid&&reviewed===reportFingerprint(report,options)
+ return {valid,accepted,steps:REPORT_WORKFLOW_TEMPLATE.nodes.map(id=>({id,status:id==='preflight'?(valid?'passed':'blocked'):id==='preview'?(valid?'ready':'blocked'):id==='review'?(accepted?'passed':valid?'required':'blocked'):(accepted?'ready':'blocked')}))}
+}
+export function reportPresentationPages(report:AggregateReport,options:ReportOptions){
+ if(!reportPreflight(report))return []
+ const rows=reportRows(report,options)
+ const pages:Array<{title:string;rows:ReportMetric[]}>=[]
+ for(let start=0;start<rows.length;start+=4)pages.push({title:report.title,rows:rows.slice(start,start+4)})
+ return pages
+}
