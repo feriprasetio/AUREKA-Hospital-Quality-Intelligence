@@ -149,3 +149,7 @@ html[data-motion="off"] .arcticCategoryNav * { transition:none; scroll-behavior:
 .arcticGridViewSection button { margin-right:4px; }
 .arcticGridColumns :is(select,input[type=date]) { min-height:36px; min-width:0; max-width:100%; padding:4px 8px; font:inherit; color:inherit; background:var(--aureka-dialog-surface); border:1px solid var(--aureka-control-edge); border-radius:8px; }
 @media(max-width:767px){.arcticGridColumns :is(button,select,input[type=date]){min-height:44px}}
+
+.arcticSkillsIntro{padding:0 8px;color:var(--aureka-canvas-muted);margin-block:8px}
+.arcticMegaHead strong:focus-visible{outline:2px solid var(--aureka-color-primary);outline-offset:2px}
+@media(max-width:767px){.arcticMegaHead button,.arcticGridFooter :is(button,select){min-height:44px;min-width:44px}.arcticGridColumns label{min-height:44px}.arcticCategoryMobile strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
