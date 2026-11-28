@@ -1,4 +1,5 @@
 'use client'
+import AurekaModal from '@/components/ui/AurekaModal'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
@@ -573,27 +574,76 @@ export default function RiskManagementWorkspace({
       setError('Risiko belum tersimpan. Periksa hak akses, koneksi, dan kelengkapan data. ' + toUserFacingError(e, { fallback: 'Risiko belum dapat disimpan. Periksa koneksi, hak akses, dan kelengkapan data.' }))
     } finally { setSaving(false) }
   }
-  // Ubah status banyak risiko sekaligus (hanya risiko yang boleh diubah akun ini).
   const [bulkStatus, setBulkStatus] = useState('')
+  const [bulkReview, setBulkReview] = useState<{ status: string; rows: RiskRow[]; skipped: number } | null>(null)
+  useEffect(() => { setBulkReview(null) }, [tab, userId, role, initialRoomId, lockRoomScope])
   // Form risiko di ponsel dipecah 3 langkah (desktop tetap satu halaman).
   const [riskStep, setRiskStep] = useState(1)
   useEffect(() => { if (riskEditorOpen) setRiskStep(1) }, [riskEditorOpen])
-  const applyBulkStatus = async () => {
+
+  const reviewBulkStatus = () => {
     if (saving || !bulkStatus) return
-    const ids = risks.filter(r => selectedRiskIds.includes(r.id) && canEditRisk(r) && r.status !== bulkStatus).map(r => r.id)
-    if (!ids.length) { setMessage('Tidak ada risiko terpilih yang perlu diubah atau boleh diubah akun ini.'); return }
-    setSaving(true); clearMessages()
+    const selected = new Set(selectedRiskIds)
+    const rows = filteredRisks.filter(r => selected.has(r.id) && canEditRisk(r) && r.status !== bulkStatus)
+    if (!rows.length) {
+      setMessage('Tidak ada risiko pada hasil filter yang perlu diubah dan dapat diedit.')
+      return
+    }
+    clearMessages()
+    setBulkReview({ status: bulkStatus, rows, skipped: selected.size - rows.length })
+  }
+
+  const applyBulkStatus = async () => {
+    if (saving || !bulkReview) return
+    const currentRows = new Map(filteredRisks.map(row => [row.id, row]))
+    if (bulkReview.rows.some(before => {
+      const current = currentRows.get(before.id)
+      return !current || !canEditRisk(current) || current.status !== before.status
+    })) {
+      setBulkReview(null)
+      setError('Cakupan atau status risiko berubah. Tinjau ulang pilihan sebelum menyimpan.')
+      return
+    }
+
+    setSaving(true)
+    clearMessages()
+    const groups = new Map<RiskStatus, string[]>()
+    for (const row of bulkReview.rows) {
+      const group = groups.get(row.status) ?? []
+      group.push(row.id)
+      groups.set(row.status, group)
+    }
+    let outcomeError = ''
+    let confirmed = 0
     try {
-      for (let i = 0; i < ids.length; i += 100) {
-        const result = await db.from('risk_register').update({ status: bulkStatus }).in('id', ids.slice(i, i + 100))
-        if (result.error) throw result.error
+      for (const [previous, ids] of groups) {
+        for (let i = 0; i < ids.length; i += 100) {
+          const result = await db.from('risk_register').update({ status: bulkReview.status })
+            .in('id', ids.slice(i, i + 100)).eq('status', previous).select('id')
+          if (result.error) throw result.error
+          confirmed += result.data?.length ?? 0
+        }
       }
-      setMessage(ids.length + ' risiko diubah menjadi status ' + bulkStatus + '.')
-      setSelectedRiskIds([]); setBulkStatus('')
-      await loadData()
-    } catch (e) {
-      setError(toUserFacingError(e, { fallback: 'Status risiko belum dapat diubah. Periksa koneksi dan hak akses.' }))
-    } finally { setSaving(false) }
+      if (confirmed < bulkReview.rows.length) {
+        outcomeError = confirmed + ' dari ' + bulkReview.rows.length + ' perubahan terkonfirmasi. Status atau akses sebagian risiko mungkin sudah berubah.'
+      } else {
+        setMessage(confirmed + ' risiko diubah menjadi status ' + bulkReview.status + '.')
+      }
+    } catch {
+      outcomeError = confirmed + ' dari ' + bulkReview.rows.length + ' perubahan terkonfirmasi. Hasil sisanya belum dapat dipastikan. Periksa daftar sebelum mencoba lagi.'
+    } finally {
+      setBulkReview(null)
+      setSelectedRiskIds([])
+      setBulkStatus('')
+      try {
+        await loadData()
+      } catch {
+        setError('Daftar risiko belum dapat dimuat ulang.')
+      } finally {
+        if (outcomeError) setError(refreshError => [outcomeError, refreshError].filter(Boolean).join(' '))
+        setSaving(false)
+      }
+    }
   }
   const deleteRisk = async (id: string) => {
     setSaving(true); clearMessages()
@@ -974,7 +1024,7 @@ export default function RiskManagementWorkspace({
             <div className="rmActions rmBarActions"><button type="button" className="rmButton subtle" onClick={exportCsv}>Ekspor CSV</button><button type="button" className="rmButton primary" onClick={openNewRisk} disabled={unitMissing}>＋ Tambah risiko</button></div>
           </div>
           {matrixFilter && <div className="rmSelectionBar"><div><b>Filter matriks aktif · P{matrixFilter.likelihood} × D{matrixFilter.impact}</b><span>Register hanya menampilkan risiko pada kombinasi ini.</span></div><button type="button" className="rmButton subtle" onClick={() => setMatrixFilter(null)}>Hapus filter matriks</button></div>}
-          {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><div className="rmBulkStatus"><select aria-label="Ubah status risiko terpilih" value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}><option value="">Ubah status ke…</option>{['Open', 'In Progress', 'Controlled', 'Accepted'].map(x => <option key={x} value={x}>{x === 'Open' ? 'Open (belum ditangani)' : x === 'In Progress' ? 'In Progress (sedang ditangani)' : x === 'Controlled' ? 'Controlled (terkendali)' : 'Accepted (diterima)'}</option>)}</select><button type="button" className="rmButton" disabled={!bulkStatus || saving} onClick={() => void applyBulkStatus()}>{saving ? 'Menyimpan…' : 'Terapkan'}</button></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
+          {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><div className="rmBulkStatus"><select aria-label="Ubah status risiko terpilih" value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}><option value="">Ubah status ke…</option>{['Open', 'In Progress', 'Controlled', 'Accepted'].map(x => <option key={x} value={x}>{x === 'Open' ? 'Open (belum ditangani)' : x === 'In Progress' ? 'In Progress (sedang ditangani)' : x === 'Controlled' ? 'Controlled (terkendali)' : 'Accepted (diterima)'}</option>)}</select><button type="button" className="rmButton" disabled={!bulkStatus || saving} onClick={reviewBulkStatus}>Tinjau perubahan</button></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
           <WorkspaceTableViewport label="Register dan pengendalian risiko" className="rmTableWrap"><table className="rmTable" data-ak-sort="off" data-ak-cards="off" data-arctic-risk-table={dataFirst || undefined}><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th>{sortHead('risk', 'Risiko')}{sortHead('unit', 'Unit')}{sortHead('score', 'Skor & level')}{sortHead('status', 'Status')}<th>Aksi</th></tr></thead>
               <tbody>{pageRisks.map(risk => <tr key={risk.id} data-risk-id={risk.id} className={selectedRiskId === risk.id ? 'selected' : ''}>
                 <td><input type="checkbox" checked={selectedRiskIds.includes(risk.id)} aria-label={'Pilih risiko: ' + risk.risk_event} onChange={e => setSelectedRiskIds(current => e.target.checked ? [...current, risk.id] : current.filter(id => id !== risk.id))} /></td>
@@ -991,6 +1041,24 @@ export default function RiskManagementWorkspace({
           <summary>Peta risiko dan ringkasan</summary>
           {riskMap}
         </details>}
+
+        {bulkReview && <AurekaModal
+          open
+          title="Tinjau perubahan status risiko"
+          subtitle={bulkReview.rows.length + ' risiko akan diubah ke ' + bulkReview.status + '.'}
+          closeDisabled={saving}
+          closeOnBackdrop={false}
+          onClose={() => setBulkReview(null)}
+          footer={<>
+            <button type="button" className="akBtn akBtnGhost" data-dialog-autofocus disabled={saving} onClick={() => setBulkReview(null)}>Batal</button>
+            <button type="button" className="akBtn akBtnPrimary" disabled={saving} onClick={() => void applyBulkStatus()}>{saving ? 'Menyimpan…' : 'Konfirmasi perubahan'}</button>
+          </>}
+        >
+          {bulkReview.skipped > 0 && <p>{bulkReview.skipped} pilihan di luar hasil filter, berstatus sama, atau tidak dapat diedit.</p>}
+          <ul>{bulkReview.rows.map(row => <li key={row.id}>
+            <strong>{row.risk_event}</strong> · {row.unit_name || 'Unit tidak tercatat'} · {row.status} → {bulkReview.status}
+          </li>)}</ul>
+        </AurekaModal>}
 
         {riskEditorOpen && <RmModal label={editingRiskId ? "Edit risiko" : "Risiko baru"} error={error}><LiquidGlass className={'rmPanel rmEditor rmStep' + riskStep}>
           <div className="rmSectionHead"><div><span className="rmEyebrow">{editingRiskId ? 'PEMUTAKHIRAN DATA' : 'IDENTIFIKASI RISIKO'}</span><h4>{editingRiskId ? 'Edit risiko' : 'Risiko baru'}</h4></div><button type="button" className="rmButton subtle" onClick={() => { setRiskEditorOpen(false); clearMessages(); }}><span aria-hidden="true">✕</span> Tutup</button></div>

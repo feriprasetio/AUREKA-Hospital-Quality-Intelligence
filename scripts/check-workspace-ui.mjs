@@ -195,6 +195,13 @@ const handlePausedRequest = async ({ request, requestId }) => {
       fppeRecords = [row, ...fppeRecords.filter(record => record.id !== id)]
       return await fulfill(requestId, request.method === 'POST' ? row : null)
     }
+    if (resource === 'risk_register' && request.method === 'PATCH') {
+      const ids = url.searchParams.get('id') ?? ''
+      assert.equal(url.searchParams.get('status'), 'eq.Open', 'Bulk status must compare the reviewed status')
+      const changed = risks.filter(row => ids.includes(row.id) && row.status === 'Open').slice(0, 1)
+      for (const row of changed) row.status = body.status
+      return await fulfill(requestId, changed.map(row => ({ id: row.id })))
+    }
     if (resource === 'clinical_pathway_templates' && request.method === 'POST') {
       for (const row of Array.isArray(body) ? body : [body]) {
         pathwayTemplates = [...pathwayTemplates.filter(template => template.code !== row.code), { id: `80000000-0000-4000-8000-${String(pathwayTemplates.length + 1).padStart(12, '0')}`, ...row }]
@@ -603,6 +610,32 @@ try {
     await clickText('.rmSelectionBar button','Hapus filter matriks')
     await click('#risk-register-map summary')
     await wait("document.querySelector('#risk-register-map:not([open])')")
+    const patchCount = () => requests.filter(request => request.resource === 'risk_register' && request.method === 'PATCH').length
+    const beforeReview = patchCount()
+    await click(".rmTable tbody tr:nth-child(1) input")
+    await click(".rmTable tbody tr:nth-child(2) input")
+    await fill('select[aria-label="Ubah status risiko terpilih"]','Controlled','HTMLSelectElement')
+    await fill('.rmSearch input', 'UI-RISK-2')
+    await wait("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length===1")
+    await clickText('.rmBulkStatus button','Tinjau perubahan')
+    await wait("document.querySelector('.akModal ul li')")
+    assert.equal(await evaluate("document.querySelectorAll('.akModal ul li').length"),1)
+    assert.ok(await evaluate("document.querySelector('.akModal').textContent.includes('1 pilihan di luar hasil filter')"))
+    await key('Escape')
+    await wait("!document.querySelector('.akModal')")
+    assert.equal(patchCount(),beforeReview)
+
+    await fill('.rmSearch input', '')
+    await wait("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length===15")
+    await clickText('.rmBulkStatus button','Tinjau perubahan')
+    await wait("document.querySelectorAll('.akModal ul li').length===2")
+    assert.equal(patchCount(),beforeReview)
+    await screenshot('arctic-risk-bulk-review')
+    await clickText('.akModal button','Konfirmasi perubahan')
+    await wait("document.querySelector('.rmWorkspace [role=alert]')?.textContent.includes('1 dari 2 perubahan terkonfirmasi')")
+    await wait("!document.querySelector('.akModal') && !document.querySelector('.rmBulkStatus')")
+    assert.equal(patchCount(),beforeReview+1)
+    await click('.rmWorkspace [role=alert] button[aria-label="Tutup pesan"]')
     await evaluate('window.scrollTo(0,0)')
     for (const [width,height,mode] of [[1366,768,'terang'],[390,844,'gelap']]) {
       await viewport(width,height)

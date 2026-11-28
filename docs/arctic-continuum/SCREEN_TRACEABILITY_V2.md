@@ -148,4 +148,4 @@ Baseline ae8c13875f6384e8e34020e266d5b8a15bb91e3f. ID layar, arketipe, dan entry
 | S142 · Perjalanan perbaikan mutu | WORKFLOW | Workflow / improvement | [GovernanceProgramWorkspace](../../components/governance/GovernanceProgramWorkspace.tsx) | Usulan dengan dasar existing |
 | S143 · Session restore — perubahan scope | OVERLAY | Workspace / restore | Belum terpetakan | Usulan · padanan belum dipetakan |
 | S144 · Smart Data Grid — filter & saved views | OVERLAY | Grid / filters | [PatientSafetyWorkspace](../../components/PatientSafetyWorkspace.tsx) | Pilot sebagian |
-| S145 · Bulk actions — review perubahan | DATA GRID | Grid / bulk | [RiskManagementWorkspace](../../components/RiskManagementWorkspace.tsx) | Usulan dengan dasar existing |
+| S145 · Bulk actions — review perubahan | DATA GRID | Grid / bulk | [RiskManagementWorkspace](../../components/RiskManagementWorkspace.tsx) | Pilot Register Risiko · [cakupan dan batas verifikasi](RISK_BULK_S145.md) |
