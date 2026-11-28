@@ -1038,7 +1038,13 @@ try {
     await wait("document.querySelector('.ccSectionHead')")
   })
   await check('Pola Perawatan preserves observed zero, missing coverage, and failed filters', async () => {
-    await evaluate("location.hash='#pasien/register-pasien/pola-perawatan/los'")
+    await enterArctic()
+    await click('[data-arctic-category=patient_registry]')
+    await wait("document.querySelector('[data-arctic-destination=patient_patterns]')")
+    await click('[data-arctic-destination=patient_patterns]')
+    await wait("document.querySelector('.workspaceContextNav')")
+    await goSection('los', 'Length of Stay')
+    await wait("document.querySelector('.patientRecordAnalytics h2')?.textContent==='Lama Rawat (LOS)'")
     await wait("document.querySelector('.pmaKpis strong')?.textContent==='4'")
     assert.equal(await evaluate("document.querySelector('.pmaKpis article:nth-child(5) small').textContent"), '0%')
     await wait("document.querySelector('.patientRecordAnalytics').textContent.includes('1 catatan dengan tanggal keluar tanpa LOS')")
@@ -1049,7 +1055,7 @@ try {
     await fill(yearFilter, '2027', 'HTMLSelectElement')
     await wait("document.querySelector('.pmaKpis strong')?.textContent==='0'")
     await wait("document.querySelector('.patientRecordAnalytics').textContent.includes('Belum dapat dihitung')")
-    await evaluate("location.hash='#pasien/register-pasien/pola-perawatan/readmisi'")
+    await goSection('readmisi', 'Readmisi')
     await wait("document.querySelector('.pmaReadmit .prTable tbody tr')")
     failPatientReads = true
     try {
@@ -1062,6 +1068,8 @@ try {
     }
     await clickText('.pmaReadmit button', 'Muat ulang')
     await wait("document.querySelector('.pmaReadmit .prTable tbody tr')")
+    await leaveArctic()
+    await wait("document.querySelector('aside.sidebar')")
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
