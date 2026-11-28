@@ -1,4 +1,5 @@
 'use client'
+import SourceLinkedActionsPanel from '@/components/governance/SourceLinkedActionsPanel'
 import { aggregateSafetyCultureResponses } from '@/lib/patient-safety/survey-aggregation'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 
@@ -1219,6 +1220,7 @@ export default function PatientSafetyWorkspace({
           <div className="psFormGrid">{section.fields.map(renderIncidentField)}</div>
           {section.letter === 'D' ? <GradeBox data={incidentData} /> : null}
         </section>)}
+        {isSuperAdmin&&incidentId&&<SourceLinkedActionsPanel key={incidentId} sourceKind="incident" sourceId={incidentId}/>}
         <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 12 }}>{incidentCode ? 'Kode: ' + incidentCode : 'Laporan baru, kode dibuat otomatis saat disimpan.'}</div>
           <div className="psActions">
             {canManageWorkflow && incidentId ? <>
@@ -1262,6 +1264,7 @@ export default function PatientSafetyWorkspace({
           <div className="psFormHeading"><span className="psFormLetter">{section.title === 'Klasifikasi & Masalah' ? '1' : section.title === 'Analisis Penyebab' ? '2' : section.title === 'Faktor Mitigasi & Deteksi' ? '3' : '4'}</span><div><h4>{section.title}</h4></div></div>
           <div className="psFormGrid">{section.codes.map(code => INVESTIGATION_FIELDS.find(field => field.code === code)).filter((field): field is IncidentField => Boolean(field)).map(renderInvestigationField)}</div>
         </section>) : <div className="psEmpty">Pilih laporan terlebih dahulu untuk membuka formulir investigasi.</div>}
+        {isSuperAdmin&&investigationId&&<SourceLinkedActionsPanel key={investigationId} sourceKind="investigation" sourceId={investigationId}/>}
         {investigationIncidentId && canManageWorkflow ? <div className="psFormFooter"><div className="psMuted" style={{ fontSize: 12 }}>Status: {statusLabel(investigationStatus)}</div><div className="psActions"><button type="button" className="psBtn" onClick={() => { setInvestigationData(emptyRecord()); setInvestigationStatus('draft'); setInvestigationId(''); setInvestigationCode('') }}>Kosongkan Form</button><button type="button" className="psBtn primary" disabled={saving} onClick={() => void saveInvestigation()}>{saving ? 'Menyimpan…' : 'Simpan Investigasi'}</button></div></div> : null}
       </LiquidGlass>
       <LiquidGlass className="psPanel">

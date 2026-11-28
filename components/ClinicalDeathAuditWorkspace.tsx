@@ -1,4 +1,5 @@
 'use client'
+import SourceLinkedActionsPanel from '@/components/governance/SourceLinkedActionsPanel'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
@@ -658,6 +659,7 @@ export default function ClinicalDeathAuditWorkspace({ initialRoomId, rooms, isAd
               <div className="acdSmall">Nama DPJP pada sumber episode: {activeEpisode.dpjp || 'Belum dipetakan'}. Pilih identitas yang benar-benar sesuai dengan sumber; nama snapshot tidak diubah.</div>
               {dpjpStaffId && <div className="acdSmall">ID tenaga AUREKA: {dpjpStaffId.slice(0,8).toUpperCase()} · identitas akan disimpan terpisah dari snapshot klinis.</div>}
             </div>
+            {isAdmin&&activeAudit?.id&&<SourceLinkedActionsPanel key={activeAudit.id} sourceKind="clinical_audit" sourceId={activeAudit.id}/>}
             <div className="acdSectionTitle"><div><h5>Ringkasan klinis</h5><p>Tulis ringkasan faktual dan relevan dari rekam medis; jangan menyalin seluruh catatan.</p></div></div>
             <div className="acdEditorField"><label htmlFor="acd-background">Riwayat singkat, perjalanan klinis dan konteks kasus</label><textarea id="acd-background" disabled={isValidator} value={draft.background} onChange={(event) => setDraft((current) => ({...current, background: event.target.value}))} placeholder="Keluhan awal, komorbiditas relevan, perubahan kondisi, intervensi penting, dan hasil akhir…" /></div>
 

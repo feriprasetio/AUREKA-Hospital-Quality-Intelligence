@@ -1,4 +1,5 @@
 'use client'
+import SourceLinkedActionsPanel from '@/components/governance/SourceLinkedActionsPanel'
 import { CLINICAL_PATHWAY_INM_TARGET_PCT } from '@/lib/aureka/clinical-pathway-metrics'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import { createPortal } from 'react-dom'
@@ -1247,6 +1248,7 @@ export default function ClinicalPathwayWorkspace({ initialRoomId, rooms, isAdmin
         </div>)}</div> : <div className="cpNotice info">Pilih “Tidak ada variasi” secara eksplisit bila memang tidak ditemukan variasi. Jika ada variasi, setiap catatan harus memiliki tanggal, ringkasan, alasan, dan justifikasi.</div>}
       </div>
 
+      {isAdmin&&form.id&&<SourceLinkedActionsPanel key={form.id} sourceKind="pathway" sourceId={form.id}/>}
       <div className="cpGlass cpFooter">
         <div><span className="cpTiny">Pengisi: {userName} · Petugas pelaksana dicatat pada rincian tiap item bila diperlukan.</span></div>
         <div className="cpActions"><button type="button" className="cpBtn" disabled={saving} onClick={() => void saveAudit('draft')}>{saving ? 'Menyimpan…' : 'Simpan draf'}</button><button type="button" className="cpBtn primary" disabled={saving} onClick={() => void saveAudit(isAdmin && form.status !== 'draft' ? 'validated' : 'submitted')}>{saving ? 'Menyimpan…' : isAdmin && form.status === 'submitted' ? 'Simpan & validasi' : form.status === 'validated' ? 'Perbarui audit tervalidasi' : 'Simpan / ajukan audit'}</button></div>
