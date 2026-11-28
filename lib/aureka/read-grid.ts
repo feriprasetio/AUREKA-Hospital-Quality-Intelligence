@@ -39,3 +39,14 @@ export function moveReadGridColumn(order:readonly string[],id:string,offset:-1|1
  ;[next[index],next[target]]=[next[target],next[index]]
  return next
 }
+
+export type ReadGridHistory={past:ReadGridView[];future:ReadGridView[]}
+export function stepReadGridHistory(history:ReadGridHistory,current:ReadGridView,action:'change'|'undo'|'redo',next?:ReadGridView){
+ if(action==='change'){
+  if(!next||JSON.stringify(next)===JSON.stringify(current))return {view:current,history}
+  return {view:next,history:{past:[...history.past,current].slice(-20),future:[] as ReadGridView[]}}
+ }
+ if(action==='undo'&&history.past.length)return {view:history.past.at(-1)!,history:{past:history.past.slice(0,-1),future:[current,...history.future].slice(0,20)}}
+ if(action==='redo'&&history.future.length)return {view:history.future[0],history:{past:[...history.past,current].slice(-20),future:history.future.slice(1)}}
+ return {view:current,history}
+}

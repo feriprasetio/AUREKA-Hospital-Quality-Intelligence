@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
+import AggregateReportStudio from '@/components/workspace/AggregateReportStudio'
+import {summarizeReconciliationPreview} from '@/lib/aureka/reconciliation-preview'
 
 type Room = { id: number; name: string }
 type MasterOption = { code?: number | null; label?: string; review_required?: boolean; numerator?: boolean | null; denominator?: boolean | null }
@@ -104,14 +106,16 @@ export default function QualityReconciliationWorkspace({
   rooms,
   initialRoomId,
   role,
+  dataFirst=false,
 }: {
   rooms: Room[]
   initialRoomId: number | null
   role: string | null
+  dataFirst?:boolean
 }) {
   const [year, setYear] = useState(2026)
   const [roomId, setRoomId] = useState<number | null>(initialRoomId)
-  const [snapshot, setSnapshot] = useState<{ scope: string; queue: QueuePayload | null } | null>(null)
+  const [snapshot, setSnapshot] = useState<{ scope: string; queue: QueuePayload | null; at:string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [savingKey, setSavingKey] = useState('')
   const [error, setError] = useState('')
@@ -120,6 +124,7 @@ export default function QualityReconciliationWorkspace({
   const [manualDrafts, setManualDrafts] = useState<Record<string, ManualDraft>>({})
   const [warningDrafts, setWarningDrafts] = useState<Record<string, WarningDraft>>({})
   const [showAudit, setShowAudit] = useState(false)
+  const [previewRequested,setPreviewRequested]=useState(false)
 
   const canManage = role === 'ADMIN' || role === 'PMKP'
   const scope = JSON.stringify([canManage, year, roomId])
@@ -136,6 +141,7 @@ export default function QualityReconciliationWorkspace({
   const totalWarnings = Number(summary.warning_record_count ?? warningGroups.reduce((n, item) => n + item.affected_count, 0))
 
   useEffect(() => setRoomId(initialRoomId), [initialRoomId])
+  useEffect(()=>{setManualDrafts({});setWarningDrafts({});setPreviewRequested(false)},[scope])
 
   const load = useCallback(async () => {
     const isCurrent = beginLoad()
@@ -154,7 +160,7 @@ export default function QualityReconciliationWorkspace({
         p_room_id: roomId,
       })
       if (rpcError) throw rpcError
-      if (isCurrent()) setSnapshot({ scope, queue: (data ?? null) as QueuePayload | null })
+      if (isCurrent()) setSnapshot({ scope, queue: (data ?? null) as QueuePayload | null,at:new Date().toISOString() })
     } catch (cause) {
       if (isCurrent()) setLoadError(toUserFacingError(cause, { fallback: 'Antrean rekonsiliasi belum dapat dimuat. Periksa koneksi dan hak akses.' }))
     } finally {
@@ -314,6 +320,7 @@ export default function QualityReconciliationWorkspace({
     [warningGroups],
   )
 
+  const preview=queue&&Array.isArray(queue.response_groups)&&Array.isArray(queue.warning_groups)?summarizeReconciliationPreview(responseGroups,warningGroups):null
   return <section className="qrcWorkspace">
     <style>{`
       .qrcWorkspace{display:grid;gap:15px;min-width:0;color:#1d3448}
@@ -395,6 +402,7 @@ export default function QualityReconciliationWorkspace({
     {!awaitingScope && !queue && !loadError && !error ? <AsyncStatePanel state="empty" title="Belum ada antrean rekonsiliasi" description="Tidak ada data yang dapat ditampilkan." compact/> : null}
 
     {queue && <>
+      {dataFirst&&<details className="continuumOnDemandSummary" data-reconciliation-preview><summary>Skill · Tinjauan pra-rekonsiliasi (baca-saja)</summary><p>Simulasi agregat atas antrean RPC existing. Tidak menjalankan pemetaan, menutup warning, atau mengubah sumber. Keputusan tetap dilakukan per kelompok melalui konfirmasi dan RPC existing.</p><button type="button" className="qrcBtn" data-reconciliation-run disabled={!!savingKey||!preview} onClick={()=>setPreviewRequested(true)}>Susun tinjauan antrean</button>{!preview&&<p role="status">Struktur atau jumlah antrean belum valid untuk penyusunan draf. Muat ulang sumber.</p>}{previewRequested&&preview&&snapshot&&!savingKey&&<AggregateReportStudio key={snapshot.at} report={{title:'Draf pra-rekonsiliasi data mutu',source:'quality_reconciliation_list_v2 · kelompok yang tersedia pada cakupan akses',scope:(roomId==null?'Semua unit yang dapat diakses':rooms.find(r=>r.id===roomId)?.name||'Unit terpilih')+' · '+year,snapshot:snapshot.at,method:'Agregasi jumlah kelompok dan affected_count yang dikembalikan oleh RPC existing; tanpa perubahan pemetaan.',limitation:'Jumlah respons dan warning dapat tumpang tindih antar kelompok. Bukan jumlah pasien atau hasil rekonsiliasi yang telah disetujui. Kelayakan eksekusi tetap diverifikasi oleh alur existing.',metrics:[['Kelompok respons',preview.responseGroups],['Entri respons pada kelompok',preview.responseEntries],['Kelompok kandidat otomatis',preview.autoGroups],['Entri kandidat otomatis',preview.autoEntries],['Kelompok perlu keputusan manual',preview.manualGroups],['Kelompok warning',preview.warningGroups],['Entri warning',preview.warningEntries],['Warning menunggu telaah',preview.pendingWarnings],['Warning perlu koreksi sumber',preview.sourceCorrectionWarnings]]}}/>}</details>}
       <div className="qrcStats">
         <div className="qrcStat"><small>Respons menunggu peninjauan</small><strong>{count(totalPending)}</strong><span>{count(summary.response_group_count)} pola sumber</span></div>
         <div className="qrcStat"><small>Dapat dipetakan otomatis</small><strong>{count(totalAuto)}</strong><span>{count(summary.auto_fixable_group_count)} pola dengan label/kode unik</span></div>
