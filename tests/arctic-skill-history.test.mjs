@@ -3,10 +3,12 @@ import assert from 'node:assert/strict'
 import {CONTINUUM_SKILLS,visibleContinuumSkills} from '../lib/aureka/continuum-skill-library.ts'
 import {resolveRiskStatusHistory} from '../lib/aureka/risk-status-history.ts'
 test('skill catalog only includes real read-only adapters authorized by category and current route gate',()=>{
- assert.equal(CONTINUUM_SKILLS.length,4)
+ assert.equal(CONTINUUM_SKILLS.length,5)
  assert.deepEqual(visibleContinuumSkills([],()=>true),[])
  assert.deepEqual(visibleContinuumSkills(['quality_patient_safety'],()=>false),[])
  assert.deepEqual(visibleContinuumSkills(['quality_patient_safety'],d=>d.module==='risk').map(x=>x.skill.id),['risk-register-review'])
+ assert.deepEqual(visibleContinuumSkills(['director_supervisory_board'],d=>d.section==='recommendations').map(x=>x.skill.id),['governance-action-review'])
+ assert.deepEqual(visibleContinuumSkills(['director_supervisory_board'],()=>false),[])
  assert.ok(CONTINUUM_SKILLS.every(skill=>skill.version===1&&skill.effect==='read-only'))
 })
 test('status history uses recorded events and excludes hidden or unrelated plans',()=>{

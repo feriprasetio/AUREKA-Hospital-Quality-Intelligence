@@ -700,6 +700,17 @@ try {
       await wait('document.querySelector('+JSON.stringify(root+' [data-continuum-summary]')+').open')
       assert.ok(await evaluate('document.querySelector('+JSON.stringify(root+' '+table)+')?.textContent.includes('+JSON.stringify(expected)+')'))
       await click(root+' [data-continuum-summary] summary')
+      if(hash==='#program/recommendations'){
+        await wait("document.querySelector('.govRecList [data-continuum-read-grid]')")
+        await fill('.govRecList [data-read-grid-search]','NOT-FOUND-RTL','HTMLInputElement')
+        await wait("document.querySelector('.govRecList .rmTable').textContent.includes('Tidak ada RTL sesuai pencarian')")
+        await fill('.govRecList [data-read-grid-search]','RTL sintetis','HTMLInputElement')
+        await wait("document.querySelector('.govRecList .rmTable').textContent.includes('RTL sintetis')")
+        await click('[data-governance-review] summary')
+        await click('[data-governance-review] [data-arctic-report-studio] summary')
+        await wait("document.querySelector('[data-governance-review] [data-report-preview]').textContent.includes('RTL dalam cakupan')")
+        assert.equal(await evaluate("document.querySelector('[data-governance-review] [data-report-csv]').disabled"),true)
+      }
       if(hash==='#indikator-mutu/monitoring'){
         await wait("document.querySelector('.hlReportingPanel [data-read-grid-search]')")
         await fill('.hlReportingPanel [data-read-grid-search]','NOT-FOUND-ROOM','HTMLInputElement')
