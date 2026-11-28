@@ -5,6 +5,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { parsePatientRecordAnalytics, patientRecordCoverage, type PatientRecordAnalytics } from '@/lib/aureka/patient-record-analytics'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import PatientReadmissionPanel from '@/components/patient-registry/PatientReadmissionPanel'
+import PatientCarePatternPanel from '@/components/patient-registry/PatientCarePatternPanel'
 
 type Room = { id: number; name: string }
 type AnalyticsRead =
@@ -19,7 +20,7 @@ export default function PatientMedicalRecordsAnalytics({
   rooms, initialRoomId, canViewAllRooms, lockRoomScope = false, view, onOpenPatterns, onBack,
 }: {
   rooms: Room[]; initialRoomId: number | null; canViewAllRooms: boolean; lockRoomScope?: boolean
-  view: 'overview' | 'icd' | 'los' | 'readmisi'
+  view: 'overview' | 'icd' | 'los' | 'readmisi' | 'visite' | 'pemulangan'
   onOpenPatterns: () => void
   onBack: () => void
 }) {
@@ -34,7 +35,7 @@ export default function PatientMedicalRecordsAnalytics({
   const data = result?.request === request ? result.data : undefined
   const error = result?.request === request ? result.error : undefined
   const loading = scopeAvailable && result?.request !== request
-  const showSummary = view !== 'readmisi'
+  const showSummary = view !== 'readmisi' && view !== 'visite' && view !== 'pemulangan'
 
   useEffect(() => {
     if (!showSummary || !scopeAvailable) return
@@ -112,7 +113,7 @@ export default function PatientMedicalRecordsAnalytics({
       `}</style>
       <header>
 
-        <h2>{view === 'readmisi' ? 'Readmisi' : view === 'los' ? 'Lama Rawat (LOS)' : view === 'icd' ? 'Diagnosis ICD-10' : 'Pola Perawatan'}</h2>
+        <h2>{view === 'visite' ? 'Pola Visite Dokter' : view === 'pemulangan' ? 'Pola Pemulangan' : view === 'readmisi' ? 'Readmisi' : view === 'los' ? 'Lama Rawat (LOS)' : view === 'icd' ? 'Diagnosis ICD-10' : 'Pola Perawatan'}</h2>
         <p>Analisis longitudinal dari episode yang sudah tercatat: LOS, diagnosis/ICD-10, kelengkapan identitas rekam medis, tren episode, dan pemanfaatan layanan. Halaman ini hanya membaca data agregat, bukan tempat input atau validasi logbook.</p>
       </header>
 
@@ -145,10 +146,11 @@ export default function PatientMedicalRecordsAnalytics({
       </div>
 
       {!scopeAvailable && <p className="prEmpty" role="status">Cakupan unit belum tersedia.</p>}
+      {(view === 'visite' || view === 'pemulangan') && scopeAvailable && <PatientCarePatternPanel key={JSON.stringify([room,year,view])} room={room} year={year} mode={view}/>}
       {view === 'readmisi' && scopeAvailable && <PatientReadmissionPanel key={JSON.stringify([room, year])} room={room} year={year} />}
-      {view !== 'readmisi' && error && <div className="prAlert" role="alert">{error}</div>}
-      {view !== 'readmisi' && loading && !data ? <div className="prPanel prEmpty">Memuat ringkasan rekam medis…</div> : null}
-      {view !== 'readmisi' && data && <>
+      {showSummary && error && <div className="prAlert" role="alert">{error}</div>}
+      {showSummary && loading && !data ? <div className="prPanel prEmpty">Memuat ringkasan rekam medis…</div> : null}
+      {showSummary && data && <>
         <div className="pmaKpis">
           <article><span>Catatan episode pasien</span><strong>{fmt(data.episodes)}</strong><small>Record dengan grain patient_episode</small></article>
           <article><span>Pasien unik</span><strong>{fmt(data.unique_patients)}</strong><small>Berdasarkan No. RM valid</small></article>

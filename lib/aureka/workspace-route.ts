@@ -26,7 +26,7 @@ export function readWorkspaceHash(hash: string): WorkspaceDestination {
       if (['direktori-pasien', 'rekapan-pasien'].includes(target) || ['metadata-pasien', 'database-pasien'].includes(part)) return destination('directory')
       if (['pola-perawatan', 'analisis-rekam-medis', 'statistik', 'stats'].includes(target)) {
         const tab = part === 'register-pasien' ? extra : detail
-        if (['icd', 'los', 'readmisi'].includes(tab)) return destination(tab)
+        if (['icd', 'los', 'readmisi', 'visite', 'pemulangan'].includes(tab)) return destination(tab)
         return destination(['statistik', 'stats', 'analisis-rekam-medis'].includes(target) ? 'icd' : 'patterns')
       }
       return destination('overview')

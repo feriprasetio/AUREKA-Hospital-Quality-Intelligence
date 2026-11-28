@@ -214,7 +214,7 @@ export default function HomeClient(){
  useEffect(()=>{if(typeof document==='undefined')return;document.documentElement.setAttribute('data-skin','arktik');document.documentElement.removeAttribute('data-dark');try{localStorage.removeItem('aureka-theme');localStorage.removeItem('aureka-dark')}catch{}},[])
  const [settingsTab,setSettingsTab]=useState<'security'|null>(null)
  const [patientsRegistryTab,setPatientsRegistryTab]=useState<'overview'|'directory'|'patterns'|'analysis'>('overview')
- const [patientPatternTab,setPatientPatternTab]=useState<'icd'|'los'|'readmisi'>('icd')
+ const [patientPatternTab,setPatientPatternTab]=useState<'icd'|'los'|'readmisi'|'visite'|'pemulangan'>('icd')
  const [pathwayInput,setPathwayInput]=useState<'soap'|'manual'>('soap')
  const [qualityResultsGroup,setQualityResultsGroup]=useState<'unit'|'category'>('unit')
  type SettingsSection=GeneralSettingsSection|'audit'|'legal'
@@ -448,6 +448,8 @@ export default function HomeClient(){
     {id:'icd',label:'ICD-10'},
     {id:'los',label:'Length of Stay'},
     {id:'readmisi',label:'Readmisi'},
+    {id:'visite',label:'Visite Dokter'},
+    {id:'pemulangan',label:'Pemulangan'},
    ]:[],
    clinical:realcostAuditOpen?[]:clinicalPathwayOpen||qualityResultsView==='pathway'?[
     {id:'audit-pathway',label:'Form Clinical Pathway',children:[
@@ -589,7 +591,7 @@ export default function HomeClient(){
   if(moduleId==='patients'){
    if(section==='add')return navigateWorkspace('quality','audit-indicators')
    if(section==='analysis')section='patterns'
-   if(section==='icd'||section==='los'||section==='readmisi'){
+   if(section==='icd'||section==='los'||section==='readmisi'||section==='visite'||section==='pemulangan'){
     setPatientPatternTab(section)
     setPatientsRegistryTab('analysis')
    }else{

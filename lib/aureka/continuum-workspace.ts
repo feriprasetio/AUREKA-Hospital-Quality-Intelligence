@@ -11,7 +11,7 @@ type Entry = readonly [string,string,string,ContinuumArchetype]
 const entries: readonly Entry[] = [
   ['home','','Dashboard','executive'], ['insights','','Analitik Rumah Sakit','analytics'], ['nara','','NARA AI','intelligence'],
   ['patients','overview','Direktori Pasien · Ikhtisar','analytics'], ['patients','directory','Daftar Pasien','data-grid'],
-  ['patients','patterns','Pola Perawatan','analytics'], ['patients','icd','ICD-10','analytics'], ['patients','los','Length of Stay','analytics'], ['patients','readmisi','Readmisi','analytics'],
+  ['patients','patterns','Pola Perawatan','analytics'], ['patients','icd','ICD-10','analytics'], ['patients','los','Length of Stay','analytics'], ['patients','readmisi','Readmisi','analytics'], ['patients','visite','Visite Dokter','analytics'], ['patients','pemulangan','Pemulangan','analytics'],
   ['clinical','realcost','Audit Realcost','audit-evaluation'], ['clinical','audit-pathway','Audit Clinical Pathway','audit-evaluation'],
   ['clinical','pathway-manual','Clinical Pathway · Manual','document'], ['clinical','pathway-analysis','Analisis Clinical Pathway','analytics'],
   ['clinical','audit-clinical','Audit Klinis','audit-evaluation'], ['clinical','audit-death','Audit Kematian','audit-evaluation'], ['clinical','result-clinical-death','Hasil Audit Klinis dan Kematian','analytics'],

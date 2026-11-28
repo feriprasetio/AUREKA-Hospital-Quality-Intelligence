@@ -16,7 +16,7 @@ type Props = {
   lockRoomScope?: boolean
   registryTab?: PatientRegistryTab
   dataFirst?: boolean
-  patternTab?: 'icd' | 'los' | 'readmisi'
+  patternTab?: 'icd' | 'los' | 'readmisi' | 'visite' | 'pemulangan'
   onRegistryTabChange?: (tab: PatientRegistryTab) => void
   onAskNara?: (prompt: string, pageContext: string) => void
 }
