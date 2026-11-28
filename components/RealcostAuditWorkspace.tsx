@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, CSSProperties } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { requestSensitiveAccess } from '@/lib/aureka/sensitive-access'
+import RealcostClinicalLinkagePanel from '@/components/RealcostClinicalLinkagePanel'
 import {
   REALCOST_COST_COMPONENTS,
   type RealcostDashboard,
@@ -29,7 +30,7 @@ type ImportMeta = {
   created_at: string
   completed_at: string | null
 }
-type DetailTab = 'episodes' | 'components' | 'inacbg' | 'diagnosis' | 'reconciliation'
+type DetailTab = 'episodes' | 'components' | 'inacbg' | 'diagnosis' | 'reconciliation' | 'clinical-linkage'
 type IdentityRecord = RealcostPatientIdentity | null
 
 const MAX_FILE_BYTES = 15 * 1024 * 1024
@@ -602,6 +603,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
 
   const renderDetailContent = () => {
     if (!summary || !latestImport) return <EmptyPanel title="Belum ada data Audit Realcost" detail="Impor workbook sumber terlebih dahulu untuk membangun analisis terstruktur." />
+    if (detailTab === 'clinical-linkage') return <RealcostClinicalLinkagePanel key={latestImport.id} sb={sb} importId={latestImport.id} canRead={canReadDetail&&canReadIdentity}/>
     if (detailTab === 'episodes') return renderEpisodes()
     if (detailTab === 'components') return <div style={{ display: 'grid', gap: 10 }}>
       <section style={cardStyle()}>
@@ -708,6 +710,7 @@ export default function RealcostAuditWorkspace({ sb }: Props) {
             ['inacbg', 'Analisis INA-CBG'],
             ['diagnosis', 'Diagnosis & Prosedur'],
             ['reconciliation', 'Rekonsiliasi'],
+            ['clinical-linkage', 'Clinical Pathway & Biaya'],
           ] as Array<[DetailTab, string]>).map(([id, label]) => <button key={id} type="button" aria-pressed={detailTab === id} onClick={() => void changeDetailTab(id)} style={{
             ...buttonStyle(detailTab === id), minHeight: 40, padding: '8px 13px',
           }}>{label}</button>)}
