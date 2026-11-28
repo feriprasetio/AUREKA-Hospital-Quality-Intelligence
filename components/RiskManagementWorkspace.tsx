@@ -1,4 +1,6 @@
 'use client'
+
+import { GRID_PAGE_SIZES, normalizeGridPageSize, paginateGrid } from '@/lib/aureka/grid-pagination'
 import AurekaModal from '@/components/ui/AurekaModal'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 
@@ -374,7 +376,9 @@ export default function RiskManagementWorkspace({
       (statusFilter === 'all' || risk.status === statusFilter) &&
       (!matrixFilter || (risk.likelihood === matrixFilter.likelihood && risk.impact === matrixFilter.impact))
   }), [risks, search, unitFilter, levelFilter, categoryFilter, statusFilter, matrixFilter])
-  const pageSize = 15
+  const [arcticPageSize, setArcticPageSize] = useState(25)
+  const pageSize = dataFirst ? arcticPageSize : 15
+  useEffect(() => { setPage(0) }, [dataFirst])
   // Basis hitungan chip level: semua filter kecuali level.
   const levelBaseRisks = useMemo(() => risks.filter(risk => {
     const q = search.trim().toLowerCase()
@@ -418,8 +422,9 @@ export default function RiskManagementWorkspace({
   }, [filteredRisks, sortBy])
   const toggleSort = (key: 'risk' | 'unit' | 'score' | 'level' | 'status') => { setSortBy(cur => cur?.key === key ? (cur.dir === 1 ? { key, dir: -1 } : null) : { key, dir: key === 'score' || key === 'level' ? -1 : 1 }); setPage(0) }
   const sortHead = (key: 'risk' | 'unit' | 'score' | 'level' | 'status', label: string) => <th aria-sort={sortBy?.key === key ? (sortBy.dir === 1 ? 'ascending' : 'descending') : 'none'}><button type="button" className={'rmSortBtn' + (sortBy?.key === key ? ' on' : '')} onClick={() => toggleSort(key)}>{label}<span aria-hidden="true">{sortBy?.key === key ? (sortBy.dir === 1 ? '▲' : '▼') : '↕'}</span></button></th>
-  const pageCount = Math.max(1, Math.ceil(filteredRisks.length / pageSize))
-  const pageRisks = sortedRisks.slice(page * pageSize, (page + 1) * pageSize)
+  const gridPage = paginateGrid(sortedRisks, page + 1, pageSize)
+  const pageCount = gridPage.pages
+  const pageRisks = gridPage.rows
   useEffect(() => { if (page >= pageCount) setPage(Math.max(0, pageCount - 1)) }, [page, pageCount])
   useEffect(() => {
     const id = pendingFocusRisk.current
@@ -430,7 +435,7 @@ export default function RiskManagementWorkspace({
     if (page !== targetPage) { setPage(targetPage); return }
     pendingFocusRisk.current = ''
     window.setTimeout(() => document.querySelector(`[data-risk-id="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120)
-  }, [sortedRisks, page])
+  }, [sortedRisks, page, pageSize])
 
   const counts = useMemo(() => ({
     total: risks.length,
@@ -1025,6 +1030,7 @@ export default function RiskManagementWorkspace({
           </div>
           {matrixFilter && <div className="rmSelectionBar"><div><b>Filter matriks aktif · P{matrixFilter.likelihood} × D{matrixFilter.impact}</b><span>Register hanya menampilkan risiko pada kombinasi ini.</span></div><button type="button" className="rmButton subtle" onClick={() => setMatrixFilter(null)}>Hapus filter matriks</button></div>}
           {selectedRiskIds.length > 0 && <div className="rmSelectionBar"><div><b>{selectedRiskIds.length} risiko dipilih</b><span>Satukan pengendalian jika penyebab, kontrol, atau proses saling terkait.</span></div><div className="rmBulkStatus"><select aria-label="Ubah status risiko terpilih" value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}><option value="">Ubah status ke…</option>{['Open', 'In Progress', 'Controlled', 'Accepted'].map(x => <option key={x} value={x}>{x === 'Open' ? 'Open (belum ditangani)' : x === 'In Progress' ? 'In Progress (sedang ditangani)' : x === 'Controlled' ? 'Controlled (terkendali)' : 'Accepted (diterima)'}</option>)}</select><button type="button" className="rmButton" disabled={!bulkStatus || saving} onClick={reviewBulkStatus}>Tinjau perubahan</button></div><button type="button" className="rmButton primary" onClick={beginPlanForSelection}>Rencanakan mitigasi gabungan</button><button type="button" className="rmButton subtle" onClick={() => setSelectedRiskIds([])}>Batalkan pilihan</button></div>}
+          {dataFirst && <div className="rmArcticGridControls"><span role="status">{gridPage.start}–{gridPage.end} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span><label>Baris per halaman <select aria-label="Baris per halaman register risiko" value={arcticPageSize} onChange={e => { setArcticPageSize(normalizeGridPageSize(Number(e.target.value))); setPage(0) }}>{GRID_PAGE_SIZES.map(size => <option key={size} value={size}>{size}</option>)}</select></label></div>}
           <WorkspaceTableViewport label="Register dan pengendalian risiko" className="rmTableWrap"><table className="rmTable" data-ak-sort="off" data-ak-cards="off" data-arctic-risk-table={dataFirst || undefined}><thead><tr><th><input type="checkbox" aria-label="Pilih semua pada halaman" checked={pageRisks.length > 0 && pageRisks.every(r => selectedRiskIds.includes(r.id))} onChange={e => setSelectedRiskIds(current => e.target.checked ? Array.from(new Set([...current, ...pageRisks.map(r => r.id)])) : current.filter(id => !pageRisks.some(r => r.id === id)))} /></th>{sortHead('risk', 'Risiko')}{sortHead('unit', 'Unit')}{sortHead('score', 'Skor & level')}{sortHead('status', 'Status')}<th>Aksi</th></tr></thead>
               <tbody>{pageRisks.map(risk => <tr key={risk.id} data-risk-id={risk.id} className={selectedRiskId === risk.id ? 'selected' : ''}>
                 <td><input type="checkbox" checked={selectedRiskIds.includes(risk.id)} aria-label={'Pilih risiko: ' + risk.risk_event} onChange={e => setSelectedRiskIds(current => e.target.checked ? [...current, risk.id] : current.filter(id => id !== risk.id))} /></td>
@@ -1034,7 +1040,7 @@ export default function RiskManagementWorkspace({
               </tr>)}
                 {!pageRisks.length && <tr><td colSpan={6}><div className="rmEmptySmall">Tidak ada risiko yang sesuai filter. Ubah filter atau tambahkan risiko baru.</div></td></tr>}
               </tbody></table></WorkspaceTableViewport>
-          <div className="rmTableFooter"><span>Menampilkan {filteredRisks.length ? page * pageSize + 1 : 0}–{Math.min((page + 1) * pageSize, filteredRisks.length)} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span><div className="rmActions"><button type="button" className="rmButton subtle" disabled={page === 0} onClick={() => setPage(v => Math.max(0, v - 1))}>← Sebelumnya</button><span className="rmPage">Halaman {page + 1} / {pageCount}</span><button type="button" className="rmButton subtle" disabled={page + 1 >= pageCount} onClick={() => setPage(v => Math.min(pageCount - 1, v + 1))}>Berikutnya →</button></div></div>
+          <div className="rmTableFooter"><span>Menampilkan {gridPage.start}–{gridPage.end} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span><div className="rmActions"><button type="button" className="rmButton subtle" disabled={page === 0} onClick={() => setPage(v => Math.max(0, v - 1))}>← Sebelumnya</button><span className="rmPage">Halaman {page + 1} / {pageCount}</span><button type="button" className="rmButton subtle" disabled={page + 1 >= pageCount} onClick={() => setPage(v => Math.min(pageCount - 1, v + 1))}>Berikutnya →</button></div></div>
         </LiquidGlass>}
 
         {dataFirst && <details className="arcticDomainSummary" id="risk-register-map" open={registerMapOpen} onToggle={event => setRegisterMapOpen(event.currentTarget.open)}>

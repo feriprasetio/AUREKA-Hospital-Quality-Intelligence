@@ -673,3 +673,15 @@ html[data-skin="arktik"][data-mode="gelap"] body [aria-modal="true"] > :is(.aqDH
   background: var(--aureka-dialog-muted) !important;
   border-color: var(--aureka-dialog-edge) !important;
 }
+
+/* S063: allow a larger desktop data viewport without hiding risk text or controls. */
+.rmArcticGridControls { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 12px; padding-block:4px 8px; color:var(--aureka-color-foreground); }
+.rmArcticGridControls label { display:inline-flex; align-items:center; gap:8px; }
+.rmArcticGridControls select { min-height:36px; padding:4px 10px; border:1px solid var(--aureka-control-edge); border-radius:8px; background:var(--aureka-dialog-surface); color:inherit; font:inherit; }
+.rmArcticGridControls select:focus-visible { outline:2px solid var(--aureka-color-primary); outline-offset:2px; }
+@media(min-width:768px) {
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .rmWorkspace .rmTableWrap:has(table[data-arctic-risk-table]) { max-height:max(280px, calc(100dvh - 260px)) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] tbody td { padding-block:max(3px, calc(var(--aureka-canvas-table-y) - 6px)) !important; }
+  html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] .rmRiskName { padding-block:2px !important; min-height:0 !important; }
+}
+@media(max-width:767px) { .rmArcticGridControls select { min-height:44px; } }
