@@ -24,6 +24,7 @@ import type {GeneralSettingsSection} from '@/components/GeneralSettings'
 import { setAurekaMode, useAurekaMode } from '@/lib/ui/aureka-mode'
 import { readWorkspaceHash } from '@/lib/aureka/workspace-route'
 import { resolveContinuumWorkspace } from '@/lib/aureka/continuum-workspace'
+import { clearContinuumSession } from '@/lib/aureka/continuum-session'
 import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'
 import ArcticCategoryNavigation from '@/components/navigation/ArcticCategoryNavigation'
 import ModuleErrorBoundary from '@/components/layout/ModuleErrorBoundary'
@@ -200,8 +201,8 @@ export default function HomeClient(){
  // Capsule navigation is the default; experimental data layouts remain opt-in.
  const [arcticNavigation,setArcticNavigation]=useState(true)
  useEffect(()=>{setArcticNavigation(new URLSearchParams(window.location.search).get('nav')!=='legacy')},[])
- const changeArcticNavigation=(enabled:boolean)=>{mobileSidebar.close();const url=new URL(window.location.href);if(enabled)url.searchParams.delete('nav');else{url.searchParams.set('nav','legacy');url.searchParams.delete('arctic');setArcticPreview(false)}window.history.replaceState(window.history.state,'',url);setArcticNavigation(enabled)}
- const changeArcticDataPreview=(enabled:boolean)=>{const url=new URL(window.location.href);if(enabled)url.searchParams.set('arctic','1');else url.searchParams.delete('arctic');window.history.replaceState(window.history.state,'',url);setArcticPreview(enabled)}
+ const changeArcticNavigation=(enabled:boolean)=>{mobileSidebar.close();const url=new URL(window.location.href);if(enabled)url.searchParams.delete('nav');else{url.searchParams.set('nav','legacy');url.searchParams.delete('arctic');clearContinuumSession();setArcticPreview(false)}window.history.replaceState(window.history.state,'',url);setArcticNavigation(enabled)}
+ const changeArcticDataPreview=(enabled:boolean)=>{const url=new URL(window.location.href);if(enabled)url.searchParams.set('arctic','1');else{url.searchParams.delete('arctic');clearContinuumSession()}window.history.replaceState(window.history.state,'',url);setArcticPreview(enabled)}
  useEffect(()=>{
   if(typeof document==='undefined')return
   document.documentElement.dataset.theme='solid'
@@ -262,7 +263,7 @@ export default function HomeClient(){
   })
   return()=>{active=false}
  },[view,roomOptionsLoaded])
- useEffect(()=>{const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery)return;let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}syncMyEmail();if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null);if(currentRole==='ADMIN'&&r)setSelectedWorkspaceRoomId(Number(r.id))}setActive('home');setQualityOpen(false);setView(p.must_change_password?'force-password':'workspace')}}).finally(()=>{requestAnimationFrame(()=>document.documentElement.removeAttribute('data-ak-booting'))})},[])
+ useEffect(()=>{const isRecovery=typeof window!=='undefined'&&/type=recovery/.test(window.location.hash);const verified=typeof window!=='undefined'&&/type=(signup|email_change|email)/.test(window.location.hash);if(verified)history.replaceState(null,'',window.location.pathname+window.location.search);sb.auth.getSession().then(async({data})=>{if(!data.session||isRecovery){clearContinuumSession();return;}let p:Profile|null=null;try{p=await prof(data.session.user.id)}catch{return}if(!p?.is_active){await sb.auth.signOut();if(verified){setView('login');setAuthInfo('Email berhasil diverifikasi ✓. Akun Anda sedang menunggu aktivasi oleh Komite PMKP.')}return}syncMyEmail();if(p?.is_active){setUser(data.session.user);setProfile(p);const currentRole=await roleCode(p);setRole(currentRole);if(p.primary_room_id){const {data:r}=await sb.from('master_rooms').select('id,name').eq('id',p.primary_room_id).maybeSingle();setRoom(r as Room|null);if(currentRole==='ADMIN'&&r)setSelectedWorkspaceRoomId(Number(r.id))}setActive('home');setQualityOpen(false);setView(p.must_change_password?'force-password':'workspace')}}).finally(()=>{requestAnimationFrame(()=>document.documentElement.removeAttribute('data-ak-booting'))})},[])
  const lastAppliedHash=useRef<string|null>(null)
  const [incomingHash,setIncomingHash]=useState<string|null>(null)
  useEffect(()=>{
@@ -319,7 +320,7 @@ export default function HomeClient(){
  // Sesi hilang tanpa logout (refresh token gagal/kedaluwarsa): jangan biarkan modul memuat data sebagai tamu.
  const viewRef=useRef(view)
  useEffect(()=>{viewRef.current=view},[view])
- useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event!=='SIGNED_OUT')return;if(intentionalLogoutRef.current){intentionalLogoutRef.current=false;return}if(viewRef.current!=='workspace')return;setUser(null);setProfile(null);setRoom(null);setRole(null);setActive('home');setNotifications([]);setActiveToast(null);setAuthMode('normal');setMessage('');setAuthInfo('Sesi login Anda berakhir. Silakan masuk kembali, data Anda tetap aman.');setView('login')});return()=>{sub.subscription.unsubscribe()}},[])
+ useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event!=='SIGNED_OUT')return;clearContinuumSession();if(intentionalLogoutRef.current){intentionalLogoutRef.current=false;return}if(viewRef.current!=='workspace')return;setUser(null);setProfile(null);setRoom(null);setRole(null);setActive('home');setNotifications([]);setActiveToast(null);setAuthMode('normal');setMessage('');setAuthInfo('Sesi login Anda berakhir. Silakan masuk kembali, data Anda tetap aman.');setView('login')});return()=>{sub.subscription.unsubscribe()}},[])
  useEffect(()=>{if(typeof window==='undefined')return;const callbackError=parseAuthCallbackError(window.location.hash,window.location.search);if(!callbackError)return;history.replaceState(null,'',window.location.pathname);setAuthMode('normal');setAuthInfo('');setMessage(callbackError.message);setView('login')},[])
  useEffect(()=>{const {data:sub}=sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){setAuthMode('recovery');setMessage('');setPassword('');setPassword2('');setView('login')}});if(typeof window!=='undefined'&&/type=recovery/.test(window.location.hash)){setAuthMode('recovery');setView('login')}return()=>{sub.subscription.unsubscribe()}},[])
  const sendReset=async()=>{if(busy)return;setBusy(true);setMessage('');try{const em=email.trim();if(!em)throw new Error('Masukkan username atau email akun yang valid.');if(!em.includes('@')){await requestUsernameAuth('recover',em);setResetSent(true);return}if(!/^\S+@\S+\.\S+$/.test(em))throw new Error('Masukkan username atau email akun yang valid.');if(em.toLowerCase().endsWith('@aureka.invalid'))throw new Error('Akun unit ini tidak memakai email untuk pemulihan password. Hubungi Super Admin untuk menyetel password sementara.');const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:`${window.location.origin}${BASE_PATH}/`});if(error)throw error;setResetSent(true)}catch(e){setMessage(authError(e))}finally{setBusy(false)}}
@@ -342,7 +343,7 @@ export default function HomeClient(){
    setBusy(false);setMessage(toUserFacingError(e,{fallback:'Password berubah, tetapi profil belum dapat dimuat ulang. Muat ulang halaman dan masuk kembali.'}))
   }
  }
- const logout=async(scope:'global'|'local'='local')=>{intentionalLogoutRef.current=true;try{sessionStorage.removeItem('aureka-staff-dir');Object.keys(localStorage).filter(k=>k.startsWith('aureka-tanya')||k.startsWith('aureka-nara-convos')||k.startsWith('aureka-ikp-draft')).forEach(k=>localStorage.removeItem(k));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>sessionStorage.removeItem(k));if(user?.id){sessionStorage.removeItem('aureka-quality-room:'+String(user.id));sessionStorage.removeItem('aureka-workspace-room:'+String(user.id))}Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut({scope});setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);setSelectedWorkspaceRoomId(null);setSelectedQualityRoomId(null);setAllRoomsScope(true);}
+ const logout=async(scope:'global'|'local'='local')=>{clearContinuumSession();intentionalLogoutRef.current=true;try{sessionStorage.removeItem('aureka-staff-dir');Object.keys(localStorage).filter(k=>k.startsWith('aureka-tanya')||k.startsWith('aureka-nara-convos')||k.startsWith('aureka-ikp-draft')).forEach(k=>localStorage.removeItem(k));Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-tanya')).forEach(k=>sessionStorage.removeItem(k));if(user?.id){sessionStorage.removeItem('aureka-quality-room:'+String(user.id));sessionStorage.removeItem('aureka-workspace-room:'+String(user.id))}Object.keys(sessionStorage).filter(k=>k.startsWith('aureka-ov:')).forEach(k=>sessionStorage.removeItem(k))}catch{};await sb.auth.signOut({scope});setUser(null);setProfile(null);setRoom(null);setRole(null);setPassword('');setPassword2('');setView('public');setActive('home');setQualityOpen(false);setClinicalPathwayOpen(false);setQualityResultsView(null);setSelectedWorkspaceRoomId(null);setSelectedQualityRoomId(null);setAllRoomsScope(true);}
  // Keluar otomatis hanya di perangkat ini (scope local): sesi di HP/PC lain yang sedang dipakai tidak ikut dicabut.
  // Keluar otomatis setelah 30 menit tidak dipakai (peringatan 2 menit sebelumnya) — melindungi data pasien di komputer bersama.
  const idle=useIdleLogout({enabled:view==='workspace',timeoutMs:30*60_000,warnMs:2*60_000,onTimeout:()=>{void logout('local').then(()=>{setView('login');setAuthInfo('Anda keluar otomatis karena AUREKA tidak dipakai selama 30 menit. Silakan masuk kembali.')})}})
@@ -547,22 +548,42 @@ export default function HomeClient(){
  const continuumScopeKey=JSON.stringify([user?.id,role,activeWorkspaceRoomId,effectiveQualityRoomId,permissionsReady,permissionFlags,visibleSidebarDomains.map(g=>[g.id,g.items.map(i=>i.id)])])
 
  // Sidebar, shortcuts, contextual tabs and bookmarks enter through the same access checks.
- const navigateWorkspace=(moduleId:string,section='',focus?:RiskFocus|SafetyFocus|null):boolean=>{
+ const authorizedWorkspaceSection=(moduleId:string,section=''):string|null=>{
   const module=AUREKA_PRIMARY_NAV.find(item=>item.id===moduleId)
   const allowed=module?.requiredRoles.includes((role||'') as AurekaRole)
-  if(moduleId!=='home'&&!(moduleId==='clinical'&&section==='realcost'?canAccessRealcost:allowed))return false
-
+  if(moduleId!=='home'&&!(moduleId==='clinical'&&section==='realcost'?canAccessRealcost:allowed))return null
   if(moduleId==='staff'){
    if(!section)section=canAccessDirectory?'directory':canAccessTeam?'team':permissionFlags.readPerformance?'oppe-fppe':canAccessInHouseTraining?'training':''
    const canOpen={directory:canAccessDirectory,team:canAccessTeam,'oppe-fppe':permissionFlags.readPerformance,fppe:permissionFlags.readPerformance,training:canAccessInHouseTraining,'student-orientation':canAccessStudentOrientation}
-   if(!Object.hasOwn(canOpen,section)||!canOpen[section as keyof typeof canOpen])return false
+   if(!Object.hasOwn(canOpen,section)||!canOpen[section as keyof typeof canOpen])return null
+  }
+  if(moduleId==='settings'){
+   const requested=(section||'profile') as SettingsSection
+   if((['users','units','system'].includes(requested)&&!admin)||(requested==='permissions'&&!canAccessSettingsAudit)||(requested==='audit'&&!canAccessSettingsAudit)||(requested==='legal'&&!canAccessLegal)||(requested==='mydata'&&admin))return null
+   section=requested
+  }
+  if(moduleId==='quality'){
+   if(section==='quality-reconciliation'&&!admin&&role!=='PMKP')return null
+   if(section==='pic-performance'&&!permissionFlags.readPicPerformance)return null
+   if(role==='DEWAN_PENGAWAS'&&!['spm','sop'].includes(section)){
+    if(!permissionFlags.readQualityAggregate||['profile-indicators','quality-reconciliation','quality-reporting','pic-performance'].includes(section))return null
+    section='quality-overview'
+   }
+  }
+  if(moduleId==='safety'&&(section==='fmea-reactive'&&!canManageSafety||section==='responses'&&!admin))return null
+  return section
+ }
+ const canOpenContinuumWorkspace=(destination:{module:string;section:string})=>Boolean(user?.id&&role&&permissionsReady&&authorizedWorkspaceSection(destination.module,destination.section)===destination.section)
+ const navigateWorkspace=(moduleId:string,section='',focus?:RiskFocus|SafetyFocus|null):boolean=>{
+  const accepted=authorizedWorkspaceSection(moduleId,section)
+  if(accepted===null)return false
+  section=accepted
+  if(moduleId==='staff'){
    setStaffTab(section==='team'?'directory':section==='oppe-fppe'?'oppe':section as StaffWorkspaceTab)
    setAnalyticsDirectoryTab(section==='team'?'team':'directory')
   }
   if(moduleId==='settings'){
-   const requested=(section||'profile') as SettingsSection
-   if((['users','units','system'].includes(requested)&&!admin)||(requested==='permissions'&&!canAccessSettingsAudit)||(requested==='audit'&&!canAccessSettingsAudit)||(requested==='legal'&&!canAccessLegal)||(requested==='mydata'&&admin))return false
-   setSettingsSection(requested)
+   setSettingsSection(section as SettingsSection)
    setSettingsTab(null)
   }
   if(moduleId==='patients'){
@@ -586,12 +607,6 @@ export default function HomeClient(){
    setQualityResultsView(target==='pathway-analysis'?'pathway':target==='result-clinical-death'?'clinical-death':null)
   }
   if(moduleId==='quality'){
-   if(section==='quality-reconciliation'&&!admin&&role!=='PMKP')return false
-   if(section==='pic-performance'&&!permissionFlags.readPicPerformance)return false
-   if(role==='DEWAN_PENGAWAS'&&!['spm','sop'].includes(section)){
-    if(!permissionFlags.readQualityAggregate||['profile-indicators','quality-reconciliation','quality-reporting','pic-performance'].includes(section))return false
-    section='quality-overview'
-   }
    setSpmOpen(section==='spm')
    setSpoOpen(section==='sop')
    setQualityProfileOpen(section==='profile-indicators')
@@ -604,7 +619,6 @@ export default function HomeClient(){
    setClinicalPathwayOpen(false)
   }
   if(moduleId==='safety'){
-   if(section==='fmea-reactive'&&!canManageSafety||section==='responses'&&!admin)return false
    setSafetyTab((section||'overview') as SafetyWorkspaceTab)
    setSafetyFocus((focus as SafetyFocus|null)??null)
   }
@@ -1218,7 +1232,7 @@ export default function HomeClient(){
     <span className="workspaceHeaderProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
    </button>
   </header>
-  {arcticNavigation&&<ArcticCategoryNavigation groups={visibleSidebarDomains} key={continuumScopeKey} currentWorkspace={permissionsReady?continuumWorkspace:null} onOpenWorkspace={destination=>permissionsReady&&navigateWorkspace(destination.module,destination.section)} activeCategoryId={activeDomainId} isActive={sidebarDestinationActive} onSelect={selectDomainDestination} onExit={()=>changeArcticNavigation(false)} previewEnabled={arcticPreview} onTogglePreview={changeArcticDataPreview} onLogout={()=>void logout()} contextKey={String(role)+'|'+String(activeWorkspaceRoomId)+'|'+activeDomainId+'|'+currentContainer}/>}
+  {arcticNavigation&&<ArcticCategoryNavigation groups={visibleSidebarDomains} key={continuumScopeKey} currentWorkspace={permissionsReady?continuumWorkspace:null} storageScope={permissionsReady&&user?.id&&role?continuumScopeKey:null} canOpenWorkspace={canOpenContinuumWorkspace} onOpenWorkspace={destination=>canOpenContinuumWorkspace(destination)&&navigateWorkspace(destination.module,destination.section)} activeCategoryId={activeDomainId} isActive={sidebarDestinationActive} onSelect={selectDomainDestination} onExit={()=>changeArcticNavigation(false)} previewEnabled={arcticPreview} onTogglePreview={changeArcticDataPreview} onLogout={()=>void logout()} contextKey={String(role)+'|'+String(activeWorkspaceRoomId)+'|'+activeDomainId+'|'+currentContainer}/>}
   {idle.secondsLeft!=null&&typeof document!=='undefined'&&createPortal(<div className="idleWarnBackdrop"><div ref={idleDialogRef} tabIndex={-1} className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
    <strong id="idle-warn-title">Masih di sana?</strong>
    <p id="idle-warn-desc">Demi keamanan data pasien, AUREKA akan keluar otomatis dalam <b>{Math.floor(idle.secondsLeft/60)}:{String(idle.secondsLeft%60).padStart(2,'0')}</b>.</p>
