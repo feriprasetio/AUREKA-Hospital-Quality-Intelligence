@@ -36,3 +36,6 @@ verify_jwt = true
 
 [functions.aureka-secretariat-parse]
 verify_jwt = true
+
+[functions.aureka-username-auth]
+verify_jwt = false

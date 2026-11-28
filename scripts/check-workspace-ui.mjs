@@ -350,10 +350,13 @@ const goView = async (selector, value, label) => {
   else await clickText(selector + ' button', label)
   await wait(`document.querySelector(${JSON.stringify(selector + ' select')})?.value===${JSON.stringify(value)}`)
 }
-const login = async role => {
+const login = async (role, legacy = true) => {
   testRole = role
   await send('Storage.clearDataForOrigin', { origin: new URL(appUrl).origin, storageTypes: 'all' })
-  await send('Page.navigate', { url: appUrl })
+  const destination = new URL(appUrl)
+  destination.searchParams.delete('arctic')
+  if (legacy) destination.searchParams.set('nav','legacy'); else destination.searchParams.delete('nav')
+  await send('Page.navigate', { url: destination.href })
   await wait("document.querySelector('button.aurekaPublicPrimary')")
   await wait("document.documentElement.dataset.theme==='solid'", 'React hydration before clicking the login action')
   await click('button.aurekaPublicPrimary')
@@ -362,6 +365,24 @@ const login = async role => {
   await fill('#password', 'isolated-ui-test-only')
   await evaluate("document.querySelector('.authArcticForm').requestSubmit()")
   await wait("document.querySelector('.workspaceDesk')")
+}
+
+// Navigation is now default; data-first is an independently reversible pilot.
+const enterArctic = async () => {
+  await click('.arcticPreviewSwitch')
+  await wait("document.querySelector('[data-arctic-shell=continuum]')")
+  await click('.arcticActionsTrigger')
+  await wait("document.querySelector('[data-arctic-data-preview]')")
+  if (await evaluate("document.querySelector('[data-arctic-data-preview]').getAttribute('aria-pressed')==='false'")) await click('[data-arctic-data-preview]')
+  else await key('Escape')
+  await wait("document.querySelector('[data-arctic-preview=true]')")
+}
+const leaveArctic = async () => {
+  await click('.arcticActionsTrigger')
+  await wait("document.querySelector('.arcticMegaMenu[data-actions]')")
+  await clickText('.arcticMegaMenu button','Layout lama')
+  await wait("document.querySelector('aside.sidebar') && !document.querySelector('[data-arctic-shell],[data-arctic-preview]')")
+  assert.equal(await evaluate("new URLSearchParams(location.search).has('arctic')"),false)
 }
 
 let stopInterceptionPromise
@@ -404,8 +425,14 @@ try {
     await wait("document.querySelector('.legalVerifyCard h1')?.textContent === 'Persetujuan terverifikasi'")
     assert.equal(documentReadAttempts, 2)
   })
-  await login('ADMIN')
+  await login('ADMIN', false)
   await wait("document.querySelector('.ccSectionHead')")
+  await check('default capsule navigation and independent data-first rollback', async () => {
+    await wait("document.querySelector('[data-arctic-shell=continuum]')")
+    assert.equal(await evaluate("Boolean(document.querySelector('[data-arctic-preview=true], aside.sidebar'))"),false)
+    await leaveArctic()
+    assert.equal(await evaluate("new URLSearchParams(location.search).get('nav')"),'legacy')
+  })
   await check('authenticated desktop frame', () => layout('Overview'))
   await screenshot('overview-1366')
   await check('dialog shortcuts require a safe explicitly registered action', async () => {
@@ -472,7 +499,7 @@ try {
     await wait("document.querySelector('.ccSectionHead')")
   })
   await check('Arctic opt-in shell keeps category ownership, keyboard dismissal and rollback', async () => {
-    await click('.arcticPreviewSwitch')
+    await enterArctic()
     await wait("document.querySelector('[data-arctic-shell=continuum]')")
     assert.equal(await evaluate("Boolean(document.querySelector('aside.sidebar,.workspaceNativeNavigation'))"), false)
     assert.equal(await evaluate("document.querySelectorAll('[data-arctic-category]').length"), 8)
@@ -494,13 +521,13 @@ try {
     await wait("document.querySelector('.moduleEnter')?.dataset.workspaceContainer==='home'")
     await screenshot('arctic-shell-mobile')
     await viewport(1366)
-    await clickText('.arcticLayoutExit','Layout lama')
+    await leaveArctic()
     await wait("document.querySelector('aside.sidebar')&&!document.querySelector('[data-arctic-shell]')")
     assert.equal(await evaluate("new URLSearchParams(location.search).has('arctic')"),false)
     await wait("document.querySelector('.ccSectionHead')")
   })
   await check('Arctic quick navigation and paginated incident grid use real scoped rows', async () => {
-    await click('.arcticPreviewSwitch')
+    await enterArctic()
     await wait("document.querySelector('[data-arctic-shell=continuum]')")
     await evaluate("document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',ctrlKey:true,bubbles:true,cancelable:true}))")
     await wait("document.querySelector('#arctic-module-query')")
@@ -540,13 +567,13 @@ try {
       await fill('#ps-register-search','')
       await screenshot('arctic-incident-grid')
     } finally { incidents=original }
-    await clickText('.arcticLayoutExit','Layout lama')
+    await leaveArctic()
     await wait("document.querySelector('aside.sidebar')")
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
   await check('Arctic data-first entry keeps actual domain registers and summary access', async () => {
-    await click('.arcticPreviewSwitch')
+    await enterArctic()
     await wait("document.querySelector('[data-arctic-shell=continuum]')")
     await evaluate("location.hash='#sekretariat'")
     await wait("document.querySelector('.secTableToolbar')")
@@ -571,7 +598,7 @@ try {
     }
     assert.equal(await evaluate("document.querySelector('.sdPanel .arcticDomainSummary').open"),false)
     await screenshot('arctic-staff-data-first')
-    await clickText('.arcticLayoutExit','Layout lama')
+    await leaveArctic()
     await wait("document.querySelector('aside.sidebar')")
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
@@ -596,7 +623,7 @@ try {
     await wait("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length===15")
     const legacyCsv = await captureCsv()
     assert.equal(legacyCsv.split('\r\n').length, 20)
-    await click('.arcticPreviewSwitch')
+    await enterArctic()
     await wait("document.querySelector('#risk-register-map:not([open])')")
     assert.equal(await evaluate("Boolean(document.querySelector('#risk-register-map .rmMatrix'))"),false)
     assert.equal(await evaluate("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length"),15)
@@ -667,13 +694,13 @@ try {
     await viewport(1366)
     await click('.workspaceThemeButton')
     await wait("document.documentElement.dataset.mode==='terang'")
-    await clickText('.arcticLayoutExit','Layout lama')
+    await leaveArctic()
     await wait("document.querySelector('aside.sidebar') && !document.querySelector('#risk-register-map')")
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
   await check('Arctic patient directory direct entry, server paging and error recovery', async () => {
-    await click('.arcticPreviewSwitch')
+    await enterArctic()
     await wait("document.querySelector('[data-arctic-shell=continuum]')")
     await click('[data-arctic-category=patient_registry]')
     await wait("document.querySelector('[data-arctic-destination=patient_directory]')")
@@ -706,7 +733,7 @@ try {
     await clickText('#pi-invalid-rm button','Coba lagi')
     await wait("document.querySelector('#pi-invalid-rm').textContent.includes('Semua episode')")
     await screenshot('arctic-patient-directory')
-    await clickText('.arcticLayoutExit','Layout lama')
+    await leaveArctic()
     await wait("document.querySelector('aside.sidebar')")
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
@@ -720,7 +747,7 @@ try {
       if (['ADMIN','PMKP','PIC','DIREKTUR'].includes(role)) await wait("Array.from(document.querySelectorAll('.sidebarDomainItem')).some(b=>b.textContent.includes('Sumber Daya Manusia'))")
       const before=await evaluate(`Array.from(document.querySelectorAll('.sidebarDomain')).map(group=>({label:group.querySelector('.sidebarDomainTrigger button').title,items:Array.from(group.querySelectorAll('.sidebarDomainItem')).map(item=>({label:item.querySelector('span').textContent,disabled:item.disabled}))}))`)
       assert.ok(before.length>0,role+' has no legacy navigation')
-      await click('.arcticPreviewSwitch')
+      await enterArctic()
       await wait("document.querySelector('[data-arctic-shell=continuum]')")
       const labels=await evaluate("Array.from(document.querySelectorAll('[data-arctic-category]')).map(b=>b.getAttribute('aria-label'))")
       assert.deepEqual(labels,before.map(g=>g.label),role+' category ownership')
@@ -736,7 +763,7 @@ try {
       const fits=await evaluate("document.documentElement.scrollWidth<=innerWidth+1")
       assert.equal(fits,true,role+' desktop shell overflow')
       await screenshot('arctic-role-'+role.toLowerCase())
-      await clickText('.arcticLayoutExit','Layout lama')
+      await leaveArctic()
       await wait("document.querySelector('aside.sidebar')")
       await click('.sidebarFooter .liquidButton button')
       await wait("document.querySelector('.aurekaPublic')")
