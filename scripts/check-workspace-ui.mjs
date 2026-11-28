@@ -569,6 +569,76 @@ try {
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
+  await check('Arctic risk register keeps filters, matrix, and CSV parity', async () => {
+    const table = '.rmTable tbody tr[data-risk-id]'
+    const captureCsv = () => evaluate(`(async()=>{
+      const create = URL.createObjectURL
+      const click = HTMLAnchorElement.prototype.click
+      let csv
+      try {
+        URL.createObjectURL = blob => { csv = blob.text(); return 'blob:synthetic-risk-export' }
+        HTMLAnchorElement.prototype.click = function() {}
+        Array.from(document.querySelectorAll('.rmBarActions button')).find(b=>b.textContent==='Ekspor CSV').click()
+        return await csv
+      } finally {
+        URL.createObjectURL = create
+        HTMLAnchorElement.prototype.click = click
+      }
+    })()`)
+    await evaluate("location.hash='#manajemen-risiko/register'")
+    await wait("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length===15")
+    const legacyCsv = await captureCsv()
+    assert.equal(legacyCsv.split('\r\n').length, 20)
+    await click('.arcticPreviewSwitch')
+    await wait("document.querySelector('#risk-register-map:not([open])')")
+    assert.equal(await evaluate("Boolean(document.querySelector('#risk-register-map .rmMatrix'))"),false)
+    assert.equal(await evaluate("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length"),15)
+    assert.equal(await captureCsv(),legacyCsv)
+    await evaluate("document.querySelector('#risk-register-map summary').focus()")
+    await key('Enter')
+    await wait("document.querySelector('#risk-register-map[open] .rmMatrixCell')")
+    await click('#risk-register-map .rmMatrixCell[title="P1, D1, skor 1"]')
+    await wait("document.querySelector('.rmSelectionBar')?.textContent.includes('Filter matriks aktif')")
+    assert.equal(await evaluate("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length"),15)
+    await clickText('.rmSelectionBar button','Hapus filter matriks')
+    await click('#risk-register-map summary')
+    await wait("document.querySelector('#risk-register-map:not([open])')")
+    await evaluate('window.scrollTo(0,0)')
+    for (const [width,height,mode] of [[1366,768,'terang'],[390,844,'gelap']]) {
+      await viewport(width,height)
+      if (mode==='gelap') await click('.workspaceThemeButton')
+      await wait(`innerWidth===${width} && document.documentElement.dataset.mode==='${mode}'`)
+      await evaluate('Promise.all(document.getAnimations().filter(a=>Number.isFinite(a.effect?.getTiming().iterations)).map(a=>a.finished.catch(()=>{}))).then(()=>undefined)')
+      const geometry=await evaluate(`(()=>{
+        const region=document.querySelector('.rmTableWrap').getBoundingClientRect()
+        const firstCell=document.querySelector('[data-arctic-risk-table] td:nth-child(2)')
+        const rgb=value=>(value.match(/[\\d.]+/g)||[]).slice(0,3).map(Number)
+        const luminance=values=>values.reduce((sum,value,index)=>{
+          const c=value/255
+          return sum+(c<=.04045?c/12.92:((c+.055)/1.055)**2.4)*[.2126,.7152,.0722][index]
+        },0)
+        const foreground=luminance(rgb(getComputedStyle(firstCell.querySelector('b')).color))
+        const background=luminance(rgb(getComputedStyle(firstCell).backgroundColor))
+        const rows=[...document.querySelectorAll(${JSON.stringify(table)})]
+        return {left:region.left,right:region.right,viewport:innerWidth,rowDisplay:getComputedStyle(rows[0]).display,contrast:(Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05),visibleRows:rows.filter(row=>{
+          const r=row.getBoundingClientRect(); return r.top>=0&&r.bottom<=innerHeight
+        }).length}
+      })()`)
+      measurements.push({label:'Arctic risk register '+mode,...geometry})
+      assert.ok(geometry.left>=-1 && geometry.right<=geometry.viewport+1,JSON.stringify(geometry))
+      assert.equal(geometry.rowDisplay,'table-row')
+      assert.ok(geometry.contrast>=4.5,JSON.stringify(geometry))
+      assert.ok(geometry.visibleRows>0,JSON.stringify(geometry))
+      await screenshot('arctic-risk-'+width+'-'+mode)
+    }
+    await viewport(1366)
+    await click('.workspaceThemeButton')
+    await wait("document.documentElement.dataset.mode==='terang'")
+    await clickText('.arcticLayoutExit','Layout lama')
+    await wait("document.querySelector('aside.sidebar') && !document.querySelector('#risk-register-map')")
+    await evaluate("location.hash='#beranda'")
+    await wait("document.querySelector('.ccSectionHead')")
+  })
   await check('Arctic patient directory direct entry, server paging and error recovery', async () => {
     await click('.arcticPreviewSwitch')
     await wait("document.querySelector('[data-arctic-shell=continuum]')")
