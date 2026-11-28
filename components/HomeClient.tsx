@@ -23,6 +23,7 @@ import FormSpeedEnhancer from '@/components/FormSpeedEnhancer'
 import type {GeneralSettingsSection} from '@/components/GeneralSettings'
 import { setAurekaMode, useAurekaMode } from '@/lib/ui/aureka-mode'
 import { readWorkspaceHash } from '@/lib/aureka/workspace-route'
+import { resolveContinuumWorkspace } from '@/lib/aureka/continuum-workspace'
 import UnifiedModuleNavigation from '@/components/navigation/UnifiedModuleNavigation'
 import ArcticCategoryNavigation from '@/components/navigation/ArcticCategoryNavigation'
 import ModuleErrorBoundary from '@/components/layout/ModuleErrorBoundary'
@@ -540,6 +541,10 @@ export default function HomeClient(){
   return MODS.find(([id])=>id===active)?.[1]||'Workspace'
  })()
  const effectiveQualityRoomId=admin?activeWorkspaceRoomId:(selectedQualityRoomId??room?.id??null)
+ // Resolve from actual selected domain state, never from translated labels or arbitrary hash text.
+ const continuumSection=active==='patients'?(patientsRegistryTab==='analysis'?patientPatternTab:patientsRegistryTab):active==='clinical'?(realcostAuditOpen?'realcost':qualityResultsView==='pathway'?'pathway-analysis':qualityResultsView==='clinical-death'?'result-clinical-death':clinicalPathwayOpen?(pathwayInput==='manual'?'pathway-manual':'audit-pathway'):clinicalAuditType==='death'?'audit-death':'audit-clinical'):active==='quality'?(qualityProfileOpen?'profile-indicators':spoOpen?'sop':spmOpen?'spm':qualityReconciliationOpen?'quality-reconciliation':qualityMonitorOpen?(qualityMonitorTab==='pic'?'pic-performance':'quality-reporting'):qualityResultsView?(qualityResultsGroup==='category'?'result-category':'result-unit'):qualityOpen?'audit-indicators':'quality-overview'):active==='safety'?safetyTab:active==='risk'?riskTab:active==='staff'?(staffTab==='oppe'?'oppe-fppe':staffTab==='directory'?analyticsDirectoryTab:staffTab):active==='secretariat'?secretariatSection:active==='analytics'?programTab:active==='settings'?settingsSection:''
+ const continuumWorkspace=resolveContinuumWorkspace(active,continuumSection)
+ const continuumScopeKey=JSON.stringify([user?.id,role,activeWorkspaceRoomId,effectiveQualityRoomId,permissionsReady,permissionFlags,visibleSidebarDomains.map(g=>[g.id,g.items.map(i=>i.id)])])
 
  // Sidebar, shortcuts, contextual tabs and bookmarks enter through the same access checks.
  const navigateWorkspace=(moduleId:string,section='',focus?:RiskFocus|SafetyFocus|null):boolean=>{
@@ -1213,7 +1218,7 @@ export default function HomeClient(){
     <span className="workspaceHeaderProfileText"><b>{profile?.full_name||user?.email||'Pengguna'}</b><small>{ROLE_LABEL[role||'']||role||'Pengguna'}</small></span>
    </button>
   </header>
-  {arcticNavigation&&<ArcticCategoryNavigation groups={visibleSidebarDomains} activeCategoryId={activeDomainId} isActive={sidebarDestinationActive} onSelect={selectDomainDestination} onExit={()=>changeArcticNavigation(false)} previewEnabled={arcticPreview} onTogglePreview={changeArcticDataPreview} onLogout={()=>void logout()} contextKey={String(role)+'|'+String(activeWorkspaceRoomId)+'|'+activeDomainId+'|'+currentContainer}/>}
+  {arcticNavigation&&<ArcticCategoryNavigation groups={visibleSidebarDomains} key={continuumScopeKey} currentWorkspace={permissionsReady?continuumWorkspace:null} onOpenWorkspace={destination=>permissionsReady&&navigateWorkspace(destination.module,destination.section)} activeCategoryId={activeDomainId} isActive={sidebarDestinationActive} onSelect={selectDomainDestination} onExit={()=>changeArcticNavigation(false)} previewEnabled={arcticPreview} onTogglePreview={changeArcticDataPreview} onLogout={()=>void logout()} contextKey={String(role)+'|'+String(activeWorkspaceRoomId)+'|'+activeDomainId+'|'+currentContainer}/>}
   {idle.secondsLeft!=null&&typeof document!=='undefined'&&createPortal(<div className="idleWarnBackdrop"><div ref={idleDialogRef} tabIndex={-1} className="idleWarn" role="alertdialog" aria-modal="true" aria-labelledby="idle-warn-title" aria-describedby="idle-warn-desc">
    <strong id="idle-warn-title">Masih di sana?</strong>
    <p id="idle-warn-desc">Demi keamanan data pasien, AUREKA akan keluar otomatis dalam <b>{Math.floor(idle.secondsLeft/60)}:{String(idle.secondsLeft%60).padStart(2,'0')}</b>.</p>
@@ -1270,7 +1275,7 @@ export default function HomeClient(){
    onSelect={id=>selectContextualTab(id,true)}
    onSubSelect={selectContextualTab}
   />}
-   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><AdaptiveWorkspaceShell moduleId={activeNavModuleId} containerLabel={currentContainer} userId={user?.id||''}><ModuleErrorBoundary resetKey={currentContainer} moduleLabel={currentContainer} onHome={()=>openMainModule('home')}>
+   <div id="workspace-main-content" tabIndex={-1} key={active+'-'+(admin?String(activeWorkspaceRoomId??'none'):'profile')} className="moduleEnter" data-workspace-container={active} data-workspace-subcontainer={currentContainer}><AdaptiveWorkspaceShell moduleId={activeNavModuleId} containerLabel={currentContainer} userId={user?.id||''} continuumArchetype={arcticPreview?continuumWorkspace?.archetype:undefined}><ModuleErrorBoundary resetKey={currentContainer} moduleLabel={currentContainer} onHome={()=>openMainModule('home')}>
    {!routeReady?<WorkspaceSkeleton label="AUREKA"/>:active==='home'?<>
     <HomeLandingWorkspace availableModules={[...visibleModuleIds]} supabase={sb} userName={profile?.full_name||user?.email||'Pengguna'} userId={user?.id||''} rooms={roomsList} isAdmin={admin} onReminderRead={()=>{void loadReminderHistory()}} roomId={role==='DEWAN_PENGAWAS'||(manager&&!admin)?null:admin&&allRoomsScope?null:activeWorkspaceRoomId??null} roomName={role==='DEWAN_PENGAWAS'||(manager&&!admin)||admin&&allRoomsScope?'Seluruh rumah sakit':activeWorkspaceRoom?.name??room?.name??'Unit aktif'} manager={manager&&!admin||role==='DEWAN_PENGAWAS'} scopeToRoom={admin&&!allRoomsScope} onAskNara={openNaraWithContext} onNavigate={(id,f)=>{if(manager||!MANAGER_ONLY_MODULES.includes(id)){if(id==='clinicalPathway')navigateWorkspace('clinical','audit-pathway');else if(id==='rtl')navigateWorkspace('analytics','recommendations');else if(id==='logbook')navigateWorkspace('quality','audit-indicators');else navigateWorkspace(id,f&&'tab' in f?f.tab:'',f?{...f,nonce:Date.now()}:null)}}}/>
     {['ADMIN','PMKP','DIREKTUR','MANAGEMENT'].includes(role||'')&&<details className="aurekaPublishDisclosure"><summary>Kelola publikasi landing page Aureka <span>Verifikasi, persetujuan dan transparansi data</span></summary><PublicPublicationDesk role={role} userId={user?.id||''}/></details>}
