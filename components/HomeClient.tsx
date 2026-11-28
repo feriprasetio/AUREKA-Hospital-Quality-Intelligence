@@ -1305,7 +1305,7 @@ export default function HomeClient(){
    :active==='quality'&&spoOpen?<StandardsProcedureWorkspace role={role} userId={user?.id||''}/>
    :active==='quality'&&spmOpen?<SpmWorkspace dataFirst={arcticPreview} role={role} currentRoomId={activeWorkspaceRoomId??room?.id??null}/>
    :active==='quality'&&qualityReconciliationOpen?<QualityReconciliationWorkspace key={JSON.stringify([user?.id,role,admin&&!allRoomsScope?activeWorkspaceRoomId??'none':'all'])} dataFirst={arcticPreview} rooms={roomsList} initialRoomId={admin&&!allRoomsScope?activeWorkspaceRoomId:null} role={role}/>
-   :active==='quality'&&qualityProfileOpen?<QualitySettingsWorkspace key={JSON.stringify([user?.id,role,effectiveQualityRoomId,admin&&!allRoomsScope])} dataFirst={arcticPreview} rooms={roomsList} initialTab="profiles" showTabs={false} initialRoomId={effectiveQualityRoomId} lockRoomScope={admin&&!allRoomsScope} role={role}/>
+   :active==='quality'&&qualityProfileOpen?<QualitySettingsWorkspace rooms={roomsList} initialTab="profiles" showTabs={false} key={JSON.stringify([user?.id,role,effectiveQualityRoomId,admin&&!allRoomsScope])} dataFirst={arcticPreview} initialRoomId={effectiveQualityRoomId} lockRoomScope={admin&&!allRoomsScope} role={role}/>
    :active==='quality'&&qualityMonitorOpen?<section className="qualityMonitorWorkspace" aria-label="Monitoring Pelaporan dan Kinerja PIC">
      {qualityMonitorTab==='pic'&&permissionFlags.readPicPerformance?<PicPerformanceWorkspace key={JSON.stringify([user?.id,role,activeWorkspaceRoomId])} dataFirst={arcticPreview}/>:<QualityReportingMonitor dataFirst={arcticPreview} supabase={sb} rooms={roomsList} isAdmin={admin} roomId={admin&&allRoomsScope?null:activeWorkspaceRoomId} roomName={activeWorkspaceRoom?.name??null}/>}
     </section>
