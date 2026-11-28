@@ -727,3 +727,14 @@ html[data-skin="arktik"][data-mode="gelap"] body [aria-modal="true"] > :is(.aqDH
 .arcticReportActions { display:flex; flex-wrap:wrap; gap:8px; margin-block:10px; }
 .arcticReportOperations { margin-top:8px; }
 @media(max-width:480px){.arcticReportPreview{padding:10px}.arcticReportPreview dl{grid-template-columns:1fr}.arcticReportActions button{min-height:44px}}
+
+.arcticMonthlyReview{margin-top:12px;padding-top:12px;border-top:1px solid var(--aureka-canvas-divider)}
+.arcticMonthlyReview label{display:inline-flex;gap:8px;align-items:center;margin:0 8px 8px 0}
+.arcticMonthlyReview select{min-height:40px;max-width:100%;font:inherit;color:inherit;background:var(--aureka-dialog-surface);border:1px solid var(--aureka-control-edge);border-radius:8px;padding:6px 10px}
+.arcticReportWorkflow{margin-block:10px;padding:8px;border:1px solid var(--aureka-canvas-divider);border-radius:8px}
+.arcticReportPresentation{margin-block:12px;padding:clamp(12px,3vw,28px);border:1px solid var(--aureka-canvas-divider);border-radius:12px;background:var(--aureka-dialog-surface);color:var(--aureka-color-foreground);overflow-wrap:anywhere}
+.arcticReportPresentation dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.arcticReportPresentation dl>div{padding:12px;border-bottom:1px solid var(--aureka-canvas-divider);min-width:0}
+.arcticReportPresentation dd{margin:4px 0 0;font-size:clamp(24px,4vw,42px);font-weight:700;font-variant-numeric:tabular-nums}
+.arcticReportPresentation .arcticReportActions{align-items:center;justify-content:space-between}
+@media(max-width:480px){.arcticReportPresentation dl{grid-template-columns:1fr}.arcticMonthlyReview select{min-height:44px}}
