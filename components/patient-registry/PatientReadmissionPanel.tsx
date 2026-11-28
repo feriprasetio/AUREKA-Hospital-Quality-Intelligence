@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
@@ -10,39 +10,59 @@ const fmtDate = (d: string | null) => d ? new Intl.DateTimeFormat('id-ID', { day
 
 /** Tab Readmisi pada Pola Perawatan: pasien dengan rawat inap ulang ≤30 hari (perkiraan dari Logbook). */
 export default function PatientReadmissionPanel({ room, year }: { room: string; year: string }) {
-  const [rows, setRows] = useState<Row[]>([])
-  const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  useEffect(() => { setPage(0) }, [room, year])
-  const load = useCallback(async () => {
-    setLoading(true); setError('')
-    const { data, error: e } = await aurekaSupabase.rpc('aureka_patient_index_search_v2', {
-      p_query: null, p_filter: 'readmisi30', p_room: room ? Number(room) : null,
-      p_from: `${year}-01-01`, p_to: `${year}-12-31`, p_limit: PAGE, p_offset: page * PAGE,
-    })
-    setLoading(false)
-    if (e) {
-      setRows([]); setTotal(0)
-      setError(e.code === 'PGRST202' ? 'Analisis readmisi belum aktif. Terapkan migration 20261115090000_patient_index_v2_filters_readmission.sql.' : toUserFacingError(e, { fallback: 'Data readmisi belum dapat dimuat.' }))
-      return
-    }
-    const list = (data || []) as Row[]
-    setRows(list); setTotal(Number(list[0]?.total_count) || 0)
-  }, [room, year, page])
-  useEffect(() => { void load() }, [load])
-  const events = rows.reduce((s, r) => s + (Number(r.readmisi_30) || 0), 0)
+  const [revision, setRevision] = useState(0)
+  const [result, setResult] = useState<{ request: string; rows: Row[]; error?: string } | null>(null)
+  const request = JSON.stringify([room, year, page, revision])
+  const current = result?.request === request ? result : null
+  const loading = current === null
+  const error = current?.error
+  const rows = current?.rows ?? []
+  const total = rows[0]?.total_count ?? 0
+
+  useEffect(() => {
+    const controller = new AbortController()
+    void (async () => {
+      try {
+        const { data, error } = await aurekaSupabase.rpc('aureka_patient_index_search_v2', {
+          p_query: null, p_filter: 'readmisi30', p_room: room ? Number(room) : null,
+          p_from: `${year}-01-01`, p_to: `${year}-12-31`, p_limit: PAGE, p_offset: page * PAGE,
+        }).abortSignal(controller.signal)
+        if (error) throw error
+        if (!Array.isArray(data) || !data.every(row =>
+          row && typeof row.no_rm === 'string' &&
+          Number.isSafeInteger(row.readmisi_30) && row.readmisi_30 > 0 &&
+          Number.isSafeInteger(row.total_count) && row.total_count >= data.length
+        )) throw new Error('Daftar readmisi belum tersedia.')
+        if (controller.signal.aborted) return
+        if (data.length === 0 && page > 0) {
+          setPage(0)
+          return
+        }
+        setResult({ request, rows: data as Row[] })
+      } catch (cause) {
+        if (!controller.signal.aborted) {
+          setResult({ request, rows: [], error: toUserFacingError(cause, { fallback: 'Data readmisi belum dapat dimuat.' }) })
+        }
+      }
+    })()
+    return () => controller.abort()
+  }, [request, room, year, page])
+
+  const events = rows.reduce((s, r) => s + r.readmisi_30, 0)
 
   return <div className="pmaReadmit">
     <div className="pmaKpis pmaKpis3">
-      <article><span>Pasien dengan readmisi ≤30 hari</span><strong>{loading ? '…' : total.toLocaleString('id-ID')}</strong><small>Kunjungan terakhir di {year}</small></article>
-      <article><span>Kejadian readmisi (halaman ini)</span><strong>{loading ? '…' : events.toLocaleString('id-ID')}</strong><small>Jumlah jeda 1–30 hari antar rawat inap</small></article>
+      <article><span>Pasien dengan readmisi ≤30 hari</span><strong>{loading ? '…' : error ? '-' : total.toLocaleString('id-ID')}</strong><small>Kunjungan terakhir di {year}</small></article>
+      <article><span>Kejadian readmisi (halaman ini)</span><strong>{loading ? '…' : error ? '-' : events.toLocaleString('id-ID')}</strong><small>Jumlah jeda 1–30 hari antar rawat inap</small></article>
       <article><span>Definisi</span><strong className="pmaDef">≤ 30 hari</strong><small>Dua episode rawat inap pasien yang sama berjarak 1–30 hari</small></article>
     </div>
     {error && <div className="prAlert" role="alert">{error}</div>}
     <section className="prPanel">
       <h3>Daftar pasien readmisi</h3>
+      <button type="button" className="prButton" disabled={loading} onClick={() => setRevision(value => value + 1)}>
+        {loading ? 'Memuat…' : 'Muat ulang'}
+      </button>
       <p>Diurutkan dari kunjungan terakhir. Ini perkiraan dari Logbook (episode yang punya tanggal keluar), bukan pengganti indikator readmisi resmi SIMRS. Telusuri kasusnya untuk menilai apakah readmisi direncanakan atau tidak.</p>
       {loading && !rows.length ? <p className="prEmpty">Memuat…</p> : rows.length ? <div className="prTableWrap"><table className="prTable">
         <thead><tr><th>No. RM</th><th>Nama</th><th>Readmisi</th><th>Readmisi terakhir</th><th>Unit terakhir</th><th>Diagnosis terakhir</th><th>Total episode</th></tr></thead>

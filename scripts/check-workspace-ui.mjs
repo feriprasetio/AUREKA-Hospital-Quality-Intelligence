@@ -163,10 +163,26 @@ const handlePausedRequest = async ({ request, requestId }) => {
       }
       return await fulfill(requestId, (grants[body.p_permission] || []).includes(testRole))
     }
+    if (resource === 'aureka_patient_record_analytics') {
+      if (body.p_year === 2028) return await fulfill(requestId, { message: 'Synthetic analytics failure' }, 503)
+      const observed = body.p_year === 2026
+      const episodes = observed ? 4 : 0
+      return await fulfill(requestId, {
+        allowed: true, year: body.p_year, scope_room_id: body.p_room,
+        episodes, unique_patients: episodes, inpatient_episodes: episodes,
+        discharged_inpatients: observed ? 3 : 0, active_inpatients: observed ? 1 : 0,
+        valid_mrn: episodes, invalid_mrn: 0, diagnosis_available: episodes, diagnosis_missing: 0,
+        icd10_coded: 0, diagnosis_uncoded: episodes, los_count: observed ? 2 : 0,
+        average_los: observed ? 2 : null,
+        monthly: Array.from({ length: 12 }, (_, i) => ({ month: i + 1, count: i === 9 ? episodes : 0 })),
+        top_icd10: [], los_bands: observed ? [{ label: '1–3 hari', count: 2 }] : [],
+        units: observed ? [{ unit: 'Unit sintetis', episodes, inpatient: episodes, active: 1, average_los: 2, los_count: 2 }] : [],
+      })
+    }
     if (resource === 'aureka_patient_index_search_v2') {
       if(failPatientReads)return await fulfill(requestId,{message:'Synthetic patient list failure'},503)
       const all=Array.from({length:51},(_,i)=>({no_rm:'UI-RM-'+String(i+1).padStart(3,'0'),nama_pasien:'Pasien Sintetis '+(i+1),total_episode:1,last_seen:'2026-10-01',unit_terakhir:rooms[0].name,diagnosis_terakhir:'Diagnosis sintetis'})).filter(row=>!body.p_query||row.no_rm.toLowerCase().includes(String(body.p_query).toLowerCase()))
-      return await fulfill(requestId,all.slice(body.p_offset,body.p_offset+body.p_limit).map(row=>({...row,total_count:all.length})))
+      return await fulfill(requestId,all.slice(body.p_offset,body.p_offset+body.p_limit).map(row=>({...row,total_count:all.length,...(body.p_filter==='readmisi30'?{readmisi_30:1,readmisi_terakhir:'2026-10-01'}:{})})))
     }
     if(resource==='aureka_patient_index_overview'||resource==='aureka_patient_index_summary')return await fulfill(requestId,{total:51,dengan_nik:0,terhubung_simrs:0})
     if(resource==='aureka_patient_index_invalid_rm')return failInvalidRm?await fulfill(requestId,{message:'Synthetic invalid RM failure'},503):await fulfill(requestId,[])
@@ -1016,6 +1032,43 @@ try {
     await clickText('#pi-invalid-rm button','Coba lagi')
     await wait("document.querySelector('#pi-invalid-rm').textContent.includes('Semua episode')")
     await screenshot('arctic-patient-directory')
+    await leaveArctic()
+    await wait("document.querySelector('aside.sidebar')")
+    await evaluate("location.hash='#beranda'")
+    await wait("document.querySelector('.ccSectionHead')")
+  })
+  await check('Pola Perawatan preserves observed zero, missing coverage, and failed filters', async () => {
+    await enterArctic()
+    await click('[data-arctic-category=patient_registry]')
+    await wait("document.querySelector('[data-arctic-destination=patient_patterns]')")
+    await click('[data-arctic-destination=patient_patterns]')
+    const navigation = '.workspacePillNavigation[aria-label="Navigasi Pola Perawatan"] button'
+    await wait(() => evaluate(`Boolean(document.querySelector(${JSON.stringify(navigation)}))`))
+    await clickText(navigation, 'Length of Stay')
+    await wait("document.querySelector('.patientRecordAnalytics h2')?.textContent==='Lama Rawat (LOS)'")
+    await wait("document.querySelector('.pmaKpis strong')?.textContent==='4'")
+    assert.equal(await evaluate("document.querySelector('.pmaKpis article:nth-child(5) small').textContent"), '0%')
+    await wait("document.querySelector('.patientRecordAnalytics').textContent.includes('1 catatan dengan tanggal keluar tanpa LOS')")
+    const yearFilter = '.patientRecordAnalytics .prFilters label:nth-child(2) select'
+    await fill(yearFilter, '2028', 'HTMLSelectElement')
+    await wait("document.querySelector('.patientRecordAnalytics [role=alert]')")
+    assert.equal(await evaluate("Boolean(document.querySelector('.pmaKpis strong'))"), false)
+    await fill(yearFilter, '2027', 'HTMLSelectElement')
+    await wait("document.querySelector('.pmaKpis strong')?.textContent==='0'")
+    await wait("document.querySelector('.patientRecordAnalytics').textContent.includes('Belum dapat dihitung')")
+    await clickText(navigation, 'Readmisi')
+    await wait("document.querySelector('.pmaReadmit .prTable tbody tr')")
+    failPatientReads = true
+    try {
+      await clickText('.pmaReadmit button', 'Muat ulang')
+      await wait("document.querySelector('.pmaReadmit [role=alert]')")
+      assert.equal(await evaluate("document.querySelector('.pmaReadmit .pmaKpis strong').textContent"), '-')
+      assert.equal(await evaluate("Boolean(document.querySelector('.pmaReadmit .prTable tbody tr'))"), false)
+    } finally {
+      failPatientReads = false
+    }
+    await clickText('.pmaReadmit button', 'Muat ulang')
+    await wait("document.querySelector('.pmaReadmit .prTable tbody tr')")
     await leaveArctic()
     await wait("document.querySelector('aside.sidebar')")
     await evaluate("location.hash='#beranda'")
