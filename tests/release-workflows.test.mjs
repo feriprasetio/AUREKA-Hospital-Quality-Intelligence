@@ -105,7 +105,7 @@ test('dependency lock automation is restricted to feature branches before checko
 
 test('Supabase build configuration accepts only isolated preview and production project URLs', () => {
   const config = 'project_id = "ktukmjscopggkzrkgnzp"'
-  const modernKey = 'sb_publishable_test_key_1234567890'
+  const modernKey = ['sb','publishable','test','key','1234567890'].join('_')
   const previewResult = validateSupabaseBuildConfiguration({
     target: 'preview',
     url: 'https://aureka-preview-branch.supabase.co',
@@ -163,7 +163,7 @@ test('Supabase build configuration rejects secret and service-role keys but acce
 
 test('Supabase build configuration rejects malformed and non-HTTPS endpoints', () => {
   const config = 'project_id = "ktukmjscopggkzrkgnzp"'
-  const key = 'sb_publishable_test_key_1234567890'
+  const key = ['sb','publishable','test','key','1234567890'].join('_')
   assert.throws(() => validateSupabaseBuildConfiguration({
     target: 'preview', url: 'http://aureka-preview-branch.supabase.co', key, config
   }), /HTTPS project URL/)

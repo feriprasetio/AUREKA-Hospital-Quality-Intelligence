@@ -16,3 +16,10 @@ assert.deepEqual(body, { error: 'Invalid login credentials' })
 assert.match(response.headers.get('cache-control') || '', /no-store/)
 assert.equal(response.headers.get('access-control-allow-origin'), 'https://feriprasetio.github.io')
 console.log('Username gateway negative authorization and privacy check passed.')
+
+const legacy = await fetch(base + '/rest/v1/rpc/aureka_login_email', {
+  method: 'POST', headers: { apikey: key, 'Content-Type': 'application/json' },
+  body: JSON.stringify({p_username: username}), signal: AbortSignal.timeout(15000),
+})
+assert.ok([401,403,404].includes(legacy.status), 'Legacy anonymous email lookup must be inaccessible')
+console.log('Legacy anonymous email lookup blocked.')
