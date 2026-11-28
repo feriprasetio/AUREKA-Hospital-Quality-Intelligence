@@ -77,7 +77,7 @@ test('production validates its Supabase configuration before build and deploy', 
   assert.notEqual(deploy, -1)
   assert.ok(validation < build, 'configuration validation must precede the build')
   assert.ok(build < deploy, 'deployment must remain downstream of a successful build job')
-  assert.match(production, /needs: build/)
+  assert.match(production, /needs: \[build, security\]/)
 })
 
 test('production Pages refuses manual dispatch from non-main refs before checkout', () => {
@@ -183,4 +183,15 @@ test('production deployment write permissions are isolated from the build job', 
   assert.match(deploy, /permissions:\s+pages: write\s+id-token: write/)
   assert.match(production, /uses: actions\/configure-pages@[0-9a-f]{40}/)
   assert.match(production, /uses: actions\/upload-pages-artifact@[0-9a-f]{40}/)
+})
+
+
+test('production release requires successful reusable security scans before deployment', () => {
+  const scan = readFileSync('.github/workflows/security-scans.yml', 'utf8')
+  assert.match(production, /uses: \.\/\.github\/workflows\/security-scans\.yml/)
+  assert.match(production, /needs: \[build, security\]/)
+  assert.match(scan, /workflow_call:/)
+  assert.match(scan, /gitleaks.*dir/)
+  assert.match(scan, /gitleaks.*git/)
+  assert.match(scan, /codeql-action\/analyze@[0-9a-f]{40}/)
 })

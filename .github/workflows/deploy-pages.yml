@@ -13,6 +13,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  security:
+    uses: ./.github/workflows/security-scans.yml
+    permissions:
+      contents: read
+      security-events: write
   build:
     permissions:
       contents: read
@@ -129,7 +134,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, security]
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
