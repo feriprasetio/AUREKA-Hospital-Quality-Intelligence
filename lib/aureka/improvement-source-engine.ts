@@ -25,7 +25,7 @@ export function parseImprovementSources(value:unknown):ImprovementSource[]{
  return value
 }
 export function parseImprovementLinks(value:unknown):ImprovementLink[]{
- if(!Array.isArray(value)||!value.every(x=>source(x)&&isObject(x)&&typeof x.source_kind==='string'&&!!sourceMeta(x.source_kind)&&typeof x.linked_at==='string'))throw new Error('Relasi sumber tidak lengkap.')
+ if(!Array.isArray(value)||!value.every(x=>isObject(x)&&typeof x.source_kind==='string'&&!!sourceMeta(x.source_kind)&&typeof x.linked_at==='string'&&source(x)))throw new Error('Relasi sumber tidak lengkap.')
  if(new Set(value.map(x=>x.source_kind+':'+x.source_id)).size!==value.length)throw new Error('Relasi sumber ganda.')
  return value as ImprovementLink[]
 }
