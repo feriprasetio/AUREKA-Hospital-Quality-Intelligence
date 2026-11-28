@@ -699,6 +699,21 @@ try {
       await wait('document.querySelector('+JSON.stringify(root+' [data-continuum-summary]')+').open')
       assert.ok(await evaluate('document.querySelector('+JSON.stringify(root+' '+table)+')?.textContent.includes('+JSON.stringify(expected)+')'))
       await click(root+' [data-continuum-summary] summary')
+      if(hash==='#indikator-mutu/monitoring'){
+        await wait("document.querySelector('.hlReportingPanel [data-read-grid-search]')")
+        await fill('.hlReportingPanel [data-read-grid-search]','NOT-FOUND-ROOM','HTMLInputElement')
+        await wait("document.querySelector('.hlReportingTable').textContent.includes('Tidak ada ruangan sesuai pencarian')")
+        await fill('.hlReportingPanel [data-read-grid-search]','Informasi dan Pengaduan','HTMLInputElement')
+        await wait("document.querySelector('.hlReportingTable').textContent.includes('Informasi dan Pengaduan')")
+        await fill('.hlReportingPanel [data-read-grid-search]','','HTMLInputElement')
+      }
+      if(hash==='#indikator-mutu/spm'){
+        await wait("document.querySelector('.spmWorkspace [data-continuum-read-grid]')")
+        assert.equal(await evaluate("Boolean(document.querySelector('.spmWorkspace [data-read-grid-search]'))"),false)
+        await click('.spmWorkspace [data-continuum-read-grid] details summary')
+        await fill('.spmWorkspace [data-read-grid-sort]','status','HTMLSelectElement')
+        await wait("document.querySelector('.spmWorkspace [data-continuum-read-grid] details li')")
+      }
     }
     await wait("document.querySelector('[data-continuum-read-grid]')")
     await fill('[data-read-grid-search]','NOT-FOUND-AUDIT','HTMLInputElement')

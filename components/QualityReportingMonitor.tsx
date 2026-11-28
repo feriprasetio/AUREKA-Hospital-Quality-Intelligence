@@ -2,6 +2,8 @@
 import {Fragment,useEffect,useMemo,useState} from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import type {SupabaseClient} from '@supabase/supabase-js'
 import { readAurekaQualityRoomReportingStatus, type QualityRoomReportingRow } from '@/lib/aureka/metric-contracts'
@@ -9,6 +11,14 @@ import { readAurekaQualityRoomReportingStatus, type QualityRoomReportingRow } fr
 type Room={id:number;name:string}
 type Row=QualityRoomReportingRow
 const MONTHS=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
+type ReportingViewRow={id:number;name:string;months:number[];last:Row|null}
+const REPORTING_COLUMNS:readonly ReadGridColumn<ReportingViewRow>[]=[
+ {id:'room',label:'Ruangan',value:r=>r.name},
+ {id:'months',label:'Jumlah bulan terlapor',value:r=>r.months.length},
+ {id:'period',label:'Periode terakhir',value:r=>r.last?.latest_period},
+ {id:'input',label:'Input terakhir',value:r=>r.last?.latest_report_at},
+ {id:'status',label:'Status',value:r=>r.last?'Sudah melapor':'Belum melapor'}
+]
 export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,roomName,dataFirst=false}:{supabase:SupabaseClient;rooms:Room[];isAdmin:boolean;roomId:number|null;roomName:string|null;dataFirst?:boolean}){
  const [calendarPeriod]=useState(()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Pontianak',year:'numeric',month:'2-digit'}).format(new Date()))
  const [currentYear,currentMonth]=calendarPeriod.split('-').map(Number)
@@ -60,6 +70,8 @@ export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,r
  const nowMonth=year===currentYear?currentMonth:0
  const reportedThisMonth=sortedRooms.filter(room=>byRoom(room.id).some(r=>r.month===nowMonth)).length
  const ready=!busy&&!error&&sortedRooms.length>0
+ const viewRows:ReportingViewRow[]=sortedRooms.map(room=>({id:room.id,name:room.name,months:[...new Set(byRoom(room.id).map(r=>r.month))].sort((a,b)=>a-b),last:latest(room.id)}))
+ const table=(page:readonly ReportingViewRow[],filtered=false)=><WorkspaceTableViewport dataFirst={dataFirst} className="hlReportingTableWrap" label="Detail pelaporan ruangan"><div className="hlReportingTableTitle">Detail pelaporan · 1 Januari – 31 Desember {year}</div><table className="hlReportingTable" data-ak-sort={dataFirst?'off':undefined}><thead><tr><th>Nama ruangan</th><th>Bulan terlapor</th><th>Periode terakhir</th><th>Tanggal input terakhir</th><th>Status</th></tr></thead><tbody>{page.map(room=><tr key={room.id}><td>{room.name}</td><td>{room.months.map(m=>MONTHS[m-1]).join(', ')||'Belum ada'}</td><td>{period(room.last?.latest_period)}</td><td>{date(room.last?.latest_report_at)}</td><td><span className={room.last?'hlReportingStatus reported':'hlReportingStatus'}>{room.last?'Sudah melapor':'Belum melapor'}</span></td></tr>)}{!page.length&&<tr><td colSpan={5}>{filtered?'Tidak ada ruangan sesuai pencarian.':'Belum ada ruangan.'}</td></tr>}</tbody></table></WorkspaceTableViewport>
  return <section className="hlPanel hlReportingPanel" aria-label="Monitoring pelaporan indikator mutu">
   <style>{`.hlReportingPanel{display:grid;gap:14px}
 .hlReportingPanel .hlPanelHead{margin:0;align-items:baseline}
@@ -129,8 +141,8 @@ html[data-mode="gelap"] .hlReportingTable td{color:#e2e8f0;border-color:rgba(148
     {MONTHS.map((m,i)=><div className={i+1===nowMonth?'hlReportingMonth now':'hlReportingMonth'} key={m}>{m}</div>)}
     {shownRooms.map(room=>{const reported=new Set(byRoom(room.id).map(r=>r.month));return <Fragment key={room.id}><div className="hlReportingRoom"><button type="button" onClick={()=>setExpanded(true)} title={room.name}>{room.name}</button></div>{MONTHS.map((m,i)=>{const has=reported.has(i+1);const future=year===currentYear&&i+1>nowMonth;return <div key={m} className={'hlReportingCell'+(has?' hasData':future?' future':'')} title={room.name+' · '+m+': '+(has?'Ada laporan':future?'Belum periode':'Belum ada laporan')}><span>{has?'✓':''}</span></div>})}</Fragment>})}
    </div>
-  </div>{dataFirst&&sortedRooms.length>LIMIT&&<button type="button" className="hlRepLink" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Lihat ${sortedRooms.length} ruangan`}</button>}</ContinuumSummary>}
+  </div>{dataFirst&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span></div>}{dataFirst&&sortedRooms.length>LIMIT&&<button type="button" className="hlRepLink" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Lihat ${sortedRooms.length} ruangan`}</button>}</ContinuumSummary>}
   {!dataFirst&&ready&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span><div className="hlRepActions"><button type="button" className="hlReportingDetailBtn" onClick={()=>setExpanded(v=>!v)}>{expanded?'Tutup tabel detail':'Lihat tabel detail'}</button></div></div>}
-  {(expanded||dataFirst)&&ready&&<WorkspaceTableViewport dataFirst={dataFirst} className="hlReportingTableWrap" label="Detail pelaporan ruangan"><div className="hlReportingTableTitle">Detail pelaporan · 1 Januari – 31 Desember {year}</div><table className="hlReportingTable"><thead><tr><th>Nama ruangan</th><th>Bulan terlapor</th><th>Periode terakhir</th><th>Tanggal input terakhir</th><th>Status</th></tr></thead><tbody>{sortedRooms.map(room=>{const rr=byRoom(room.id);const last=latest(room.id);return <tr key={room.id}><td>{room.name}</td><td>{[...new Set(rr.map(r=>r.month))].sort((a,b)=>a-b).map(m=>MONTHS[m-1]).join(', ')||'Belum ada'}</td><td>{period(last?.latest_period)}</td><td>{date(last?.latest_report_at)}</td><td><span className={last?'hlReportingStatus reported':'hlReportingStatus'}>{last?'Sudah melapor':'Belum melapor'}</span></td></tr>})}</tbody></table></WorkspaceTableViewport>}
+  {(expanded||dataFirst)&&ready&&(dataFirst?<ContinuumReadGrid key={JSON.stringify([year,roomId,isAdmin])} rows={viewRows} columns={REPORTING_COLUMNS} label="Kontrol monitoring pelaporan">{table}</ContinuumReadGrid>:table(viewRows))}
  </section>
 }

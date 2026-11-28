@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import SpmExcelImportDialog from '@/components/SpmExcelImportDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
@@ -539,6 +541,16 @@ export default function SpmWorkspace({ role, currentRoomId, dataFirst=false }: {
   if (loading) return <AsyncStatePanel state="loading" title="Memuat Standar Pelayanan Minimal" description="Mengambil master indikator, pengukuran, dan sumber data mutu." compact />
   if (error) return <AsyncStatePanel state="error" title="Modul SPM belum siap" description={error} retrying={loading} onRetry={() => void load()} compact />
 
+  const monthlyStatus=(indicator:Indicator)=>{
+    const linkedUnsupported=indicator.source_mode!=='standalone'&&indicator.group_name==='Instalasi Rawat Inap'&&activeRoomId!=null
+    return linkedUnsupported?'Belum dapat dinilai':statusText(calculations.monthly.get(indicator.id+':'+month)?.status??'no_data')
+  }
+  // Do not compare unlike numerical units (percentage, duration, count) in a single sort.
+  const monthlyColumns:readonly ReadGridColumn<Indicator>[]=[
+    {id:'code',label:'Kode',value:r=>r.code},{id:'title',label:'Indikator',value:r=>r.title},
+    {id:'group',label:'Kelompok',value:r=>r.group_name},{id:'status',label:'Status',value:monthlyStatus},
+    {id:'source',label:'Sumber',value:sourceText}
+  ]
   return (
     <section className="spmWorkspace">
       <header className="spmHero">
@@ -622,7 +634,7 @@ export default function SpmWorkspace({ role, currentRoomId, dataFirst=false }: {
             <button type="button" className="spmPrimary" onClick={() => {setGroupFilter('all');setTab('entry')}}>Lihat Rekapan SPM</button>
             {canConfigure && <button type="button" className="spmSecondary" onClick={() => setTab('config')}>Lihat Konfigurasi Perhitungan</button>}
           </div>
-          {dataFirst&&<WorkspaceTableViewport dataFirst label="Capaian SPM bulanan" className="spmTableScroll"><table data-continuum-spm-monthly><thead><tr><th>Kode</th><th>Indikator / kelompok</th><th>Capaian</th><th>Target</th><th>Status</th><th>Sumber</th></tr></thead><tbody>{visibleIndicators.map(indicator=>{const linkedUnsupported=indicator.source_mode!=='standalone'&&indicator.group_name==='Instalasi Rawat Inap'&&activeRoomId!=null;const result=calculations.monthly.get(indicator.id+':'+month);return <tr key={indicator.id}><td><code>{indicator.code}</code></td><td><strong>{indicator.title}</strong><small>{indicator.group_name}</small></td><td>{linkedUnsupported?'Sumber per unit belum dipetakan':formatResult(indicator,result?.value)}</td><td>{formatTarget(indicator)}</td><td>{linkedUnsupported?'Belum dapat dinilai':statusText(result?.status??'no_data')}</td><td>{sourceText(indicator)}</td></tr>})}{!visibleIndicators.length&&<tr><td colSpan={6}>Tidak ada indikator sesuai filter.</td></tr>}</tbody></table></WorkspaceTableViewport>}
+          {dataFirst&&<ContinuumReadGrid key={JSON.stringify([year,month,activeRoomId,groupFilter])} rows={visibleIndicators} columns={monthlyColumns} label="Kontrol capaian SPM" showSearch={false}>{(page)=><WorkspaceTableViewport dataFirst label="Capaian SPM bulanan" className="spmTableScroll"><table data-continuum-spm-monthly data-ak-sort="off"><thead><tr><th>Kode</th><th>Indikator / kelompok</th><th>Capaian</th><th>Target</th><th>Status</th><th>Sumber</th></tr></thead><tbody>{page.map(indicator=>{const linkedUnsupported=indicator.source_mode!=='standalone'&&indicator.group_name==='Instalasi Rawat Inap'&&activeRoomId!=null;const result=calculations.monthly.get(indicator.id+':'+month);return <tr key={indicator.id}><td><code>{indicator.code}</code></td><td><strong>{indicator.title}</strong><small>{indicator.group_name}</small></td><td>{linkedUnsupported?'Sumber per unit belum dipetakan':formatResult(indicator,result?.value)}</td><td>{formatTarget(indicator)}</td><td>{linkedUnsupported?'Belum dapat dinilai':statusText(result?.status??'no_data')}</td><td>{sourceText(indicator)}</td></tr>})}{!page.length&&<tr><td colSpan={6}>Tidak ada indikator sesuai filter.</td></tr>}</tbody></table></WorkspaceTableViewport>}</ContinuumReadGrid>}
           <ContinuumSummary enabled={dataFirst} label="Ringkasan kelompok pelayanan"><div className="spmGroupGrid">
             {groups.filter(name => groupFilter==='all' || name===groupFilter).map(name => {
               const items = indicators.filter(item => item.group_name === name)
