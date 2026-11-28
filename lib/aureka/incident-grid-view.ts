@@ -1,4 +1,5 @@
 // Presentation-only grid state. Never persist row IDs, query terms or values.
+import { paginateGrid } from './grid-pagination.ts'
 export const INCIDENT_GRID_COLUMNS = [
  ['incident_code','Kode',true],['incident_date','Tanggal',false],['unit_name','Unit',true],
  ['incident_type','Jenis',false],['summary','Ringkasan',false],['status','Status',true],
@@ -17,9 +18,5 @@ export function sortIncidentGrid<T extends {id:string} & Record<IncidentGridColu
  })
 }
 export function incidentGridPage<T>(rows:readonly T[],page:number,size:number) {
- const pageSize=[25,50,100].includes(size)?size:25
- const pages=Math.max(1,Math.ceil(rows.length/pageSize))
- const current=Math.min(pages,Math.max(1,Number.isFinite(page)?Math.trunc(page):1))
- const start=(current-1)*pageSize
- return {rows:rows.slice(start,start+pageSize),current,pages,start:rows.length?start+1:0,end:Math.min(start+pageSize,rows.length)}
+ return paginateGrid(rows,page,size,[25,50,100],25)
 }
