@@ -694,3 +694,21 @@ html[data-skin="arktik"][data-mode="gelap"] body [aria-modal="true"] > :is(.aqDH
 .arcticRiskReview :is(th,td):not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
 .arcticRiskReview h4 { margin:12px 0 4px; }
 @media(max-width:480px){.arcticRiskReview dl{grid-template-columns:minmax(0,1fr)}.arcticRiskReview dd{margin-bottom:5px}}
+
+/* On-demand inspector: no extra chrome when closed. */
+.continuumInspectorLayout { display:contents; }
+.continuumInspectorLayout[data-split] { display:grid; grid-template-columns:minmax(0,1fr) minmax(360px,400px); align-items:start; gap:12px; }
+.continuumInspectorLayout[data-split] > .rmTableWrap { min-width:0; max-width:100%; }
+.continuumInspector { min-width:0; max-height:max(320px,calc(100dvh - 250px)); overflow:auto; overscroll-behavior:contain; border:1px solid var(--aureka-dialog-edge); border-radius:12px; background:var(--aureka-dialog-surface); color:var(--aureka-color-foreground); padding:14px; }
+.continuumInspector header h3 { font-size:1rem; margin:0; overflow-wrap:anywhere; }
+.continuumInspector header p { margin-block:4px 12px; }
+.continuumInspector footer { display:flex; flex-wrap:wrap; gap:6px; padding-top:10px; }
+.continuumInspectorContent { min-width:0; overflow-wrap:anywhere; }
+.continuumInspectorContent section+section { border-top:1px solid var(--aureka-canvas-divider); padding-top:10px; margin-top:12px; }
+.continuumInspectorContent h4 { margin:0 0 8px; }
+.continuumInspectorFacts { display:grid; grid-template-columns:minmax(100px,1fr) minmax(0,2fr); gap:7px 10px; margin:0 0 12px; }
+.continuumInspectorFacts dt { color:var(--aureka-canvas-muted); }
+.continuumInspectorFacts dd { margin:0; font-weight:550; }
+.continuumInspectorLinks { padding-left:18px; }
+.continuumInspectorLinks li { margin-bottom:8px; }
+.continuumInspectorLinks small { display:block; }
