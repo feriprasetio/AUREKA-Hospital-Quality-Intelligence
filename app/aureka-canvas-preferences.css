@@ -214,6 +214,25 @@ html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-t
   background: color-mix(in srgb, var(--aureka-color-primary) 5%, transparent) !important;
 }
 
+/* S063: a legible reading surface with the same native table on narrow screens. */
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] :is(th, td) {
+  color: var(--aureka-color-foreground) !important;
+  background: var(--aureka-dialog-surface) !important;
+  padding-block: max(4px, calc(var(--aureka-canvas-table-y) - 4px)) !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] :is(thead th, tbody tr:nth-child(even) td) {
+  background: var(--aureka-dialog-muted) !important;
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] .rmRiskName {
+  color: var(--aureka-color-foreground);
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] .rmRiskName small {
+  color: var(--aureka-canvas-muted);
+}
+html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] .moduleEnter table[data-arctic-risk-table] .selected td {
+  border-block-end-color: var(--aureka-color-primary) !important;
+}
+
 /* Scalable typography: consistent on primary reading surfaces without flattening KPI numbers. */
 html[data-skin="arktik"] body:not(#_) .workspaceRoot.workspaceDesk[data-aureka-theme] :is(
   .moduleEnter p, .moduleEnter li, .moduleEnter label,

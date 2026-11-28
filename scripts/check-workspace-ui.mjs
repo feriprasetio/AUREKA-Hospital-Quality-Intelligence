@@ -195,6 +195,13 @@ const handlePausedRequest = async ({ request, requestId }) => {
       fppeRecords = [row, ...fppeRecords.filter(record => record.id !== id)]
       return await fulfill(requestId, request.method === 'POST' ? row : null)
     }
+    if (resource === 'risk_register' && request.method === 'PATCH') {
+      const ids = url.searchParams.get('id') ?? ''
+      assert.equal(url.searchParams.get('status'), 'eq.Open', 'Bulk status must compare the reviewed status')
+      const changed = risks.filter(row => ids.includes(row.id) && row.status === 'Open').slice(0, 1)
+      for (const row of changed) row.status = body.status
+      return await fulfill(requestId, changed.map(row => ({ id: row.id })))
+    }
     if (resource === 'clinical_pathway_templates' && request.method === 'POST') {
       for (const row of Array.isArray(body) ? body : [body]) {
         pathwayTemplates = [...pathwayTemplates.filter(template => template.code !== row.code), { id: `80000000-0000-4000-8000-${String(pathwayTemplates.length + 1).padStart(12, '0')}`, ...row }]
@@ -343,10 +350,13 @@ const goView = async (selector, value, label) => {
   else await clickText(selector + ' button', label)
   await wait(`document.querySelector(${JSON.stringify(selector + ' select')})?.value===${JSON.stringify(value)}`)
 }
-const login = async role => {
+const login = async (role, legacy = true) => {
   testRole = role
   await send('Storage.clearDataForOrigin', { origin: new URL(appUrl).origin, storageTypes: 'all' })
-  await send('Page.navigate', { url: appUrl })
+  const destination = new URL(appUrl)
+  destination.searchParams.delete('arctic')
+  if (legacy) destination.searchParams.set('nav','legacy'); else destination.searchParams.delete('nav')
+  await send('Page.navigate', { url: destination.href })
   await wait("document.querySelector('button.aurekaPublicPrimary')")
   await wait("document.documentElement.dataset.theme==='solid'", 'React hydration before clicking the login action')
   await click('button.aurekaPublicPrimary')
@@ -355,6 +365,24 @@ const login = async role => {
   await fill('#password', 'isolated-ui-test-only')
   await evaluate("document.querySelector('.authArcticForm').requestSubmit()")
   await wait("document.querySelector('.workspaceDesk')")
+}
+
+// Navigation is now default; data-first is an independently reversible pilot.
+const enterArctic = async () => {
+  await click('.arcticPreviewSwitch')
+  await wait("document.querySelector('[data-arctic-shell=continuum]')")
+  await click('.arcticActionsTrigger')
+  await wait("document.querySelector('[data-arctic-data-preview]')")
+  if (await evaluate("document.querySelector('[data-arctic-data-preview]').getAttribute('aria-pressed')==='false'")) await click('[data-arctic-data-preview]')
+  else await key('Escape')
+  await wait("document.querySelector('[data-arctic-preview=true]')")
+}
+const leaveArctic = async () => {
+  await click('.arcticActionsTrigger')
+  await wait("document.querySelector('.arcticMegaMenu[data-actions]')")
+  await clickText('.arcticMegaMenu button','Layout lama')
+  await wait("document.querySelector('aside.sidebar') && !document.querySelector('[data-arctic-shell],[data-arctic-preview]')")
+  assert.equal(await evaluate("new URLSearchParams(location.search).has('arctic')"),false)
 }
 
 let stopInterceptionPromise
@@ -397,8 +425,14 @@ try {
     await wait("document.querySelector('.legalVerifyCard h1')?.textContent === 'Persetujuan terverifikasi'")
     assert.equal(documentReadAttempts, 2)
   })
-  await login('ADMIN')
+  await login('ADMIN', false)
   await wait("document.querySelector('.ccSectionHead')")
+  await check('default capsule navigation and independent data-first rollback', async () => {
+    await wait("document.querySelector('[data-arctic-shell=continuum]')")
+    assert.equal(await evaluate("Boolean(document.querySelector('[data-arctic-preview=true], aside.sidebar'))"),false)
+    await leaveArctic()
+    assert.equal(await evaluate("new URLSearchParams(location.search).get('nav')"),'legacy')
+  })
   await check('authenticated desktop frame', () => layout('Overview'))
   await screenshot('overview-1366')
   await check('dialog shortcuts require a safe explicitly registered action', async () => {
@@ -465,7 +499,7 @@ try {
     await wait("document.querySelector('.ccSectionHead')")
   })
   await check('Arctic opt-in shell keeps category ownership, keyboard dismissal and rollback', async () => {
-    await click('.arcticPreviewSwitch')
+    await enterArctic()
     await wait("document.querySelector('[data-arctic-shell=continuum]')")
     assert.equal(await evaluate("Boolean(document.querySelector('aside.sidebar,.workspaceNativeNavigation'))"), false)
     assert.equal(await evaluate("document.querySelectorAll('[data-arctic-category]').length"), 8)
@@ -487,13 +521,40 @@ try {
     await wait("document.querySelector('.moduleEnter')?.dataset.workspaceContainer==='home'")
     await screenshot('arctic-shell-mobile')
     await viewport(1366)
-    await clickText('.arcticLayoutExit','Layout lama')
+    await leaveArctic()
     await wait("document.querySelector('aside.sidebar')&&!document.querySelector('[data-arctic-shell]')")
     assert.equal(await evaluate("new URLSearchParams(location.search).has('arctic')"),false)
     await wait("document.querySelector('.ccSectionHead')")
   })
+  await check('Arctic session pins use actual section destinations and clear on rollback', async () => {
+    await enterArctic()
+    await wait("document.querySelector('[data-continuum-archetype=executive]')")
+    await click('.arcticActionsTrigger')
+    await wait("document.querySelector('[data-arctic-pin-current]')")
+    await click('[data-arctic-pin-current]')
+    await wait("document.querySelector('[data-arctic-pin=\"home:\"]')")
+    await evaluate("location.hash='#keselamatan-pasien/incidents'")
+    await wait("document.querySelector('[data-continuum-archetype=data-grid]') && document.querySelector('.arcticGridFooter')")
+    await click('.arcticActionsTrigger')
+    await wait("document.querySelector('[data-arctic-pin-current]')")
+    await click('[data-arctic-pin-current]')
+    await wait("document.querySelector('[data-arctic-pin=\"safety:incidents\"]')")
+    await click('[data-arctic-pin=\"home:\"]')
+    await wait("document.querySelector('.moduleEnter')?.dataset.workspaceContainer==='home'")
+    await click('[data-arctic-pin=\"safety:incidents\"]')
+    await wait("document.querySelector('.arcticGridFooter') && location.hash==='#keselamatan-pasien/incidents'")
+    await screenshot('arctic-session-pins')
+    await click('.arcticPinClose')
+    await wait("document.querySelectorAll('[data-arctic-pin]').length===1")
+    await leaveArctic()
+    await enterArctic()
+    assert.equal(await evaluate("document.querySelectorAll('[data-arctic-pin]').length"),0)
+    await leaveArctic()
+    await evaluate("location.hash='#beranda'")
+    await wait("document.querySelector('.ccSectionHead')")
+  })
   await check('Arctic quick navigation and paginated incident grid use real scoped rows', async () => {
-    await click('.arcticPreviewSwitch')
+    await enterArctic()
     await wait("document.querySelector('[data-arctic-shell=continuum]')")
     await evaluate("document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',ctrlKey:true,bubbles:true,cancelable:true}))")
     await wait("document.querySelector('#arctic-module-query')")
@@ -533,13 +594,13 @@ try {
       await fill('#ps-register-search','')
       await screenshot('arctic-incident-grid')
     } finally { incidents=original }
-    await clickText('.arcticLayoutExit','Layout lama')
+    await leaveArctic()
     await wait("document.querySelector('aside.sidebar')")
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
   await check('Arctic data-first entry keeps actual domain registers and summary access', async () => {
-    await click('.arcticPreviewSwitch')
+    await enterArctic()
     await wait("document.querySelector('[data-arctic-shell=continuum]')")
     await evaluate("location.hash='#sekretariat'")
     await wait("document.querySelector('.secTableToolbar')")
@@ -564,13 +625,109 @@ try {
     }
     assert.equal(await evaluate("document.querySelector('.sdPanel .arcticDomainSummary').open"),false)
     await screenshot('arctic-staff-data-first')
-    await clickText('.arcticLayoutExit','Layout lama')
+    await leaveArctic()
     await wait("document.querySelector('aside.sidebar')")
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
   })
+  await check('Arctic risk register keeps filters, matrix, and CSV parity', async () => {
+    const table = '.rmTable tbody tr[data-risk-id]'
+    const captureCsv = () => evaluate(`(async()=>{
+      const create = URL.createObjectURL
+      const click = HTMLAnchorElement.prototype.click
+      let csv
+      try {
+        URL.createObjectURL = blob => { csv = blob.text(); return 'blob:synthetic-risk-export' }
+        HTMLAnchorElement.prototype.click = function() {}
+        Array.from(document.querySelectorAll('.rmBarActions button')).find(b=>b.textContent==='Ekspor CSV').click()
+        return await csv
+      } finally {
+        URL.createObjectURL = create
+        HTMLAnchorElement.prototype.click = click
+      }
+    })()`)
+    await evaluate("location.hash='#manajemen-risiko/register'")
+    await wait("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length===15")
+    const legacyCsv = await captureCsv()
+    assert.equal(legacyCsv.split('\r\n').length, 20)
+    await enterArctic()
+    await wait("document.querySelector('#risk-register-map:not([open])')")
+    assert.equal(await evaluate("Boolean(document.querySelector('#risk-register-map .rmMatrix'))"),false)
+    assert.equal(await evaluate("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length"),15)
+    assert.equal(await captureCsv(),legacyCsv)
+    await evaluate("document.querySelector('#risk-register-map summary').focus()")
+    await key('Enter')
+    await wait("document.querySelector('#risk-register-map[open] .rmMatrixCell')")
+    await click('#risk-register-map .rmMatrixCell[title="P1, D1, skor 1"]')
+    await wait("document.querySelector('.rmSelectionBar')?.textContent.includes('Filter matriks aktif')")
+    assert.equal(await evaluate("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length"),15)
+    await clickText('.rmSelectionBar button','Hapus filter matriks')
+    await click('#risk-register-map summary')
+    await wait("document.querySelector('#risk-register-map:not([open])')")
+    const patchCount = () => requests.filter(request => request.resource === 'risk_register' && request.method === 'PATCH').length
+    const beforeReview = patchCount()
+    await click(".rmTable tbody tr:nth-child(1) input")
+    await click(".rmTable tbody tr:nth-child(2) input")
+    await fill('select[aria-label="Ubah status risiko terpilih"]','Controlled','HTMLSelectElement')
+    await fill('.rmSearch input', 'UI-RISK-2')
+    await wait("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length===1")
+    await clickText('.rmBulkStatus button','Tinjau perubahan')
+    await wait("document.querySelector('.akModal ul li')")
+    assert.equal(await evaluate("document.querySelectorAll('.akModal ul li').length"),1)
+    assert.ok(await evaluate("document.querySelector('.akModal').textContent.includes('1 pilihan di luar hasil filter')"))
+    await key('Escape')
+    await wait("!document.querySelector('.akModal')")
+    assert.equal(patchCount(),beforeReview)
+
+    await fill('.rmSearch input', '')
+    await wait("document.querySelectorAll('.rmTable tbody tr[data-risk-id]').length===15")
+    await clickText('.rmBulkStatus button','Tinjau perubahan')
+    await wait("document.querySelectorAll('.akModal ul li').length===2")
+    assert.equal(patchCount(),beforeReview)
+    await screenshot('arctic-risk-bulk-review')
+    await clickText('.akModal button','Konfirmasi perubahan')
+    await wait("document.querySelector('.rmWorkspace [role=alert]')?.textContent.includes('1 dari 2 perubahan terkonfirmasi')")
+    await wait("!document.querySelector('.akModal') && !document.querySelector('.rmBulkStatus')")
+    assert.equal(patchCount(),beforeReview+1)
+    await click('.rmWorkspace [role=alert] button[aria-label="Tutup pesan"]')
+    await evaluate('window.scrollTo(0,0)')
+    for (const [width,height,mode] of [[1366,768,'terang'],[390,844,'gelap']]) {
+      await viewport(width,height)
+      if (mode==='gelap') await click('.workspaceThemeButton')
+      await wait(`innerWidth===${width} && document.documentElement.dataset.mode==='${mode}'`)
+      await evaluate('Promise.all(document.getAnimations().filter(a=>Number.isFinite(a.effect?.getTiming().iterations)).map(a=>a.finished.catch(()=>{}))).then(()=>undefined)')
+      const geometry=await evaluate(`(()=>{
+        const region=document.querySelector('.rmTableWrap').getBoundingClientRect()
+        const firstCell=document.querySelector('[data-arctic-risk-table] td:nth-child(2)')
+        const rgb=value=>(value.match(/[\\d.]+/g)||[]).slice(0,3).map(Number)
+        const luminance=values=>values.reduce((sum,value,index)=>{
+          const c=value/255
+          return sum+(c<=.04045?c/12.92:((c+.055)/1.055)**2.4)*[.2126,.7152,.0722][index]
+        },0)
+        const foreground=luminance(rgb(getComputedStyle(firstCell.querySelector('b')).color))
+        const background=luminance(rgb(getComputedStyle(firstCell).backgroundColor))
+        const rows=[...document.querySelectorAll(${JSON.stringify(table)})]
+        return {left:region.left,right:region.right,viewport:innerWidth,rowDisplay:getComputedStyle(rows[0]).display,contrast:(Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05),visibleRows:rows.filter(row=>{
+          const r=row.getBoundingClientRect(); return r.top>=0&&r.bottom<=innerHeight
+        }).length}
+      })()`)
+      measurements.push({label:'Arctic risk register '+mode,...geometry})
+      assert.ok(geometry.left>=-1 && geometry.right<=geometry.viewport+1,JSON.stringify(geometry))
+      assert.equal(geometry.rowDisplay,'table-row')
+      assert.ok(geometry.contrast>=4.5,JSON.stringify(geometry))
+      assert.ok(geometry.visibleRows>0,JSON.stringify(geometry))
+      await screenshot('arctic-risk-'+width+'-'+mode)
+    }
+    await viewport(1366)
+    await click('.workspaceThemeButton')
+    await wait("document.documentElement.dataset.mode==='terang'")
+    await leaveArctic()
+    await wait("document.querySelector('aside.sidebar') && !document.querySelector('#risk-register-map')")
+    await evaluate("location.hash='#beranda'")
+    await wait("document.querySelector('.ccSectionHead')")
+  })
   await check('Arctic patient directory direct entry, server paging and error recovery', async () => {
-    await click('.arcticPreviewSwitch')
+    await enterArctic()
     await wait("document.querySelector('[data-arctic-shell=continuum]')")
     await click('[data-arctic-category=patient_registry]')
     await wait("document.querySelector('[data-arctic-destination=patient_directory]')")
@@ -603,7 +760,7 @@ try {
     await clickText('#pi-invalid-rm button','Coba lagi')
     await wait("document.querySelector('#pi-invalid-rm').textContent.includes('Semua episode')")
     await screenshot('arctic-patient-directory')
-    await clickText('.arcticLayoutExit','Layout lama')
+    await leaveArctic()
     await wait("document.querySelector('aside.sidebar')")
     await evaluate("location.hash='#beranda'")
     await wait("document.querySelector('.ccSectionHead')")
@@ -617,7 +774,7 @@ try {
       if (['ADMIN','PMKP','PIC','DIREKTUR'].includes(role)) await wait("Array.from(document.querySelectorAll('.sidebarDomainItem')).some(b=>b.textContent.includes('Sumber Daya Manusia'))")
       const before=await evaluate(`Array.from(document.querySelectorAll('.sidebarDomain')).map(group=>({label:group.querySelector('.sidebarDomainTrigger button').title,items:Array.from(group.querySelectorAll('.sidebarDomainItem')).map(item=>({label:item.querySelector('span').textContent,disabled:item.disabled}))}))`)
       assert.ok(before.length>0,role+' has no legacy navigation')
-      await click('.arcticPreviewSwitch')
+      await enterArctic()
       await wait("document.querySelector('[data-arctic-shell=continuum]')")
       const labels=await evaluate("Array.from(document.querySelectorAll('[data-arctic-category]')).map(b=>b.getAttribute('aria-label'))")
       assert.deepEqual(labels,before.map(g=>g.label),role+' category ownership')
@@ -633,7 +790,7 @@ try {
       const fits=await evaluate("document.documentElement.scrollWidth<=innerWidth+1")
       assert.equal(fits,true,role+' desktop shell overflow')
       await screenshot('arctic-role-'+role.toLowerCase())
-      await clickText('.arcticLayoutExit','Layout lama')
+      await leaveArctic()
       await wait("document.querySelector('aside.sidebar')")
       await click('.sidebarFooter .liquidButton button')
       await wait("document.querySelector('.aurekaPublic')")

@@ -125,3 +125,12 @@ html[data-motion="off"] .arcticCategoryNav * { transition:none; scroll-behavior:
   [data-arctic-grid="incident"] th[data-column="incident_code"],[data-arctic-grid="incident"] td[data-column="incident_code"] { position:sticky; left:0; z-index:1; background:var(--aureka-dialog-surface); }
   [data-arctic-grid="incident"] th[data-column="incident_code"] { z-index:3; }
 }
+
+/* S098 pilot: compact, opt-in pinned destinations; no persistent clinical state. */
+.arcticWorkspacePins { display:flex; align-items:center; gap:6px; overflow-x:auto; padding:4px 3px; margin-top:6px; min-width:0; scrollbar-width:thin; }
+.arcticWorkspacePin { display:flex; flex:0 0 auto; align-items:center; border:1px solid var(--aureka-canvas-divider); border-radius:10px; background:var(--aureka-dialog-surface); }
+.arcticWorkspacePin button { border:0; border-radius:8px; min-height:32px; padding:5px 10px; background:transparent; white-space:nowrap; }
+.arcticWorkspacePin button[aria-current="page"] { color:var(--aureka-color-primary); background:var(--aureka-color-primary-soft); font-weight:650; }
+.arcticWorkspacePin .arcticPinClose { min-width:32px; padding:4px; }
+.arcticPinNotice { margin:4px 0; color:var(--aureka-color-foreground); }
+@media(max-width:767px) { .arcticWorkspacePin button { min-height:44px; } .arcticWorkspacePin .arcticPinClose { min-width:44px; } }
