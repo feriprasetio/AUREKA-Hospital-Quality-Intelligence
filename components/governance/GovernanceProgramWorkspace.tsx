@@ -6,6 +6,12 @@ import { toUserFacingError } from '@/lib/ui/error-feedback'
 import AurekaModal from '@/components/ui/AurekaModal'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
+import {useLatestWorkspaceRequest} from '@/lib/ui/use-latest-workspace-request'
+import {scopedGovernanceActions,governanceReview} from '@/lib/aureka/governance-review'
+import AggregateReportStudio from '@/components/workspace/AggregateReportStudio'
 
 type Room = { id: number; name: string }
 type Issuer = 'DEWAN_PENGAWAS'|'DIREKTUR'|'KETUA_PMKP'|'KABID'
@@ -22,7 +28,7 @@ const LEVEL_LABEL:Record<Level,string>={DEWAN_PENGAWAS:'Dewan Pengawas',DIREKTUR
 const STATUS_LABEL:Record<string,string>={terbuka:'Terbuka',berjalan:'Berjalan',selesai:'Selesai · menunggu verifikasi',terverifikasi:'Terverifikasi efektif',dibatalkan:'Dibatalkan'}
 const SOURCE_LABEL:Record<string,string>={ketua_pmkp:'Pembahasan internal PMKP',audit:'Hasil audit',risiko:'Manajemen risiko',insiden:'Insiden keselamatan pasien',program:'Program kerja',lainnya:'Lainnya'}
 const fmtDate=(v?:string|null)=>(v?new Date(v.length===10?v+'T12:00:00':v).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}):'-')
-const overdue=(a:Action)=>Boolean(a.due_date&&!['terverifikasi','dibatalkan','selesai'].includes(a.status)&&new Date(a.due_date+'T23:59:59')<new Date())
+const overdue=(a:Action)=>Boolean(a.due_date&&!['terverifikasi','dibatalkan','selesai'].includes(a.status)&&a.due_date<new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Pontianak',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()))
 const suggestMethod=(text:string):Method=>/\b(pasien|klinis|clinical|indikator|mutu|outcome|insiden|keselamatan|infeksi|jatuh|mortalitas|stroke|sepsis|hand hygiene|kepatuhan|angka|rate|readmission)\b/i.test(text)?'PDSA':/\b(sop|kebijakan|administrasi|alur|prosedur|dokumentasi|jadwal|formulir|standarisasi|standar proses)\b/i.test(text)?'PDCA':'PDSA'
 
 export default function GovernanceProgramWorkspace({rooms,dataFirst=false}:{rooms:Room[];dataFirst?:boolean}) {
@@ -31,7 +37,11 @@ export default function GovernanceProgramWorkspace({rooms,dataFirst=false}:{room
   const [year,setYear]=useState(new Date().getFullYear())
   const [issuerFilter,setIssuerFilter]=useState<IssuerFilter>('ALL')
   const [data,setData]=useState<Payload|null>(null)
-  const [loading,setLoading]=useState(true)
+  const [reading,setLoading]=useState(true)
+  const [loadedYear,setLoadedYear]=useState<number|null>(null)
+  const [snapshot,setSnapshot]=useState<string|null>(null)
+  const loading=reading||loadedYear!==year
+  const beginLoad=useLatestWorkspaceRequest(String(year))
   const [error,setError]=useState('')
   const [notice,setNotice]=useState('')
   const [busy,setBusy]=useState(false)
@@ -43,27 +53,40 @@ export default function GovernanceProgramWorkspace({rooms,dataFirst=false}:{room
   const [evalForm,setEvalForm]=useState({result:'efektif',decision:'ditutup',note:'',evidence_url:''})
 
   const load=useCallback(async()=>{
-    setLoading(true);setError('')
-    const {data:d,error:e}=await aurekaSupabase.rpc('aureka_gov_program_list',{p_year:year})
-    if(e)setError(/function .* does not exist|Could not find the function/i.test(e.message)?'Fitur Program belum aktif. Pastikan migration program_priority_and_pdsa_pdca sudah diterapkan di Supabase.':toUserFacingError(e,{fallback:'Data rekomendasi dan RTL belum dapat dimuat.'}))
-    else setData(d as Payload)
-    setLoading(false)
-  },[year])
+    const isCurrent=beginLoad()
+    if(!isCurrent)return
+    setLoading(true);setError('');setSnapshot(null)
+    try{
+      const {data:d,error:e}=await aurekaSupabase.rpc('aureka_gov_program_list',{p_year:year})
+      if(!isCurrent())return
+      if(e)throw e
+      if(!d||!Array.isArray(d.recommendations)||!Array.isArray(d.actions))throw new Error('Hasil rekomendasi dan RTL tidak lengkap.')
+      setData(d as Payload);setSnapshot(new Date().toISOString())
+    }catch(cause){
+      if(isCurrent()){setData(null);setError(toUserFacingError(cause,{fallback:'Data rekomendasi dan RTL belum dapat dimuat.'}))}
+    }finally{if(isCurrent()){setLoadedYear(year);setLoading(false)}}
+  },[year,beginLoad])
   useEffect(()=>{void load()},[load])
 
   const run=async(fn:()=>PromiseLike<{error:{message:string}|null}>,ok:string)=>{
     setBusy(true);setNotice('');setError('')
-    const {error:e}=await fn();setBusy(false)
-    if(e){setError(toUserFacingError(e as Error,{fallback:'Perubahan belum tersimpan.'}));return false}
-    setNotice(ok);await load();return true
+    try{
+      const {error:e}=await fn()
+      if(e){setError(toUserFacingError(e as Error,{fallback:'Perubahan belum tersimpan.'}));return false}
+      setNotice(ok);await load();return true
+    }catch{setError('Status penyimpanan belum dapat dipastikan. Periksa data server sebelum mengirim ulang.');return false}
+    finally{setBusy(false)}
   }
 
-  const canManage=Boolean(data?.can_manage)
-  const canEvaluate=Boolean(data?.can_evaluate)
+  const canManage=!loading&&Boolean(data?.can_manage)
+  const canEvaluate=!loading&&Boolean(data?.can_evaluate)
   const recommendations=useMemo(()=>(data?.recommendations??[]).filter(r=>issuerFilter==='ALL'||r.issued_by_level===issuerFilter),[data,issuerFilter])
   const actions=useMemo(()=>(data?.actions??[]),[data])
   const recTitle=useMemo(()=>new Map((data?.recommendations??[]).map(r=>[r.id,r.code+' · '+r.title])),[data])
   const orphanActions=actions.filter(a=>!a.recommendation_id)
+  const scopedActions=useMemo(()=>scopedGovernanceActions(actions,recommendations.map(r=>r.id)),[actions,recommendations])
+  const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Pontianak',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
+  const review=governanceReview(scopedActions,today)
   const canUpdateProgress=(a:Action)=>canManage||data?.role===a.responsible_level||(data?.role==='PIC'&&a.responsible_level==='UNIT')
   const openAction=(seed:Partial<Action>={})=>{
     const rec=data?.recommendations.find(r=>r.id===seed.recommendation_id)
@@ -89,12 +112,28 @@ export default function GovernanceProgramWorkspace({rooms,dataFirst=false}:{room
     </tr>):<tr><td colSpan={7}><div className="rmEmptySmall">Belum ada rencana tindak lanjut. Tekan "+ Tambah tindak lanjut" pada rekomendasi untuk menyusunnya.</div></td></tr>}
   </tbody></table></WorkspaceTableViewport>
 
+  const display:readonly ReadTableColumn<Action>[]=[
+    {id:'title',label:'Tindak lanjut',required:true,cell:a=><><b>{a.title}</b><small className="rmCellSmall">{a.recommendation_id?recTitle.get(a.recommendation_id)||'Induk tidak tersedia':'Tanpa rekomendasi induk'}</small>{a.progress_note&&<small className="rmCellSmall">Progres: {a.progress_note}</small>}<details className="govCycleDetails"><summary>Lihat siklus {a.improvement_method||'PDSA'}</summary><div><b>Plan</b><p>{a.cycle_plan||'Belum diisi'}</p><b>Do</b><p>{a.cycle_do||'Belum diisi'}</p><b>{a.improvement_method==='PDCA'?'Check':'Study'}</b><p>{a.cycle_study_check||'Belum diisi'}</p><b>Act</b><p>{a.cycle_act||'Belum diisi'}</p></div></details></>},
+    {id:'method',label:'Metode',cell:a=><span className="govMethodTag">{a.improvement_method||'PDSA'}</span>},
+    {id:'owner',label:'Penanggung jawab',required:true,cell:a=><>{LEVEL_LABEL[a.responsible_level]}{a.assigned_to_name&&<small className="rmCellSmall">{a.assigned_to_name}</small>}{a.room_name&&<small className="rmCellSmall">{a.room_name}</small>}</>},
+    {id:'due',label:'Tenggat',required:true,cell:a=><>{fmtDate(a.due_date)}{overdue(a)&&<small className="rmCellSmall govOverdue">Lewat tenggat</small>}</>},
+    {id:'status',label:'Status',required:true,cell:a=><span className={'govStatus '+a.status}>{STATUS_LABEL[a.status]||a.status}</span>},
+    {id:'evaluation',label:'Evaluasi',cell:a=>a.last_evaluation?<><b>{a.last_evaluation.result.replace('_',' ')}</b><small className="rmCellSmall">{a.last_evaluation.decision} · {fmtDate(a.last_evaluation.evaluated_at)}</small></>:'-'},
+    {id:'actions',label:'Aksi',required:true,cell:a=><div className="rmActions">
+        {canUpdateProgress(a)&&!['terverifikasi','dibatalkan'].includes(a.status)&&<button type="button" className="rmIconButton" onClick={()=>setProgress({...a})}>Progres</button>}
+        {canManage&&<button type="button" className="rmIconButton" onClick={()=>openAction({...a})}>Edit</button>}
+        {canEvaluate&&a.status==='selesai'&&<button type="button" className="rmIconButton" onClick={()=>{setEvalFor(a);setEvalForm({result:'efektif',decision:'ditutup',note:'',evidence_url:a.evidence_url||''})}}>Evaluasi</button>}
+      </div>}
+  ]
+  const columns:readonly ReadGridColumn<Action>[]=[
+    {id:'title',label:'Tindak lanjut',value:a=>a.title},{id:'method',label:'Metode',value:a=>a.improvement_method},{id:'owner',label:'Penanggung jawab',value:a=>[LEVEL_LABEL[a.responsible_level],a.assigned_to_name,a.room_name].filter(Boolean).join(' · ')},{id:'due',label:'Tenggat',value:a=>a.due_date},{id:'status',label:'Status',value:a=>STATUS_LABEL[a.status]||a.status}
+  ]
   const selectedLabel=issuerFilter==='ALL'?'Semua pemberi rekomendasi':ISSUER_LABEL[issuerFilter]
   return <section className="rmPanel govWorkspace" aria-label="Rekomendasi dan rencana tindak lanjut">
     <div className="rmSectionHead"><div><h3>Rekomendasi dan Rencana Tindak Lanjut</h3><p>Satu daftar terpadu. Filter berdasarkan pihak pemberi rekomendasi; setiap tindak lanjut wajib memiliki siklus perbaikan PDCA atau PDSA.</p></div>
       <div className="govHeadTools">
         <label className="govYear">Pemberi rekomendasi <select value={issuerFilter} onChange={e=>setIssuerFilter(e.target.value as IssuerFilter)}><option value="ALL">Semua</option><option value="DEWAN_PENGAWAS">Dewan Pengawas</option><option value="DIREKTUR">Direktur</option><option value="KETUA_PMKP">Ketua PMKP</option><option value="KABID">Kepala Bidang</option></select></label>
-        <label className="govYear">Tahun <select value={year} onChange={e=>setYear(Number(e.target.value))}>{[0,1,2].map(d=>new Date().getFullYear()+1-d).map(y=><option key={y} value={y}>{y}</option>)}</select></label>
+        <label className="govYear">Tahun <select value={year} disabled={busy||!!recDraft||!!actDraft||!!progress||!!evalFor} onChange={e=>{setNotice('');setYear(Number(e.target.value))}}>{[0,1,2].map(d=>new Date().getFullYear()+1-d).map(y=><option key={y} value={y}>{y}</option>)}</select></label>
         {listVisible&&canManage&&<><button type="button" className="rmButton primary" onClick={()=>setRecDraft({source:'lainnya',issued_by_level:'KETUA_PMKP',priority:'sedang',program_year:year,given_at:new Date().toISOString().slice(0,10)})}>+ Rekomendasi</button><button type="button" className="rmButton" onClick={()=>openAction()}>+ Tindak lanjut</button></>}
       </div>
     </div>
@@ -103,23 +142,27 @@ export default function GovernanceProgramWorkspace({rooms,dataFirst=false}:{room
     {loading?<div className="rmLoading"><span className="rmSpinner"/>Memuat…</div>:data&&<>
       <ContinuumSummary enabled={dataFirst} label="Ringkasan dan visual monitoring RTL"><div className="rmKpis">
         <div className="rmKpi"><span>Rekomendasi · {selectedLabel}</span><strong>{recommendations.length}</strong></div>
-        <div className="rmKpi"><span>Rencana tindak lanjut</span><strong>{actions.filter(a=>!a.recommendation_id||recommendations.some(r=>r.id===a.recommendation_id)).length}</strong></div>
-        <div className="rmKpi"><span>Lewat tenggat</span><strong>{actions.filter(overdue).length}</strong></div>
-        <div className="rmKpi"><span>Menunggu verifikasi</span><strong>{actions.filter(a=>a.status==='selesai').length}</strong></div>
-        <div className="rmKpi"><span>Terverifikasi efektif</span><strong>{actions.filter(a=>a.status==='terverifikasi').length}</strong></div>
+        <div className="rmKpi"><span>Rencana tindak lanjut</span><strong>{scopedActions.length}</strong></div>
+        <div className="rmKpi"><span>Lewat tenggat</span><strong>{review.overdue}</strong></div>
+        <div className="rmKpi"><span>Menunggu verifikasi</span><strong>{scopedActions.filter(a=>a.status==='selesai').length}</strong></div>
+        <div className="rmKpi"><span>Terverifikasi efektif</span><strong>{scopedActions.filter(a=>a.status==='terverifikasi').length}</strong></div>
       </div>
       <section className="govVisualSummary" aria-label="Visual monitoring rekomendasi dan rencana tindak lanjut">
-        <div className="govVisualHead"><div><span className="rmEyebrow">Monitoring pelaksanaan</span><h4>Alur penyelesaian rekomendasi</h4><p>Distribusi status RTL pada tahun dan filter pemberi rekomendasi yang sedang dipilih.</p></div><span className="govVisualTotal">{actions.filter(a=>!a.recommendation_id||recommendations.some(r=>r.id===a.recommendation_id)).length} RTL</span></div>
+        <div className="govVisualHead"><div><span className="rmEyebrow">Monitoring pelaksanaan</span><h4>Alur penyelesaian rekomendasi</h4><p>Distribusi status RTL pada tahun dan filter pemberi rekomendasi yang sedang dipilih.</p></div><span className="govVisualTotal">{scopedActions.length} RTL</span></div>
         <div className="govVisualBars">{[
           ['Terbuka', 'terbuka'],['Berjalan','berjalan'],['Menunggu verifikasi','selesai'],['Terverifikasi efektif','terverifikasi'],['Dibatalkan','dibatalkan']
-        ].map(([label,status])=>{const scoped=actions.filter(a=>!a.recommendation_id||recommendations.some(r=>r.id===a.recommendation_id));const n=scoped.filter(a=>a.status===status).length;const pct=scoped.length?n/scoped.length*100:0;return <div className="govVisualRow" key={status}><div><span>{label}</span><b>{n} · {pct.toFixed(1).replace('.',',')}%</b></div><div className="govVisualTrack"><i style={{width:pct+'%'}}/></div></div>})}
+        ].map(([label,status])=>{const scoped=scopedActions;const n=scoped.filter(a=>a.status===status).length;const pct=scoped.length?n/scoped.length*100:0;return <div className="govVisualRow" key={status}><div><span>{label}</span><b>{n} · {pct.toFixed(1).replace('.',',')}%</b></div><div className="govVisualTrack"><i style={{width:pct+'%'}}/></div></div>})}
         </div>
-        <div className="govVisualFoot"><span>Lewat tenggat: <b>{actions.filter(a=>(!a.recommendation_id||recommendations.some(r=>r.id===a.recommendation_id))&&overdue(a)).length}</b></span><span>Belum terhubung rekomendasi: <b>{orphanActions.length}</b></span><span>Metode: <b>PDSA / PDCA</b></span></div>
+        <div className="govVisualFoot"><span>Lewat tenggat: <b>{review.overdue}</b></span><span>Belum terhubung rekomendasi: <b>{orphanActions.length}</b></span><span>Metode: <b>PDSA / PDCA</b></span></div>
       </section></ContinuumSummary>
       {!dataFirst&&<div className="govHeadTools">
         <button type="button" className={'rmButton'+(showList?'':' primary')} onClick={()=>setShowList(!showList)}>{showList?'Kembali ke ringkasan RTL':'Lihat RTL'}</button>
       </div>}
+      {dataFirst&&snapshot&&<details data-governance-review><summary>Skill · Tinjauan tindak lanjut</summary><p>Jumlah dari hasil RPC dan filter pemberi rekomendasi, termasuk RTL tanpa induk. Tidak menyimpulkan efektivitas atau mengubah status.</p><AggregateReportStudio key={snapshot+issuerFilter} report={{title:'Draf tinjauan tindak lanjut',source:'aureka_gov_program_list',scope:year+' · '+selectedLabel+' · termasuk tanpa induk',snapshot,method:'Hitung status tersimpan, tanggal tenggat Asia/Pontianak, dan kelengkapan empat tahap siklus.',limitation:'Kelengkapan teks bukan bukti efektivitas. Hanya RTL yang dimuat dan sesuai cakupan, termasuk tanpa induk. Tidak mengandung identitas atau rincian kasus.',metrics:[['RTL dalam cakupan',review.total],['Lewat tenggat',review.overdue],['Aktif tanpa tenggat',review.withoutDue],['Tanpa rekomendasi induk',review.unlinked],['Siklus belum lengkap',review.incompleteCycle]],details:[...review.status.map(s=>[STATUS_LABEL[s.status]||s.status,s.count] as const),['Status lain',review.other]]}}/></details>}
       {listVisible&&<><div className="govRecList">
+        {dataFirst&&<ContinuumReadGrid key={year+'|'+issuerFilter} rows={scopedActions} columns={columns} display={display} label="Register RTL terpadu">{(page,filtered,keys)=><WorkspaceTableViewport dataFirst label="Register RTL terpadu" className="rmTableWrap"><ContinuumReadTable rows={page} columns={display} keys={keys} rowKey={a=>a.id} className="rmTable" disableDomSort empty={filtered?'Tidak ada RTL sesuai pencarian.':'Belum ada RTL pada cakupan ini.'}/></WorkspaceTableViewport>}</ContinuumReadGrid>}
+        {dataFirst&&<p>Daftar mencakup RTL tanpa rekomendasi induk. Rekomendasi induk tetap dapat dibuka di bawah.</p>}
+        <ContinuumSummary enabled={dataFirst} label="Rekomendasi induk dan daftar per rekomendasi">
         {recommendations.length?recommendations.map(r=>{
           const kids=actions.filter(a=>a.recommendation_id===r.id)
           return <article key={r.id} className="govRec">
@@ -131,8 +174,8 @@ export default function GovernanceProgramWorkspace({rooms,dataFirst=false}:{room
             {canManage&&kids.length>0&&<button type="button" className="textButton" onClick={()=>openAction({recommendation_id:r.id})}>+ Tambah tindak lanjut</button>}
           </article>
         }):<div className="rmEmptySmall">Belum ada rekomendasi untuk filter {selectedLabel.toLowerCase()} pada tahun {year}.</div>}
-      </div>
-      {orphanActions.length>0&&<section className="govOrphanActions"><h4>Tindak lanjut tanpa rekomendasi induk</h4>{actionTable(orphanActions)}</section>}</>}
+      </ContinuumSummary></div>
+      {!dataFirst&&orphanActions.length>0&&<section className="govOrphanActions"><h4>Tindak lanjut tanpa rekomendasi induk</h4>{actionTable(orphanActions)}</section>}</>}
     </>}
 
     <AurekaModal open={Boolean(recDraft)} title={recDraft?.id?'Edit rekomendasi':'Rekomendasi baru'} subtitle="Pihak pemberi rekomendasi dan sumber masalah dicatat terpisah." closeDisabled={busy} onClose={()=>setRecDraft(null)}
