@@ -26,10 +26,28 @@ jobs:
         run: |
           GOBIN="$RUNNER_TEMP/bin" GOTOOLCHAIN=auto go install github.com/zricethezav/gitleaks/v8@v8.30.0
       - name: Scan checked-out files
-        run: '"$RUNNER_TEMP/bin/gitleaks" dir --redact=100 --no-banner .'
+        run: |
+          set +e
+          "$RUNNER_TEMP/bin/gitleaks" dir --redact=100 --no-banner --report-format json --report-path "$RUNNER_TEMP/gitleaks-tree.json" .
+          result=$?
+          set -e
+          if [ -f "$RUNNER_TEMP/gitleaks-tree.json" ]; then
+            node scripts/summarize-secret-scan.mjs "$RUNNER_TEMP/gitleaks-tree.json"
+            rm -f "$RUNNER_TEMP/gitleaks-tree.json"
+          fi
+          exit "$result"
       - name: Scan reachable Git history
         if: always()
-        run: '"$RUNNER_TEMP/bin/gitleaks" git --redact=100 --no-banner --log-opts="--all" .'
+        run: |
+          set +e
+          "$RUNNER_TEMP/bin/gitleaks" git --redact=100 --no-banner --log-opts="--all" --report-format json --report-path "$RUNNER_TEMP/gitleaks-history.json" .
+          result=$?
+          set -e
+          if [ -f "$RUNNER_TEMP/gitleaks-history.json" ]; then
+            node scripts/summarize-secret-scan.mjs "$RUNNER_TEMP/gitleaks-history.json"
+            rm -f "$RUNNER_TEMP/gitleaks-history.json"
+          fi
+          exit "$result"
   codeql:
     name: CodeQL JavaScript and TypeScript
     runs-on: ubuntu-latest
