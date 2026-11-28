@@ -23,3 +23,19 @@ export function readGridPage<T>(rows:readonly T[],columns:readonly ReadGridColum
  const filtered=readGridRows(rows,columns,query,sort)
  return {...paginateGrid(filtered,page,size),total:filtered.length,loaded:rows.length}
 }
+
+export type ReadGridDisplayColumn={id:string;label:string;required?:boolean}
+export type ReadGridView={order:string[];hidden:string[];sort:ReadGridSort[];size:number}
+export function normalizeReadGridView(input:Partial<ReadGridView>,display:readonly ReadGridDisplayColumn[],sortKeys:readonly string[]):ReadGridView{
+ const ids=display.map(c=>c.id),first=ids[0]
+ const order=Array.from(new Set([...(first?[first]:[]),...(Array.isArray(input.order)?input.order.filter(id=>ids.includes(id)):[]),...ids]))
+ const hidden=display.filter(c=>c.id!==first&&!c.required&&Array.isArray(input.hidden)&&input.hidden.includes(c.id)).map(c=>c.id)
+ const sort=(Array.isArray(input.sort)?input.sort:[]).filter((s,i,a)=>s&&sortKeys.includes(s.key)&&!hidden.includes(s.key)&&(s.direction===1||s.direction===-1)&&a.findIndex(t=>t?.key===s.key)===i).slice(0,3).map(s=>({...s}))
+ return {order,hidden,sort,size:[15,25,50,100].includes(input.size??0)?input.size!:25}
+}
+export function moveReadGridColumn(order:readonly string[],id:string,offset:-1|1):string[]{
+ const next=[...order],index=next.indexOf(id),target=index+offset
+ if(index<1||target<1||target>=next.length)return next
+ ;[next[index],next[target]]=[next[target],next[index]]
+ return next
+}
