@@ -98,7 +98,11 @@ test('Operational pharmacy and outpatient calculations live in Hasil Capaian, no
   assert.match(results, /outpatientWaitingThreshold/)
   assert.match(results, /Rekap capaian indikator Farmasi/)
   assert.match(results, /Rekap waktu tunggu Rawat Jalan per klinik/)
-  assert.match(results, /form_fields:core_data->form_fields/)
+  const dataset = read('lib/aureka/quality-result-dataset.ts')
+  assert.match(results, /readIndicatorResultDataset\(sb,year,selectedRoom,controller\.signal\)/)
+  assert.match(results, /setIndicatorData\(indicatorDataset\)/)
+  assert.match(dataset, /form_fields:core_data->form_fields/)
+  assert.match(dataset, /form_fields: row\.form_fields \?\? row\.form_data \?\? \{\}/)
   assert.match(results, /String\(row\.status \?\? ''\)\.toLowerCase\(\) === 'validated'/)
 })
 
