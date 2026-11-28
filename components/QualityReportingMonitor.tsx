@@ -3,6 +3,7 @@ import {Fragment,useEffect,useMemo,useState} from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import ContinuumSummary from '@/components/workspace/ContinuumSummary'
 import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
 import type {ReadGridColumn} from '@/lib/aureka/read-grid'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import type {SupabaseClient} from '@supabase/supabase-js'
@@ -71,7 +72,14 @@ export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,r
  const reportedThisMonth=sortedRooms.filter(room=>byRoom(room.id).some(r=>r.month===nowMonth)).length
  const ready=!busy&&!error&&sortedRooms.length>0
  const viewRows:ReportingViewRow[]=sortedRooms.map(room=>({id:room.id,name:room.name,months:[...new Set(byRoom(room.id).map(r=>r.month))].sort((a,b)=>a-b),last:latest(room.id)}))
- const table=(page:readonly ReportingViewRow[],filtered=false)=><WorkspaceTableViewport dataFirst={dataFirst} className="hlReportingTableWrap" label="Detail pelaporan ruangan"><div className="hlReportingTableTitle">Detail pelaporan · 1 Januari – 31 Desember {year}</div><table className="hlReportingTable" data-ak-sort={dataFirst?'off':undefined}><thead><tr><th>Nama ruangan</th><th>Bulan terlapor</th><th>Periode terakhir</th><th>Tanggal input terakhir</th><th>Status</th></tr></thead><tbody>{page.map(room=><tr key={room.id}><td>{room.name}</td><td>{room.months.map(m=>MONTHS[m-1]).join(', ')||'Belum ada'}</td><td>{period(room.last?.latest_period)}</td><td>{date(room.last?.latest_report_at)}</td><td><span className={room.last?'hlReportingStatus reported':'hlReportingStatus'}>{room.last?'Sudah melapor':'Belum melapor'}</span></td></tr>)}{!page.length&&<tr><td colSpan={5}>{filtered?'Tidak ada ruangan sesuai pencarian.':'Belum ada ruangan.'}</td></tr>}</tbody></table></WorkspaceTableViewport>
+ const display:readonly ReadTableColumn<ReportingViewRow>[]=[
+ {id:'room',label:'Nama ruangan',required:true,cell:r=>r.name},
+ {id:'months',label:'Bulan terlapor',cell:r=>r.months.map(m=>MONTHS[m-1]).join(', ')||'Belum ada'},
+ {id:'period',label:'Periode terakhir',cell:r=>period(r.last?.latest_period)},
+ {id:'input',label:'Tanggal input terakhir',cell:r=>date(r.last?.latest_report_at)},
+ {id:'status',label:'Status',required:true,cell:r=><span className={r.last?'hlReportingStatus reported':'hlReportingStatus'}>{r.last?'Sudah melapor':'Belum melapor'}</span>}
+ ]
+ const table=(page:readonly ReportingViewRow[],filtered=false,keys?:readonly string[])=><WorkspaceTableViewport dataFirst={dataFirst} className="hlReportingTableWrap" label="Detail pelaporan ruangan"><div className="hlReportingTableTitle">Detail pelaporan · 1 Januari – 31 Desember {year}</div><ContinuumReadTable rows={page} columns={display} keys={keys} rowKey={r=>r.id} className="hlReportingTable" disableDomSort={dataFirst} empty={filtered?'Tidak ada ruangan sesuai pencarian.':'Belum ada ruangan.'}/></WorkspaceTableViewport>
  return <section className="hlPanel hlReportingPanel" aria-label="Monitoring pelaporan indikator mutu">
   <style>{`.hlReportingPanel{display:grid;gap:14px}
 .hlReportingPanel .hlPanelHead{margin:0;align-items:baseline}
@@ -143,6 +151,6 @@ html[data-mode="gelap"] .hlReportingTable td{color:#e2e8f0;border-color:rgba(148
    </div>
   </div>{dataFirst&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span></div>}{dataFirst&&sortedRooms.length>LIMIT&&<button type="button" className="hlRepLink" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Lihat ${sortedRooms.length} ruangan`}</button>}</ContinuumSummary>}
   {!dataFirst&&ready&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span><div className="hlRepActions"><button type="button" className="hlReportingDetailBtn" onClick={()=>setExpanded(v=>!v)}>{expanded?'Tutup tabel detail':'Lihat tabel detail'}</button></div></div>}
-  {(expanded||dataFirst)&&ready&&(dataFirst?<ContinuumReadGrid key={JSON.stringify([year,roomId,isAdmin])} rows={viewRows} columns={REPORTING_COLUMNS} label="Kontrol monitoring pelaporan">{table}</ContinuumReadGrid>:table(viewRows))}
+  {(expanded||dataFirst)&&ready&&(dataFirst?<ContinuumReadGrid key={JSON.stringify([year,roomId,isAdmin])} rows={viewRows} columns={REPORTING_COLUMNS} display={display} label="Kontrol monitoring pelaporan">{table}</ContinuumReadGrid>:table(viewRows))}
  </section>
 }

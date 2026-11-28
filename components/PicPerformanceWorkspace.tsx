@@ -6,6 +6,7 @@ import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import ContinuumSummary from '@/components/workspace/ContinuumSummary'
 import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
 import type {ReadGridColumn} from '@/lib/aureka/read-grid'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
@@ -71,10 +72,15 @@ export default function PicPerformanceWorkspace({dataFirst=false}:{dataFirst?:bo
     if (message) window.dispatchEvent(new CustomEvent('aureka:notification', { detail: { message, type: 'error', module: 'Kinerja PIC' } }))
   }, [error])
 
-  const table=(page:readonly PicRow[],filtered=false)=><WorkspaceTableViewport dataFirst={dataFirst} label="Daftar kinerja PIC" className="ppTableWrap"><table className="ppTable" data-ak-sort={dataFirst?'off':undefined}><thead><tr><th>PIC</th><th>Unit</th><th>Total logbook</th><th>{days} hari</th><th>Draft / siap / tervalidasi / arsip</th><th>Data terakhir dibuat</th></tr></thead><tbody>
-          {page.map(row=><tr key={row.user_id+'-'+row.room_id}><td><strong>{row.pic_name}</strong><span className="ppSub">{row.email || row.user_id}</span></td><td>{row.room_name}</td><td>{number(row.records_total)}</td><td>{number(row.records_window)}</td><td>{number(row.records_draft)} / {number(row.records_ready)} / {number(row.records_validated)} / {number(row.records_archived)}</td><td><strong>{fmtDate(row.last_created_at)}</strong><span className="ppSub">{row.last_record_date ? 'Tanggal data: '+new Date(row.last_record_date+'T00:00:00').toLocaleDateString('id-ID') : 'Tanggal data belum tersedia'}{row.last_status ? ' · Status: '+row.last_status : ''}</span></td></tr>)}
-          {page.length===0&&<tr><td colSpan={6}><div className="ppEmpty">{filtered?'Tidak ada PIC sesuai pencarian.':'Belum ada akun PIC dengan penugasan aktif yang dapat ditampilkan.'}</div></td></tr>}
-        </tbody></table></WorkspaceTableViewport>
+  const display:readonly ReadTableColumn<PicRow>[]=[
+ {id:'name',label:'PIC',required:true,cell:row=><><strong>{row.pic_name}</strong><span className="ppSub">{row.email||row.user_id}</span></>},
+ {id:'room',label:'Unit',required:true,cell:row=>row.room_name},
+ {id:'total',label:'Total logbook',cell:row=>number(row.records_total)},
+ {id:'window',label:days+' hari',cell:row=>number(row.records_window)},
+ {id:'validated',label:'Draft / siap / tervalidasi / arsip',cell:row=><>{number(row.records_draft)} / {number(row.records_ready)} / {number(row.records_validated)} / {number(row.records_archived)}</>},
+ {id:'last',label:'Data terakhir dibuat',cell:row=><><strong>{fmtDate(row.last_created_at)}</strong><span className="ppSub">{row.last_record_date?'Tanggal data: '+new Date(row.last_record_date+'T00:00:00').toLocaleDateString('id-ID'):'Tanggal data belum tersedia'}{row.last_status?' · Status: '+row.last_status:''}</span></>}
+ ]
+ const table=(page:readonly PicRow[],filtered=false,keys?:readonly string[])=><WorkspaceTableViewport dataFirst={dataFirst} label="Daftar kinerja PIC" className="ppTableWrap"><ContinuumReadTable rows={page} columns={display} keys={keys} rowKey={row=>row.user_id+'-'+row.room_id} className="ppTable" disableDomSort={dataFirst} empty={<div className="ppEmpty">{filtered?'Tidak ada PIC sesuai pencarian.':'Belum ada akun PIC dengan penugasan aktif yang dapat ditampilkan.'}</div>}/></WorkspaceTableViewport>
   return <section className="picPerf">
     <style>{`
       .picPerf{display:grid;gap:14px;min-width:0;color:var(--text,#20372d)}
@@ -114,7 +120,7 @@ export default function PicPerformanceWorkspace({dataFirst=false}:{dataFirst?:bo
       </div></ContinuumSummary>
       <div className="ppPanel">
         <div className="ppHead"><div><strong>Daftar PIC dan aktivitas terakhir</strong></div><span className="ppBadge">Diperbarui {fmtDate(data?.generated_at)}</span></div>
-        {dataFirst?<ContinuumReadGrid key={days} rows={rows} columns={PIC_COLUMNS} label="Kontrol kinerja PIC">{table}</ContinuumReadGrid>:table(rows)}
+        {dataFirst?<ContinuumReadGrid key={days} rows={rows} columns={PIC_COLUMNS} display={display} label="Kontrol kinerja PIC">{table}</ContinuumReadGrid>:table(rows)}
       </div>
     </>}
   </section>

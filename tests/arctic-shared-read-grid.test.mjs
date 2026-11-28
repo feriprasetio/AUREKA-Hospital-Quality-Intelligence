@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {readGridRows,readGridPage} from '../lib/aureka/read-grid.ts'
+import {readGridRows,readGridPage,normalizeReadGridView,moveReadGridColumn} from '../lib/aureka/read-grid.ts'
 const cols=[{id:'name',label:'Nama',value:r=>r.name},{id:'count',label:'Jumlah',value:r=>r.count}]
 test('all loaded rows are searched and sorted before paging; null last in either direction',()=>{
  const rows=Array.from({length:61},(_,i)=>({id:i,name:'Unit '+i,count:i===60?null:i}))
@@ -16,4 +16,13 @@ test('search does not inspect arbitrary or unlisted fields; invalid criteria ign
  assert.deepEqual(readGridRows(rows,cols,'hidden',[]),[])
  assert.deepEqual(readGridRows(rows,cols,'',[{key:'secret',direction:1}]),rows)
  assert.equal(readGridRows(rows,cols,'a',[{key:'name',direction:1},{key:'count',direction:-1}])[0].count,2)
+})
+
+test('shared view pins first identity, keeps required columns, strips hidden sorts and rejects unknown metadata',()=>{
+ const display=[{id:'id',label:'ID'},{id:'name',label:'Name',required:true},{id:'count',label:'Count'},{id:'detail',label:'Detail'}]
+ const view=normalizeReadGridView({order:['count','id','unknown','name'],hidden:['id','name','count','unknown'],sort:[{key:'count',direction:1},{key:'name',direction:-1},{key:'secret',direction:1}],size:999},display,['name','count'])
+ assert.deepEqual(view,{order:['id','count','name','detail'],hidden:['count'],sort:[{key:'name',direction:-1}],size:25})
+ assert.deepEqual(moveReadGridColumn(view.order,'id',1),view.order)
+ assert.deepEqual(moveReadGridColumn(view.order,'name',-1),['id','name','count','detail'])
+ assert.deepEqual(view.order,['id','count','name','detail'])
 })
