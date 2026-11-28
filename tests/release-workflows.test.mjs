@@ -41,7 +41,9 @@ test('preview reports dependency findings and blocks high or critical severity',
 
 test('production Pages builds the current AUREKA application directly at the public root', () => {
   assert.match(production, /run: npm ci/)
-  assert.match(production, /ref: main/)
+  assert.match(production, /ref: \$\{\{ github\.sha \}\}/)
+  assert.doesNotMatch(production, /ref: main/)
+  assert.match(production, /persist-credentials: false/)
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_URL/)
   assert.match(production, /AUREKA_PRODUCTION_SUPABASE_PUBLISHABLE_KEY/)
   assert.match(production, /AUREKA_BUILD_TARGET: production/)
@@ -55,7 +57,7 @@ test('production Pages builds the current AUREKA application directly at the pub
   const validation = production.indexOf('Validate production Supabase configuration')
   const build = production.indexOf('Build AUREKA directly for the public project root')
   const upload = production.indexOf('Upload Pages artifact')
-  const deploy = production.indexOf('uses: actions/deploy-pages@v5')
+  const deploy = production.search(/uses: actions\/deploy-pages@[0-9a-f]{40} # v5/)
 
   assert.ok(checkout >= 0 && validation > checkout)
   assert.ok(validation < build && build < upload && upload < deploy)
@@ -69,7 +71,7 @@ test('production deployment blocks moderate, high, and critical dependency findi
 test('production validates its Supabase configuration before build and deploy', () => {
   const validation = production.indexOf('Validate production Supabase configuration')
   const build = production.indexOf('Build AUREKA directly for the public project root')
-  const deploy = production.indexOf('uses: actions/deploy-pages@v5')
+  const deploy = production.search(/uses: actions\/deploy-pages@[0-9a-f]{40} # v5/)
   assert.notEqual(validation, -1)
   assert.notEqual(build, -1)
   assert.notEqual(deploy, -1)
@@ -171,4 +173,14 @@ test('Supabase build configuration rejects malformed and non-HTTPS endpoints', (
   assert.throws(() => validateSupabaseBuildConfiguration({
     target: 'preview', url: 'https://aureka-preview-branch.supabase.co', key: 'invalid-key', config
   }), /Use only an sb_publishable_/)
+})
+
+
+test('production deployment write permissions are isolated from the build job', () => {
+  const build = production.slice(0, production.indexOf('  deploy:'))
+  const deploy = production.slice(production.indexOf('  deploy:'))
+  assert.doesNotMatch(build, /pages: write|id-token: write/)
+  assert.match(deploy, /permissions:\s+pages: write\s+id-token: write/)
+  assert.match(production, /uses: actions\/configure-pages@[0-9a-f]{40}/)
+  assert.match(production, /uses: actions\/upload-pages-artifact@[0-9a-f]{40}/)
 })
