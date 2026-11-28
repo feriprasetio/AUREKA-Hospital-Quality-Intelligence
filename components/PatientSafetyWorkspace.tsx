@@ -18,7 +18,7 @@ import SurveyWizard from '@/components/patient-safety/SurveyWizard'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import { readAllPages } from '@/lib/aureka/pagination'
-import { INCIDENT_GRID_COLUMNS, incidentGridColumns, sortIncidentGrid, incidentGridPage, type IncidentGridColumn, type IncidentGridSort } from '@/lib/aureka/incident-grid-view'
+import { INCIDENT_GRID_COLUMNS, INCIDENT_COLUMN_ORDER, INCIDENT_SORT_LIMIT, incidentGridColumns, sortIncidentGrid, incidentGridPage, normalizeIncidentSort, normalizeIncidentView, toggleIncidentSort, moveIncidentColumn, EMPTY_INCIDENT_ADVANCED, matchesIncidentAdvanced, incidentAdvancedError, type IncidentGridColumn, type IncidentGridSort, type IncidentGridView, type IncidentAdvancedFilter } from '@/lib/aureka/incident-grid-view'
 import { logSensitiveView } from '@/lib/aureka/sensitive-access'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 
@@ -354,10 +354,15 @@ export default function PatientSafetyWorkspace({
   const [statusFilter, setStatusFilter] = useState('all')
   const [registerPage,setRegisterPage]=useState(1)
   const [registerPageSize,setRegisterPageSize]=useState(25)
-  const [registerSort,setRegisterSort]=useState<IncidentGridSort|null>(null)
+  const [registerSort,setRegisterSort]=useState<IncidentGridSort[]>([])
+  const [registerOrder,setRegisterOrder]=useState<IncidentGridColumn[]>(INCIDENT_COLUMN_ORDER)
+  const [savedRegisterView,setSavedRegisterView]=useState<IncidentGridView|null>(null)
+  const [advancedFilter,setAdvancedFilter]=useState<IncidentAdvancedFilter>(EMPTY_INCIDENT_ADVANCED)
+  const [advancedFilterOpen,setAdvancedFilterOpen]=useState(false)
+  const advancedError=arcticGrid?incidentAdvancedError(advancedFilter):null
   const [hiddenRegisterColumns,setHiddenRegisterColumns]=useState<IncidentGridColumn[]>([])
   const [columnSettingsOpen,setColumnSettingsOpen]=useState(false)
-  useEffect(()=>{setHiddenRegisterColumns([]);setColumnSettingsOpen(false)},[scopeRoomId,arcticGrid])
+  useEffect(()=>{setHiddenRegisterColumns([]);setColumnSettingsOpen(false);setRegisterOrder(INCIDENT_COLUMN_ORDER);setRegisterSort([]);setSavedRegisterView(null);setAdvancedFilter(EMPTY_INCIDENT_ADVANCED);setAdvancedFilterOpen(false)},[scopeRoomId,initialRoomId,isSuperAdmin,canManageWorkflow,arcticGrid])
   const [unitFilter, setUnitFilter] = useState(scopeUnitName || 'all')
 
   const [incidentId, setIncidentId] = useState('')
@@ -539,19 +544,21 @@ export default function PatientSafetyWorkspace({
     const matchesUnit = unitFilter === 'all' || row.unit_name === unitFilter
     const needle = search.toLowerCase().trim()
     const matchesSearch = !needle || [row.incident_code, row.unit_name, row.incident_type, row.summary].join(' ').toLowerCase().includes(needle)
-    return matchesStatus && matchesUnit && matchesSearch
-  }), [incidents, statusFilter, unitFilter, search])
-  useEffect(()=>{setRegisterPage(1)},[statusFilter,unitFilter,search,registerPageSize,scopeRoomId,registerSort,arcticGrid])
+    return matchesStatus && matchesUnit && matchesSearch && (!arcticGrid||matchesIncidentAdvanced(row,advancedFilter))
+  }), [incidents, statusFilter, unitFilter, search, arcticGrid, advancedFilter])
+  useEffect(()=>{setRegisterPage(1)},[statusFilter,unitFilter,search,registerPageSize,scopeRoomId,registerSort,arcticGrid,advancedFilter])
   const sortedRegister=useMemo(()=>arcticGrid?sortIncidentGrid(filteredIncidents,registerSort):filteredIncidents,[filteredIncidents,arcticGrid,registerSort])
   const page=incidentGridPage(sortedRegister,registerPage,registerPageSize)
   const registerPages=page.pages
   const currentRegisterPage=page.current
   const registerRows=arcticGrid?page.rows:sortedRegister
-  const registerColumns=incidentGridColumns(arcticGrid?hiddenRegisterColumns:[])
+  const registerColumns=incidentGridColumns(arcticGrid?hiddenRegisterColumns:[],arcticGrid?registerOrder:[])
+  const visibleRegisterKeys=registerColumns.map(([key])=>key)
+  const restoreRegisterView=()=>{if(!savedRegisterView)return;const next=normalizeIncidentView(savedRegisterView);setHiddenRegisterColumns(next.hidden);setRegisterOrder(next.order);setRegisterSort(next.sort);setRegisterPageSize(next.pageSize);setRegisterPage(1)}
   const toggleRegisterColumn=(key:IncidentGridColumn)=>{
     if(INCIDENT_GRID_COLUMNS.some(column=>column[0]===key&&column[2]))return
     setHiddenRegisterColumns(current=>current.includes(key)?current.filter(value=>value!==key):[...current,key])
-    if(registerSort?.key===key)setRegisterSort(null)
+    setRegisterSort(current=>current.filter(sort=>sort.key!==key))
   }
   const renderRegisterCell=(row:IncidentRow,key:IncidentGridColumn)=>{
     switch(key){
@@ -1118,9 +1125,16 @@ export default function PatientSafetyWorkspace({
 
         {arcticGrid&&<div className="arcticGridColumnControls">
           <button type="button" className="psBtn" aria-expanded={columnSettingsOpen} aria-controls={columnSettingsOpen?'ps-grid-columns':undefined} onClick={()=>setColumnSettingsOpen(value=>!value)}>Kolom · {registerColumns.length}/{INCIDENT_GRID_COLUMNS.length}</button>
-          {columnSettingsOpen&&<fieldset id="ps-grid-columns" className="arcticGridColumns"><legend>Kolom register yang ditampilkan</legend>{INCIDENT_GRID_COLUMNS.map(([key,label,required])=><label key={key}><input type="checkbox" checked={!hiddenRegisterColumns.includes(key)} disabled={required} onChange={()=>toggleRegisterColumn(key)}/>{label}{required?' (wajib)':''}</label>)}<button type="button" className="psBtn" onClick={()=>setHiddenRegisterColumns([])}>Reset kolom</button><small>Hanya mengatur tampilan; tidak mengubah data, pencarian, atau ekspor.</small></fieldset>}
+          <button type="button" className="psBtn" data-incident-advanced aria-expanded={advancedFilterOpen} aria-controls={advancedFilterOpen?'ps-grid-advanced':undefined} onClick={()=>setAdvancedFilterOpen(v=>!v)}>Filter lanjutan{Object.values(advancedFilter).some(Boolean)?' · Aktif':''}</button>
+          {columnSettingsOpen&&<fieldset id="ps-grid-columns" className="arcticGridColumns"><legend>Kolom register yang ditampilkan</legend>{INCIDENT_GRID_COLUMNS.map(([key,label,required])=><label key={key}><input type="checkbox" checked={!hiddenRegisterColumns.includes(key)} disabled={required} onChange={()=>toggleRegisterColumn(key)}/>{label}{required?' (wajib)':''}</label>)}<button type="button" className="psBtn" onClick={()=>{setHiddenRegisterColumns([]);setRegisterOrder(INCIDENT_COLUMN_ORDER)}}>Reset kolom</button>
+          <div className="arcticGridViewSection"><strong>Urutan kolom</strong><p>Kode tetap berada di posisi pertama.</p><ol>{registerOrder.map((key,index)=><li key={key}><span>{INCIDENT_GRID_COLUMNS.find(column=>column[0]===key)?.[1]}</span><button type="button" className="psBtn" data-incident-column-left={key} aria-label={'Geser '+key+' ke kiri'} disabled={index<=1} onClick={()=>setRegisterOrder(order=>moveIncidentColumn(order,key,-1))}>←</button><button type="button" className="psBtn" data-incident-column-right={key} aria-label={'Geser '+key+' ke kanan'} disabled={index===0||index===registerOrder.length-1} onClick={()=>setRegisterOrder(order=>moveIncidentColumn(order,key,1))}>→</button></li>)}</ol></div>
+          <div className="arcticGridViewSection"><strong>Urutkan hingga tiga kolom</strong><p>Prioritas diurutkan dari atas ke bawah. Nilai kosong selalu terakhir.</p><ol>{registerSort.map((sort,index)=><li key={sort.key}><span>{index+1}. {INCIDENT_GRID_COLUMNS.find(column=>column[0]===sort.key)?.[1]}</span><button type="button" className="psBtn" aria-label={'Balik urutan '+sort.key} onClick={()=>setRegisterSort(current=>current.map(item=>item.key===sort.key?{...item,direction:item.direction===1?-1:1}:item))}>{sort.direction===1?'Naik':'Turun'}</button><button type="button" className="psBtn" aria-label={'Hapus urutan '+sort.key} onClick={()=>setRegisterSort(current=>current.filter(item=>item.key!==sort.key))}>Hapus</button></li>)}</ol>
+          <label>Tambah kriteria urut<select data-incident-add-sort aria-label="Tambah kriteria urut" value="" disabled={registerSort.length>=INCIDENT_SORT_LIMIT} onChange={e=>setRegisterSort(current=>normalizeIncidentSort([...current,{key:e.target.value,direction:1}],visibleRegisterKeys))}><option value="">Pilih kolom</option>{registerColumns.filter(([key])=>!registerSort.some(sort=>sort.key===key)).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label><button type="button" className="psBtn" onClick={()=>setRegisterSort([])}>Reset urutan</button></div>
+          <div className="arcticGridViewSection"><strong>Tampilan sesi</strong><p>Simpan hanya kolom, urutan, dan jumlah baris; tidak termasuk data, filter, atau pencarian.</p><button type="button" className="psBtn" data-incident-save-view onClick={()=>setSavedRegisterView(normalizeIncidentView({hidden:hiddenRegisterColumns,order:registerOrder,sort:registerSort,pageSize:registerPageSize}))}>Simpan tampilan sesi</button><button type="button" className="psBtn" data-incident-restore-view disabled={!savedRegisterView} onClick={restoreRegisterView}>Pulihkan tampilan</button>{savedRegisterView&&<span role="status">Tampilan tersimpan untuk sesi halaman ini.</span>}</div><small>Hanya mengatur tampilan; tidak mengubah data, pencarian, atau ekspor.</small></fieldset>}
+          {advancedFilterOpen&&<fieldset id="ps-grid-advanced" className="arcticGridColumns"><legend>Filter lanjutan register</legend><label>Tanggal awal<input type="date" aria-label="Tanggal awal insiden" value={advancedFilter.from} onChange={e=>setAdvancedFilter(current=>({...current,from:e.target.value}))}/></label><label>Tanggal akhir<input type="date" aria-label="Tanggal akhir insiden" value={advancedFilter.to} onChange={e=>setAdvancedFilter(current=>({...current,to:e.target.value}))}/></label><label>Jenis insiden<select aria-label="Filter jenis insiden" value={advancedFilter.type} onChange={e=>setAdvancedFilter(current=>({...current,type:e.target.value}))}><option value="">Semua jenis</option>{Array.from(new Set(incidents.map(row=>row.incident_type).filter(Boolean))).sort().map(type=><option key={type}>{type}</option>)}</select></label><button type="button" className="psBtn" onClick={()=>setAdvancedFilter(EMPTY_INCIDENT_ADVANCED)}>Reset filter lanjutan</button></fieldset>}
+          {advancedError&&<p role="alert">{advancedError}</p>}
         </div>}
-        {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table key={arcticGrid?'arctic-register':'legacy-register'} className="psTable" data-arctic-grid={arcticGrid?'incident':undefined} data-ak-sort={arcticGrid?'off':undefined}><thead><tr>{registerColumns.map(([key,label])=><th scope="col" data-column={key} key={key} aria-sort={arcticGrid&&registerSort?.key===key?(registerSort.direction===1?'ascending':'descending'):undefined}>{arcticGrid?<button type="button" className="arcticGridSort" onClick={()=>setRegisterSort(current=>current?.key===key?(current.direction===1?{key,direction:-1}:null):{key,direction:1})}>{label}<span aria-hidden="true">{registerSort?.key===key?(registerSort.direction===1?'▲':'▼'):'↕'}</span></button>:label}</th>)}<th></th></tr></thead><tbody>
+        {filteredIncidents.length ? <WorkspaceTableViewport label="Daftar keselamatan pasien · 2" className="psTableWrap"><table key={arcticGrid?'arctic-register':'legacy-register'} className="psTable" data-arctic-grid={arcticGrid?'incident':undefined} data-ak-sort={arcticGrid?'off':undefined}><thead><tr>{registerColumns.map(([key,label])=><th scope="col" data-column={key} key={key} aria-sort={arcticGrid&&registerSort[0]?.key===key?(registerSort[0].direction===1?'ascending':'descending'):undefined}>{arcticGrid?<button type="button" className="arcticGridSort" onClick={event=>setRegisterSort(current=>toggleIncidentSort(current,key,event.shiftKey))}>{label}<span aria-hidden="true">{registerSort.some(sort=>sort.key===key)?(registerSort.find(sort=>sort.key===key)?.direction===1?'▲':'▼')+(registerSort.length>1?String(registerSort.findIndex(sort=>sort.key===key)+1):''):'↕'}</span></button>:label}</th>)}<th></th></tr></thead><tbody>
           {registerRows.map(row => <tr key={row.id}>{registerColumns.map(([key])=><td key={key} data-column={key}>{renderRegisterCell(row,key)}</td>)}<td><button type="button" className="psBtn" onClick={() => openIncident(row)}>Buka</button></td></tr>)}
         </tbody></table></WorkspaceTableViewport> : <div className="psEmpty">{loading ? 'Memuat register insiden…' : error ? 'Register belum dapat dipastikan lengkap. Muat ulang data.' : incidents.length ? 'Tidak ada laporan sesuai filter.' : 'Belum ada laporan IKP. Tekan "＋ Laporan Baru" untuk melaporkan insiden pertama.'}</div>}
         {arcticGrid&&sortedRegister.length>0&&<div className="arcticGridFooter" aria-label="Paginasi register insiden"><output>{page.start}–{page.end} dari {sortedRegister.length} laporan</output><label>Baris per halaman<select aria-label="Baris per halaman register" value={registerPageSize} onChange={e=>setRegisterPageSize(Number(e.target.value))}>{[25,50,100].map(size=><option key={size} value={size}>{size}</option>)}</select></label><button type="button" disabled={currentRegisterPage===1} onClick={()=>setRegisterPage(currentRegisterPage-1)}>Sebelumnya</button><span>Halaman {currentRegisterPage} / {registerPages}</span><button type="button" disabled={currentRegisterPage===registerPages} onClick={()=>setRegisterPage(currentRegisterPage+1)}>Berikutnya</button></div>}

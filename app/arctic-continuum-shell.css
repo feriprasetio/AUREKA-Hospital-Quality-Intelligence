@@ -139,3 +139,13 @@ html[data-motion="off"] .arcticCategoryNav * { transition:none; scroll-behavior:
 .arcticFocusBar span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--aureka-canvas-muted); }
 .arcticFocusBar button { flex:0 0 auto; padding:4px 10px; min-height:36px; border-radius:8px; }
 @media(max-width:767px){.arcticFocusBar button{min-height:44px;}}
+
+/* Optional view controls: closed by default; accessible without drag or modifier keys. */
+.arcticGridViewSection { flex-basis:100%; min-width:0; border-top:1px solid var(--aureka-canvas-divider); padding-block:8px; }
+.arcticGridViewSection p { margin:4px 0; color:var(--aureka-canvas-muted); }
+.arcticGridViewSection ol { margin:6px 0; padding:0; list-style:none; display:grid; gap:4px; }
+.arcticGridViewSection li { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.arcticGridViewSection li span { flex:1; min-width:100px; }
+.arcticGridViewSection button { margin-right:4px; }
+.arcticGridColumns :is(select,input[type=date]) { min-height:36px; min-width:0; max-width:100%; padding:4px 8px; font:inherit; color:inherit; background:var(--aureka-dialog-surface); border:1px solid var(--aureka-control-edge); border-radius:8px; }
+@media(max-width:767px){.arcticGridColumns :is(button,select,input[type=date]){min-height:44px}}
