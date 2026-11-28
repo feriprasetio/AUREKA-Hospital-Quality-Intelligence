@@ -1,13 +1,15 @@
 'use client'
 import {Fragment,useEffect,useMemo,useState} from 'react'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import type {SupabaseClient} from '@supabase/supabase-js'
 import { readAurekaQualityRoomReportingStatus, type QualityRoomReportingRow } from '@/lib/aureka/metric-contracts'
 
 type Room={id:number;name:string}
 type Row=QualityRoomReportingRow
 const MONTHS=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
-export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,roomName}:{supabase:SupabaseClient;rooms:Room[];isAdmin:boolean;roomId:number|null;roomName:string|null}){
+export default function QualityReportingMonitor({supabase,rooms,isAdmin,roomId,roomName,dataFirst=false}:{supabase:SupabaseClient;rooms:Room[];isAdmin:boolean;roomId:number|null;roomName:string|null;dataFirst?:boolean}){
  const [calendarPeriod]=useState(()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Pontianak',year:'numeric',month:'2-digit'}).format(new Date()))
  const [currentYear,currentMonth]=calendarPeriod.split('-').map(Number)
  const [year,setYear]=useState(currentYear)
@@ -115,20 +117,20 @@ html[data-mode="gelap"] .hlReportingTable td{color:#e2e8f0;border-color:rgba(148
    <div><h3>Pelaporan indikator {year}</h3><span>{ready&&nowMonth?`${reportedThisMonth} dari ${sortedRooms.length} ruangan lapor ${MONTHS[nowMonth-1]}`:roomId!=null?(roomName||'Ruangan terpilih'):isAdmin?'Seluruh rumah sakit':'Ruangan saya'}</span></div>
    <div className="hlRepActions">
     <label>Tahun <select aria-label="Tahun monitoring pelaporan" value={year} onChange={event=>setYear(Number(event.target.value))}>{Array.from({length:Math.max(1,currentYear-2023)},(_,index)=>currentYear-index).map(value=><option key={value}>{value}</option>)}</select></label>
-    {ready&&sortedRooms.length>LIMIT&&<button type="button" className="hlRepLink" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Lihat ${sortedRooms.length} ruangan`}</button>}
+    {!dataFirst&&ready&&sortedRooms.length>LIMIT&&<button type="button" className="hlRepLink" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Lihat ${sortedRooms.length} ruangan`}</button>}
    </div>
   </header>
   {busy&&<AsyncStatePanel state="loading" title="Memuat pelaporan ruangan" compact/>}
   {!busy&&error&&<AsyncStatePanel state="error" title="Pelaporan ruangan belum dapat dimuat" description={error} onRetry={()=>setReload(value=>value+1)} compact/>}
   {!busy&&!error&&!sortedRooms.length&&<p className="hlEmpty">Ruangan belum terhubung ke akun ini.</p>}
-  {ready&&<div className="hlReportingChartWrap" role="group" aria-label="Matriks pelaporan indikator mutu per ruangan dan bulan">
+  {ready&&<ContinuumSummary enabled={dataFirst} label="Lihat matriks pelaporan"><div className="hlReportingChartWrap" role="group" aria-label="Matriks pelaporan indikator mutu per ruangan dan bulan">
    <div className="hlReportingMatrix">
     <div className="hlReportingCorner">Ruangan</div>
     {MONTHS.map((m,i)=><div className={i+1===nowMonth?'hlReportingMonth now':'hlReportingMonth'} key={m}>{m}</div>)}
     {shownRooms.map(room=>{const reported=new Set(byRoom(room.id).map(r=>r.month));return <Fragment key={room.id}><div className="hlReportingRoom"><button type="button" onClick={()=>setExpanded(true)} title={room.name}>{room.name}</button></div>{MONTHS.map((m,i)=>{const has=reported.has(i+1);const future=year===currentYear&&i+1>nowMonth;return <div key={m} className={'hlReportingCell'+(has?' hasData':future?' future':'')} title={room.name+' · '+m+': '+(has?'Ada laporan':future?'Belum periode':'Belum ada laporan')}><span>{has?'✓':''}</span></div>})}</Fragment>})}
    </div>
-  </div>}
-  {ready&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span><div className="hlRepActions"><button type="button" className="hlReportingDetailBtn" onClick={()=>setExpanded(v=>!v)}>{expanded?'Tutup tabel detail':'Lihat tabel detail'}</button></div></div>}
-  {expanded&&ready&&<div className="hlReportingTableWrap"><div className="hlReportingTableTitle">Detail pelaporan · 1 Januari – 31 Desember {year}</div><table className="hlReportingTable"><thead><tr><th>Nama ruangan</th><th>Bulan terlapor</th><th>Periode terakhir</th><th>Tanggal input terakhir</th><th>Status</th></tr></thead><tbody>{sortedRooms.map(room=>{const rr=byRoom(room.id);const last=latest(room.id);return <tr key={room.id}><td>{room.name}</td><td>{[...new Set(rr.map(r=>r.month))].sort((a,b)=>a-b).map(m=>MONTHS[m-1]).join(', ')||'Belum ada'}</td><td>{period(last?.latest_period)}</td><td>{date(last?.latest_report_at)}</td><td><span className={last?'hlReportingStatus reported':'hlReportingStatus'}>{last?'Sudah melapor':'Belum melapor'}</span></td></tr>})}</tbody></table></div>}
+  </div>{dataFirst&&sortedRooms.length>LIMIT&&<button type="button" className="hlRepLink" onClick={()=>setShowAll(v=>!v)}>{showAll?'Ringkas':`Lihat ${sortedRooms.length} ruangan`}</button>}</ContinuumSummary>}
+  {!dataFirst&&ready&&<div className="hlReportingLegend"><span><i className="hasData"/> Ada laporan</span><span><i/> Belum ada laporan</span><div className="hlRepActions"><button type="button" className="hlReportingDetailBtn" onClick={()=>setExpanded(v=>!v)}>{expanded?'Tutup tabel detail':'Lihat tabel detail'}</button></div></div>}
+  {(expanded||dataFirst)&&ready&&<WorkspaceTableViewport dataFirst={dataFirst} className="hlReportingTableWrap" label="Detail pelaporan ruangan"><div className="hlReportingTableTitle">Detail pelaporan · 1 Januari – 31 Desember {year}</div><table className="hlReportingTable"><thead><tr><th>Nama ruangan</th><th>Bulan terlapor</th><th>Periode terakhir</th><th>Tanggal input terakhir</th><th>Status</th></tr></thead><tbody>{sortedRooms.map(room=>{const rr=byRoom(room.id);const last=latest(room.id);return <tr key={room.id}><td>{room.name}</td><td>{[...new Set(rr.map(r=>r.month))].sort((a,b)=>a-b).map(m=>MONTHS[m-1]).join(', ')||'Belum ada'}</td><td>{period(last?.latest_period)}</td><td>{date(last?.latest_report_at)}</td><td><span className={last?'hlReportingStatus reported':'hlReportingStatus'}>{last?'Sudah melapor':'Belum melapor'}</span></td></tr>})}</tbody></table></WorkspaceTableViewport>}
  </section>
 }

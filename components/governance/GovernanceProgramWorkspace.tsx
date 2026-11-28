@@ -5,6 +5,7 @@ import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import AurekaModal from '@/components/ui/AurekaModal'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
 
 type Room = { id: number; name: string }
 type Issuer = 'DEWAN_PENGAWAS'|'DIREKTUR'|'KETUA_PMKP'|'KABID'
@@ -24,8 +25,9 @@ const fmtDate=(v?:string|null)=>(v?new Date(v.length===10?v+'T12:00:00':v).toLoc
 const overdue=(a:Action)=>Boolean(a.due_date&&!['terverifikasi','dibatalkan','selesai'].includes(a.status)&&new Date(a.due_date+'T23:59:59')<new Date())
 const suggestMethod=(text:string):Method=>/\b(pasien|klinis|clinical|indikator|mutu|outcome|insiden|keselamatan|infeksi|jatuh|mortalitas|stroke|sepsis|hand hygiene|kepatuhan|angka|rate|readmission)\b/i.test(text)?'PDSA':/\b(sop|kebijakan|administrasi|alur|prosedur|dokumentasi|jadwal|formulir|standarisasi|standar proses)\b/i.test(text)?'PDCA':'PDSA'
 
-export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
+export default function GovernanceProgramWorkspace({rooms,dataFirst=false}:{rooms:Room[];dataFirst?:boolean}) {
   const [showList,setShowList]=useState(false)
+  const listVisible=dataFirst||showList
   const [year,setYear]=useState(new Date().getFullYear())
   const [issuerFilter,setIssuerFilter]=useState<IssuerFilter>('ALL')
   const [data,setData]=useState<Payload|null>(null)
@@ -69,7 +71,7 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
     setMethodManuallySet(Boolean(seed.id&&seed.improvement_method));setActDraft({responsible_level:'KABID',improvement_method:method,cycle_plan:'',cycle_do:'',cycle_study_check:'',cycle_act:'',...seed})
   }
 
-  const actionTable=(list:Action[])=><WorkspaceTableViewport label="Rencana tindak lanjut" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Tindak lanjut dan siklus perbaikan</th><th>Metode</th><th>Penanggung jawab</th><th>Tenggat</th><th>Status</th><th>Evaluasi</th><th>Aksi</th></tr></thead><tbody>
+  const actionTable=(list:Action[])=><WorkspaceTableViewport dataFirst={dataFirst} label="Rencana tindak lanjut" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Tindak lanjut dan siklus perbaikan</th><th>Metode</th><th>Penanggung jawab</th><th>Tenggat</th><th>Status</th><th>Evaluasi</th><th>Aksi</th></tr></thead><tbody>
     {list.length?list.map(a=><tr key={a.id}>
       <td><b>{a.title}</b>{a.progress_note&&<small className="rmCellSmall">Progres: {a.progress_note}</small>}
         <details className="govCycleDetails"><summary>Lihat siklus {a.improvement_method||'PDSA'}</summary><div><b>Plan</b><p>{a.cycle_plan||'Belum diisi'}</p><b>Do</b><p>{a.cycle_do||'Belum diisi'}</p><b>{a.improvement_method==='PDCA'?'Check':'Study'}</b><p>{a.cycle_study_check||'Belum diisi'}</p><b>Act</b><p>{a.cycle_act||'Belum diisi'}</p></div></details>
@@ -93,13 +95,13 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
       <div className="govHeadTools">
         <label className="govYear">Pemberi rekomendasi <select value={issuerFilter} onChange={e=>setIssuerFilter(e.target.value as IssuerFilter)}><option value="ALL">Semua</option><option value="DEWAN_PENGAWAS">Dewan Pengawas</option><option value="DIREKTUR">Direktur</option><option value="KETUA_PMKP">Ketua PMKP</option><option value="KABID">Kepala Bidang</option></select></label>
         <label className="govYear">Tahun <select value={year} onChange={e=>setYear(Number(e.target.value))}>{[0,1,2].map(d=>new Date().getFullYear()+1-d).map(y=><option key={y} value={y}>{y}</option>)}</select></label>
-        {showList&&canManage&&<><button type="button" className="rmButton primary" onClick={()=>setRecDraft({source:'lainnya',issued_by_level:'KETUA_PMKP',priority:'sedang',program_year:year,given_at:new Date().toISOString().slice(0,10)})}>+ Rekomendasi</button><button type="button" className="rmButton" onClick={()=>openAction()}>+ Tindak lanjut</button></>}
+        {listVisible&&canManage&&<><button type="button" className="rmButton primary" onClick={()=>setRecDraft({source:'lainnya',issued_by_level:'KETUA_PMKP',priority:'sedang',program_year:year,given_at:new Date().toISOString().slice(0,10)})}>+ Rekomendasi</button><button type="button" className="rmButton" onClick={()=>openAction()}>+ Tindak lanjut</button></>}
       </div>
     </div>
     {error&&<div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
     {notice&&<div className="rmNotice" role="status"><span>Informasi</span><p>{notice}</p></div>}
     {loading?<div className="rmLoading"><span className="rmSpinner"/>Memuat…</div>:data&&<>
-      <div className="rmKpis">
+      <ContinuumSummary enabled={dataFirst} label="Ringkasan dan visual monitoring RTL"><div className="rmKpis">
         <div className="rmKpi"><span>Rekomendasi · {selectedLabel}</span><strong>{recommendations.length}</strong></div>
         <div className="rmKpi"><span>Rencana tindak lanjut</span><strong>{actions.filter(a=>!a.recommendation_id||recommendations.some(r=>r.id===a.recommendation_id)).length}</strong></div>
         <div className="rmKpi"><span>Lewat tenggat</span><strong>{actions.filter(overdue).length}</strong></div>
@@ -113,11 +115,11 @@ export default function GovernanceProgramWorkspace({rooms}:{rooms:Room[]}) {
         ].map(([label,status])=>{const scoped=actions.filter(a=>!a.recommendation_id||recommendations.some(r=>r.id===a.recommendation_id));const n=scoped.filter(a=>a.status===status).length;const pct=scoped.length?n/scoped.length*100:0;return <div className="govVisualRow" key={status}><div><span>{label}</span><b>{n} · {pct.toFixed(1).replace('.',',')}%</b></div><div className="govVisualTrack"><i style={{width:pct+'%'}}/></div></div>})}
         </div>
         <div className="govVisualFoot"><span>Lewat tenggat: <b>{actions.filter(a=>(!a.recommendation_id||recommendations.some(r=>r.id===a.recommendation_id))&&overdue(a)).length}</b></span><span>Belum terhubung rekomendasi: <b>{orphanActions.length}</b></span><span>Metode: <b>PDSA / PDCA</b></span></div>
-      </section>
-      <div className="govHeadTools">
+      </section></ContinuumSummary>
+      {!dataFirst&&<div className="govHeadTools">
         <button type="button" className={'rmButton'+(showList?'':' primary')} onClick={()=>setShowList(!showList)}>{showList?'Kembali ke ringkasan RTL':'Lihat RTL'}</button>
-      </div>
-      {showList&&<><div className="govRecList">
+      </div>}
+      {listVisible&&<><div className="govRecList">
         {recommendations.length?recommendations.map(r=>{
           const kids=actions.filter(a=>a.recommendation_id===r.id)
           return <article key={r.id} className="govRec">

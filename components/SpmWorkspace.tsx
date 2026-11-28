@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import SpmExcelImportDialog from '@/components/SpmExcelImportDialog'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { readAllPages } from '@/lib/aureka/pagination'
@@ -115,7 +117,7 @@ function inputKeys(indicator: Indicator) {
   return ['numerator', 'denominator']
 }
 
-export default function SpmWorkspace({ role, currentRoomId }: { role: string | null; currentRoomId: number | null }) {
+export default function SpmWorkspace({ role, currentRoomId, dataFirst=false }: { role: string | null; currentRoomId: number | null; dataFirst?:boolean }) {
   const initialYear = new Date().getFullYear()
   const [year, setYear] = useState(initialYear)
   const [yearDraft, setYearDraft] = useState(String(initialYear))
@@ -573,12 +575,12 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
       {sourceWarning && <div className="spmNotice warning">{sourceWarning}</div>}
       {notice && <div className="spmNotice" role="status">{notice}</div>}
 
-      <div className="spmKpis">
+      <ContinuumSummary enabled={dataFirst} label="Ringkasan capaian SPM"><div className="spmKpis">
         <article><span>Total indikator</span><strong>{displayStats.total}</strong><small>Master SPM {year}</small></article>
         <article className="positive"><span>Memenuhi standar</span><strong>{displayStats.met}</strong><small>{tab === 'entry' ? 'Agregat Januari–Desember' : MONTHS[month-1]}</small></article>
         <article className="negative"><span>Belum memenuhi</span><strong>{displayStats.notMet}</strong><small>Perlu tindak lanjut</small></article>
         <article><span>Belum ada data</span><strong>{displayStats.noData}</strong><small>{displayStats.invalid} perlu koreksi · {displayStats.unassessed} tanpa target</small></article>
-      </div>
+      </div></ContinuumSummary>
 
       <nav className="spmTabs" aria-label="Navigasi Standar Pelayanan Minimal">
         {([
@@ -620,7 +622,8 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
             <button type="button" className="spmPrimary" onClick={() => {setGroupFilter('all');setTab('entry')}}>Lihat Rekapan SPM</button>
             {canConfigure && <button type="button" className="spmSecondary" onClick={() => setTab('config')}>Lihat Konfigurasi Perhitungan</button>}
           </div>
-          <div className="spmGroupGrid">
+          {dataFirst&&<WorkspaceTableViewport dataFirst label="Capaian SPM bulanan" className="spmTableScroll"><table data-continuum-spm-monthly><thead><tr><th>Kode</th><th>Indikator / kelompok</th><th>Capaian</th><th>Target</th><th>Status</th><th>Sumber</th></tr></thead><tbody>{visibleIndicators.map(indicator=>{const linkedUnsupported=indicator.source_mode!=='standalone'&&indicator.group_name==='Instalasi Rawat Inap'&&activeRoomId!=null;const result=calculations.monthly.get(indicator.id+':'+month);return <tr key={indicator.id}><td><code>{indicator.code}</code></td><td><strong>{indicator.title}</strong><small>{indicator.group_name}</small></td><td>{linkedUnsupported?'Sumber per unit belum dipetakan':formatResult(indicator,result?.value)}</td><td>{formatTarget(indicator)}</td><td>{linkedUnsupported?'Belum dapat dinilai':statusText(result?.status??'no_data')}</td><td>{sourceText(indicator)}</td></tr>})}{!visibleIndicators.length&&<tr><td colSpan={6}>Tidak ada indikator sesuai filter.</td></tr>}</tbody></table></WorkspaceTableViewport>}
+          <ContinuumSummary enabled={dataFirst} label="Ringkasan kelompok pelayanan"><div className="spmGroupGrid">
             {groups.filter(name => groupFilter==='all' || name===groupFilter).map(name => {
               const items = indicators.filter(item => item.group_name === name)
               const met = items.filter(item => calculations.monthly.get(item.id+':'+month)?.status==='met').length
@@ -630,7 +633,7 @@ export default function SpmWorkspace({ role, currentRoomId }: { role: string | n
                 <span className="spmMiniTrack"><i style={{width:(items.length ? met/items.length*100 : 0)+'%'}} /></span>
               </button>
             })}
-          </div>
+          </div></ContinuumSummary>
         </div>
       )}
 
