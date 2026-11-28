@@ -1,0 +1,18 @@
+# Skill-guided engineering — AUREKA
+
+Sources reviewed: see [pinned manifest](skill-sources.json). Five requested URLs returned 404; equivalent projects were selected by name, not assumed to be identical to the missing sources. No upstream code, install script, hooks, binaries, network service, or runtime dependencies are installed. License metadata is recorded for attribution; this guide is an AUREKA-specific adaptation, not a copy of the upstream skill pack.
+
+## Product contract
+AUREKA is an operational clinical-quality workspace, not a marketing website. Preserve approved Arctic material, Plus Jakarta Sans, eight category owners, data-first tables, existing role/scope, formulas, exports, and legacy rollback. Keep public aggregate surfaces separated from private records. No decorative charts or illustrative data presented as fact.
+
+## Workflow
+1. Hallmark + Impeccable: read DESIGN.md and current components first. Treat accessibility, contrast, focus, reduced motion, no false claims, and mobile layout as hard gates. Preserve existing visual language and wiring. Audit actual render rather than assuming a screenshot is acceptable. Apply task-oriented precision to internal screens; polish public surfaces without manufactured metrics. Do not impose unrelated landing-page hero constraints on clinical registers.
+2. Anatomy: use detailed explanatory figures only when they clarify a documented real mechanism. A figure must use the same verified source/model as its labels and accessible text. No invented clinical pathway, decorative WebGL in register, remote asset or gallery publishing without approval.
+3. Ponytail: reuse the existing canonical router, overlay, tokens, data contracts and helpers. Smallest complete diff; no generic engine, new dependency, or new storage unless demonstrated necessary. Never remove validation, accessibility or security to reduce code.
+4. Matt Pocock: agree the seam from the approved spec; reproduce the actual symptom through a user-visible interface or deterministic pure function. Red-green, then review. Prefer behavioral tests over source-string assertions. Use the domain language and existing ADRs; record decisions rather than rewrite the architecture.
+5. ECC: run the existing locked install, npm test, production and isolated builds, synthetic browser checks, dependency audit, diff review and deployed-SHA check. Coverage and lint are separate evidence: report NOT RUN when unavailable. CI success, merge, deployment and clinical target acceptance are separate states.
+6. Cloudflare: map trust boundaries and scope, reproduce only in isolated synthetic environments, classify confirmed versus needs-validation versus rejected. Independent reviewer must verify material claims before marking an audit complete. Do not claim the full six-phase audit if independent agents or OS-enforced sandbox are unavailable. Keep exploit detail and sensitive records out of the public repository. No probing live patient/user data.
+7. Release: preserve fallback; review changed-file scope, restore controls, role/permission changes, export and formula parity, evidence, blockers, and actual SHA. Never report 5/5 or 100% from test count alone.
+
+## First applied increment
+Arctic navigation disclosure controls point to the active panel only. Mobile close and pagination targets reach 44 px; long labels retain bounded width. Synthetic browser checks cover category panel relationships and narrow widths 320/360/390/412. Existing data source, permission, routes and schema untouched. Actual visual contrast and manual accessibility remain separate checks; no independent security audit or Anatomy illustration claimed. 

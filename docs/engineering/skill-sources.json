@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "requested": "https://github.com/mattpocock/hallmark",
+      "repo": "Nutlope/hallmark",
+      "commit": "04977e15f3dfd6ee4b74c887dac3eb52665d6c92",
+      "license": "MIT",
+      "path": "skills/hallmark/SKILL.md",
+      "resolution": "alternative_404",
+      "adoption": "principles_only"
+    },
+    {
+      "requested": "https://github.com/mattpocock/anatomy",
+      "repo": "wheresryan22/anatomy",
+      "commit": "1482e8469b0a9e0d8cc18ea2740a01423d29ae80",
+      "license": "MIT",
+      "path": "SKILL.md",
+      "resolution": "alternative_404",
+      "adoption": "principles_only"
+    },
+    {
+      "requested": "https://github.com/affableshark/everything-claude-code",
+      "repo": "affaan-m/ECC",
+      "commit": "4adeee6732a12d1540f49a4d50a38ce8c97f9a53",
+      "license": "MIT",
+      "path": "skills/verification-loop/SKILL.md",
+      "resolution": "alternative_404",
+      "adoption": "principles_only"
+    },
+    {
+      "requested": "https://github.com/mattpocock/impeccable",
+      "repo": "pbakaus/impeccable",
+      "commit": "2fc5e1459efbbf06d92c7306517c286bf12490cf",
+      "license": "Apache-2.0",
+      "path": "skill/SKILL.src.md",
+      "resolution": "alternative_404",
+      "adoption": "principles_only"
+    },
+    {
+      "requested": "https://github.com/mattpocock/ponytail",
+      "repo": "DietrichGebert/ponytail",
+      "commit": "ebd8654c2c627f721eb8f9c0d1bd4090a29f9e10",
+      "license": "MIT",
+      "path": "skills/ponytail/SKILL.md",
+      "resolution": "alternative_404",
+      "adoption": "principles_only"
+    },
+    {
+      "requested": "https://github.com/mattpocock/skills",
+      "repo": "mattpocock/skills",
+      "commit": "6f7f7831a625f040a8e06a0e7954826b87ce775a",
+      "license": "MIT",
+      "path": "skills/engineering/tdd/SKILL.md",
+      "resolution": "exact",
+      "adoption": "principles_only"
+    },
+    {
+      "requested": "https://github.com/cloudflare/security-audit-skill",
+      "repo": "cloudflare/security-audit-skill",
+      "commit": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+      "license": "MIT",
+      "path": "skills/security-audit/SKILL.md",
+      "resolution": "exact",
+      "adoption": "principles_only"
+    }
+  ]
+}

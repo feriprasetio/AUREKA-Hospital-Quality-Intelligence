@@ -87,7 +87,7 @@ html[data-mode="gelap"] .arcticCategoryNav { --capsule-active:#c3e3f5; --capsule
 @media(max-width:767px) {
   .arcticCategoryNav { margin:6px 0 10px; }
   .arcticCategoryBar { gap:5px; }
-  .arcticLayoutExit { min-height:44px; padding-inline:9px; }
+  .arcticLayoutExit { min-height:44px; min-width:44px; padding-inline:9px; }
   .arcticModuleGrid { grid-template-columns:minmax(0,1fr); }
 }
 @media(prefers-reduced-motion:reduce) { .arcticCategoryNav * { scroll-behavior:auto; transition:none; } }
@@ -152,4 +152,4 @@ html[data-motion="off"] .arcticCategoryNav * { transition:none; scroll-behavior:
 
 .arcticSkillsIntro{padding:0 8px;color:var(--aureka-canvas-muted);margin-block:8px}
 .arcticMegaHead strong:focus-visible{outline:2px solid var(--aureka-color-primary);outline-offset:2px}
-@media(max-width:767px){.arcticMegaHead button,.arcticGridFooter :is(button,select){min-height:44px;min-width:44px}.arcticGridColumns label{min-height:44px}.arcticCategoryMobile strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@media(max-width:767px){.arcticMegaHead button,.arcticGridFooter :is(button,select){min-height:44px;min-width:44px}.arcticGridColumns label{min-height:44px}.arcticDomainSummary > summary{min-height:44px;display:list-item;box-sizing:border-box}.arcticCategoryMobile strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
