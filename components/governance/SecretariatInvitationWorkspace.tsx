@@ -1,6 +1,7 @@
 'use client'
 
-import {useCallback,useEffect,useMemo,useState} from 'react'
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
+import {ownInvitationTasks,invitationGroup,type InvitationFilter} from '@/lib/aureka/invitation-action-inbox'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {toUserFacingError} from '@/lib/ui/error-feedback'
@@ -29,15 +30,29 @@ export default function SecretariatInvitationWorkspace({role,userId,rooms=[],ini
  const [busy,setBusy]=useState(false)
  const [error,setError]=useState('')
  const [notice,setNotice]=useState('')
+ const [inboxFilter,setInboxFilter]=useState<InvitationFilter>('all')
+ const [inboxPage,setInboxPage]=useState(1)
+ const loadSequence=useRef(0)
+ const recipientSequence=useRef(0)
+ const managerSequence=useRef(0)
+ const meetingRef=useRef(meetingId)
+ meetingRef.current=meetingId
+ const ownInvites=useMemo(()=>ownInvitationTasks(invites,userId),[invites,userId])
+ const visibleInvites=useMemo(()=>ownInvitationTasks(ownInvites,userId,inboxFilter),[ownInvites,userId,inboxFilter])
+ const pageCount=Math.max(1,Math.ceil(visibleInvites.length/25))
+ const page=Math.min(inboxPage,pageCount)
+ const pageInvites=visibleInvites.slice((page-1)*25,page*25)
  const selectedMeeting=meetings.find(x=>x.id===meetingId)||null
  const selectedRecipient=recipients.find(x=>x.user_id===recipientId)||null
 
  const load=useCallback(async()=>{
+  const sequence=++loadSequence.current
   setLoading(true);setError('')
   if(canManage){
    let q=db().from('pmkp_meetings').select('id,meeting_code,title,meeting_type,meeting_date,start_time,end_time,room_id,location,organizer,agenda,status').order('meeting_date',{ascending:false}).limit(300)
    if(lockRoomScope&&initialRoomId!=null)q=q.eq('room_id',initialRoomId)
    const {data,error:e}=await q
+   if(sequence!==loadSequence.current)return
    if(e){setMeetings([]);setError('Daftar kegiatan tidak dapat dimuat: '+toUserFacingError(e,{fallback:'Periksa hak akses Sekretariat.'}))}
    else{
     const list=(data||[]) as Meeting[]
@@ -49,18 +64,21 @@ export default function SecretariatInvitationWorkspace({role,userId,rooms=[],ini
    const {data,error:e}=await db().from('pmkp_meeting_invitees')
     .select('id,meeting_id,invited_user_id,invited_room_id,invitee_name,invitee_email,invitee_role,delivery_status,invitation_note,sent_at,response_status,response_note,responded_at,created_at,meeting:pmkp_meetings(id,meeting_code,title,meeting_type,meeting_date,start_time,end_time,room_id,location,organizer,agenda,status)')
     .eq('invited_user_id',userId).order('created_at',{ascending:false}).limit(250)
+   if(sequence!==loadSequence.current)return
    if(e){setInvites([]);setError('Kotak masuk undangan belum dapat dimuat: '+toUserFacingError(e,{fallback:'Periksa hak akses dan migrasi Sekretariat.'}))}
-   else setInvites((data||[]) as unknown as Invite[])
+   else setInvites(ownInvitationTasks((data||[]) as unknown as Invite[],userId))
   }else setError('Identitas pengguna belum tersedia.')
   setLoading(false)
  },[canManage,lockRoomScope,initialRoomId,userId])
 
- useEffect(()=>{void load()},[load])
+ useEffect(()=>{void load();return()=>{loadSequence.current++}},[load])
 
  const loadRecipients=useCallback(async()=>{
-  if(!canManage||!selectedMeeting){setRecipients([]);setRecipientId('');return}
+  const sequence=++recipientSequence.current
+  if(!canManage||!selectedMeeting){setRecipients([]);setRecipientId('');setRecipientLoading(false);return}
   setRecipientLoading(true);setError('')
   const {data,error:e}=await aurekaSupabase.rpc('aureka_pmkp_list_pic_recipients',{p_room_id:selectedMeeting.room_id})
+  if(sequence!==recipientSequence.current||meetingRef.current!==selectedMeeting.id)return
   if(e){setRecipients([]);setError('Daftar akun PIC tidak dapat dimuat: '+toUserFacingError(e,{fallback:'Pastikan akun PIC aktif dan sudah menyelesaikan password awal.'}))}
   else{
    const list=(data||[]) as Recipient[]
@@ -69,17 +87,21 @@ export default function SecretariatInvitationWorkspace({role,userId,rooms=[],ini
   }
   setRecipientLoading(false)
  },[canManage,selectedMeeting,recipientId])
- useEffect(()=>{void loadRecipients()},[loadRecipients])
+ useEffect(()=>{void loadRecipients();return()=>{recipientSequence.current++}},[loadRecipients])
 
  const loadManagerInvites=useCallback(async()=>{
-  if(!canManage||!meetingId){setInvites([]);return}
+  if(!canManage)return
+  if(meetingRef.current!==meetingId)return
+  const sequence=++managerSequence.current
+  if(!meetingId){setInvites([]);return}
   const {data,error:e}=await db().from('pmkp_meeting_invitees')
    .select('id,meeting_id,invited_user_id,invited_room_id,invitee_name,invitee_email,invitee_role,delivery_status,invitation_note,sent_at,response_status,response_note,responded_at,created_at')
    .eq('meeting_id',meetingId).order('created_at',{ascending:false}).limit(500)
+  if(sequence!==managerSequence.current||meetingRef.current!==meetingId)return
   if(e){setInvites([]);setError('Daftar penerima undangan gagal dimuat: '+toUserFacingError(e,{fallback:'Periksa hak akses register undangan.'}))}
   else setInvites((data||[]) as Invite[])
  },[canManage,meetingId])
- useEffect(()=>{void loadManagerInvites()},[loadManagerInvites])
+ useEffect(()=>{if(canManage)setInvites([]);void loadManagerInvites();return()=>{managerSequence.current++}},[loadManagerInvites,canManage])
 
  const pendingCount=useMemo(()=>invites.filter(x=>x.response_status==='pending'&&x.delivery_status==='sent').length,[invites])
  const send=async()=>{
@@ -95,7 +117,7 @@ export default function SecretariatInvitationWorkspace({role,userId,rooms=[],ini
   await loadManagerInvites()
  }
  const respond=async(invite:Invite,response:'accepted'|'declined')=>{
-  if(canManage||busy)return
+  if(canManage||busy||invite.invited_user_id!==userId||invitationGroup(invite)!=='pending'||!ownInvites.some(row=>row.id===invite.id))return
   setBusy(true);setError('');setNotice('')
   const {data,error:e}=await aurekaSupabase.rpc('aureka_pmkp_respond_meeting_invitation',{
    p_invitee_id:invite.id,p_response:response,p_note:''
@@ -128,8 +150,8 @@ export default function SecretariatInvitationWorkspace({role,userId,rooms=[],ini
     {!meetingId?<div className="siwEmpty">Pilih kegiatan untuk melihat penerima.</div>:invites.length===0?<div className="siwEmpty">Belum ada PIC yang diundang pada kegiatan ini.</div>:<div className="siwList">{invites.map(x=><article className="siwCard" key={x.id}><div className="siwCardHead"><div><h3>{x.invitee_name}</h3><div className="siwMeta"><span>{x.invitee_role||'PIC'}</span><span>{roomName(x.invited_room_id)}</span><span>{x.invitee_email||'Email tidak tercatat'}</span></div></div><span className={'siwTag '+x.response_status}>{x.response_status==='accepted'?'Hadir':x.response_status==='declined'?'Tidak dapat hadir':'Menunggu respons'}</span></div><div className="siwMeta"><span>Status pengiriman: {x.delivery_status}</span><span>Dikirim: {x.sent_at?new Date(x.sent_at).toLocaleString('id-ID'):'—'}</span><span>Respons: {x.responded_at?new Date(x.responded_at).toLocaleString('id-ID'):'—'}</span></div>{x.response_note&&<p className="siwHint">Catatan PIC: {x.response_note}</p>}</article>)}</div>}
    </section>
   </>:<>
-   <div className="siwGrid"><div className="siwKpi"><span>Total undangan</span><b>{invites.length}</b></div><div className="siwKpi"><span>Menunggu respons</span><b>{pendingCount}</b></div><div className="siwKpi"><span>Dikonfirmasi hadir</span><b>{invites.filter(x=>x.response_status==='accepted').length}</b></div></div>
-   <section className="siwPanel"><h3 style={{marginTop:0}}>Kotak Masuk Undangan</h3>{invites.length===0?<div className="siwEmpty">Belum ada undangan kegiatan yang ditujukan ke akun ini.</div>:<div className="siwList">{invites.map(x=>{const meeting=x.meeting||null;return <article className="siwCard" key={x.id}><div className="siwCardHead"><div><h3>{meeting?.title||'Undangan Kegiatan Komite PMKP'}</h3><div className="siwMeta"><span>{meeting?.meeting_code||'Meeting ID tidak tersedia'}</span><span>{meeting?.meeting_type||'Kegiatan'}</span><span>{roomName(x.invited_room_id)}</span></div></div><span className={'siwTag '+x.response_status}>{x.response_status==='accepted'?'Dikonfirmasi':x.response_status==='declined'?'Tidak dapat hadir':'Menunggu respons'}</span></div><div className="siwMeta"><span>Tanggal: {dateText(meeting?.meeting_date)}</span><span>Waktu: {timeText(meeting?.start_time)}–{timeText(meeting?.end_time)}</span><span>Lokasi: {meeting?.location||'Belum ditetapkan'}</span><span>Pengundang: {meeting?.organizer||'Sekretariat'}</span></div><div className="siwHint">Agenda: {meeting?.agenda||'Belum dicantumkan.'}{x.invitation_note?' Catatan: '+x.invitation_note:''}</div>{x.response_status==='pending'&&x.delivery_status==='sent'&&<div className="siwActions"><button type="button" className="primary" disabled={busy} onClick={()=>void respond(x,'accepted')}>Konfirmasi Hadir</button><button type="button" disabled={busy} onClick={()=>void respond(x,'declined')}>Tidak Dapat Hadir</button></div>}</article>})}</div>}</section>
+   <div className="siwGrid"><div className="siwKpi"><span>Undangan dimuat</span><b>{ownInvites.length}</b></div><div className="siwKpi"><span>Menunggu respons</span><b>{ownInvites.filter(x=>invitationGroup(x)==='pending').length}</b></div><div className="siwKpi"><span>Dikonfirmasi hadir</span><b>{ownInvites.filter(x=>x.response_status==='accepted').length}</b></div></div>
+   <section className="siwPanel" aria-label="Action Inbox undangan"><h3 style={{marginTop:0}}>Action Inbox · Undangan</h3><p className="siwHint">Tugas menunggu respons ditampilkan dahulu, berdasarkan jadwal kegiatan. Maksimal 250 undangan terakhir dari sumber existing.</p><div className="siwToolbar"><label className="siwField">Status tugas<select value={inboxFilter} onChange={e=>{setInboxFilter(e.target.value as InvitationFilter);setInboxPage(1)}}><option value="all">Semua undangan</option><option value="pending">Perlu respons</option><option value="responded">Sudah direspons</option><option value="other">Belum dapat ditindaklanjuti</option></select></label><button type="button" disabled={busy||loading} onClick={()=>void load()}>Muat ulang</button></div>{ownInvites.length===250&&<p role="status" className="siwHint">Batas 250 undangan tercapai; jumlah ini bukan total seluruh riwayat.</p>}{visibleInvites.length===0?<div className="siwEmpty">{error?'Data belum dapat dipastikan. Muat ulang setelah memeriksa koneksi.':'Tidak ada undangan sesuai filter ini.'}</div>:<div className="siwList">{pageInvites.map(x=>{const meeting=x.meeting||null;return <article className="siwCard" key={x.id}><div className="siwCardHead"><div><h3>{meeting?.title||'Undangan Kegiatan Komite PMKP'}</h3><div className="siwMeta"><span>{meeting?.meeting_code||'Meeting ID tidak tersedia'}</span><span>{meeting?.meeting_type||'Kegiatan'}</span><span>{roomName(x.invited_room_id)}</span></div></div><span className={'siwTag '+x.response_status}>{x.response_status==='accepted'?'Dikonfirmasi':x.response_status==='declined'?'Tidak dapat hadir':'Menunggu respons'}</span></div><div className="siwMeta"><span>Tanggal: {dateText(meeting?.meeting_date)}</span><span>Waktu: {timeText(meeting?.start_time)}–{timeText(meeting?.end_time)}</span><span>Lokasi: {meeting?.location||'Belum ditetapkan'}</span><span>Pengundang: {meeting?.organizer||'Sekretariat'}</span></div><div className="siwHint">Agenda: {meeting?.agenda||'Belum dicantumkan.'}{x.invitation_note?' Catatan: '+x.invitation_note:''}</div>{x.response_status==='pending'&&x.delivery_status==='sent'&&<div className="siwActions"><button type="button" className="primary" disabled={busy} onClick={()=>void respond(x,'accepted')}>Konfirmasi Hadir</button><button type="button" disabled={busy} onClick={()=>void respond(x,'declined')}>Tidak Dapat Hadir</button></div>}</article>})}</div>}<div className="siwToolbar" style={{marginTop:12}}><span role="status">{visibleInvites.length?((page-1)*25+1)+'–'+Math.min(page*25,visibleInvites.length):'0'} dari {visibleInvites.length} undangan dimuat</span><button type="button" disabled={page<=1} onClick={()=>setInboxPage(page-1)}>Sebelumnya</button><button type="button" disabled={page>=pageCount} onClick={()=>setInboxPage(page+1)}>Berikutnya</button></div></section>
   </>}
  </section>
 }

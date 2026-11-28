@@ -1,0 +1,2 @@
+# Invitation Action Inbox
+Actual own-account invitation records; filter by response status, scheduled pending order, 25-row pagination and visible fetch cap. Existing response RPC unchanged; guard own user and pending sent status. Component is re-mounted on account/role/unit scope changes; ignore stale list and recipient responses. No fabricated tasks, no schema changes. This is a domain inbox, not a universal cross-domain inbox. Unit tests added; no independent authenticated production browser UAT.
