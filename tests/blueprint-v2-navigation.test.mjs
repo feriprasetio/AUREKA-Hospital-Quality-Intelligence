@@ -141,7 +141,7 @@ test('PIC performance is integrated into Quality Monitoring and indicator propos
   assert.match(app, /quality-reporting/)
   assert.match(app, /Kinerja PIC/)
   assert.doesNotMatch(app, /staff:\[[\s\S]{0,500}pic-performance/)
-  assert.match(app, /<PicPerformanceWorkspace\/>/)
+  assert.match(app, /qualityMonitorTab==='pic'&&permissionFlags.readPicPerformance\?<PicPerformanceWorkspace[^>]*dataFirst=\{arcticPreview\}/)
   assert.match(app, /activeNavSelectedId=.*qualityMonitorOpen\?\(qualityMonitorTab==='pic'\?'pic-performance':'quality-reporting'\)/)
   assert.match(performance, /aureka_pic_performance_dashboard/)
   assert.match(performance, /Data terakhir dibuat/)

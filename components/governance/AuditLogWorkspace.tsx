@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import {useLatestWorkspaceRequest} from '@/lib/ui/use-latest-workspace-request'
 
 /** Pengaturan › Audit Log (Blueprint v2 §10/§13): catatan append-only, hanya Super Admin, Direktur, Komite PMKP. */
 type Row = { id: number; actor_name: string | null; actor_role: string | null; action: string; object_type: string; object_id: string | null; detail: Record<string, unknown>; created_at: string }
@@ -13,18 +15,24 @@ const OBJECT_LABEL: Record<string, string> = { recommendation: 'Rekomendasi', ac
 const ACTION_LABEL: Record<string, string> = { view_sensitive: 'Melihat data sensitif', create: 'Membuat', update: 'Mengubah', submit: 'Mengajukan', publish: 'Menerbitkan', save_draft: 'Menyimpan draf', evaluate: 'Mengevaluasi', setting_update: 'Mengubah pengaturan', client_error: 'Error tampilan' }
 const actionLabel = (a: string) => ACTION_LABEL[a] || (a?.startsWith('decision_') ? 'Keputusan: ' + a.slice(9).replace(/_/g, ' ') : a?.startsWith('permission_') ? 'Hak akses: ' + a.slice(11).replace(/_/g, ' ') : (a || '-').replace(/_/g, ' '))
 
-export default function AuditLogWorkspace() {
+export default function AuditLogWorkspace({dataFirst=false}:{dataFirst?:boolean}={}) {
   const [rows, setRows] = useState<Row[]>([])
   const [type, setType] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const beginLoad=useLatestWorkspaceRequest(type)
+  const [loadedType,setLoadedType]=useState<string|null>(null)
+  const pending=loading||loadedType!==type
   const load = useCallback(async () => {
-    setLoading(true); setError('')
+    const isCurrent=beginLoad()
+    if(!isCurrent)return
+    setLoading(true); setError('');setRows([])
     const { data, error: e } = await aurekaSupabase.rpc('aureka_gov_audit_log', { p_limit: 500, p_object_type: type || null })
+    if(!isCurrent())return
     if (e) setError(/function .* does not exist|Could not find the function/i.test(e.message) ? 'Audit Log aktif setelah Super Admin menjalankan migrasi 20261112100000_blueprint_program_regulation_audit.sql di Supabase.' : toUserFacingError(e, { fallback: 'Audit log belum dapat dimuat.' }))
     else setRows((data as Row[]) || [])
-    setLoading(false)
-  }, [type])
+    setLoadedType(type);setLoading(false)
+  }, [type,beginLoad])
   useEffect(() => { void load() }, [load])
   return (
     <section className="rmPanel govWorkspace" aria-label="Audit log">
@@ -35,13 +43,13 @@ export default function AuditLogWorkspace() {
           <button type="button" className="rmButton" onClick={() => void load()}>↻ Muat ulang</button>
         </div>
       </div>
-      <WorkspaceIntelligenceMetrics loading={loading} unavailable={!!error} metrics={[
+      <ContinuumSummary enabled={dataFirst} label="Ringkasan audit log"><WorkspaceIntelligenceMetrics loading={pending} unavailable={!!error} metrics={[
         { label: 'Peristiwa dimuat', value: rows.length },
         { label: 'Jenis objek dalam hasil', value: new Set(rows.map(row => row.object_type)).size },
-      ]} />
+      ]} /></ContinuumSummary>
       {error && <div className="rmNotice error" role="alert"><span>Perlu perhatian</span><p>{error}</p></div>}
-      {loading ? <div className="rmLoading"><span className="rmSpinner" />Memuat…</div> : !error && (
-        <WorkspaceTableViewport label="Audit log" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Waktu</th><th>Pengguna</th><th>Role</th><th>Tindakan</th><th>Objek</th><th>Rincian</th></tr></thead><tbody>
+      {pending ? <div className="rmLoading"><span className="rmSpinner" />Memuat…</div> : !error && (
+        <WorkspaceTableViewport dataFirst={dataFirst} label="Audit log" className="rmTableWrap"><table className="rmTable"><thead><tr><th>Waktu</th><th>Pengguna</th><th>Role</th><th>Tindakan</th><th>Objek</th><th>Rincian</th></tr></thead><tbody>
           {rows.length ? rows.map((r) => <tr key={r.id}>
             <td>{new Date(r.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
             <td>{r.actor_name || '-'}</td><td>{r.actor_role || '-'}</td><td title={r.action}>{actionLabel(r.action)}</td>

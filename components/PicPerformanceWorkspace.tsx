@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { aurekaSupabase } from '@/lib/aureka/supabase'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
 import { toUserFacingError } from '@/lib/ui/error-feedback'
 
@@ -28,7 +30,7 @@ type Dashboard = { role: string; window_days: number; generated_at: string; rows
 const fmtDate = (value?: string | null) => value ? new Date(value).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Pontianak' }) : 'Belum ada input'
 const number = (value: number) => Number(value || 0).toLocaleString('id-ID')
 
-export default function PicPerformanceWorkspace() {
+export default function PicPerformanceWorkspace({dataFirst=false}:{dataFirst?:boolean}={}) {
   const [days, setDays] = useState(30)
   const [data, setData] = useState<Dashboard | null>(null)
   const [reading, setLoading] = useState(true)
@@ -97,18 +99,18 @@ export default function PicPerformanceWorkspace() {
     {loading && <AsyncStatePanel state="loading" title="Memuat aktivitas PIC" description="Mengambil data penugasan dan logbook dari server." compact/>}
     {!loading && error && <AsyncStatePanel state="error" title="Data monitoring belum tersedia" description={error} onRetry={()=>void load()} compact/>}
     {!loading && !error && <>
-      <div className="ppKpis">
+      <ContinuumSummary enabled={dataFirst} label="Ringkasan aktivitas PIC"><div className="ppKpis">
         <div className="ppKpi"><span>PIC dengan penugasan aktif</span><strong>{number(totals.pic)}</strong></div>
         <div className="ppKpi"><span>Logbook dibuat (seluruh periode)</span><strong>{number(totals.total)}</strong></div>
         <div className="ppKpi"><span>Logbook {days} hari terakhir</span><strong>{number(totals.window)}</strong></div>
         <div className="ppKpi"><span>Sudah tervalidasi</span><strong>{number(totals.validated)}</strong></div>
-      </div>
+      </div></ContinuumSummary>
       <div className="ppPanel">
         <div className="ppHead"><div><strong>Daftar PIC dan aktivitas terakhir</strong></div><span className="ppBadge">Diperbarui {fmtDate(data?.generated_at)}</span></div>
-        <div className="ppTableWrap"><table className="ppTable"><thead><tr><th>PIC</th><th>Unit</th><th>Total logbook</th><th>{days} hari</th><th>Draft / siap / tervalidasi / arsip</th><th>Data terakhir dibuat</th></tr></thead><tbody>
+        <WorkspaceTableViewport dataFirst={dataFirst} label="Daftar kinerja PIC" className="ppTableWrap"><table className="ppTable"><thead><tr><th>PIC</th><th>Unit</th><th>Total logbook</th><th>{days} hari</th><th>Draft / siap / tervalidasi / arsip</th><th>Data terakhir dibuat</th></tr></thead><tbody>
           {rows.map(row=><tr key={row.user_id+'-'+row.room_id}><td><strong>{row.pic_name}</strong><span className="ppSub">{row.email || row.user_id}</span></td><td>{row.room_name}</td><td>{number(row.records_total)}</td><td>{number(row.records_window)}</td><td>{number(row.records_draft)} / {number(row.records_ready)} / {number(row.records_validated)} / {number(row.records_archived)}</td><td><strong>{fmtDate(row.last_created_at)}</strong><span className="ppSub">{row.last_record_date ? 'Tanggal data: '+new Date(row.last_record_date+'T00:00:00').toLocaleDateString('id-ID') : 'Tanggal data belum tersedia'}{row.last_status ? ' · Status: '+row.last_status : ''}</span></td></tr>)}
           {rows.length===0&&<tr><td colSpan={6}><div className="ppEmpty">Belum ada akun PIC dengan penugasan aktif yang dapat ditampilkan.</div></td></tr>}
-        </tbody></table></div>
+        </tbody></table></WorkspaceTableViewport>
       </div>
     </>}
   </section>

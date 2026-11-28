@@ -738,3 +738,16 @@ html[data-skin="arktik"][data-mode="gelap"] body [aria-modal="true"] > :is(.aqDH
 .arcticReportPresentation dd{margin:4px 0 0;font-size:clamp(24px,4vw,42px);font-weight:700;font-variant-numeric:tabular-nums}
 .arcticReportPresentation .arcticReportActions{align-items:center;justify-content:space-between}
 @media(max-width:480px){.arcticReportPresentation dl{grid-template-columns:1fr}.arcticMonthlyReview select{min-height:44px}}
+
+/* Shared opt-in register surfaces. Preserve global density preferences and native semantic tables. */
+.continuumOnDemandSummary { margin-block:4px 10px; min-width:0; border:1px solid var(--aureka-canvas-divider); border-radius:8px; padding:6px 10px; }
+.continuumOnDemandSummary>summary { cursor:pointer; font-weight:650; min-height:28px; padding:4px 0; color:var(--aureka-color-foreground); }
+.continuumOnDemandSummary[open]>div { padding-block:8px; min-width:0; }
+[data-continuum-table-frame] { min-width:0; }
+[data-continuum-table] { min-width:0; max-width:100%; }
+[data-continuum-table]:focus-visible,.continuumOnDemandSummary>summary:focus-visible { outline:2px solid var(--aureka-color-primary); outline-offset:2px; }
+@media(min-width:768px){
+ [data-continuum-table] { max-height:max(260px,calc(100dvh - 250px)); overflow:auto; }
+ [data-continuum-table] table:not([data-ak-cards="on"]) thead th,[data-continuum-table] table[data-ak-cards="on"] thead th { position:sticky; top:0; z-index:2; background:var(--aureka-dialog-surface); }
+}
+@media(max-width:767px){.continuumOnDemandSummary>summary{min-height:44px}}
