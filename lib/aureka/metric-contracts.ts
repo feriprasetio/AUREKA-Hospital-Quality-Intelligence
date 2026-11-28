@@ -101,6 +101,12 @@ export async function readAurekaPortfolioSummary(
   }
 }
 
+function parseReportingInteger(value: unknown): number | null {
+  if (typeof value !== 'number' && !(typeof value === 'string' && /^\d+$/.test(value))) return null
+  const number = Number(value)
+  return Number.isSafeInteger(number) ? number : null
+}
+
 export async function readAurekaQualityRoomReportingStatus(
   client: SupabaseClient,
   year: number,
@@ -110,14 +116,28 @@ export async function readAurekaQualityRoomReportingStatus(
     const { data, error } = await client.rpc(source, { p_year: year })
     if (error) return failure(source, error)
     if (!Array.isArray(data)) return failure(source, new Error('Status pelaporan tidak berbentuk daftar.'))
-    const rows = data.map((row: Record<string, unknown>) => ({
-      room_id: Number(row.room_id),
-      month: Number(row.month),
-      total: Number(row.total),
-      latest_report_at: row.latest_report_at ? String(row.latest_report_at) : null,
-      latest_period: row.latest_period ? String(row.latest_period) : null,
-    })).filter((row: QualityRoomReportingRow) =>
-      Number.isFinite(row.room_id) && Number.isFinite(row.month) && Number.isFinite(row.total))
+    const rows: QualityRoomReportingRow[] = []
+    const seen = new Set<string>()
+    for (const value of data) {
+      if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+        return failure(source, new Error('Baris status pelaporan tidak valid.'))
+      }
+      const { room_id, month, total, latest_report_at, latest_period } = value
+      const roomId = parseReportingInteger(room_id)
+      const monthNumber = parseReportingInteger(month)
+      const count = parseReportingInteger(total)
+      const key = roomId + ':' + monthNumber
+      if (
+        roomId === null || roomId < 1 || monthNumber === null || monthNumber < 1 || monthNumber > 12 ||
+        count === null || count < 1 || seen.has(key) ||
+        (latest_report_at != null && typeof latest_report_at !== 'string') ||
+        (latest_period != null && typeof latest_period !== 'string')
+      ) {
+        return failure(source, new Error('Status pelaporan tidak lengkap atau memuat baris ganda.'))
+      }
+      seen.add(key)
+      rows.push({ room_id: roomId, month: monthNumber, total: count, latest_report_at: latest_report_at ?? null, latest_period: latest_period ?? null })
+    }
     return { status: 'complete', data: rows, source, retrievedAt: stamp() }
   } catch (error) {
     return failure(source, error)
