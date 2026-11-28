@@ -18,7 +18,7 @@ export function buildPublicInm(results: IndicatorResult[], year: number, month: 
   const period = String(year)+'-'+String(month).padStart(2,'0')
   const mapped = new Map<string, IndicatorResult>()
   for (const r of results) {
-    if (!/^INM\\b/i.test(String(r.profile.indicator_type ?? ''))) continue
+    if (!/^INM\b/i.test(String(r.profile.indicator_type ?? ''))) continue
     const code = nationalCode(r.profile.title)
     if (!code) throw new Error('Pemetaan profil INM belum lengkap. Tinjau master indikator.')
     if (mapped.has(code)) throw new Error('Profil INM ganda. Rekonsiliasi definisi dan unit sebelum publikasi.')

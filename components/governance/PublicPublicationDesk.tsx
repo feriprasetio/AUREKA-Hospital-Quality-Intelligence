@@ -12,6 +12,7 @@ type Snapshot = {
   payload:Record<string,unknown>
 }
 const TYPES:Record<Domain,string>={inm:'Indikator Nasional Mutu',safety:'Keselamatan Pasien',risk:'Manajemen Risiko'}
+const currentPeriod=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Pontianak',year:'numeric',month:'2-digit'}).format(new Date())
 const dateLabel=(value:string|null|undefined)=>value?new Date(value).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Pontianak'}):'-'
 function PublicationState({status}:{status:string}) {
   const labels:Record<string,string>={draft:'Menunggu tinjauan',published:'Tayang',superseded:'Digantikan',withdrawn:'Ditarik'}
@@ -20,7 +21,7 @@ function PublicationState({status}:{status:string}) {
 
 export default function PublicPublicationDesk({role,userId}:{role:string|null;userId:string}){
   const [domain,setDomain]=useState<Domain>('inm')
-  const [period,setPeriod]=useState('2026-11')
+  const [period,setPeriod]=useState(currentPeriod)
   const [preview,setPreview]=useState<{domain:Domain;period:string;payload:Record<string,unknown>}|null>(null)
   const currentPreview=preview?.domain===domain&&preview.period===period?preview:null
   const [snapshots,setSnapshots]=useState<Snapshot[]>([])
@@ -45,7 +46,7 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
   const generate=async()=>{
     if(!canStage||busy)return
     setPreview(null);setError('');setNotice('')
-    const match=domain==='inm'?/^(20\\d{2})-(0[1-9]|1[0-2])$/.exec(period):/^(20\\d{2})$/.exec(period)
+    const match=domain==='inm'?/^(20\d{2})-(0[1-9]|1[0-2])$/.exec(period):/^(20\d{2})$/.exec(period)
     if(!match){setError(domain==='inm'?'Pilih periode YYYY-MM.':'Pilih tahun YYYY.');return}
     setBusy(true)
     try{
@@ -105,7 +106,7 @@ export default function PublicPublicationDesk({role,userId}:{role:string|null;us
         <h3>Buat draf terverifikasi</h3>
         <div className="aurekaPublishFields">
           <label>Domain publikasi
-            <select value={domain} disabled={busy} onChange={e=>{const next=e.target.value as Domain;setDomain(next);setPeriod(next==='inm'?'2026-11':'2026');setPreview(null)}}>
+            <select value={domain} disabled={busy} onChange={e=>{const next=e.target.value as Domain;setDomain(next);setPeriod(next==='inm'?currentPeriod():currentPeriod().slice(0,4));setPreview(null)}}>
               <option value="inm">Indikator Nasional Mutu</option><option value="safety">Keselamatan Pasien</option><option value="risk">Manajemen Risiko</option>
             </select>
           </label>
