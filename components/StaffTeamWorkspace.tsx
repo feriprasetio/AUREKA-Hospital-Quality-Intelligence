@@ -1,4 +1,10 @@
 'use client'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
+import {useLatestWorkspaceRequest} from '@/lib/ui/use-latest-workspace-request'
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -36,12 +42,14 @@ export default function StaffTeamWorkspace({
   isSuperAdmin,
   canManageAllRooms,
   lockRoomScope = false,
+  dataFirst = false,
 }: {
   initialRoomId: number | null
   rooms: Room[]
   isSuperAdmin: boolean
   canManageAllRooms: boolean
   lockRoomScope?: boolean
+  dataFirst?: boolean
 }) {
   const canChooseRoom = !lockRoomScope && (isSuperAdmin || canManageAllRooms)
   const canRelease = isSuperAdmin || canManageAllRooms
@@ -52,7 +60,11 @@ export default function StaffTeamWorkspace({
   useEffect(() => { const receive = (event: Event) => { const detail = (event as CustomEvent<{ query?: string }>).detail; setSearch(String(detail?.query ?? '')) }; window.addEventListener('aureka:workspace-search', receive); return () => window.removeEventListener('aureka:workspace-search', receive) }, [])
   const [selectedStaffId, setSelectedStaffId] = useState('')
   const [showRoster, setShowRoster] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const rosterVisible=dataFirst||showRoster
+  const [reading, setLoading] = useState(true)
+  const [loadedRoom,setLoadedRoom]=useState<number|null>(null)
+  const loading=reading||loadedRoom!==roomId
+  const beginLoad=useLatestWorkspaceRequest(String(roomId))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -69,7 +81,9 @@ export default function StaffTeamWorkspace({
   }, [canChooseRoom, initialRoomId, roomId, rooms])
 
   const load = useCallback(async () => {
-    setLoading(true); setError('')
+    const isCurrent=beginLoad()
+    if(!isCurrent)return
+    setLoading(true); setError('');setSelectedStaffId('')
     // Clear any previous unit's data before fetching a new scope.
     setDirectory([]); setAssignments([])
     try {
@@ -81,20 +95,24 @@ export default function StaffTeamWorkspace({
       // The database RPC deliberately omits staff locked to other teams.
       const { data: directoryRows, error: directoryError } = await q().rpc('list_assignable_staff', { p_room_id: roomId })
       if (directoryError) throw new Error('Daftar tenaga yang dapat dipetakan: ' + toUserFacingError(directoryError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
-      setDirectory((directoryRows || []) as DirectoryStaff[])
+      if(!isCurrent())return
       const { data: assignmentRows, error: assignmentError } = await q().from('staff_team_assignments')
         .select('id,staff_id,room_id,assignment_status,is_locked,assigned_at,assigned_user_id')
         .eq('room_id', roomId)
         .eq('assignment_status', 'active')
         .order('assigned_at', { ascending: true })
       if (assignmentError) throw new Error('Daftar tim: ' + toUserFacingError(assignmentError, { fallback: 'Periksa koneksi lalu coba lagi. Jika berulang, hubungi admin AUREKA.' }))
+      if(!isCurrent())return
+      setDirectory((directoryRows || []) as DirectoryStaff[])
       setAssignments((assignmentRows || []) as Assignment[])
     } catch (e) {
+      if(!isCurrent())return
+      setDirectory([]);setAssignments([])
       setError(toUserFacingError(e, { fallback: 'Daftar tim belum dapat dimuat. Coba muat ulang.' }))
     } finally {
-      setLoading(false)
+      if(isCurrent()){setLoadedRoom(roomId);setLoading(false)}
     }
-  }, [roomId])
+  }, [roomId,beginLoad])
 
   useEffect(() => { void load() }, [load])
 
@@ -125,7 +143,7 @@ export default function StaffTeamWorkspace({
   }, [roster])
 
   const addStaff = async () => {
-    if (busy) return
+    if (busy||loading) return
     if (!roomId) { setError('Pilih unit kerja terlebih dahulu.'); return }
     if (!selectedStaffId) { setError('Pilih satu tenaga dari direktori AUREKA.'); return }
     const staff = directory.find((item) => item.id === selectedStaffId)
@@ -160,7 +178,7 @@ export default function StaffTeamWorkspace({
   }
 
   const releaseStaff = async (assignment: Assignment, staff?: DirectoryStaff) => {
-    if (busy || !canRelease) return
+    if (busy || loading || !canRelease || assignment.room_id!==roomId) return
     const name = staff?.display_name || assignment.staff_id
     if (!(await aurekaConfirm(`Lepaskan ${name} dari tim ${roomName}? Tenaga ini baru dapat dipetakan ke tim lain setelah pelepasan tercatat.`))) return
     setBusy(true); setError(''); setMessage('')
@@ -184,6 +202,18 @@ export default function StaffTeamWorkspace({
     }
   }
 
+  type RosterRow=(typeof roster)[number]
+  const display:readonly ReadTableColumn<RosterRow>[]=[
+    {id:'name',label:'Tenaga kerja',required:true,cell:r=><><div className="stName">{r.staff?.display_name}</div><div className="stSub">{r.staff?.employee_code}</div></>},
+    {id:'profession',label:'Profesi',cell:r=><>{r.staff?.profession_group}<div className="stSub">{r.staff?.staff_group||'Kategori belum diisi'}</div></>},
+    {id:'position',label:'Jabatan / unit sumber',cell:r=><>{r.staff?.position_title||'Jabatan belum dicantumkan'}<div className="stSub">{r.staff?.source_unit||'Unit sumber belum dicantumkan'}</div></>},
+    {id:'date',label:'Tanggal penugasan',cell:r=>r.assignment.assigned_at?new Date(r.assignment.assigned_at).toLocaleDateString('id-ID'):'-'},
+    {id:'status',label:'Status',required:true,cell:r=><span className="stLock">{r.assignment.is_locked?'Terkunci':'Aktif'}</span>},
+    {id:'action',label:'Aksi',required:true,cell:r=>canRelease?<button type="button" className="stRelease" disabled={busy||loading} onClick={()=>void releaseStaff(r.assignment,r.staff)}>Lepaskan</button>:'Baca-saja'}
+  ]
+  const columns:readonly ReadGridColumn<RosterRow>[]=[
+    {id:'name',label:'Nama',value:r=>r.staff?.display_name},{id:'profession',label:'Profesi',value:r=>r.staff?.profession_group},{id:'position',label:'Jabatan',value:r=>r.staff?.position_title},{id:'date',label:'Tanggal penugasan',value:r=>r.assignment.assigned_at},{id:'status',label:'Status',value:r=>r.assignment.is_locked?'Terkunci':'Aktif'}
+  ]
   return (
     <section className="staffTeam">
       <style>{`
@@ -237,7 +267,7 @@ export default function StaffTeamWorkspace({
         )}
         {message && <div className="stNotice" role="status" aria-live="polite">{message}</div>}
         {error && <div className="stError" role="alert">{error}</div>}
-        {showRoster && <>{!loading && directory.length === 0 && <div className="stNotice">Master tenaga kerja belum tersedia pada unit ini. Super Admin perlu mengimpor CSV pada Sumber Daya Manusia → Tenaga Kerja terlebih dahulu.</div>}
+        {rosterVisible && <>{!loading && directory.length === 0 && <div className="stNotice">Master tenaga kerja belum tersedia pada unit ini. Super Admin perlu mengimpor CSV pada Sumber Daya Manusia → Tenaga Kerja terlebih dahulu.</div>}
         {!loading && directory.length > 0 && availableToChoose.length === 0 && <div className="stNotice">Tidak ada kandidat yang cocok. Tenaga yang telah terkunci pada tim ini sudah tercatat di roster; tenaga yang terkunci pada unit lain sengaja tidak ditampilkan.</div>}
         <div className="stForm">
           <label className="stField stLocalSearch"><span>Cari tenaga</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nama, kode, profesi, jabatan…"/></label>
@@ -249,19 +279,19 @@ export default function StaffTeamWorkspace({
           </label>
           <button type="button" className="stBtn primary" onClick={() => void addStaff()} disabled={loading || busy || !roomId || !selectedStaffId}>{busy ? 'Memproses…' : '＋ Kunci ke tim'}</button>
         </div></>}
-        {!showRoster && <section className="stPanel" aria-label="Komposisi roster berdasarkan profesi" style={{marginTop:14,padding:14,boxShadow:'none'}}>
+        {(!showRoster||dataFirst) && <ContinuumSummary enabled={dataFirst} label="Komposisi roster menurut profesi"><section className="stPanel" aria-label="Komposisi roster berdasarkan profesi" style={{marginTop:14,padding:14,boxShadow:'none'}}>
           <div className="stRosterHead"><b>Komposisi roster menurut kelompok profesi</b><span>{roster.length.toLocaleString('id-ID')} penugasan aktif</span></div>
           {professionSummary.length ? professionSummary.map(item=><div key={item.label} style={{display:'grid',gridTemplateColumns:'minmax(110px,1fr) minmax(80px,2fr) 34px',gap:9,alignItems:'center',margin:'9px 0',fontSize:12}}>
             <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={item.label}>{item.label}</span>
             <span style={{height:8,borderRadius:99,background:'rgba(80,110,130,.13)',overflow:'hidden'}}><i style={{display:'block',height:'100%',width:(roster.length?item.count/roster.length*100:0)+'%',background:'#16507a',borderRadius:99}}/></span>
             <b>{item.count}</b>
           </div>) : <div className="stEmpty">Belum ada anggota roster untuk diringkas.</div>}
-          <button type="button" className="stBtn primary" onClick={()=>setShowRoster(true)}>Lihat Tim dan Penugasan</button>
-        </section>}
-        {showRoster && <>
-        <button type="button" className="stBtn" onClick={()=>setShowRoster(false)}>Kembali ke ringkasan tim</button>
+          {!dataFirst&&<button type="button" className="stBtn primary" onClick={()=>setShowRoster(true)}>Lihat Tim dan Penugasan</button>}
+        </section></ContinuumSummary>}
+        {rosterVisible && <>
+        {!dataFirst&&<button type="button" className="stBtn" onClick={()=>setShowRoster(false)}>Kembali ke ringkasan tim</button>}
         <div className="stRosterHead"><b>Daftar tim aktif · {roomName}</b><span>{roster.length.toLocaleString('id-ID')} orang</span></div>
-        {loading ? <div className="stEmpty">Memuat daftar tim…</div> : roster.length ? (
+        {loading ? <div className="stEmpty">Memuat daftar tim…</div> : dataFirst ? <>{!error&&<><p>{assignments.length!==roster.length?`${assignments.length-roster.length} penugasan belum dapat dicocokkan dengan direktori yang dimuat.`:'Daftar penugasan aktif pada unit terpilih.'}</p><ContinuumReadGrid key={roomId} rows={roster} columns={columns} display={display} label="Roster tim aktif">{(page,filtered,keys)=><WorkspaceTableViewport dataFirst label="Roster tim aktif"><ContinuumReadTable rows={page} columns={display} keys={keys} rowKey={r=>r.assignment.id} className="rmTable" disableDomSort empty={filtered?'Tidak ada anggota sesuai pencarian.':'Belum ada tenaga yang ditetapkan pada tim ini.'}/></WorkspaceTableViewport>}</ContinuumReadGrid></>}</> : roster.length ? (
           <div className="stRows">
             {roster.map(({assignment,staff}) => (
               <div className="stRow" key={assignment.id}>

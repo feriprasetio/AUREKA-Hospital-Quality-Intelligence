@@ -1,4 +1,9 @@
 'use client'
+import ContinuumReadGrid from '@/components/workspace/ContinuumReadGrid'
+import ContinuumReadTable,{type ReadTableColumn} from '@/components/workspace/ContinuumReadTable'
+import ContinuumSummary from '@/components/workspace/ContinuumSummary'
+import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
+import type {ReadGridColumn} from '@/lib/aureka/read-grid'
 import AsyncStatePanel from '@/components/AsyncStatePanel'
 import { readAllPages } from '@/lib/aureka/pagination'
 import { useLatestWorkspaceRequest } from '@/lib/ui/use-latest-workspace-request'
@@ -38,7 +43,7 @@ function flowNodes(code:string){return code.split(/\s*-->\s*/).map(part=>{const 
 function safeName(name:string){return name.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').slice(0,120)||'dokumen-spo'}
 function dateLabel(value:string|null){if(!value)return 'Belum dicantumkan';const d=new Date(value+(value.length===10?'T00:00:00':''));return Number.isNaN(d.getTime())?value:d.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}
 
-export default function StandardsProcedureWorkspace({role,userId}:{role:string|null;userId:string}){
+export default function StandardsProcedureWorkspace({role,userId,dataFirst=false}:{role:string|null;userId:string;dataFirst?:boolean}){
   const canManage=managers.includes(role||'')
   const canApprove=approvers.includes(role||'')
   const inputRef=useRef<HTMLInputElement>(null)
@@ -89,7 +94,7 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
     try{
       const local=await readLocalDocument(file)
       const parsed=parseSpoSections(local.extractedText)
-      setSelected(null);setManual(false)
+      setSelected(null);setManual(true)
       setDraft({
         ...empty(),
         title:local.title,
@@ -197,6 +202,18 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
   const editing=(!selected||(['draft','pending_review'].includes(selected.status)))&&canManage
   const steps=draft.procedure_steps
 
+  const display:readonly ReadTableColumn<Row>[]=[
+    {id:'title',label:'Judul SPO',required:true,cell:r=><button type="button" className="spoLinkButton" disabled={busy} onClick={()=>openRow(r)}>{r.title}</button>},
+    {id:'number',label:'Nomor dokumen',cell:r=>r.document_number||'Belum dicantumkan'},
+    {id:'revision',label:'Revisi',cell:r=>r.revision_number||'00'},
+    {id:'date',label:'Tanggal terbit',cell:r=>dateLabel(r.issue_date)},
+    {id:'units',label:'Unit terkait',cell:r=>(r.related_units||[]).join(' · ')||'Belum diisi'},
+    {id:'status',label:'Status',required:true,cell:r=><span className={'spoStatus spoStatus-'+r.status}>{labels[r.status]}</span>},
+    {id:'source',label:'Sumber',cell:r=>r.source_file_name?'Hasil ekstraksi dokumen':'Input manual'}
+  ]
+  const columns:readonly ReadGridColumn<Row>[]=[
+    {id:'title',label:'Judul',value:r=>r.title},{id:'number',label:'Nomor dokumen',value:r=>r.document_number},{id:'revision',label:'Revisi',value:r=>r.revision_number},{id:'date',label:'Tanggal terbit',value:r=>r.issue_date},{id:'units',label:'Unit terkait',value:r=>(r.related_units||[]).join(' · ')},{id:'status',label:'Status',value:r=>labels[r.status]}
+  ]
   return <main className="spoWorkspace" aria-label="Standar Prosedur Operasional">
     <header className="spoHeader">
       <div><h1>Standar Prosedur Operasional</h1><p>Register SPO terstruktur, ekstraksi dokumen, dan kendali revisi.</p></div>
@@ -251,10 +268,10 @@ export default function StandardsProcedureWorkspace({role,userId}:{role:string|n
         {!canManage&&<p className="spoMuted">Akun Anda memiliki akses baca. Pengelolaan dan pengesahan dilakukan oleh pejabat berwenang.</p>}
       </footer>
     </section>:<>
-      {!loading&&!loadError&&<section className="spoStats"><div><span>Total Register</span><strong>{counts.all}</strong></div><div><span>Draf</span><strong>{counts.draft}</strong></div><div><span>Menunggu Review</span><strong>{counts.pending}</strong></div><div><span>Disahkan</span><strong>{counts.approved}</strong></div></section>}
+      {!loading&&!loadError&&<ContinuumSummary enabled={dataFirst} label="Ringkasan register SPO"><section className="spoStats"><div><span>Total Register</span><strong>{counts.all}</strong></div><div><span>Draf</span><strong>{counts.draft}</strong></div><div><span>Menunggu Review</span><strong>{counts.pending}</strong></div><div><span>Disahkan</span><strong>{counts.approved}</strong></div></section></ContinuumSummary>}
       <section className="spoRegister"><div className="spoRegisterToolbar"><div><h2>Register SPO</h2><p>Telusuri dokumen berdasarkan judul, nomor dokumentasi, unit, dan status.</p></div><input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari judul, nomor, atau unit…" aria-label="Cari SPO"/></div>
         <nav className="spoFilters" aria-label="Filter status">{(['all','draft','pending_review','approved','archived'] as const).map(value=><button key={value} type="button" className={filter===value?'active':''} onClick={()=>setFilter(value)}>{value==='all'?'Semua':labels[value]}</button>)}</nav>
-        {loading?<AsyncStatePanel state="loading" title="Memuat register SPO" compact/>:loadError?<AsyncStatePanel state="error" title="Register SPO belum tersedia" description={loadError} onRetry={()=>void load()} compact/>:visible.length?<div className="spoRecords">{visible.map(row=><button type="button" key={row.id} className="spoRecord" onClick={()=>openRow(row)}>
+        {loading?<AsyncStatePanel state="loading" title="Memuat register SPO" compact/>:loadError?<AsyncStatePanel state="error" title="Register SPO belum tersedia" description={loadError} onRetry={()=>void load()} compact/>:dataFirst?<ContinuumReadGrid key={filter} rows={visible} columns={columns} display={display} label="Register SPO" showSearch={false}>{(page,_filtered,keys)=><WorkspaceTableViewport dataFirst label="Register SPO"><ContinuumReadTable rows={page} columns={display} keys={keys} rowKey={r=>r.id} className="rmTable" disableDomSort empty={rows.length?'Tidak ada SPO yang sesuai filter.':'Belum ada register SPO.'}/></WorkspaceTableViewport>}</ContinuumReadGrid>:visible.length?<div className="spoRecords">{visible.map(row=><button type="button" key={row.id} className="spoRecord" onClick={()=>openRow(row)}>
           <div className="spoRecordTop"><span>{row.document_number||'Nomor belum dicantumkan'}</span><span className={'spoStatus spoStatus-'+row.status}>{labels[row.status]}</span></div>
           <h3>{row.title}</h3><p>Revisi {row.revision_number||'00'} · Terbit {dateLabel(row.issue_date)}</p>
           <div className="spoRecordBottom"><span>{(row.related_units||[]).slice(0,3).join(' · ')||'Unit terkait belum diisi'}</span><span>{row.source_file_name?'Hasil ekstraksi dokumen':'Input manual'}</span></div>
