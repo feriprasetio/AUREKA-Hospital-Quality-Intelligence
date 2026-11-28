@@ -3,6 +3,7 @@ import { useState } from 'react'
 import AurekaModal from '@/components/ui/AurekaModal'
 import { RISK_REVIEW_SKILL, reviewRiskSnapshot, riskReviewMetrics, riskReviewCsv, type RiskReviewRow, type RiskReviewResult } from '@/lib/aureka/risk-review-skill'
 import { downloadCsv } from '@/lib/aureka/csv-export'
+import AggregateReportStudio from '@/components/workspace/AggregateReportStudio'
 type Props={rows:readonly RiskReviewRow[];scope:string;scopeKey:string;refreshedAt:string|null;ready:boolean;onRefresh:()=>void;score:(likelihood:number,impact:number)=>number;level:(score:number)=>string}
 export default function RiskReviewSkill({rows,scope,scopeKey,refreshedAt,ready,onRefresh,score,level}:Props){
  const [open,setOpen]=useState(false)
@@ -25,6 +26,7 @@ export default function RiskReviewSkill({rows,scope,scopeKey,refreshedAt,ready,o
      <table><thead><tr><th>Indikator tinjauan</th><th>Jumlah</th></tr></thead><tbody>{riskReviewMetrics(current.result).map(([label,value])=><tr key={label}><td>{label}</td><td data-review-metric={label}>{value.toLocaleString('id-ID')}</td></tr>)}</tbody></table>
      <h4>Distribusi level tersimpan</h4><table><thead><tr><th>Level</th><th>Total</th><th>Aktif</th></tr></thead><tbody>{current.result.distribution.map(x=><tr key={x.level}><td>{x.level}</td><td>{x.total}</td><td>{x.active}</td></tr>)}</tbody></table>
      <p>Langkah berikutnya: verifikasi ketidaksesuaian di register, tinjau risiko aktif prioritas, dan lengkapi pemilik, tenggat, serta kontrol melalui alur mitigasi existing. Ekspor hanya agregat; tidak memuat identitas atau kronologi.</p>
+     <AggregateReportStudio key={current.refreshedAt+current.scopeKey} report={{title:'Draf evaluasi risiko',source:RISK_REVIEW_SKILL.source,scope,snapshot:current.refreshedAt,method:'Pemeriksaan nilai tersimpan memakai matriks dan level existing, tanpa perubahan nilai.',limitation:'Jumlah agregat bukan keputusan penerimaan risiko. Verifikasi dengan pemilik risiko. Tidak berisi identitas atau kronologi.',metrics:riskReviewMetrics(current.result),details:current.result.distribution.flatMap(x=>[[x.level+' · total',x.total],[x.level+' · aktif',x.active]] as const)}}/>
     </div>}
    </section>
   </AurekaModal>
