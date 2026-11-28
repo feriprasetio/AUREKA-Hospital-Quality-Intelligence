@@ -134,3 +134,8 @@ html[data-motion="off"] .arcticCategoryNav * { transition:none; scroll-behavior:
 .arcticWorkspacePin .arcticPinClose { min-width:32px; padding:4px; }
 .arcticPinNotice { margin:4px 0; color:var(--aureka-color-foreground); }
 @media(max-width:767px) { .arcticWorkspacePin button { min-height:44px; } .arcticWorkspacePin .arcticPinClose { min-width:44px; } }
+
+.arcticFocusBar { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+.arcticFocusBar span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--aureka-canvas-muted); }
+.arcticFocusBar button { flex:0 0 auto; padding:4px 10px; min-height:36px; border-radius:8px; }
+@media(max-width:767px){.arcticFocusBar button{min-height:44px;}}
