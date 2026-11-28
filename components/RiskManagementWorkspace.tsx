@@ -2,6 +2,7 @@
 
 import { GRID_PAGE_SIZES, normalizeGridPageSize, paginateGrid } from '@/lib/aureka/grid-pagination'
 import AurekaModal from '@/components/ui/AurekaModal'
+import RiskReviewSkill from '@/components/workspace/RiskReviewSkill'
 import WorkspaceTableViewport from '@/components/workspace/WorkspaceTableViewport'
 
 import WorkspaceModuleHeader from '@/components/workspace/WorkspaceModuleHeader'
@@ -231,6 +232,8 @@ export default function RiskManagementWorkspace({
   const [fmeas, setFmeas] = useState<FmeaRow[]>([])
   const [events, setEvents] = useState<WorkflowEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [reviewSnapshot,setReviewSnapshot]=useState<{scope:string;at:string}|null>(null)
+  const loadSequence=useRef(0)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -341,8 +344,11 @@ export default function RiskManagementWorkspace({
       setSelectedPlanId(current => incomingPlans.some(p => p.id === current) ? current : (incomingPlans[0]?.id || ''))
     }
   }, [currentRoom?.name, scopedToUnit, belongsToMyUnit, initialRoomId])
+  const riskScopeKey=JSON.stringify([userId,role,scopedToUnit,initialRoomId,currentRoom?.name])
   const loadData = useCallback(async () => {
-    const cacheKey = userId + '|' + (scopedToUnit ? 'unit:' + String(initialRoomId) : 'all')
+    const sequence=++loadSequence.current
+    setReviewSnapshot(null)
+    const cacheKey = riskScopeKey
     const cached = rmQueryCache.get(cacheKey)
     if (cached) { applyQueries(cached); setLoading(false) }
     else setLoading(true)
@@ -354,13 +360,14 @@ export default function RiskManagementWorkspace({
       fetchAllPages((from, to) => db.from('fmea_analyses').select('*').order('rpn', { ascending: false }).order('id', { ascending: true }).range(from, to)),
       fetchAllPages((from, to) => db.from('risk_workflow_events').select('*').order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, to)),
     ])
-    if (!queries.some(q => q.error)) rmQueryCache.set(cacheKey, queries)
+    if(sequence!==loadSequence.current)return
+    if (!queries.some(q => q.error)) {rmQueryCache.set(cacheKey, queries);setReviewSnapshot({scope:riskScopeKey,at:new Date().toISOString()})}
     applyQueries(queries)
     setLoading(false)
-  }, [db, scopedToUnit, initialRoomId, applyQueries, userId])
+  }, [db, riskScopeKey, applyQueries])
 
 
-  useEffect(() => { void loadData() }, [loadData])
+  useEffect(() => { void loadData();return()=>{loadSequence.current++} }, [loadData])
   useEffect(() => {
     setRiskForm(current => current.unit_id ? current : { ...current, unit_id: initialRoomId == null ? '' : String(initialRoomId) })
     setFmeaForm(current => ({ ...current, unit_name: current.unit_name || currentRoom?.name || '' }))
@@ -1039,7 +1046,7 @@ export default function RiskManagementWorkspace({
               </tr>)}
                 {!pageRisks.length && <tr><td colSpan={6}><div className="rmEmptySmall">Tidak ada risiko yang sesuai filter. Ubah filter atau tambahkan risiko baru.</div></td></tr>}
               </tbody></table></WorkspaceTableViewport>
-          <div className="rmTableFooter"><span>Menampilkan {gridPage.start}–{gridPage.end} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span>{dataFirst && <label className="rmArcticGridControls">Baris per halaman <select aria-label="Baris per halaman register risiko" value={arcticPageSize} onChange={e => { setArcticPageSize(normalizeGridPageSize(Number(e.target.value))); setPage(0) }}>{GRID_PAGE_SIZES.map(size => <option key={size} value={size}>{size}</option>)}</select></label>}<div className="rmActions"><button type="button" className="rmButton subtle" disabled={page === 0} onClick={() => setPage(v => Math.max(0, v - 1))}>← Sebelumnya</button><span className="rmPage">Halaman {page + 1} / {pageCount}</span><button type="button" className="rmButton subtle" disabled={page + 1 >= pageCount} onClick={() => setPage(v => Math.min(pageCount - 1, v + 1))}>Berikutnya →</button></div></div>
+          <div className="rmTableFooter"><span>Menampilkan {gridPage.start}–{gridPage.end} dari {filteredRisks.length.toLocaleString('id-ID')} risiko</span>{dataFirst && <label className="rmArcticGridControls">Baris per halaman <select aria-label="Baris per halaman register risiko" value={arcticPageSize} onChange={e => { setArcticPageSize(normalizeGridPageSize(Number(e.target.value))); setPage(0) }}>{GRID_PAGE_SIZES.map(size => <option key={size} value={size}>{size}</option>)}</select></label>}{dataFirst&&<RiskReviewSkill key={riskScopeKey} rows={filteredRisks} scope={(unitFilter==='all'?'Semua unit yang tersedia':unitFilter||'Unit belum dipilih')+' · level '+levelFilter+' · kategori '+categoryFilter+' · status '+statusFilter+(search.trim()?' · pencarian aktif':'')+(matrixFilter?' · matriks P'+matrixFilter.likelihood+' D'+matrixFilter.impact:'')} scopeKey={JSON.stringify([riskScopeKey,unitFilter,levelFilter,categoryFilter,statusFilter,search,matrixFilter])} refreshedAt={reviewSnapshot?.scope===riskScopeKey?reviewSnapshot.at:null} ready={Boolean(reviewSnapshot?.scope===riskScopeKey&&!loading&&!unitMissing&&!saving)} onRefresh={()=>void loadData()} score={riskScore} level={levelFor}/>}<div className="rmActions"><button type="button" className="rmButton subtle" disabled={page === 0} onClick={() => setPage(v => Math.max(0, v - 1))}>← Sebelumnya</button><span className="rmPage">Halaman {page + 1} / {pageCount}</span><button type="button" className="rmButton subtle" disabled={page + 1 >= pageCount} onClick={() => setPage(v => Math.min(pageCount - 1, v + 1))}>Berikutnya →</button></div></div>
         </LiquidGlass>}
 
         {dataFirst && <details className="arcticDomainSummary" id="risk-register-map" open={registerMapOpen} onToggle={event => setRegisterMapOpen(event.currentTarget.open)}>
