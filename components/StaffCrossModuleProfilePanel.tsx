@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { useAccessibleDialog } from '@/components/layout/useAccessibleDialog'
 import {aurekaSupabase} from '@/lib/aureka/supabase'
 import {toUserFacingError} from '@/lib/ui/error-feedback'
+import StaffEducationPanel from '@/components/StaffEducationPanel'
 
 type Staff={id:string;employee_code:string;display_name:string;profession_group:string;position_title:string;source_unit:string}
 type Profile={
@@ -53,6 +54,7 @@ export default function StaffCrossModuleProfilePanel({staff,onClose}:{staff:Staf
      <section className="scProfileCard"><h3>Evaluasi Kinerja Klinis · OPPE / FPPE</h3>{!data.permissions.performance?<div className="scProfileEmpty">Role akun tidak memiliki kewenangan membaca evaluasi kinerja.</div>:data.performance.length===0?<div className="scProfileEmpty">Belum ada evaluasi OPPE/FPPE pada ruang lingkup akses.</div>:<div className="scProfileList">{data.performance.map(x=><div className="scProfileItem" key={x.id}><strong>{title(x.evaluation_type)} · {x.status}</strong><span className="scProfileMeta">{x.room_name||'Unit'} · {dateText(x.period_start)} – {dateText(x.period_end)}{x.validated_at?' · Validasi '+dateText(x.validated_at.slice(0,10)):''}</span>{x.review_note&&<div className="scProfileMeta">Catatan: {x.review_note}</div>}</div>)}</div>}</section>
      <section className="scProfileCard"><h3>Insiden Keselamatan Pasien</h3>{!data.permissions.incidents?<div className="scProfileEmpty">Role akun tidak memiliki kewenangan membaca keterkaitan insiden.</div>:data.incidents.length===0?<div className="scProfileEmpty">Tidak ditemukan tautan atribusi insiden untuk tenaga kerja ini.</div>:<div className="scProfileList">{data.incidents.map(x=><div className="scProfileItem" key={x.id}><strong>{x.incident_code} · {x.incident_type}</strong><span className="scProfileMeta">{x.unit_name} · {dateText(x.incident_date)} · {x.status}</span></div>)}</div>}</section>
      <section className="scProfileCard"><h3>Riwayat Survei Budaya Keselamatan</h3>{!data.permissions.named_culture_history?<div className="scProfileEmpty">Riwayat survei bernama hanya tersedia bagi role yang berwenang. Respons anonim tidak ditautkan ke profil individu.</div>:data.named_culture_history.length===0?<div className="scProfileEmpty">Tidak ada respons survei bernama yang terhubung ke identitas ini. Respons anonim tetap terpisah.</div>:<div className="scProfileList">{data.named_culture_history.map((x,i)=><div className="scProfileItem" key={x.survey_period+'-'+x.unit_name+'-'+i}><strong>{x.survey_period} · {x.unit_name}</strong><span className="scProfileMeta">{x.response_count} pengiriman bernama · Terakhir {new Date(x.submitted_at).toLocaleDateString('id-ID')}</span></div>)}</div>}</section>
+     <StaffEducationPanel key={staff.id} staffId={staff.id}/>
     </div>
     <p className="scProfileMeta" style={{marginTop:12}}>Tampilan mengikuti hak akses dan ruang lingkup akun. Profil ini tidak menampilkan NIK/NIP, identitas pasien, atau isi respons survei anonim.</p>
    </>}

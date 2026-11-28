@@ -12,6 +12,7 @@ import type {ReadGridColumn} from '@/lib/aureka/read-grid'
 import {useLatestWorkspaceRequest} from '@/lib/ui/use-latest-workspace-request'
 import {scopedGovernanceActions,governanceReview} from '@/lib/aureka/governance-review'
 import AggregateReportStudio from '@/components/workspace/AggregateReportStudio'
+import ImprovementSourcePanel from '@/components/governance/ImprovementSourcePanel'
 
 type Room = { id: number; name: string }
 type Issuer = 'DEWAN_PENGAWAS'|'DIREKTUR'|'KETUA_PMKP'|'KABID'
@@ -159,6 +160,7 @@ export default function GovernanceProgramWorkspace({rooms,dataFirst=false}:{room
         <button type="button" className={'rmButton'+(showList?'':' primary')} onClick={()=>setShowList(!showList)}>{showList?'Kembali ke ringkasan RTL':'Lihat RTL'}</button>
       </div>}
       {dataFirst&&snapshot&&<details data-governance-review><summary>Skill · Tinjauan tindak lanjut</summary><p>Jumlah dari hasil RPC dan filter pemberi rekomendasi, termasuk RTL tanpa induk. Tidak menyimpulkan efektivitas atau mengubah status.</p><AggregateReportStudio key={snapshot+issuerFilter} report={{title:'Draf tinjauan tindak lanjut',source:'aureka_gov_program_list',scope:year+' · '+selectedLabel+' · termasuk tanpa induk',snapshot,method:'Hitung status tersimpan, tanggal tenggat Asia/Pontianak, dan kelengkapan empat tahap siklus.',limitation:'Kelengkapan teks bukan bukti efektivitas. Hanya RTL yang dimuat dan sesuai cakupan, termasuk tanpa induk. Tidak mengandung identitas atau rincian kasus.',metrics:[['RTL dalam cakupan',review.total],['Lewat tenggat',review.overdue],['Aktif tanpa tenggat',review.withoutDue],['Tanpa rekomendasi induk',review.unlinked],['Siklus belum lengkap',review.incompleteCycle]],details:[...review.status.map(s=>[STATUS_LABEL[s.status]||s.status,s.count] as const),['Status lain',review.other]]}}/></details>}
+      {canManage&&listVisible&&<ImprovementSourcePanel key={year+'|'+issuerFilter} actions={scopedActions.map(a=>({id:a.id,title:a.title,status:a.status}))}/>}
       {listVisible&&<><div className="govRecList">
         {dataFirst&&<ContinuumReadGrid key={year+'|'+issuerFilter} rows={scopedActions} columns={columns} display={display} label="Register RTL terpadu">{(page,filtered,keys)=><WorkspaceTableViewport dataFirst label="Register RTL terpadu" className="rmTableWrap"><ContinuumReadTable rows={page} columns={display} keys={keys} rowKey={a=>a.id} className="rmTable" disableDomSort empty={filtered?'Tidak ada RTL sesuai pencarian.':'Belum ada RTL pada cakupan ini.'}/></WorkspaceTableViewport>}</ContinuumReadGrid>}
         {dataFirst&&<p>Daftar mencakup RTL tanpa rekomendasi induk. Rekomendasi induk tetap dapat dibuka di bawah.</p>}
